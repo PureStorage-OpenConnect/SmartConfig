@@ -1,0 +1,141 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title></title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="language" content="english">
+	<link rel="shortcut icon" type="image/x-icon" href="static/images/favicon.ico">
+	
+	<link rel="stylesheet" type="text/css" href="static/css/lib/jquery-ui.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/jquery.mCustomScrollbar.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/custom-checkbox.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/jquery.fileupload.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/animate.min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/lib/multiple-emails.css">
+
+	<link rel="stylesheet" type="text/css" href="static/css/notification.css">
+	<link rel="stylesheet" type="text/css" href="static/css/dms/smart_wizard.css">
+	<link rel="stylesheet" type="text/css" href="static/css/fonts.css" />
+	<link rel="stylesheet" type="text/css" href="static/css/common.css" />
+	<link rel="stylesheet" type="text/css" href="static/css/dms/setup.css" />
+</head>
+<body class="pure-skin" style="min-width: 960px; cursor: auto;">
+	<div class="nn-alert-container"></div>
+	<div id="root-container">
+		<div class="pure-header-container" style="display: table; width: 100%">
+			<div class="pure-header-container-left" style="display: table-cell;">
+				<div class="pure-header-logo">
+					<a class="mvc-framework-tags-ui-button-anchor" href="javascript:;">
+						<img src="static/images/logo.png" alt="" border="0" align="">
+					</a>
+				</div>
+			</div>
+		</div>
+    		<div class="pure-header-tabs-container">
+			<div id="dashboard-root-container">
+				<!-- Widget Starts -->
+				<div class="widget-center">
+					<div id="dashboard-status-container" class="widget">
+						<div class="widget-header">
+							<div class="widget-title pull-left">Setup Wizard</div>
+							<div class="widget-subtitle pull-right"></div>
+							<div class=""></div>
+						</div>
+						<div class="widget-content collapsible-content">
+							<div class="content collapsible-content">
+								<div id="setup_wizard" class="lm-viewport-padding">
+									<div id="dashboardAlertsComponent">
+										<div id="wizard" class="swMain">
+											<ul>
+												<li>
+													<a href="#step-1">
+														<label class="stepNumber">1</label>
+														<span class="stepDesc">
+															Network<br><small>Settings</small>
+														</span>
+													</a>
+												</li>
+												<li>
+													<a href="#step-2">
+														<label class="stepNumber">2</label>
+														<span class="stepDesc">
+															User<br><small>Settings</small>
+														</span>
+													</a>
+												</li>
+												<li>
+													<a href="#step-3">
+														<label class="stepNumber">3</label>
+														<span class="stepDesc">
+															NTP<br><small>Settings</small>
+														</span>
+													</a>
+												</li>
+												<li>
+													<a href="#step-4">
+														<label class="stepNumber">4</label>
+														<span class="stepDesc">
+															SMTP<br><small>Settings</small>
+														</span>
+													</a>
+												</li>
+													<li>
+													<a href="#step-5">
+														<label class="stepNumber">5</label>
+														<span class="stepDesc">
+															Import<br><small>Devices</small>
+														</span>
+													</a>
+												</li>
+											</ul>
+											<div id="step-1">
+												<h2 class="StepTitle">Network Settings</h2>
+											</div>
+											<div id="step-2">
+												<h2 class="StepTitle">User</h2>
+											</div>
+											<div id="step-3">
+												<h2 class="StepTitle">NTP settings</h2>
+											</div>
+											<div id="step-4">
+												<h2 class="StepTitle">SMTP Settings</h2>
+											</div>
+											<div id="step-5">
+												<h2 class="StepTitle">Import Devices</h2>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- Widget Ends -->
+			</div>
+		</div>
+	</div>
+	<div class="clear"></div>
+
+	<script type="text/javascript" src="static/js/lib/jquery-1.11.3.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.mCustomScrollbar.concat.min.js"></script>
+    	<script type="text/javascript" src="static/js/lib/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.cookie.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.mask.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.smartWizard.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.iframe-transport.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fileupload.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fileupload-process.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fileupload-validate.js"></script>
+	<script type="text/javascript" src="static/js/lib/multiple-emails.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fittext.js"></script>
+
+	<script type="text/javascript" src="static/js/ajaxupload.js"></script>
+	<script type="text/javascript" src="static/js/common.js"></script>
+	<script type="text/javascript" src="static/js/templates.js"></script>
+	<script type="text/javascript" src="static/js/dms/templates.js"></script>
+	<script type="text/javascript" src="static/js/dms/shared.js"></script>
+	<script type="text/javascript" src="static/js/dms/setup.js"></script>
+</body>
+</html>

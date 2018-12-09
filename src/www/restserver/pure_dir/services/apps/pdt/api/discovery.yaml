@@ -1,0 +1,591 @@
+paths:
+  /FSComponents:
+    get:
+      tags: 
+      - Discovery
+      parameters:
+      - in: query
+        name: mac
+        description: MAC address of the device
+        required: false
+        type: string
+      operationId: pdt_api.fscomponents
+      summary: List of flashstack components
+      security: []
+      responses:
+        '200':
+          description: Return list of flashstack components
+          schema:
+            $ref: '#/definitions/DHCPClientsResponse'
+
+  /FreeIP:
+    get:
+      tags: 
+      - Discovery
+      operationId: pdt_api.freeip
+      summary: List of free ip addresses available
+      security: []
+      responses:
+        '200':
+          description: Return list of free ips
+          schema:
+            $ref: '#/definitions/FreeIPResponse'
+
+  /DHCPSettings:
+    post:
+      tags: 
+      - Discovery
+      parameters:
+      - required: true
+        in: body
+        description: The name of the pure app
+        name: data
+        schema:
+          $ref: '#/definitions/DHCPSettings'
+      operationId: pdt_api.dhcpenable
+      summary: Configure DHCP settings and start the DHCP server
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/DHCPValidate'
+    get:
+      tags: 
+      - Discovery
+      operationId: pdt_api.dhcpdisable
+      summary: Configure DHCP settings and start the DHCP server
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/DHCPValidate'
+
+  /DHCPInfo:
+    get:
+      tags:
+      - System
+      operationId: pdt_api.dhcpinfo
+      summary: DHCP Info
+      security: []
+      responses:
+        '200':
+          description: Return dhcp information
+          schema:
+            $ref: '#/definitions/DHCPInfoResponse'
+
+  /AddDevice:
+    post:
+      tags: 
+      - Discovery
+      parameters:
+      - required: true
+        in: body
+        description: Device details
+        name: data
+        schema:
+          $ref: '#/definitions/AddDevice'
+      operationId: pdt_api.adddevice
+      summary: Add a device 
+      security: []
+      responses:
+        '200':
+          description: Return status of device add
+          schema:
+            $ref: '#/definitions/DHCPValidate'
+
+  /DeleteDevice:
+    get:
+      tags: 
+      - Discovery
+      parameters:
+      - required: true
+        in: query
+        description: List of mac_addresses
+        name: mac_list
+        type: array
+        items:
+          type: string
+
+      operationId: pdt_api.deletedevice
+      summary: Delete a device 
+      security: []
+      responses:
+        '200':
+          description: Return list of undeleted devices
+          schema:
+            $ref: '#/definitions/DeleteDeviceResponse'
+
+  /ConfigDefaults:
+    post:
+      tags: 
+      - Initial Setup
+      parameters:
+      - required: true
+        in: body
+        description: Dictionary to auto populate the default configs
+        name: data
+        schema:
+          $ref: '#/definitions/ComponentList'
+      operationId: pdt_api.configdefaults
+      summary: Auto-Populate the fields for initial setup of a flashstack component
+      security: []
+      responses:
+        '200':
+          description: Returns the list of hardware's default config values
+          schema:
+            $ref: '#/definitions/ConfigDefaultsResponse'
+
+  /Reconfigure:
+    get:
+      tags: 
+      - Discovery
+      parameters:
+      - in: query
+        name: hwtype
+        description: Type of flashstack component
+        required: true
+        type: string
+        enum: ['UCSM', 'Nexus_5k', 'Nexus_9k', 'MDS']
+      - in: query
+        name: mac
+        description: List of mac_addresses
+        required: true
+        type: array
+        items:
+          type: string
+      - in: query
+        name: force
+        description: Force parameter
+        type: integer
+        enum: [0, 1]
+        default: 0
+      operationId: pdt_api.reconfigure
+      summary: To reconfigure a flashstack component
+      security: []
+      responses:
+        '200':
+          description: Returns the status 
+          schema:
+            $ref: '#/definitions/ReconfigureResponse'
+
+  /ExportDevices:
+    get:
+      tags:
+      - Discovery
+      operationId: pdt_api.exportdevices
+      summary: Export the list of devices
+      security: []
+      responses:
+        '200':
+          description: Returns the location of the device list
+          schema:
+            $ref: '#/definitions/ExportDevices'
+
+  /SaveConfiguration:
+    post:
+     tags:
+     - Discovery
+     parameters:
+       - in: query
+         name: stacktype
+         description: Flash stack type
+         required: false
+         type: string
+       - in : body
+         name: data
+         description: Config data
+         required: false
+         schema:
+            $ref: '#/definitions/SaveConfig'
+       - in: query
+         name: update
+         description: Save a fresh config or update an existing one
+         required: false
+         type: integer
+         enum: [0, 1]
+         default: 0
+     operationId: pdt_api.saveconfig
+     summary: Save configuration of all devices
+     security: []
+     responses:
+       '200':
+         description: Returns response
+         schema:
+           $ref: '#/definitions/MDSValidate'
+
+  /ClearConfiguration:
+    get:
+      tags:
+      - Discovery
+      operationId: pdt_api.clearconfig
+      summary: Clear unconfigured devices configuration
+      security: []
+      responses:
+        '200':
+          description: Returns the state
+          schema:
+            $ref: '#/definitions/StateResponse'
+
+  /ConfigureDevices:
+    get:
+      tags:
+      - Discovery
+      operationId: pdt_api.initialconfig
+      summary: Start configuration for all devices
+      security: []
+      responses:
+        '200':
+          description: Returns response
+          schema:
+            $ref: '#/definitions/DeleteDeviceResponse'
+
+  /FIGenValidate:
+    post:
+      tags:
+      - Discovery
+      parameters:
+      - in: query
+        name: stacktype
+        description: Stack type selected
+        required: true
+        type: string
+      - in : body
+        name: filist 
+        description: FI list
+        required: true
+        schema:
+          type: array
+          items:
+           type: string
+
+      operationId: pdt_api.figenvalidate
+      summary: Check whether both are FI's are same gen and gen type
+      security: []
+      responses:
+        '200':
+          description: Returns the status
+          schema:
+            $ref: '#/definitions/ReconfigureResponse'
+
+
+definitions:
+  DHCPClients:
+    required:
+    - mac_address
+    - ip_address
+    - serial_number
+    - device_type
+    - config_state
+    - vendor_model
+    - reachability
+    type: object
+    properties:
+      mac_address:
+        type: string
+        description: MAC address
+      ip_address:
+        type: string
+        description: DHCP IP address
+      serial_number:
+        type: string
+        description: Device serial number
+      device_type:
+        type: string
+        description: Device type
+      config_state:
+        type: string
+        description: Configuration state
+      vendor_model:
+        type: string
+        description: vendor model
+      reachability:
+        type: string
+        description: reachability status
+      reval_msg:
+        type: string
+        description: Reason for Re-validate state
+      image_version:
+        type: string
+        description: Firmware image
+      validated:
+        type: boolean
+        description: Validation status
+      infra_image:
+        type: string
+        description: UCS Infra image
+
+  ComponentConfigs:
+    required:
+    - device_type
+    - switch_ip
+    - switch_mac
+    #- domain_name
+    type: object
+    properties:
+      device_type:
+        type: string
+        description: Switch type
+      switch_ip:
+        type: string
+        description: Switch IP address
+      switch_name:
+        type: string
+        description: Switch Name
+      switch_mac:
+        type: string
+        description: MAC address
+      domain_name:
+        type: string
+        description: DNS domain name
+      switch_image:
+        type: string
+        description: Switch Firmware image
+      virtual_ip:
+        type: string
+        description: UCS Virtual IP address
+      mode:
+        type: string
+        description: UCS mode primary/secondary if in cluster or standalone
+
+  DHCPClientsResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items: 
+          $ref: '#/definitions/DHCPClients'
+
+  FreeIPResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items: 
+          type: string
+
+  DHCPInfoResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        $ref: '#/definitions/DHCPInfo'
+
+  DHCPInfo:
+    type: object
+    required:
+      - ip
+      - gateway
+      - netmask
+      - subnet
+      - dhcp_start
+      - dhcp_end
+      - static_start
+      - static_end
+    properties:
+      ip:
+        type: string
+      gateway:
+        type: string
+      netmask:
+        type: string
+      subnet:
+        type: string
+      dhcp_start:
+        type: string
+        description: Starting IP for DHCP
+        example: '192.168.1.11'
+      dhcp_end:
+        type: string
+        description: End IP for DHCP
+        example: '192.168.1.50'
+      static_start:
+        type: string
+        description: Starting IP for Static
+        example: '192.168.1.51'
+      static_end:
+        type: string
+        description: End IP for Static
+        example: '192.168.1.90'
+
+  DHCPSettings:
+    required:
+    - subnet
+    - netmask
+    - gateway
+    - server_ip
+    - dhcp_start
+    - dhcp_end
+    - static_start
+    - static_end
+    type: object
+    properties:
+      subnet:
+        type: string
+        description: Subnet entry
+        example: '192.168.1.0'
+      netmask:
+        type: string
+        description: Netmask
+        example: '255.255.255.0'
+      gateway:
+        type: string
+        description: Gateway or router ip
+        example: '192.168.1.1'
+      server_ip:
+        type: string
+        description: Server Ip
+        example: '192.168.10.20'
+      dhcp_start:
+        type: string
+        description: DHCP starting ip in the range
+        example: '192.168.1.10'
+      dhcp_end:
+        type: string
+        description: DHCP end ip in the range
+        example: '192.168.1.30'
+      static_start:
+        type: string
+        description: Static starting ip in the range
+        example: '192.168.1.40'
+      static_end:
+        type: string
+        description: Static end ip in the range
+        example: '192.168.1.60'
+  
+  AddDevice:
+    required:
+    - ip
+    - username
+    - password
+    - type
+    type: object
+    properties:
+      ip:
+        type: string
+        description: Ip address
+      username:
+        type: string
+        description: Username
+      password:
+        type: string
+        description: Password
+      type:
+        type: string
+        description: Device type
+
+  ComponentList:
+    type: object
+    properties:
+      UCSM:
+        type: array
+        items:
+          type: string
+        description: List of FIs
+      MDS:
+        type: array
+        items:
+          type: string
+        description: List of MDSs
+      NEXUS:
+        type: array
+        items:
+          type: string
+        description: List of NEXUSs
+
+  DeleteDeviceResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+          type: string
+        description: List of devices whose deletion is not successful
+
+  ExportDevices:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: object
+        required:
+            - filepath
+        properties:
+          filepath:
+            type: string
+
+  DHCPValidate:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+            required:
+              - field
+              - msg
+            properties:
+              field:
+                type: string
+                description: field name
+              msg:
+                type: string
+                description: message to be displayed
+
+  ConfigDefaultsResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items: 
+          $ref: '#/definitions/ComponentConfigs'
+  ReconfigureResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: string
+        description: Configuration state
+
+  SaveConfig:
+   description: Save config parameters
+   properties:
+    input_list:
+      type: string

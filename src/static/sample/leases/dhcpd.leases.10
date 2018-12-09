@@ -1,0 +1,75 @@
+# The format of this file is documented in the dhcpd.leases(5) manual page.
+# This lease file was written by isc-dhcp-4.2.4
+
+lease 10.132.243.37 {
+  starts 4 2018/04/05 13:56:46;
+  ends 4 2018/04/09 14:06:46;
+  cltt 4 2018/04/09 13:56:46;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 38:60:77:23:da:09;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 10.132.243.24 {
+  starts 4 2018/04/05 13:57:21;
+  ends 4 2018/04/09 14:07:21;
+  cltt 4 2018/04/09 13:57:21;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:52:27:49;
+  uid "\000FDO21191E10";
+  set serial = "\000FDO21191E10";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 10.132.243.35 {
+  starts 4 2018/04/05 13:57:22;
+  ends 4 2018/04/09 14:07:22;
+  cltt 4 2018/04/09 13:57:22;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet f8:0f:41:fd:ac:25;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 10.132.243.30 {
+  starts 4 2018/04/05 13:57:49;
+  ends 4 2018/04/09 14:07:49;
+  cltt 4 2018/04/09 13:57:49;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:0c:29:e0:4e:b8;
+  uid "\000JPG201700TM";
+  set serial = "\000JPG201700TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 10.132.243.40 {
+  starts 4 2018/04/05 13:58:40;
+  ends 4 2018/04/09 14:08:40;
+  cltt 4 2018/04/09 13:58:40;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 70:71:bc:90:2a:06;
+  uid "\000JPG205500TM";
+  set serial = "\000JPG205500TM";
+  set vendor-string = "Cisco UCS FI-6332-16UP";
+}
+lease 10.132.243.30 {
+  starts 4 2018/04/05 13:58:44;
+  ends 4 2018/04/09 14:08:44;
+  cltt 4 2018/04/09 13:58:44;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:d0:b8:15:7b:a3;
+  uid "\000JPG206500TM";
+  set serial = "\000JPG206500TM";
+  set vendor-string = "Cisco UCS-FI-6332-16UP";
+}

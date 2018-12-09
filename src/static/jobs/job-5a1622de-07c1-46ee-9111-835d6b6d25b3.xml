@@ -1,0 +1,24 @@
+<?xml version="1.0" ?><workflow id="wf1" name="createServiceProfileAndAttach" desc="create a service profile and attach to server">
+	<tasks>
+		<task class="UCSCreateServiceProfileFromTemplate" id="t2" desc="Create service profile from templates"  name="CreateServiceProfileFromTemplate" inittask="1" texecid="t201"  OnSuccess="t301" Onfailure="None">
+			<outputs>
+				<output dt_type="integer" name="status" value="no-op"/>
+				<output dt_type="string" name="serviceprofilename" value="no-op"/>
+			</outputs>
+			<args>
+				<arg dt_type="string" ip_type="1" api=""  name="profile_name" label="Profile name" svalue="Test-Jun29-5" value="test18-9" />
+				<arg dt_type="string" ip_type="1" api=""  name="profile_desc" label="Profile description"  svalue="Test-Jun29-5" value="testing" />
+				<arg dt_type="string" ip_type="1" api=""  name="template_name" label="template name" svalue="test-template2" value="abcd"/>
+			</args>
+		</task>
+		<task class="UCSAssociateProfileToServer" id="t3" desc="Attach service profile to server" name="AssociateServiceProfile" inittask="0" texecid="t301"  OnSuccess="None" Onfailure="None" >
+			<outputs>
+				<output dt_type="integer" name="status" value="no-op"/>
+			</outputs>
+			<args>
+				<arg dt_type="string" ip_type="1" api="" name="profile_name" label="Profile name" svalue="__CreateServiceProfileFromTemplate.serviceprofilename" value="__CreateServiceProfileFromTemplate.serviceprofilename"/>
+				<arg dt_type="string" ip_type="1" api="" name="blade_id" label="Balde id " svalue="sys/chassis-3/blade-3" value="sys/chassis-3/blade-3"/>
+			</args>
+		</task>
+	</tasks>
+</workflow>

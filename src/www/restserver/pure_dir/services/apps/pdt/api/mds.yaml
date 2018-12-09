@@ -1,0 +1,232 @@
+paths:
+   /MDSConfigure:
+    post:
+      tags:
+      - MDS
+      parameters:
+      - required: true
+        in: body
+        description: Configure parameters
+        name: data
+        schema:
+          $ref: '#/definitions/MDSConfigure'
+      operationId: pdt_api.mdsconfigure
+      summary: Configure MDS switch
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/MDSConfigureResponse'
+
+   /MDSValidate:
+    post:
+      tags:
+      - MDS
+      parameters:
+      - required: true
+        in: body
+        description: Configure parameters
+        name: data
+        schema:
+          $ref: '#/definitions/MDSConfigure'
+      operationId: pdt_api.mdsvalidate
+      summary: Validate configuration parameters
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/MDSValidate'
+
+   /MDSKickstartImages:
+    get:
+      tags:
+      - MDS
+      operationId: pdt_api.mdskickstartimages
+      summary: Retrieve the list of MDS kickstart images
+      security: []
+      responses:
+        '200':
+          description: List of uploaded MDS kickstart images
+          schema:
+            $ref: '#/definitions/MDSImageResponse'
+            
+   /MDSSystemImages:
+    get:
+      tags:
+      - MDS
+      operationId: pdt_api.mdssystemimages
+      summary: Retrieve the list of MDS system images
+      security: []
+      responses:
+        '200':
+          description: List of uploaded MDS system images
+          schema:
+            $ref: '#/definitions/MDSImageResponse'
+            
+   /MDSImages:
+    get:
+      tags:
+      - MDS
+      operationId: pdt_api.mdsimages
+      summary: Retrieve the list of MDS images (kickstart & system)
+      security: []
+      responses:
+        '200':
+          description: List of uploaded MDS images
+          schema:
+            $ref: '#/definitions/MDSImagesResponse'
+
+   /MDSValidateImages:
+    post:
+      tags:
+      - MDS
+      parameters:
+      - required: true
+        in: body
+        description: MDS kickstart and system images
+        name: data
+        schema:
+          $ref: '#/definitions/MDSImages'
+      operationId: pdt_api.mdsvalidateimages
+      summary: Validate whether proper kickstart and system images are chosen
+      security: []
+      responses:
+        '200':
+          description: Validation status
+          schema:
+            $ref: '#/definitions/MDSConfigureResponse'
+
+definitions:
+  MDSConfigure:
+    required:
+    - switch_name
+    - switch_mac
+    - switch_serial_no
+    - switch_vendor
+    - ntp_server
+    - switch_gateway
+    - switch_netmask
+    - switch_ip
+    - switch_kickstart_image
+    - switch_system_image
+    - pri_passwd
+    - conf_passwd
+    - domain_name
+    type: object
+    properties:
+      switch_name:
+        type: string
+        description: Switch name
+      switch_mac:
+        type: string
+        description: Switch MAC address
+      switch_serial_no:
+        type: string
+        description: Switch serial number
+      switch_vendor:
+        type: string
+        description: Switch vendor identifier
+      ntp_server:
+        type: string
+        description: NTP Server
+      switch_gateway:
+        type: string
+        description: Gateway
+      switch_netmask:
+        type: string
+        description: Netmask
+      switch_ip:
+        type: string
+        description: Switch IP
+      switch_kickstart_image:
+        type: string
+        description: Switch Kickstart image
+      switch_system_image:
+        type: string
+        description: Switch System image
+      pri_passwd:
+        type: string
+        description: Password
+      conf_passwd:
+        type: string
+        description: Confirm password
+      domain_name:
+        type: string
+        description: Domain name
+        
+  MDSImages:
+    required:
+    - switch_kickstart_image
+    - switch_system_image
+    type: object
+    properties:
+      switch_kickstart_image:
+        type: string
+        description: MDS kickstart image
+      switch_system_image:
+        type: string
+        description: MDS system image
+
+  MDSConfigureResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: boolean
+        description: Configuration state
+        
+  MDSImageResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+          type: string
+
+  MDSImagesResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/MDSImages'
+
+  MDSValidate:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+          required:
+            - field
+            - msg
+          properties:
+            field:
+              type: string
+              description: field name
+            msg:
+              type: string
+              description: message to be displayed
+
+

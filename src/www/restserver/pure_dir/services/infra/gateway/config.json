@@ -1,0 +1,10 @@
+{
+    "name": "gateway",
+    "description": "API Gateway service",
+    "service_syspath": "/var/www/restserver/pure_dir/services/infra/gateway",
+    "ip": "0.0.0.0",
+    "basepath": "pure",
+    "version": "1.0",
+    "port": "80"
+}
+

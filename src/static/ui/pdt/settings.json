@@ -1,0 +1,15 @@
+{
+	"base_path": "pdt",
+	"cookie_name": "pure-storage",
+	"loading_msg": "Loading...",
+	"background_api_duration": "5000",
+	"help_url": "https://support.purestorage.com/Pure1/Support",
+	"common": {
+		"title": "Flashstack Tool Kit", 
+		"logo": "",
+		"copywrite": "&copy; {{Year}} Pure Storage"
+	},
+	"layout": {
+		"theme": "pure"
+	}
+}

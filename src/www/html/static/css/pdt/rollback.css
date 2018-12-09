@@ -1,0 +1,224 @@
+/* ============ TIMELINER.JS ============= */
+.rollback-container {
+	border-left: 2px solid #DDD;
+	margin: 20px 70px;
+}
+.workflow-group {
+	clear: left;
+	float: left;
+	margin: 16px 0;
+}
+.workflow-group h2 {
+	background: url(../../images/timeline_century_tick.gif) 12px center no-repeat;
+	cursor: pointer;
+	font-size: 20px;
+	font-weight: 400;
+	margin: 0;
+	padding: 0;
+}
+.workflow-group h2 span {
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	color: #131313;
+	position: relative;
+	top: -6px;
+	left: -10px;
+	padding: 5px 10px;
+}
+.sub-worflows {
+	height: 0;
+	clear: left;
+	float: left;
+	margin: 0 12px 0 46px;
+	padding: 0;
+	position: relative;
+	border-left: 1px solid #DDD;
+	overflow: hidden;
+}
+.sub-worflows dt {
+	font-family: "ProximaNovaSemibold";
+	background: url(../../images/timeline_decade_tick.gif) 12px center no-repeat;
+	clear: left;
+	list-style-type: none;
+	padding: 0 0 0 24px;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.sub-worflows dt a {
+	color: #999;
+	cursor: pointer;
+	position: relative;
+	top: -12px;
+	left: -12px;
+}
+.sub-worflows dt a .closed {
+	color: #999;
+	font-size: 1em;
+	margin-left: 0;
+}
+.sub-worflows dt a .open {
+	color: #7DBADF;
+}
+.sub-worflows dt a:hover {
+	color: #7DBADF;
+}
+.sub-worflows dd {
+	width: 100%;
+	height: 0;
+	overflow: hidden;
+}
+.sub-worflows, .sub-worflows dd {
+	-moz-transition: height 2s;
+	-webkit-transition: height 2s;
+	-o-transition: height 2s;
+	transition: height 2s;
+}
+.sub-worflows.expand, .sub-worflows dd.expand {
+	height: auto;
+	overflow: visible;
+}
+.sub-worflows dd h3 {
+	color: #FFF;
+	clear: both;
+	float: left;
+	font-size: 1.5em;
+	margin: 0;
+	white-space: nowrap;
+}
+.workflow-tasks-list p {
+	clear: left;
+	float: left;
+	line-height: 1.5em;
+	margin: 6px 0 10px;
+}
+.workflow-tasks-list h4 {
+	clear: left;
+	float: left;
+	font-size: 1.4em;
+	font-weight: 400;
+	margin: 10px 0 0;
+	padding: 0 0 0 20px;
+}
+.workflow-tasks-list blockquote {
+	border-left: 2px solid #ccc;
+	clear: left;
+	float: left;
+	font-size: 1.8em;
+	margin-left: 0;
+	padding: 0 30px;
+}
+.workflow-tasks-list blockquote .attribution {
+	font-size: 0.7em;
+	text-align: right;
+}
+.workflow-tasks-list .media {
+	float: right;
+	padding: 0 0 12px;
+}
+.workflow-tasks-list .media img {
+	border: 2px solid #000;
+	margin: 0;
+}
+.workflow-tasks-list .media p {
+	font-size: 1.2em;
+	margin: 0;
+	padding: 0;
+}
+.workflow-tasks-list .media a:link,
+.workflow-tasks-list .media a:visited {
+	color: #ab221b;
+}
+.workflow-tasks-list .media a:hover {
+	color: #7DBADF;
+}
+.rollback-container ul {
+	margin-left: 50px;
+	padding: 10px;
+	line-height: 32px;
+	border-left: 2px solid #DDD;
+	color: #999;
+}
+.rollback-container ul li {
+	background: url(../../images/timeline_decade_tick.gif) left 16px no-repeat;
+	cursor: pointer;
+}
+
+.workflow-group h2::before, .sub-worflows dt::before, .rollback-container ul li::before {
+	content: '\25CF';
+	position: relative;
+	color: #DDD;
+}
+.workflow-group h2::before {
+	font-size: 60px;
+	top: 4px;
+	right: 22px;
+}
+.sub-worflows dt::before {
+	font-size: 54px;
+	top: -2px;
+	right: 41px;
+}
+.rollback-container ul li::before {
+	font-size: 40px;
+	top: 0;
+	right: 25px;
+}
+.workflow-group h2.active::before, .sub-worflows dt.active::before, .rollback-container ul li.active::before {
+	color: #FB5000;
+}
+.workflow-group h2.done::before, .sub-worflows dt.done::before, .rollback-container ul li.done::before {
+	color: #129612;
+}
+.workflow-group h2.failed::before, .sub-worflows dt.failed::before, .rollback-container ul li.failed::before {
+	color: #C32609;
+}
+.rollback-container ul li > span {
+	position: relative;
+	top: -6px;
+}
+
+.workflow-group h2 > span::before, .sub-worflows dt > a::before, .rollback-container ul li > span::before {
+	font-family: FontAwesome;
+	position: absolute;
+	color: #DDD;
+}
+.workflow-group h2.done > span::before, .sub-worflows dt.done > a::before, .rollback-container ul li.done > span::before {
+	content: "\f00c";
+}
+.workflow-group h2.failed > span::before, .sub-worflows dt.failed > a::before, .rollback-container ul li.failed > span::before {
+	content: "\f071";
+}
+.workflow-group h2.active > span::before, .sub-worflows dt.active > a::before, .rollback-container ul li.active > span::before {
+	content: "\f1da";
+	-webkit-animation: fa-spin 2s infinite linear;
+	animation: fa-spin 2s infinite linear;
+	animation-direction: reverse;
+}
+.sub-worflows dt > a.open::before {
+	top: 0;
+}
+.workflow-group h2 > span::before {
+	font-size: 18px;
+	left: -40px;
+	top: 7px;
+}
+.sub-worflows dt > a::before {
+	font-size: 14px;
+	left: -52px;
+	top: -2px;
+}
+.rollback-container ul li > span::before {
+	font-size: 14px;
+	left: -46px;
+	top: -8px;
+}
+.workflow-group h2.done > span::before {
+	left: -42px;top: 8px;
+}
+.workflow-group h2.failed > span::before {
+	left: -42px;
+}
+.rollback-container ul li.active > span::before {
+	left: -45px;
+}

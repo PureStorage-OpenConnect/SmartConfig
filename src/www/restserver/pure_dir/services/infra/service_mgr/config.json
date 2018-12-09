@@ -1,0 +1,11 @@
+{
+    "name": "ServiceManager",
+    "description": "Service and User Management",
+    "service_syspath": "/var/www/restserver/pure_dir/services/infra/service_mgr",
+    "api": "servicemanager_api.yaml",
+    "ip": "127.0.0.1",
+    "basepath": "pure",
+    "version": "1.0",
+    "port": "8080"
+}
+

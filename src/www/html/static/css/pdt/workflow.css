@@ -1,0 +1,885 @@
+.error-log {
+	background: url(../../images/log.png) no-repeat 0px 0px/84% 83%;
+    width: 22px;
+    height: 22px;
+    position: relative;
+    top: 6px;
+    left: 10px;
+}
+#palette {
+	border: 1px solid #DDD;
+	height: 40px;
+	background: -webkit-linear-gradient(#C5C5C5, #A7A6A6);
+}
+.addshape, .addconnection {
+	cursor: pointer;
+	margin-right: 5px;
+	border-right: 1px solid #B9B9B9;
+}
+#spmenu input {
+	width: 85%;
+}
+.addshape.active rect {
+	stroke: #9C2C2C;
+	fill: #924545;
+	stroke-width: 10px;
+}
+.addconnection.active > svg > path {
+	stroke: #9C2C2C;
+	fill: #924545;
+	stroke-width: 5px;
+}
+.addconnection.active > svg > defs > marker > use {
+	fill: #924545;
+	stroke-width: 5px;
+}
+path.animate {
+	stroke-dasharray: 100;
+	stroke-dashoffset: 100;
+	animation: dash 5s linear forwards;
+}
+path.animation {
+	stroke-width: 2;
+	stroke-dasharray: 8;
+	stroke-dashoffset: 100;
+	animation: dash 8s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.text {
+  color: #fbae17;
+  display: inline-block;
+  margin-left: 5px;
+}
+
+.bounceball {
+  position: relative;
+  display: inline-block;
+  height: 37px;
+  width: 15px;
+}
+.bounceball:before {
+    position: absolute;
+    content: '';
+    display: block;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #fbae17;
+    transform-origin: 50%;
+    animation: bounce 1000ms alternate infinite ease;
+}
+.loader-gif {
+	background: url(../../images/loader-orange.gif);
+	background-color: initial;
+	width: 118px;
+	height: 9px;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	z-index: 9999;
+}
+.loader-gif.green {
+	background-image: url(../../images/loader-green.gif);
+	background-color: initial;
+	background-position: 0px -24px;
+	width: 146px;
+	height: 6px;
+}
+.loader-gif.blue {
+	background: url(../../images/loader-blue.gif);
+	background-color: initial;
+	background-position: 0px -24px;
+	width: 146px;
+	height: 32px;
+}
+
+@keyframes bounce {
+  0% {
+    top: 30px;
+    height: 5px;
+    border-radius: 60px 60px 20px 20px;
+    transform: scaleX(2);
+  }
+  35% {
+    height: 15px;
+    border-radius: 50%;
+    transform: scaleX(1);
+  }
+  100% {
+    top: 0;
+  }
+}
+
+@keyframes squeeze {
+  90% {
+    transform: none;
+    animation-timing-function: ease-in;
+  }
+  93% {
+    transform: translateY(1px) scaleX(0.98);
+  }
+  100% {
+    animation-timing-function: ease-out;
+  }
+}
+svg rect.squeeze {
+	animation: squeeze 2s infinite;
+}
+
+svg body {
+	background: transparent;
+}
+#theGradient {
+	fill: #DDD;
+}
+.shape-icons {
+	cursor: pointer;
+	fill: #555;
+}
+.shape-icons:hover {
+	fill: #FFF;
+}
+.draggable .label {
+	color: inherit;
+}
+.left-panel {
+	height: calc(100% - 40px);
+	background: #FFF;
+	border-right: 1px solid #e4e2e2;
+	padding: 0;
+}
+.left-panel .tabs {
+	background: #CCC;
+	margin-top: 3px;
+}
+.widget.workflow > section {
+	background: #FFF;
+	height: 100%;
+	padding: 0;
+}
+.left-menu {
+	border-right: 2px solid #E8E8E8;	
+}
+.widget.workflow section header {
+	border-bottom: 2px solid #004E89;
+	background: #0E68AA;
+}
+.widget.workflow section header h2 {
+	line-height: 54px;
+}
+.h3, h3 {
+	font-size: 20px;
+}
+body.pure .widget.workflow section header .tabs {
+	line-height: 52px;
+	padding: 0 12px;
+}
+.gridview.active {
+	overflow: hidden;
+	position: relative;
+	height: calc(100% - 40px);
+	background-size: 50px 50px;
+	background-image: 
+	linear-gradient(0deg, transparent 9%,
+		rgba(173, 169, 169, 0.7) 10%, rgba(193, 193, 193, 0.49) 12%, transparent 13%, transparent 29%,
+		rgba(119, 119, 119, 0.1) 30%, rgba(138, 136, 136, 0.1) 31%, transparent 32%, transparent 49%,
+		rgba(121, 120, 120, 0.1) 50%, rgba(132, 132, 132, 0.1) 51%, transparent 52%, transparent 69%,
+		rgba(154, 154, 154, 0.1) 70%, rgba(115, 115, 115, 0.1) 71%, transparent 72%, transparent 89%,
+		rgba(140, 140, 140, 0.1) 90%, rgba(146, 146, 146, 0.1) 91%, transparent 92%, transparent),
+	linear-gradient(90deg, transparent 9%,
+		rgba(101, 100, 100, 0.25) 10%, rgba(165, 165, 165, 0.2) 12%, transparent 13%, transparent 29%,
+		rgba(136, 135, 135, 0.1) 30%, rgba(146, 145, 145, 0.1) 31%, transparent 32%, transparent 49%,
+		rgba(150, 150, 150, 0.1) 50%, rgba(113, 111, 111, 0.1) 51%, transparent 52%, transparent 69%,
+		rgba(123, 122, 122, 0.1) 70%, rgba(128, 126, 126, 0.1) 71%, transparent 72%, transparent 89%,
+		rgba(130, 128, 128, 0.1) 90%, rgba(95, 95, 95, 0.1) 91%, transparent 92%, transparent);
+}
+.tab-content div.draggable {
+	line-height: 22px;
+	padding: 6px 8px 4px;
+	border-bottom: 1px solid #efefef;
+	margin-bottom: 1px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+.tab-content div.draggable:hover {
+	background: #F7894F;
+	color: #FFF;
+}
+.tab-content ul {
+	padding: 0;
+	list-style-type: none;
+}
+#map-ctl {
+	z-index: 10000;
+	position: relative;
+	display: none;
+}
+.gridview.active #map-ctl {
+	display: inline-block;
+}
+#zoomin-ctl, #zoomout-ctl, #reset-ctl {
+	position: absolute;
+	left: 15px;
+	top: 15px;
+	font-size: 20px;
+	color: rgba(68,92,111,0.5);
+}
+#zoomout-ctl {
+	top: 54px;
+}
+#reset-ctl {
+	top: 94px;
+}
+.workflow.widget .mCSB_outside + .mCS-minimal.mCSB_scrollTools_vertical, .workflow.widget .mCSB_outside + .mCS-minimal-dark.mCSB_scrollTools_vertical {
+	right: -16px;
+}
+.workshop {
+	height: 100%;
+	overflow: visible !important;
+	transition: all 0.5s ease 0s;
+	position: relative;
+	top: 0;
+	left: 0;
+	z-index: 991;
+}
+.right-panel {
+	height: calc(100% - 40px);
+	background: #f1f1f1;
+	z-index: 999;
+	border-left: 1px solid #DDD;
+}
+#workflow-container {
+	z-index: 999;
+	transition: all 0.5s ease 0s;
+	height: 300px;
+	max-height: 300px;
+}
+.workshop #workflow-container + .right-panel .logs {
+	display: none;
+}
+.workshop > .workflow {
+	height: 100%;
+}
+header > .action-icons {
+	line-height: inherit;
+	padding: 0 12px;
+}
+header > .action-icons > i {
+	font-size: 17px;
+	color: #F1F1F1;
+	line-height: inherit;
+}
+svg {
+	overflow: visible !important;
+	transition: all 0.5s ease 0s;
+}
+foreignObject .fa {
+	font-size: 17px;
+}
+rect, circle, ellipse, path.triangle, path.diamond {
+	stroke: #DADADA;
+	fill: #F17C22;
+	fill-opacity: 1;
+	stroke-opacity: 1;
+	stroke-width: 4;
+	cursor: move;
+}
+circle {
+	stroke: #CCC;
+	stroke-width: 3;
+}
+rect {
+	rx: 0;
+	ry: 0;
+}
+rect:hover, circle:hover, ellipse:hover, path:hover {
+	stroke-opacity: 0.7;
+	fill-opacity: 0.9;
+}
+rect[selected], circle[selected], ellipse[selected], path.triangle[selected], path.diamond[selected], circle[blink] {
+	stroke: #F57373;
+}
+path.selected:not(.diamond), path.selected:not(.triangle) {
+	stroke: #F57373;
+}
+path:not(.diamond)[animate-dash], path:not(.triangle)[animate-dash], path.selected {
+	stroke-dasharray: 8, 6;
+	animation: dash 4s infinite;
+	stroke-dashoffset: 100;
+}
+circle[blink] {
+	stroke: #FF7500;
+	animation: flicker 2s linear infinite;
+	-webkit-transition: width 2s; /* Safari */
+	transition: width 2s;
+}
+@keyframes dash {
+	to {
+		stroke-dashoffset: 1000;
+	}
+}
+@keyframes flick {
+  	0% {opacity:0;}
+	9% {opacity:0;}
+	10% {opacity:.5;}
+	13% {opacity:0;}
+	20% {opacity:.5;}
+	25% {opacity:1;}
+}
+@keyframes flicker {
+	0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+		opacity: .99;
+		text-shadow: -1px -1px 0 rgba(#fff, .4), 1px -1px 0 rgba(#fff, .4), -1px 1px 0 rgba(#fff, .4), 1px 1px 0 rgba(#fff, .4), 0 -2px 8px, 0 0 2px, 0 0 5px #ff7e00, 0 0 15px #ff4444, 0 0 2px #ff7e00, 0 2px 3px #000;
+	}
+	20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+		opacity: 0.4;
+		text-shadow: none;
+	}
+}
+.workflow-container {
+	height: calc(100% - 0px);
+	border: 1px solid #CCC;
+	border-radius: 4px;
+}
+.full-screen {
+	width: 100%;
+	overflow: hidden;
+}
+.workflow-container h2 {
+	padding: 10px 0 2px;
+}
+.workflow-container header {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	background: #3C3C3C;
+	height: 54px;
+	line-height: 54px;
+}
+.workflow-container header.dark h2, .workflow-container header.dark small {
+	color: #FFF;
+}
+.workflow-container header.light h2, .workflow-container header.light small {
+	color: #C0C0C0;
+}
+div[class|="workflow-input"] {
+	padding: 0;
+}
+div[class|="workflow-input"] + div[class|="workflow-input"] {
+	padding-top: 12px;
+	border-top: 1px solid #EFEFEF;
+}
+div[class|="workflow-input"] > .radio, div[class|="workflow-input"] > .checkbox {
+	display: inline-block;
+	margin-right: 20px;
+}
+.control-group .radio label, .control-group .checkbox label {
+	line-height: 18px !important;
+}
+.radio label > .title, .checkbox label > .title {
+	height: 20px;
+	line-height: 20px;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.checkbox :checked  + label > .title.small, .radio :checked  + label > .title.small {
+	color: #222 !important;
+}
+.checkbox-info input[type="checkbox"]:checked + label::before, .radio-info input[type="radio"]:checked + label::before {
+	border: 1px solid #8D8D8D;
+}
+.modal-body input[type="text"], .modal-body input[type="password"], .modal-body input[type="number"], .modal-body select, .modal-body textarea {
+	width: 100%;
+}
+.modal-body .slider-container {
+	margin: 16px 5px;
+}
+ul.draggable, ul.multi-select {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+#form-body .task-input > div.field-group, .control-group .field-group {
+	padding: 0 5px 0 0;
+}
+#form-body .task-input > div.field-group:nth-of-type(4), .control-group .field-group:nth-of-type(4) {
+	padding: 0;
+}
+ul.draggable {
+	padding: 0 2px;
+}
+ul.draggable > li, ul.multi-select > li {
+	padding: 1px 0;
+	margin: 2px 0;
+	cursor: pointer;
+	background: #ececec;
+	color: #5f5f5f;
+	font-size: 12px;
+	border-radius: 3px;
+	height: 26px;
+	line-height: 22px;
+}
+ul.draggable > li {
+	cursor: move;
+}
+ul.draggable > li.header, ul.multi-select > li.header {
+	background: #3C3C3C;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#565656',endColorstr='#3C3C3C');
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#565656),to(#3C3C3C));
+	background-image: -moz-linear-gradient(top,#565656,#3C3C3C);
+	color: #FFF;
+	opacity: 1;
+	text-transform: uppercase;
+	font-size: 80%;
+}
+ul.draggable > li.ui-sortable-helper {
+	background: #b1b1b1;
+	color: #FFF;
+}
+ul.draggable > li > span, ul.multi-select > li > span {
+	padding: 0 10px;
+	width: 40%;
+}
+ul.draggable > li.active, ul.multi-select > li.active {
+	background: #F17C22;
+	color: #FFF;
+}
+ul.multi-select li > i {
+	line-height: 20px;
+	display: none;
+}
+ul.multi-select li.active > i {
+	display: block;
+}
+.tooltip {
+	z-index: 9999;
+}
+h3.hseperator {
+	border-bottom: 1px solid #DDD;
+	min-width: 100px;
+	width: initial;
+	margin-top: 12px;
+	display: inline-block;
+}
+.sub-fields {
+	padding: 0 2px;
+	clear: both;
+}
+.sub-fields > div {
+	display: inline-block;
+}
+.workflow-minimized {
+	display: none;
+	width: 20px;
+	position: absolute;
+	right: 0px;
+	top: 0;
+}
+
+ul.multi-select > li > span input[type="text"], ul.multi-select > li > span select {
+	width: 100%;
+	height: 22px;
+	color: #4E4E4E;
+}
+
+ul.multi-select > li > span > input {
+	display: none;
+}
+ul.multi-select > li.active > span > input {
+	display: block;
+}
+ul.multi-select .ms-options-wrap button, ul.multi-select .ms-options-wrap > button:focus, ul.multi-select .ms-options-wrap > button, ul.multi-select .ms-options-wrap > .ms-options {
+	width: 100%;
+	height: 21px;
+}
+*:focus {
+	outline: none;
+}
+.model-head {
+	cursor: move;
+	background: #3C3C3C;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#565656',endColorstr='#3C3C3C');
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#565656),to(#3C3C3C));
+	background-image: -moz-linear-gradient(top,#565656,#3C3C3C);
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+}
+.model-head h3 {
+	font-size: 12px;
+    font-weight: 700;
+    color: #FFF;
+    padding: 12px;
+    margin: 0;
+}
+/* .modal-body .control-group .controls {
+	position: relative;
+}
+.modal-body .control-group .add-more-row {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+} */
+.subworkflow-title {
+	font-size: 20px;
+	color: #8D8D8D;
+}
+.workflow-title	, .subworkflow-title {
+	float: left;
+	margin-right: 10px;
+}
+.reset-workshop {
+	z-index: 9999;
+	position: fixed;
+	right: 3px;
+	top: 5px;
+	font-size: 20px;
+}
+.workflow-tasks {
+	width: 64px;
+	height: 100%;
+	padding: 0;
+	background: #4e4e4e;
+}
+.modal-body .controls {
+	position: relative;
+}
+.group-row {
+	clear: both;
+	padding: 5px 0;
+}
+.group-header {
+	border-bottom: 1px solid #EAEAEA;
+	padding-bottom: 2px !important;
+	margin-bottom: 8px;
+}
+.modal-body .controls .action-icons {
+	height: 30px;
+	line-height: 30px;
+	white-space: nowrap;
+	overflow: hidden;
+}
+.modal-body .controls .action-icons > .fa {
+	font-size: 18px;
+	margin: 0 5px 0 0;
+}
+.form .control-group .title {
+	max-height: 60px;
+	word-break: break-word;
+	white-space: pre-wrap;
+	line-height: 8px;
+}
+.form .control-group .title > span {
+	display: block;
+	line-height: 16px;
+}
+.widget-header > .radio-horizondal > * {
+	float: left;
+}
+.global-config {
+	padding: 5px 4px;
+}
+.help-txt {
+	font-size: 15px;
+	color: #8D8D8D;
+}
+.tipso_title {
+	padding: 1px 5px;
+}
+
+.mode-container {
+	z-index: 999;
+}
+.control-group[argtype="group"], .basic-mode .control-group {
+	border-bottom: 1px solid #EFEFEF;
+	margin-bottom: 5px;
+}
+
+
+
+/* Workflow Task Inputs - Basic View */
+.overlay-layer {
+	position: fixed;
+	top: 54px;
+	bottom: 54px;
+	left: 0;
+	right: 0;
+	z-index: 999;
+	display: none;
+}
+.optional_label {
+	display: none;
+	padding: 0 10px;
+}
+.mode.basic .overlay-layer, .mode.basic .optional_label {
+	display: block;
+}
+.mode.basic .control-group {
+	border-bottom: 1px solid #EFEFEF;
+	padding: 4px 0;
+}
+.mode.basic input[type="text"], .mode.basic input[type="password"], .mode.basic input[type="number"], .mode.basic select, .mode.basic textarea, .mode.basic .ms-options-wrap button {
+	border: 0 !important;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+.mode.basic .ms-options-wrap > button:after {
+	border: 0;
+}
+.mode.basic .control-group .title {
+	height: initial;
+	line-height: initial;
+}
+.mode.basic .group-input, .mode.basic .action-icons, .mode.basic ul.draggable > li:not(.active), .mode.basic ul.multi-select > li:not(.active), .mode.basic ul.multi-select li.active > i{
+	display: none;
+}
+.mode.basic ul.draggable > li.active, .mode.basic ul.multi-select > li.active, .optional_label,
+.mode.basic input[type="text"], .mode.basic input[type="password"], .mode.basic input[type="number"], .mode.basic select, .mode.basic textarea, .mode.basic .ms-options-wrap button {
+	background: transparent;
+	color: #454545;
+	border: 0;
+	font-size: 14px !important;
+	opacity: 0.7;
+}
+.mode.basic .checkbox, .mode.basic .radio {
+	display: none !important;
+}
+
+
+.basic .scroller {
+	max-width: 100%;
+	width: 100%;
+	overflow: auto;
+}
+.workflowsInfo {
+	display: none;
+	height: 100%;
+}
+.widget-content {
+	height: calc(100% - 30px);
+}
+.boxes {
+	text-align: center;
+	padding: 62px 10px;
+}
+.boxes > div {
+	overflow: hidden;
+	text-align: center;
+	display: inline-block;
+	padding: 24px;
+}
+.boxes > h4 {
+    font-size: 17px;
+    font-weight: 500;
+    color: #8D8D8D;
+}
+.box {
+	display: inline-block;
+	position: relative;
+    background: #ececec;
+    border-radius: 4px;
+    padding: 40px 24px;
+    margin: 16px 0;
+    min-width: 250px;
+	max-width: 300px;
+	width: 100%;
+    cursor: pointer;
+    text-align: center;
+    color: #8D8D8D;
+    box-shadow: 4px 4px 6px #929292;
+}
+.box.active:not(.disabled), .box:not(.disabled):hover {
+	background: #FE5000;
+	color: #FFF;
+	/*box-shadow: 4px 4px 6px #808080;*/
+	box-shadow: 6px 6px 6px rgba(0,0,0,0.16), 6px 6px 6px rgba(0,0,0,0.23);
+}
+.wrench {
+	background: url(../../images/setting.png) no-repeat 4px 10px/16px 16px;
+	width: 24px;
+	height: 24px;
+	display: inline-block;
+}
+label {
+	font-weight: 500;
+}
+
+.ribbon {
+	width: 80px;
+	height: 80px;
+	overflow: hidden;
+	position: absolute;
+}
+.ribbon::before,
+.ribbon::after {
+	position: absolute;
+	z-index: -1;
+	content: '';
+	display: block;
+	border: 4px solid #555;
+}
+.ribbon span {
+	position: absolute;
+	display: block;
+	width: 118px;
+	padding: 8px 0;
+	background: linear-gradient(#666, #333);	/* linear-gradient(#A0A0A0, #6D6D6D); */
+	box-shadow: 0 5px 10px rgba(0,0,0,.1);
+	color: #fff;
+	font: 700 12px/1 'Lato', sans-serif;
+	text-shadow: 0 1px 1px rgba(0,0,0,.2);
+	text-align: center;
+}
+/* top right*/
+.ribbon-top-right {
+	top: -7px;
+	right: -8px;
+}
+.ribbon-top-right::before,
+.ribbon-top-right::after {
+	border-top-color: transparent;
+	border-right-color: transparent;
+}
+.ribbon-top-right::before {
+	top: 0;
+	left: 0;
+	z-index: 999;
+}
+.ribbon-top-right::after {
+	bottom: 0;
+	right: 0;
+	z-index: 999;
+}
+.ribbon-top-right span {
+	left: -12px;
+	top: 16px;
+	transform: rotate(45deg);
+}
+.tag.ribbon span {
+	width: 112px;
+}
+.header-icons {
+	clear: both;
+	margin-bottom: 30px;
+}
+.new.table>tbody>tr>td, .new.table>tbody>tr>th, .new.table>tfoot>tr>td, .new.table>tfoot>tr>th, .new.table>thead>tr>td, .new.table>thead>tr>th {
+	padding: 14px;
+	border-top: 1px solid #efefef;
+}
+.new.table>thead>tr>th {
+	border-bottom: 2px solid #f1f1f1;
+}
+.relative {
+	position: relative;
+}
+.widget-header > a {
+	text-transform: uppercase;
+	font-size: 13px;
+	position: absolute;
+	bottom: 8px;
+	color: #8D8d8d;
+	right: 15px;
+}
+.success-icon {
+	background: url(../../images/success.png);
+	background-color: initial;
+	width: 20px;
+	height: 20px;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+}
+table .actions > div {
+	padding: 0 7px;
+}
+.common-inputs > .form > .clear {
+	clear: initial;
+}
+.workflowsList .scroller {
+	transition: all 0.4s;
+	width: 100%;
+}
+.workflowsList .scroller.shrink {
+	width: 70%;
+	display: inline-block;
+}
+.workflowsList {
+	position: relative;
+}
+.log-container {
+	transition: all 0.4s;
+	width: 0%;
+	border: 1px solid #E6E6E6;
+	float: left;
+	background: #F1F1F1;
+}
+.log-container.expand {
+	width: 30%;
+	position: absolute;
+	top: 58px;
+	right: 0;
+	bottom: 0;
+}
+.workflow-log {
+	white-space: pre-wrap;
+	line-height: 24px;
+	color: #656565;
+	padding: 0 15px;
+}
+.log-container .widget-subtitle {
+	height: 30px;
+	line-height: 30px;
+}
+.log-container .download-log {
+	position: relative;
+	top: 6px;
+}
+.workflow-log h5 {
+	font-size: 15px;
+	color: #454545;
+	margin: 20px 0;
+}
+.workflowinfo td span + span {
+	margin-left: 15px;
+}
+a.link {
+	text-transform: uppercase;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 24px;
+}
+
+.workshop .scroller {
+	
+}
+.fa-progress {
+	background: url(../../images/clockwise.gif) no-repeat 0px 0px/100%;
+	background-color: initial;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	position: relative;
+	top: 5px;
+	z-index: 9999;
+}
+.ROLLBACK .fa-progress {
+	background: url(../../images/anticlockwise.gif) no-repeat 0px 0px/100%;
+}
+.workflow-log a[name] {
+	display: block;
+}
+foreignObject {
+	z-index: 99;
+}

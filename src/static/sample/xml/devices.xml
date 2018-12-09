@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<devices>
+  <device configured="Configured" ipaddress="192.168.10.50" mac="00:DE:FB:8F:47:CD" model="Cisco UCS-FI-6332-16UP" name="fi-a" password="YWRtaW4=\n" serial_no="FDO211934LB" timestamp="1510300607.42" device_type="UCSM" username="admin"/>
+  <device configured="Configured" ipaddress="192.168.10.54" mac="00:DE:FB:90:7B:65" model="Cisco UCS-FI-6332-16UP" name="fi-b" password="YWRtaW4=\n" serial_no="FDO21190U06" timestamp="1510300607.43" device_type="UCSM" username="admin"/>
+  <device configured="Configured" ipaddress="192.168.10.66" mac="00:27:E3:AB:9E:10" model="Cisco N9K-C93180YC-EX" name="nexus-a" password="YWRtaW4=\n" serial_no="FDO21182MWJ" timestamp="1510300607.43" device_type="NEXUS" username="admin"/>
+  <device configured="Configured" ipaddress="192.168.10.67" mac="70:DF:2F:96:C4:80" model="Cisco N9K-C93180YC-EX" name="nexus-b" password="YWRtaW4=\n" serial_no="FDO21191E1U" timestamp="1510300607.43" device_type="NEXUS" username="admin"/>
+  <device configured="Configured" ipaddress="192.168.10.63" mac="70:70:8B:59:97:90" model="Cisco MDS 9148S 16G 48 FC (1 Slot)" name="mds-a" password="YWRtaW4=\n" serial_no="JPG213000J2" timestamp="1510300607.43" device_type="MDS" username="admin"/>
+  <device configured="Configured" ipaddress="192.168.10.64" mac="70:70:8B:59:97:88" model="Cisco MDS 9148S 16G 48 FC (1 Slot)" name="mds-b" password="YWRtaW4=\n" serial_no="JPG213000FT" timestamp="1510300607.43" device_type="MDS" username="admin"/>
+</devices>

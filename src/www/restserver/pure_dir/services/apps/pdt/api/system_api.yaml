@@ -1,0 +1,156 @@
+paths:
+  /System:
+    get:
+      tags: 
+      - System
+      operationId: pdt_api.systeminfo
+      summary: System Info
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/SystemResponse'
+           
+  /DeploymentSettings:
+    post:
+      tags:
+      - System
+      parameters:
+      - required: true
+        in: body
+        description: Deployment Settings
+        name: data
+        schema:
+          $ref: '#/definitions/DeploymentSettings'
+      operationId: pdt_api.deploymentsettings
+      summary: Save deployment settings
+      security: []
+      responses:
+        '200':
+          description: Return status of saved settings
+          schema:
+            $ref: '#/definitions/StateResponse'
+
+  /NetworkInfo:
+    get:
+      tags: 
+      - System
+      operationId: pdt_api.networkinfo
+      summary: Network Info
+      security: []
+      responses:
+        '200':
+          description: Return network information
+          schema:
+            $ref: '#/definitions/NetworkInfo'
+
+  /PDTReset:
+    get:
+      tags:
+      - System
+      operationId: pdt_api.pdtreset
+      summary: Deletes the PDT configuration
+      security: []
+      responses:
+        '200':
+          description: Return the state
+          schema:
+            $ref: '#/definitions/StateResponse'
+
+definitions:
+  SystemResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        $ref: '#/definitions/System'
+      status:
+        $ref: '#/definitions/Status'
+        
+  NetworkInfo:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        $ref: '#/definitions/Network'
+      status:
+        $ref: '#/definitions/Status'
+      
+  StateResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: boolean
+        description: Status of the response
+      status:
+        $ref: '#/definitions/Status'  
+
+  System:
+    type: object
+    required:
+      - name
+      - version
+    properties:
+      version:
+        type: string
+        description: Unique identifier
+        example: "1.0"
+        readOnly: true
+      name:
+        type: string
+        description: Tool name
+        minLength: 1
+        maxLength: 100
+      dhcp_status:
+        type: string
+        description: Dhcp server status
+        example: "0"
+        minLength: 1
+      copyright:
+        type: string
+        description: Tool copyright
+        minLength: 1
+        maxLength: 100
+      info:
+       type: string
+       description: file path to Tool info
+      deployment_settings:
+       $ref: '#/definitions/DeploymentSettings'
+
+  Network:
+    type: object
+    required:
+      - ip  
+      - gateway
+      - netmask
+    properties:
+      ip:
+        type: string
+      gateway:
+        type: string
+      netmask:
+        type: string
+
+  DeploymentSettings:
+    type: object
+    additionalProperties: False
+    properties:
+      current_step:
+        type: string
+        enum: ["1","2","3","4","5"]
+      stacktype:
+        type: string
+      subtype:
+        type: string
+      deployment_type:
+        type: string
+      config_mode:
+        type: string

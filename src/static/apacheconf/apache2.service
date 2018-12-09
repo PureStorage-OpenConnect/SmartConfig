@@ -1,0 +1,15 @@
+[Unit]
+Description=Httpd server
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/sysconfig/apache2
+ExecStartPre=-/usr/bin/mkdir -p /var/log/apache2/
+ExecStart=-/usr/local/apache2/bin/apachectl -f $OPTIONS
+ExecReload=-/usr/local/apache2/bin/apachectl graceful
+KillMode=process
+Restart=always
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target

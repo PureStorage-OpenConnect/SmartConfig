@@ -1,0 +1,33 @@
+<?xml version="1.0" ?><workflow id="wf2" name="editChassisDiscoveryPolicy" desc="edit the chassis discovery policy">
+	<tasks>
+		<task class="UCSChassisDiscoveryPolicy" id="t4" desc="Edit the chassis disc policy"  name="ChassisDiscoveryPolicy" inittask="1" texecid="t300"  OnSuccess="t301" Onfailure="None">
+			<outputs>
+				<output dt_type="integer" name="status" value="no-op"/>
+			</outputs>
+			<args>
+				<arg dt_type="string" ip_type="1" api=""  name="fex_action" label="Fex Action" svalue="2-link" value="2-link" />
+				<arg dt_type="string" ip_type="1" api=""  name="agg_pref" label="Link Grouping Preference"  svalue="port-channel" value="port-channel" />
+				<arg dt_type="string" ip_type="1" api=""  name="speed_pref" label="Backplane Speed Preference" svalue="4x10G" value="4x10G"/>
+				<arg dt_type="string" ip_type="1" api=""  name="rack_action" label="Rack Server Discovery Policy" svalue="immediate" value="immediate"/>
+				<arg dt_type="string" ip_type="1" api=""  name="scrub" label="Scrub Policy" svalue="default" value="default"/>
+				<arg dt_type="string" ip_type="1" api=""  name="mgmt_action" label="Rack Mgmt Connection Policy" svalue="user-acknowledged" value="user-acknowledged"/>
+				<arg dt_type="string" ip_type="1" api=""  name="redundancy" label="Power policy" svalue="non-redundant" value="non-redundant"/>
+				<arg dt_type="string" ip_type="1" api=""  name="mac_aging" label="MAC table Aging" svalue="never" value="never"/>
+				<arg dt_type="string" ip_type="1" api=""  name="style" label="Global Power Allocation policy" svalue="manual-per-blade" value="manual-per-blade"/>
+				<arg dt_type="string" ip_type="1" api=""  name="sync_state" label="Firmware Auto sync policy" svalue="User Acknowledge" value="User Acknowledge"/>
+				<arg dt_type="string" ip_type="1" api=""  name="profiling" label="Global power profiling policy" svalue="false" value="false"/>
+				<arg dt_type="string" ip_type="1" api=""  name="info_enable" label="Info policy" svalue="enabled" value="enabled"/>
+			</args>
+		</task>
+		<task class="UCSEnableServerandUplinkPorts" id="t5" desc="Enable Server and uplink ports"  name="EnableServerandUplinkPorts" inittask="1" texecid="t301"  OnSuccess="None" Onfailure="None">
+                        <outputs>
+                                <output dt_type="integer" name="status" value="no-op"/>
+                        </outputs>
+                        <args>
+                                <arg dt_type="string" ip_type="1" api=""  name="server_ports" label="Server ports" svalue="[port 17,port 18]" value="[port 17,port 18]" />
+                                <arg dt_type="string" ip_type="1" api=""  name="uplink_ports" label="Uplink Ports"  svalue="[port 39, port 40]" value="[port 39,port 40]" />
+                        </args>
+                </task>
+
+	</tasks>
+</workflow>

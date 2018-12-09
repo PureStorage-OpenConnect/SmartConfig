@@ -1,0 +1,63 @@
+.nn-alert-container {
+    position: absolute;
+    right: 12px;
+    z-index: 99999;
+}
+.nn-alert {
+	margin:auto;
+	margin-top:15px;
+	background:rgba(51, 59, 70, 0.5);
+	border:1px solid #111;
+	border-radius:3px;
+	box-shadow:inset 0px 24px 0px rgba(255,255,255,0.1),
+		inset 0 1px 0 rgba(255,255,255,0.4),
+		inset 0 10px 10px rgba(255,255,255,0.2),
+		inset 0 -5px 10px rgba(0,0,0,0.2),
+		0 3px 3px rgba(0,0,0,0.3);
+	width:300px;
+	min-height: 54px;
+	max-height: 80px;
+	overflow: hidden;
+	padding:6px 10px 3px;
+	color:white;
+	font-size:12px;
+	text-shadow:0 1px 1px rgba(0,0,0,0.8);
+	transition:all .5s ease;
+	backface-visibility:hidden;
+	cursor: pointer;
+}
+.nn-alert.blue{
+	background: rgba(27, 126, 199, 0.7);
+    border: 1px solid #178AAB;
+}
+.nn-alert.green {
+	background: rgba(52, 181, 45, 0.7);
+    border: 1px solid #339230;
+}
+.nn-alert.red{
+	background: rgba(175, 37, 37, 0.7);
+    border: 1px solid #AF4242;
+}
+.nn-alert.glass{
+	background: rgba(99, 99, 99, 0.27); 
+}
+.nn-alert .fa{
+	font-size:2em;
+	width:1em;
+	float:left;
+	margin:7px 10px 0 0px;
+	text-align:center;
+}
+.nn-alert strong {
+	letter-spacing: 1.1px;
+}
+.nn-alert p {
+	margin:6px 0;
+	font-size: 12px;
+	min-height: 24px;
+	max-height: 42px;
+	overflow: hidden;
+}
+.nn-alert:hover{
+	opacity:0.7;
+}

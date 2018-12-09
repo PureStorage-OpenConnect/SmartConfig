@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<workflow id="configureFANetworkInterface-n5k-iSCSI-gen2" name="Configure FlashArray Network Interface" desc="Configure FlashArray Network Interface IP" wtype="wgroup" type="FlashArray" simulate="0" isdeletable="0" order="2" htype="fa-n5k-figen2-iscsi" prereq="ConfigureNEXUS5k-iSCSI-gen2">
+        <wfs>
+                <wf id="configureFlashArray-n5k-iSCSI-gen2" name="Configure FlashArray Network Interface" wexecid="g309" OnSuccess="None" OnFailure="None" initwf="1"/>
+        </wfs>
+</workflow>
+
+

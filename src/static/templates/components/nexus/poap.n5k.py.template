@@ -1,0 +1,1034 @@
+#!/bin/env python
+#md5sum="b48f8b856ce73af6362b62fdc0e62200"
+#
+# * Copyright (c) 2015 by Cisco Systems, Inc.
+# * All rights reserved.
+#
+# If any changes to this script file are made, please run the below command 
+# in bash after modifications.
+# The above is the (embedded) md5sum of this file taken without this line, 
+# can be # created this way if using a bash shell: 
+# f=poap_script.py ; cat $f | sed '/^#md5sum/d' > $f.md5 ; sed -i "s/^#md5sum=.*/#md5sum=\"$(md5sum $f.md5 | sed 's/ .*//')\"/" $f
+# This way this script's integrity can be checked in case you do not trust
+# tftp's ip checksum. This integrity check is done by /isan/bin/poap.bin).
+# The integrity of the files downloaded later (images, config) is checked 
+# by downloading the corresponding file with the .md5 extension and is
+# done by this script itself.
+
+import os
+import time
+import signal
+import re
+import string
+import sys
+import shutil
+import commands
+import traceback
+import ConfigParser
+import syslog
+import glob
+
+try:
+    from cisco import transfer
+    legacy = True
+except ImportError:
+    legacy = False
+
+# **** Here are all variables that parametrize this script **** 
+# *************************************************************
+
+# system and kickstart images, configuration: location on server (src) and target (dst)
+image_dir_src       = "/var/lib/tftpboot/" # part of path to remove during copy
+n5k_system_image_src      = "{{switch_system_image}}"
+n5k_kickstart_image_src     = "{{switch_kickstart_image}}"
+
+# REPLACE below with config path on serer and destination path on switch
+config_path      = "/var/lib/tftpboot/"
+destination_path = "/bootflash/"
+
+# indicates whether first config file is empty or not
+emptyFirstFile = 1
+
+# indicates whether first config file is empty or not
+FoundTemplateConfigFile = 0
+
+# indicates whether files are copied or not
+configCopied = 0
+systemImageCopied = 0
+kickstartImageCopied = 0
+kickstartImage = 0
+systemImage = 0
+templateConfigCopied = 0
+databaseCopied = 0
+
+# indicates whether the final config generated is available or not
+generatedConfig = 0
+
+# Note that the template file will be obtained from the DB. If none is found, 
+# then the default global template specified below will be used.
+config_file_src     = "poap.cfg" 
+config_file_dst     = "poap_replay.cfg" 
+config_file_dst_tmp = "poap_replay_tmp.cfg"
+
+# Destination file name for those lines in config which starts with hardware profile portmode or hardware profile tcam
+config_file_dst_first = "poap_1.cfg"
+
+# Desination file name for those lines in config which does not match above criterea.
+config_file_dst_second = "poap_2.cfg"
+
+#Destination image directory info
+image_dir_dst       = "bootflash:"
+os_image_dir_dst       = "/bootflash"
+system_image_dst        = "%s/system.img"      %  image_dir_dst
+kickstart_image_dst     = "%s/kickstart.img"   %  image_dir_dst
+os_system_image_dst        = "%s/system.img"      % os_image_dir_dst 
+os_kickstart_image_dst     = "%s/kickstart.img"   % os_image_dir_dst
+
+# the copy scheduled-config command will copy to persistent location
+md5sum_ext_src      = "md5" # extension of file containing md5sum of the one without ext.
+# there is no md5sum_ext_dst because one the target it is a temp file
+required_space = 250000 # Required space on /bootflash (for config and kick/system images)
+
+# Protocols available to download are scp/tftp/ftp/sftp 
+protocol="scp" # protocol to use to download images/config
+
+# Host name and user credentials
+username = "root" # tftp server account
+ftp_username = "root" # ftp server account
+password = "pureuser"
+hostname = "{{server_ip}}"
+
+# vrf info
+vrf = "management"
+if os.environ.has_key('POAP_VRF'):
+    vrf=os.environ['POAP_VRF']
+
+# Timeout info (from biggest to smallest image, should be f(image-size, protocol))
+system_timeout    = 3100 
+kickstart_timeout = 1900  
+config_timeout    = 320 
+md5sum_timeout    = 120  
+
+# cable-plan.README
+################################################################################
+#Cable plan can be downloaded and enforced during POAP or runtime.
+#
+#To download a global cable-plan for all nodes during POAP, do the following
+#1. Set "cabling_file_specified = 1"
+#2. Set the "cabling_file_path" where the cable plan can reside.
+#3. copy cabling_plan.xml in the path mentioned in "cabling_file_path". 
+#
+#
+#Note the above 3 steps just downloads the cable plan during POAP, but does not enforce it.
+#To enforce the cable-plan, enable using CLIs in the config templates.
+#>feature lldp
+#>feature cable-managemnet
+#>fabric connectivity cable-plan enforce
+#>fabric connectivity cable-plan import bootflash:cabling_plan_global_poap.xml
+#
+#The import/enforce sequence does not matter, imports the device specific link entries from
+#the global plan to enforce locally.
+#Note:
+#####
+#Cable Plan can be auto-generated based on current topology, using 
+#cli "fabric connectivity cable-plan generate"
+#The generated plan is created in bootflash, can be used as a template, 
+#to modify based on the expected topology.
+
+#While global cable-plan can be downloaded and enfored on all the nodes, 
+#a non-global or a node-specific plan can also be downloaded and enforced at the sametime.
+#This is particularly useful if only certain no of ports needs to be validated on a specific node.
+#Modify the poap_database.cfg - specify the cable_plan file name in the corresponding host node 
+#"cable_file_to_use=leaf1.xml"
+
+#Cable plan does not have to be present on both the ends for validation. It can just be enforced
+#on one node so long as LLDP is running on the peer nodes.
+
+#By default, cable plan is neither downloaded nor imported/enforced during boot-time, hence
+#explicitly follow the steps above to enforce cabling during POAP
+#Reach out cable-mgmt-dev@cisco.com for any questions
+#zed.cisco.com/confluence/display/IETC/Cable-Plan+User+Guide
+
+###############################################################################
+
+# cable management defines start
+
+# Cable file is optional. Set to 1 to get cable file, zero if there is no cable file
+cabling_file_specified = 0;
+
+# Specify the global cable file name here: This is the file name in tftpserver
+cabling_file_src = "cabling_plan.xml"
+
+# Specify the file name you want stored on switch here
+cabling_file_dst = "cabling_plan_global_poap.xml"
+
+#directory on tftpserver where cable file resides
+cabling_file_path = "/var/lib/tftpboot/"
+
+# Dont modify the following
+cabling_file_copied = 0;
+cabling_file_timeout = system_timeout
+# cable management defines end
+
+
+# POAP can use 6 modes to obtain the config file.
+# - 'static' - filename is static
+# - 'serial_number' - switch serial number is part of the filename
+#       if serial-number is abc, then filename is conf_abc.cfg
+# - 'location' - CDP neighbor of interface on which DHCPDISCOVER arrived
+#                is part of filename
+#       if cdp neighbor's device_id=abc and port_id=111,
+#       then filename is conf_abc_111.cfg
+# - 'mac' - use the interface
+#       (mgmt 0 interface / Single MAC address for all the
+#       front-panel interface) MAC address to derive the configuration filename
+#       (Example: for MAC Address 00:11:22:AA:BB:CC" the default configuration
+#       file looked for would be conf_001122AABBCC.cfg
+# - 'hostname' - Use the hostname from the DHCP OFFER to derive the 
+#       configuration file name 
+#       (Example: conf_N3K-Switch-1.cfg for hostname 'N3K-Switch-1'
+# - 'database' - config file is obtained from a database
+# Note: the next line can be overwritten by command-line arg processing later
+config_file_type = "mac"
+
+# parameters passed through environment:
+pid=""
+if os.environ.has_key('POAP_PID'):
+    pid=os.environ['POAP_PID']
+serial_number=None
+if os.environ.has_key('POAP_SERIAL'):
+    serial_number=os.environ['POAP_SERIAL']
+cdp_interface=None
+if os.environ.has_key('POAP_INTF'):
+    cdp_interface=os.environ['POAP_INTF']
+
+# will append date/timespace into the name later
+log_filename = "/bootflash/poap.log"
+t=time.localtime()
+now="%d_%d_%d" % (t.tm_hour, t.tm_min, t.tm_sec)
+
+# **** end of parameters **** 
+# *************************************************************
+
+# ***** argv parsing and online help (for test through cli) ******
+# ****************************************************************
+
+cl_cdp_interface=None  # Command Line version of cdp-interface
+cl_serial_number=None  # can overwrite the corresp. env var
+cl_protocol=None       # can overwride the script's default
+cl_download_only=None  # dont write boot variables
+
+def parse_args(argv, help=None):
+    global cl_cdp_interface, cl_serial_number, cl_protocol, protocol, cl_download_only
+    while argv:
+        x = argv.pop(0)
+        # not handling duplicate matches...
+        if cmp('cdp-interface'[0:len(x)], x) == 0:
+          try: cl_cdp_interface = argv.pop(0)
+          except: 
+             if help: cl_cdp_interface=-1
+          if len(x) != len('cdp-interface') and help: cl_cdp_interface=None
+          continue
+        if cmp('serial-number'[0:len(x)], x) == 0:
+          try: cl_serial_number = argv.pop(0)
+          except: 
+            if help: cl_serial_number=-1
+          if len(x) != len('serial-number') and help: cl_serial_number=None
+          continue
+        if cmp('protocol'[0:len(x)], x) == 0:
+          try: cl_protocol = argv.pop(0); 
+          except: 
+            if help: cl_protocol=-1
+          if len(x) != len('protocol') and help: cl_protocol=None
+          if cl_protocol: protocol=cl_protocol
+          continue
+        if cmp('download-only'[0:len(x)], x) == 0:
+          cl_download_only = 1
+          continue
+        print "Syntax Error|invalid token:", x
+        exit(-1)
+  
+
+########### display online help (if asked for) #################
+nb_args = len(sys.argv)
+if nb_args > 1:
+  m = re.match('__cli_script.*help', sys.argv[1])
+  if m:
+    # first level help: display script description
+    if sys.argv[1] == "__cli_script_help":
+      print "loads system/kickstart images and config file for POAP\n"
+      exit(0)
+    # argument help
+    argv = sys.argv[2:]
+    # dont count last arg if it was partial help (no-space-question-mark)
+    if sys.argv[1] == "__cli_script_args_help_partial":
+      argv = argv[:-1]
+    parse_args(argv, "help")
+    if cl_serial_number==-1:
+      print "WORD|Enter the serial number"
+      exit(0)
+    if cl_cdp_interface==-1:
+      print "WORD|Enter the CDP interface instance"
+      exit(0)
+    if cl_protocol==-1:
+      print "tftp|Use tftp for file transfer protocol"
+      print "ftp|Use ftp for file transfer protocol"
+      print "scp|Use scp for file transfer protocol"
+      exit(0)
+    if not cl_serial_number:
+      print "serial-number|The serial number to use for the config filename"
+    if not cl_cdp_interface:
+      print "cdp-interface|The CDP interface to use for the config filename"
+    if not cl_protocol:
+      print "protocol|The file transfer protocol"
+    if not cl_download_only:
+      print "download-only|stop after download, dont write boot variables"
+    print "<CR>|Run it (use static name for config file)"
+    # we are done
+    exit(0)
+
+# *** now overwrite env vars with command line vars (if any given)
+# *** this can be used for testing the script using the command line
+
+argv = sys.argv[1:]
+parse_args(argv)
+if cl_serial_number: 
+    serial_number=cl_serial_number
+    config_file_type = "serial_number"
+if cl_cdp_interface: 
+    cdp_interface=cl_cdp_interface
+    config_file_type = "location"
+if cl_protocol: 
+    protocol=cl_protocol
+
+# figure out what kind of box we have (to download the correct images)
+from cisco import cli
+r=cli("show version")
+# n3k, n5k and n6k cli returns a two element list, second one is the result string
+if len(r)==2:
+    lines=r[1].split("\n")
+else:
+    lines=r.split("\n")
+
+idx = [i for i, line in enumerate(lines) if re.search('^.*cisco.*Chassis.*$', line)]
+if re.match(".*Nexus7.*",lines[idx[0]]):
+    box="n7k"
+    if re.match(".*Unknown Module.*",lines[idx[0]]):
+        box="titanium"
+elif re.match(".*Nexus3.*",lines[idx[0]]):
+    box="n3k"
+elif re.match(".*Nexus.56.*",lines[idx[0]]) or re.match(".*Nexus56.*",lines[idx[0]]) or re.match(".*Nexus6.*",lines[idx[0]]) or re.match(".*Nexus 6.*",lines[idx[0]]) or re.match(".*Nexus.24Q.*",lines[idx[0]]) or re.match(".*Nexus24Q.*",lines[idx[0]]) or re.match(".*Nexus.48Q.*",lines[idx[0]]) or re.match(".*Nexus48Q.*",lines[idx[0]]):
+    box="n6k"
+elif re.match(".*Nexus.5.*",lines[idx[0]]) or re.match(".*Nexus5.*",lines[idx[0]]):
+    box="n5k"
+    if re.match(".*Unknown Module.*",lines[idx[0]]):
+        box="titanium"
+else:
+    box="unknown"
+
+print "box is", box
+
+if box=="unknown":
+    exit(-1)
+
+if box=="n7k" or box=="n5k" or box=="titanium" or box=="n6k":
+    set = "integrated"
+else:
+    set = "standalone"
+
+if set=="standalone":
+    from cisco import transfer
+
+poap_syslog_prefix = " "
+
+# setup log file and associated utils
+try:
+    if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+        log_filename = "%s_usb.%s" % (log_filename, now)
+    else:
+        log_filename = "%s.%s" % (log_filename, now)
+except Exception as inst:
+    print inst
+poap_log_file = open(log_filename, "w+")
+
+
+#String2Mac Conversion
+def Str2Mac (poap_syslog_mac = ""):
+    poap_syslog_mac = "%s:%s:%s:%s:%s:%s" % (poap_syslog_mac[0:2], poap_syslog_mac[2:4], poap_syslog_mac[4:6], poap_syslog_mac[6:8], poap_syslog_mac[8:10], poap_syslog_mac[10:12])
+    return poap_syslog_mac
+
+
+# Syslog Prefix
+def setSyslogPrefix():
+    global poap_syslog_prefix, poap_syslog_mac
+    if os.environ.has_key('POAP_SERIAL'):
+        poap_syslog_prefix = "S/N[%s]" % os.environ['POAP_SERIAL']
+    if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+        if os.environ.has_key('POAP_RMAC'):
+            poap_syslog_mac = "%s" % os.environ['POAP_RMAC']
+            poap_syslog_prefix = "%s-MAC[%s]" % (poap_syslog_prefix, poap_syslog_mac)
+            return
+        if os.environ.has_key('POAP_MGMT_MAC'):
+            poap_syslog_mac = "%s" % os.environ['POAP_MGMT_MAC']
+            poap_syslog_prefix = "%s-MAC[%s]" % (poap_syslog_prefix, poap_syslog_mac)
+            return
+    else:
+        if os.environ.has_key('POAP_MAC'):
+            poap_syslog_mac = "%s" % os.environ['POAP_MAC']
+            poap_syslog_mac = Str2Mac (poap_syslog_mac)
+            poap_syslog_prefix = "%s-MAC[%s]" % (poap_syslog_prefix, poap_syslog_mac)
+            return
+
+setSyslogPrefix()
+
+def poap_cleanup_script_logs() :
+    preserve_last_logs = 4
+    files = []
+
+    path = destination_path
+
+    for infile in glob.glob(os.path.join(path, 'poap.log*')):
+        files.append(infile)
+    files.sort()
+    files.reverse()
+
+    count = 0
+    for file in files:
+        count = count + 1
+        if count > preserve_last_logs:
+            os.remove(file)
+
+def poap_log (info):
+    global poap_syslog_prefix
+    info = "%s - %s" % (poap_syslog_prefix, info)
+    syslog.syslog(9, info)
+    poap_log_file.write(info)
+    poap_log_file.write("\n")
+    poap_log_file.flush()
+    print info
+    sys.stdout.flush()
+
+def poap_log_close ():
+    poap_log_file.close()
+
+def abort_cleanup_exit () : 
+    poap_log("INFO: cleaning up")
+    cleanup_files()
+    poap_log_close()
+    exit(-1)
+
+
+# some argument sanity checks:
+
+if config_file_type == "serial_number" and serial_number == None:
+    poap_log("ERR: serial-number required (to derive config name) but none given")
+    exit(-1)
+
+if config_file_type == "location" and cdp_interface == None: 
+    poap_log("ERR: interface required (to derive config name) but none given")
+    exit(-1)
+
+# Get final image name based on actual box
+# The variable box is the box platform, like n7k, n3k, n5k, n6k.
+# This is to generate the kickstart or system image src variable names defined
+# in the beginning of the file, e.g., n3k_system_image_src
+# For different sup, e.g., sup1, sup2, assign the correct image name to image
+# src variable
+system_image_src = eval("%s_%s" %(box , "system_image_src"), globals())
+kickstart_image_src = eval("%s_%s" %(box , "kickstart_image_src"), globals())
+
+# images are copied to temporary location first (dont want to 
+# overwrite good images with bad ones).
+system_image_dst_tmp    = "%s/system.img%s"    % (image_dir_dst, ".new")
+kickstart_image_dst_tmp = "%s/kickstart.img%s" % (image_dir_dst, ".new")
+
+
+# setup the cli session
+cli("no terminal color persist");
+cli("terminal dont-ask");
+#if box=="n7k" or box=="n5k" or box=="titanium" or box=="n6k":
+if not legacy:
+    cli("terminal password %s" % password);
+
+# utility functions
+def run_cli (cmd):
+    poap_log("CLI : %s" % cmd)
+    if box=="n7k" or box=="n5k" or box=="titanium" or box=="n6k":
+        r=cli(cmd)
+    else:
+        r=cli(cmd)[1]
+
+    return r
+
+def rm_rf (filename): 
+    try: cli("delete %s" % filename)
+    except: pass
+
+# signal handling
+def sig_handler_no_exit (signum, frame) : 
+    poap_log("INFO: SIGTERM Handler while configuring boot variables")
+
+def sigterm_handler (signum, frame): 
+    poap_log("INFO: SIGTERM Handler") 
+    abort_cleanup_exit()
+    exit(1)
+
+signal.signal(signal.SIGTERM, sigterm_handler)
+
+# Procedure to split config file using global information
+def splitConfigFile ():
+        global configCopied, config_file_dst, config_file_dst_first, config_file_dst_second, emptyFirstFile
+        configFile        = open("/bootflash/%s" % config_file_dst, "r")
+        configFile_first  = open("/bootflash/%s" % config_file_dst_first, "w+")
+        configFile_second = open("/bootflash/%s" % config_file_dst_second, "w+")
+        line = configFile.readline()
+        while line != "":
+            if not string.find(line, "system vlan", 0, 11) or not string.find(line, "interface breakout", 0, 18) or not string.find(line, "hardware profile tcam", 0, 21) or not string.find(line, "type fc", 0, 7) or not string.find(line, "fabric-mode 40G", 0, 15) or not string.find(line, "fabricpath mode transit", 0, 23) or not string.find(line, "fabric-mode 10G", 0, 15):
+                poap_log("INFO: Generating config for splitConfig..")
+                if not string.find(line, "fabricpath mode transit", 0, 23):
+                   configFile_first.write("install feature-set fabricpath\n")
+                   configFile_first.write("feature-set fabricpath\n")
+                configFile_first.write(line)
+                if emptyFirstFile == 1:
+                    emptyFirstFile = 0
+            else:
+                configFile_second.write(line)
+
+            line = configFile.readline()
+
+        configFile.close()
+        run_cli("delete %s" % config_file_dst)
+        configCopied = 0
+        configFile_first.close()
+
+        if emptyFirstFile == 1:
+            run_cli("delete %s" % config_file_dst_first)
+
+        configFile_second.close()
+        return
+
+# transfers file, return True on success; on error exits unless 'fatal' is False in which case we return False
+def doCopy(protocol = "", host = "", source = "", dest = "", vrf = "management", login_timeout=600, user = "", password = "", fatal=True):
+    rm_rf(dest)
+
+    # modify source paths (tftp does not like full paths)
+    global username, ftp_username
+    if protocol=="tftp": 
+      source=source[len(image_dir_src):]
+    if protocol=="ftp": 
+      username=ftp_username
+      source=source[len(image_dir_src):]
+
+    if box=="n7k" or box=="n5k" or box=="titanium" or box=="n6k":
+        if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+            poap_log("INFO: Copy %s from USB" %source)
+            cmd = "copy %s %s" % (source, dest)
+            print cmd
+        else:
+	    if legacy:
+                try:
+                    transfer(protocol, host, source, dest, vrf, login_timeout,
+                         username, password)
+                    # The transfer module doesn't fail if bootflash runs out of space.
+                    # This is a bug with the already shipped transfer module, and there's
+                    # no return code or output that indicates this has happened. Newer
+                    # images have the "terminal password" CLI that lets us avoid this.
+                    poap_log("Copy done using transfer module. Please check size below")
+                except Exception as e:
+                    # Handle known cases
+                    if "file not found" in str(e):
+                        poap_log("Copy failed: %s" % str(e))
+                    elif "Permission denied" in str(e):
+                        poap_log("Copy of %s failed: permission denied" % source)
+                    else:
+                        poap_log("Copy failed %s" % str(e))
+		    if fatal:
+			poap_log("ERR : aborting")
+			abort_cleanup_exit()
+			exit(1)
+		    return False
+
+	    else:	
+                cmd="copy %s://%s@%s/%s %s vrf %s" % (protocol, username, host, source, dest, vrf)
+                print cmd
+
+                try: run_cli(cmd)
+                except:
+                    poap_log("WARN: Copy Failed: %s" % str(sys.exc_value).strip('\n\r'))
+                    if fatal:
+                        poap_log("ERR : aborting")
+                        abort_cleanup_exit()
+                        exit(1)
+                    return False
+                return True
+    else:
+        try:
+            if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+                poap_log("INFO: Copy %s from USB" %source)
+                os.system ("copy %s %s" % (source, dest))
+            else:
+                transfer(protocol, host, source, dest, vrf, login_timeout, username, password)
+        except Exception as inst:
+            poap_log("WARN: Copy Failed: %s" % inst)
+            if fatal:
+                poap_log("ERR : aborting")
+                abort_cleanup_exit()
+                exit(1)
+            return False
+        return True
+
+
+def get_md5sum_src (file_name):
+    md5_file_name_src = "%s.%s" % (file_name, md5sum_ext_src)
+    md5_file_name_dst = "volatile:%s.poap_md5" % os.path.basename(md5_file_name_src)
+    rm_rf(md5_file_name_dst)
+
+    doCopy(protocol, hostname, md5_file_name_src, md5_file_name_dst, vrf, md5sum_timeout, username, password, False)
+    r=run_cli("show file %s" % md5_file_name_dst)
+    if type(r) is tuple:
+        sum = r[1].split(' ')[0]
+    else:
+        sum = r.split(' ')[0]
+    if not sum:
+        poap_log("INFO: Unable to get the md5 sum")
+        return None
+    poap_log("INFO: md5sum %s (.md5 file)" % sum)
+    rm_rf(md5_file_name_dst)
+    return sum
+
+def get_md5sum_dst (filename):
+    cmd = run_cli("show file %s md5sum" % filename)
+    if type(cmd) is tuple:
+	sum = cmd[1].strip('\n')
+    else:
+	sum = cmd.strip('\n')
+    poap_log("INFO: md5sum %s (recalculated)" % sum)
+    return sum  
+
+def check_md5sum (filename_src, filename_dst, lname):
+    md5sum_src = get_md5sum_src(filename_src)
+    if md5sum_src: # we found a .md5 file on the server
+        md5sum_dst = get_md5sum_dst(filename_dst)
+        if md5sum_dst != md5sum_src:
+             poap_log("ERR : MD5 verification failed for %s! (%s)" % (lname, filename_dst))
+             abort_cleanup_exit()
+
+# Will run our CLI command to test MD5 checksum and if files are valid images
+# This check is also performed while setting the boot variables, but this is an
+# additional check
+
+def get_md5_status (msg):
+   
+    lines=msg.split("\n") 
+    for line in lines:
+        index=line.find("MD5")
+        if (index!=-1):
+            status=line[index+17:]
+            return status
+
+def get_version (msg):
+   
+    lines=msg.split("\n") 
+    for line in lines:
+        index=line.find("MD5")
+        if (index!=-1):
+            status=line[index+17:]
+
+        index=line.find("kickstart:")
+        if (index!=-1): 
+            index=line.find("version")
+            ver=line[index:]
+            return ver
+
+        index=line.find("system:")
+        if (index!=-1):
+            index=line.find("version")
+            ver=line[index:]
+            return ver
+    
+def get_image_version(image):
+    version = "Unable to retrieve"
+    try:
+        out = cli("show version image %s" % image)
+        # out = out[1]
+        # This is a Hack; once the "plugin based. failed to get image swid"
+        # is fixed this  expect part can be removed.
+    except:
+        out = sys.exc_value
+        out = out[0]
+
+    match = re.search("image name:\s+([a-zA-Z\.\-0-9]+)\n", out, re.MULTILINE)
+    if match:
+        split_image = match.group(1).split('.')
+        version = ".".join(split_image[1:len(split_image) -1])
+
+    return version
+
+def verify_images ():
+
+    if box=="n5k" or box=="n6k":
+        # This is to fix the n5k/n6k system image bug
+        kick_v=get_image_version(kickstart_image_dst)
+        sys_v=get_image_version(system_image_dst)
+        if kick_v != sys_v: 
+            poap_log("ERR : Image version mismatch. (kickstart : %s) (system : %s)" % (kick_v, sys_v))
+            abort_cleanup_exit()
+        return True
+
+    kick_cmd="show version image %s" % kickstart_image_dst
+    sys_cmd="show version image %s" % system_image_dst
+
+    kick_msg=run_cli(kick_cmd)
+    sys_msg=run_cli(sys_cmd)
+
+    # n3k, n6k images do not provide md5 information
+    if box=="n7k" or box=="titanium":
+        kick_s=get_md5_status(kick_msg)
+        sys_s=get_md5_status(sys_msg)    
+
+    kick_v=get_version(kick_msg)
+    sys_v=get_version(sys_msg)
+    
+    if box=="n7k" or box=="titanium": 
+        print "MD5 status: %s and %s" % (kick_s, sys_s)
+        if (kick_s == "Passed" and sys_s == "Passed"):
+            # MD5 verification passed
+            if(kick_v != sys_v): 
+                poap_log("ERR : Image version mismatch. (kickstart : %s) (system : %s)" % (kick_v, sys_v))
+                abort_cleanup_exit()
+        else:
+            poap_log("ERR : MD5 verification failed!")
+            poap_log("%s\n%s" % (kick_msg, sys_msg))
+            abort_cleanup_exit()
+        poap_log("INFO: Verification passed. (kickstart : %s) (system : %s)" % (kick_v, sys_v))
+        return True
+    else:
+        if kick_v != sys_v: 
+            poap_log("ERR : Image version mismatch. (kickstart : %s) (system : %s)" % (kick_v, sys_v))
+            abort_cleanup_exit()
+    
+        return True
+        
+def cleanup_files ():
+    global configCopied, databaseCopied, templateConfigCopied, generatedConfig, kickstartImageCopied, systemImageCopied, kickstartImage, systemImage, config_db_file_dst, config_file_dst_tmp, config_file_dst_second, config_file_dst_first, kickstart_image_dst_tmp, system_image_dst_tmp, config_file_dst, kickstart_image_dst, system_image_dst
+    try:
+        poap_log("FINISH: Clean up files.")
+        if configCopied == 1:
+            run_cli("delete %s" % config_file_dst)
+
+        if databaseCopied == 1:
+            run_cli("delete %s" % config_db_file_dst)
+
+        if templateConfigCopied == 1:
+            run_cli("delete %s" % config_file_dst_tmp)
+
+        if generatedConfig == 1:
+            run_cli("delete %s" % config_file_dst_second)
+            if emptyFirstFile == 0:
+                run_cli("delete %s" % config_file_dst_first)
+
+        if kickstartImageCopied == 1:
+            run_cli("delete %s" % kickstart_image_dst_tmp)
+
+        if kickstartImage == 1:
+            run_cli("delete %s" % kickstart_image_dst)
+
+        if systemImageCopied == 1:
+            run_cli("delete %s" % system_image_dst_tmp)
+
+        if systemImage == 1:
+            run_cli("delete %s" % system_image_dst)
+
+    except:
+        poap_log("Error in clean up files")
+        pass
+
+#cable management: copy cabling file if specified
+def get_cable_mgmt_file() :
+    poap_log( "INFO: Entered get_cable_mgmt_file")
+    poap_log( " found cable file: %d " % cabling_file_specified)
+    if cabling_file_specified == 0:
+        poap_log( "INFO: No cable file specified")
+        return
+
+    org_file = cabling_file_dst
+    if os.path.exists("/bootflash/%s" % org_file): 
+        poap_log( "INFO: Dst cable file already exists, move it: %s" % org_file)
+        return
+
+    poap_log( "INFO: Starting Copy of cable File: %s" % cabling_file_dst )
+    tmp_file = "%s.tmp" % org_file
+    time = cabling_file_timeout
+    if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+        src = "usb1:%s" % (cabling_file_src)
+    else:
+        src = "%s%s" % (cabling_file_path, cabling_file_src)
+    doCopy (protocol, hostname, src, org_file, vrf, time, username, password, tmp_file)  
+    poap_log( "INFO: Completed Copy of Cable File: %s " % cabling_file_dst) 
+    cabling_file_copied = 1
+
+
+# get config file from server
+def get_config ():
+    global username, hostname, config_path, config_file_src, config_file_dst, config_timeout, emptyFirstFile, password, generatedConfig, configCopied
+    poap_log("INFO:#Starting Copy of Config File")
+    if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+        config_file_src = "usb1:%s" % (config_file_src)
+    else:
+        config_file_src = "%s%s" % (config_path, config_file_src)
+    doCopy (protocol, hostname, config_file_src, config_file_dst, vrf, config_timeout, username, password)
+    poap_log("INFO: Completed Copy of Config File") 
+    configCopied = 1
+
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log("INFO:#Check md5 of Configuration File")
+    check_md5sum (config_file_src, config_file_dst, "config file")
+
+    poap_log("INFO: Split config invoked....")
+    splitConfigFile()
+    generatedConfig = 1
+        
+    return
+
+# get system image file from server
+def get_system_image ():
+    global systemImageCopied, systemImage, image_dir_src, system_image_src
+    poap_log( "INFO:#Starting Copy of System Image")
+    if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+        system_image_src = "usb1:%s" % (system_image_src)
+    else:
+        system_image_src    = "%s/%s" % (image_dir_src, system_image_src)
+    doCopy (protocol, hostname, system_image_src, system_image_dst_tmp, vrf, system_timeout, username, password)  
+    poap_log("INFO: Completed Copy of System Image" ) 
+    systemImageCopied = 1
+
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log("INFO:#Check md5 of system image")
+    check_md5sum (system_image_src, system_image_dst_tmp, "system image")
+    if os.path.exists(os_system_image_dst):
+       os.remove(os_system_image_dst)
+    run_cli ("move %s %s" % (system_image_dst_tmp, system_image_dst))
+    systemImageCopied = 0
+    systemImage = 1
+
+# get kickstart image file from server
+def get_kickstart_image ():
+    global kickstartImageCopied, kickstartImage, image_dir_src, kickstart_image_src
+    poap_log( "INFO:#Starting Copy of Kickstart Image")
+    if os.environ.has_key('POAP_PHASE') and os.environ['POAP_PHASE'] == "USB":
+        kickstart_image_src = "usb1:%s" % (kickstart_image_src)
+    else:
+        kickstart_image_src = "%s/%s" % (image_dir_src, kickstart_image_src)
+
+    doCopy (protocol, hostname, kickstart_image_src, kickstart_image_dst_tmp, vrf, kickstart_timeout, username, password)  
+    poap_log("INFO: Completed Copy of Kickstart Image") 
+    kickstartImageCopied = 1
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log("INFO:#Check md5 of kickstart image")
+    check_md5sum (kickstart_image_src, kickstart_image_dst_tmp, "kickstart image")
+
+    if os.path.exists(os_kickstart_image_dst):
+       os.remove(os_kickstart_image_dst)
+    run_cli ("move %s %s" % (kickstart_image_dst_tmp, kickstart_image_dst))
+    kickstartImageCopied = 0
+    kickstartImage = 1
+
+def wait_box_online ():
+	
+    while 1:
+        r=run_cli("show system internal ascii-cfg event-history | grep BOX_ONLINE")
+        if r: break
+        else: time.sleep(5)
+        poap_log("INFO: Waiting for box online...") 
+
+
+# install (make persistent) images and config 
+def install_it (): 
+    global cl_download_only, kickstart_image_copied, system_image_copied, kickstartImage, systemImage
+    if cl_download_only: exit(0)
+    timeout = -1
+
+    # make sure box is online
+    #if box=="n7k" or box=="n5k" or box=="titanium" or box=="n6k": wait_box_online()
+
+    poap_log("INFO: Setting the boot variables")
+    try:
+        run_cli ("config terminal ; boot kickstart %s" % kickstart_image_dst)
+        run_cli ("config terminal ; boot system %s" % system_image_dst)
+
+        # System may not be ready yet to apply 'copy r s'
+        # If thats the case, wait for sometime and retry.  
+        command_successful = False 
+        timeout = 10 # minutes
+        first_time = time.time()
+        endtime = first_time + timeout  * 60 #sec per min
+        retry_delay  = 30 # seconds
+        while not command_successful:
+            new_time = time.time()
+            try:
+                run_cli ("copy running-config startup-config")
+                poap_log("INFO: successful")
+                command_successful = True
+            except SyntaxError:
+                poap_log("WARNING: copy run to start failed")
+                if  new_time  > endtime:
+                    poap_log("ERROR: time out waiting for \"copy run start\" to complete successfully")
+                    sys.exit(-1)
+                poap_log("WARNING: retry in 30 seconds")
+                time.sleep( retry_delay )
+
+        if emptyFirstFile is 0:
+            run_cli ('copy bootflash:%s scheduled-config' % config_file_dst_first)
+            poap_log("######### Copying the first scheduled cfg done ##########")
+
+        run_cli ('copy bootflash:%s scheduled-config' % config_file_dst_second)
+        poap_log("######### Copying the second scheduled cfg done ##########")
+    except:
+        poap_log("ERR : setting bootvars or copy run start failed!")
+        poap_log("ERR: msg: %s" % str(sys.exc_value).strip('\n\r'))
+        traceback.print_exc(file=sys.stdout)
+        sys.stdout.flush()
+        abort_cleanup_exit()
+
+    poap_log("INFO: Configuration successful")
+    # If we are at this stage, it means that there is no error. We dont want to
+    # delete the system/kickstart images that were downloaded
+    kickstartImage = 0
+    systemImage = 0
+        
+# Verify if free space is available to download config, kickstart and system images
+def verify_freespace (): 
+    poap_log("Verifying freespace in bootflash")
+    s = os.statvfs("/bootflash/")
+    freespace = (s.f_bavail * s.f_frsize) / 1024
+    poap_log("Free bootflash space is %s" % freespace)
+
+    if required_space > freespace:
+        poap_log("ERR : Not enough space to copy the config, kickstart image and system image, aborting!")
+        abort_cleanup_exit()
+
+# Procedure to set config_file based on switch serial number
+def set_config_file_src_serial_number (): 
+    global config_file_src
+    config_file_src = "conf_%s.cfg" % serial_number
+    poap_log("INFO: Selected config filename (serial-nb) : %s" % config_file_src)
+
+# Procedure to set config_file based on the interface MAC
+def set_config_file_src_mac():
+        global config_file_src
+        if os.environ.has_key('POAP_MAC'):
+            poap_log("Interface MAC %s" % os.environ['POAP_MAC'])
+            config_file_src = "conf_%s.cfg" %(os.environ['POAP_MAC'])
+
+        poap_log("Selected config file name : %s" % config_file_src)
+
+# Procedure to set config_file based on switch host name
+def set_config_file_src_hostname ():
+    global config_file_src
+    if os.environ.has_key('POAP_HOST_NAME'):
+        poap_log("Host Name: [%s]" % os.environ['POAP_HOST_NAME'])
+        config_file_src = "conf_%s.cfg" % (os.environ['POAP_HOST_NAME'])
+        poap_log("Selected config file name : %s" % config_file_src)
+    else:
+        poap_log("Host Name information missing, falling back to static mode\n")
+        poap_log("Selected config file name : %s" % config_file_src)
+
+# figure out config filename to download based on cdp neighbor info
+# sample output:
+#   switch# show cdp neig
+#   Capability Codes: R - Router, T - Trans-Bridge, B - Source-Route-Bridge
+#                     S - Switch, H - Host, I - IGMP, r - Repeater,
+#                     V - VoIP-Phone, D - Remotely-Managed-Device,
+#                     s - Supports-STP-Dispute, M - Two-port Mac Relay
+#
+#   Device ID              Local Intrfce   Hldtme  Capability  Platform      Port ID
+#   Switch                 mgmt0           148     S I         WS-C2960G-24T Gig0/2
+#   switch(Nexus-Switch)   Eth1/1          150     R S I s     Nexus-Switch  Eth2/1
+#   switch(Nexus-Switch)   Eth1/2          150     R S I s     Nexus-Switch  Eth2/2
+# in xml:
+#   <ROW_cdp_neighbor_brief_info>
+#    <ifindex>83886080</ifindex>
+#    <device_id>Switch</device_id>
+#    <intf_id>mgmt0</intf_id>
+#    <ttl>137</ttl>
+#    <capability>switch</capability>
+#    <capability>IGMP_cnd_filtering</capability>
+#    <platform_id>cisco WS-C2960G-24TC-L</platform_id>
+#    <port_id>GigabitEthernet0/4</port_id>
+#   </ROW_cdp_neighbor_brief_info>
+
+def set_config_file_src_location():
+    global config_file_src
+    cmd = "show cdp neighbors interface %s" % cdp_interface
+    try: r = run_cli(cmd);
+    except: 
+        poap_log("ERR: cant get neighbor info on %s", cdp_interface)
+        exit(-1)
+
+    lines=r.split("\n")
+
+    try:
+        idx = [i for i, line in enumerate(lines) if re.search('^.*Device-ID.*$', line)]
+        ix=idx[0]+1
+        line=lines[ix]
+        words=line.split()
+        # Check if there is a wrap due to long output string, which breaks one
+        # line output into multiple lines
+        while len(words)<6:
+            ix=ix+1
+            if ix<len(lines):
+                line=line+' '+lines[ix]
+                words=line.split()
+            else:
+                poap_log("ERR: 'show cdp neigbhor' output wraps. Incomplete merge: %s." % line)
+                raise Exception("Invalid")
+        switchName=words[0]
+        intfName = words[len(words)-1]
+    except:
+        poap_log("ERR: unexpected 'show cdp neigbhor' output: %s" % r)
+        exit(-1)
+    switchName = switchName.split("(")[0]
+    neighbor = "%s_%s" % (switchName, intfName)
+    neighbor = string.replace(neighbor, "/", "_")
+    config_file_src = "conf_%s.cfg" % neighbor
+    poap_log("INFO: Selected config filename (cdp-neighbor) : %s" % config_file_src)
+
+# set complete name of config_file_src based on serial-number/interface (add extension)
+
+if config_file_type == "location": 
+    #set source config file based on location
+    set_config_file_src_location()
+
+elif config_file_type == "serial_number": 
+    #set source config file based on switch's serial number
+    set_config_file_src_serial_number()
+
+elif config_file_type == "mac":
+    #set source config file based on switch's interface MAC
+    set_config_file_src_mac()
+
+elif config_file_type == "hostname":
+    #set source config file based on switch's assigned hostname
+    set_config_file_src_hostname()
+
+else:
+    poap_log("Error: Please select valid config file type")
+
+poap_cleanup_script_logs()
+
+verify_freespace()
+
+get_config()
+get_kickstart_image()
+get_system_image()
+# cable mgmt
+#get_cable_mgmt_file()
+#verify_images()
+
+# prevent someone from sending a signal while we install the config
+signal.signal(signal.SIGTERM, sig_handler_no_exit)
+install_it()
+cleanup_files()
+
+poap_log_close()
+exit(0)

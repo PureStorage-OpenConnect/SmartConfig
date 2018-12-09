@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<workflow id="CreateServiceProfileAttachGroup-N5k-iSCSI-gen2" name="Create UCS Service Profiles" desc="Create UCS Service Profile Templates and apply Service Profiles to Blade Servers" wtype="wgroup" type="UCSM" simulate="0" isdeletable="0" order="4" htype="fa-n5k-figen2-iscsi" prereq="ConfigureFIGen2-N5k-iSCSI">
+	<wfs>
+		<wf id="createServiceProfileAndAttach-N5k-iSCSI-gen2" name="Create Service Profiles" wexecid="g300" OnSuccess="None" OnFailure="None" initwf="1"/>
+	</wfs>
+</workflow>

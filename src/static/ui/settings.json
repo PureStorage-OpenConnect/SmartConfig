@@ -1,0 +1,14 @@
+{
+	"base_path": "pure",
+	"cookie_name": "pure-storage",
+	"loading_msg": "Loading...",
+	"background_api_duration": "5000",
+	"common": {
+		"title": "Pure Storage", 
+		"logo": "",
+		"copywrite": "&copy; {{Year}} Pure Storage"
+	},
+	"layout": {
+		"theme": "pure orange"
+	}
+}

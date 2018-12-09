@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<workflow desc="Zoning in Nexus Switches" htype="fa-n5k-fi-fc" id="zoningNEXUS5k" isdeletable="0" name="Nexus Zoning" order="5" prereq="createServiceProfileAndAttach" simulate="0" type="Nexus 5k" hidden="1">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc2="Create zones and zonesets for Nexus interfaces" id="NEXUS5kZoning" inittask="1" name="Nexus Zoning for switch A" desc="Nexus Zoning for switch A" texecid="t300">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="nexus_id" mapval="3" value="nexus_switch_a"/>
+        <arg name="flogi_list" value=""/>
+        <arg name="vsan_id" mapval="3" value="vsan_a"/>
+        <arg name="zones" value=""/>
+        <arg name="zoneset" value=""/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc2="Create zones and zonesets for Nexus interfaces" id="NEXUS5kZoning" inittask="1" name="Nexus Zoning for switch B" desc="Nexus Zoning for switch B" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="nexus_id" mapval="3" value="nexus_switch_b"/>
+        <arg name="flogi_list" value=""/>
+        <arg name="vsan_id" mapval="3" value="vsan_b"/>
+        <arg name="zones" value=""/>
+        <arg name="zoneset" value=""/>
+      </args>
+    </task>
+  </tasks>
+</workflow>
+

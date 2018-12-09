@@ -1,0 +1,97 @@
+paths:
+   /ExportConfiguration:
+     get:
+      tags:
+       - JSON Configuration
+      operationId: pure_dir.services.apps.pdt.pdt_api.exportconfiguration
+      summary: Return Value
+      security: []
+      parameters:
+           - in: query
+             name: stacktype
+             description: Type
+             required: true
+             type: string
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ExportConfigResponse'
+   
+   /ImportConfiguration:
+     post:
+      tags:
+       - JSON Configuration
+      operationId: pure_dir.services.apps.pdt.pdt_api.importconfiguration
+      summary: Return Value
+      security: []
+      parameters:
+           - required: true
+             in: formData
+             description: The file need to be uploaded
+             name: uploadfile
+             type: file
+
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ImportResponse'
+
+   /JSONConfig:
+     get:
+      tags:
+       - JSON Configuration
+      operationId: pure_dir.services.apps.pdt.pdt_api.jsonconfigdefaults
+      summary: Return Value
+      security: []
+      parameters:
+           - in: query
+             name: stacktype
+             description: Type
+             required: true
+             type: string
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ExportConfigResponse'
+
+   /RestoreConfig:
+     post:
+      tags:
+       - JSON Configuration
+      parameters:
+       - in: query
+         name: stacktype
+         description: Flash stack type
+         required: false
+         type: string
+       - in : body
+         name: data
+         description: Config data
+         required: false
+         schema:
+            $ref: '#/definitions/SaveConfig'
+
+      operationId: pdt_api.restore_config
+      summary: Save configuration of all devices
+      security: []
+      responses:
+        '200':
+          description: Returns response
+          schema:
+            $ref: '#/definitions/MDSValidate'
+
+definitions:
+  ExportConfigResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: object
+        $ref: '#/definitions/Config'

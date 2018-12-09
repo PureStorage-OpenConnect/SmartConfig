@@ -1,0 +1,232 @@
+paths:
+  /System:
+    get:
+      tags: 
+      - System
+      operationId: service_mgr_api.systeminfo
+      summary: System Info
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/SystemResponse'
+           
+  /ServiceRegister:
+    post:
+      tags:
+      - Gateway
+      operationId: service_mgr_api.serviceregister
+      summary: API to register a service to the service_mgr
+      security: []
+      parameters:
+        - name: data
+          in: body
+          description: The name of the pure app
+          schema:
+            $ref: '#/definitions/ServiceDetails'
+          required: true
+
+      responses:
+        '200':
+          description: Return login state
+          schema:
+            $ref: '#/definitions/ServiceRegisterResponse'
+
+  /ApplicationInit:
+    get:
+      tags:
+      - Gateway
+      operationId: service_mgr_api.applicationinit
+      summary: API to start a application and its associated services
+      security: []
+      parameters:
+        - name: name
+          in: query
+          description: The name of the application
+          type: string
+          required: true
+
+      responses:
+        '200':
+          description: Return state
+          schema:
+            $ref: '#/definitions/ServiceRegisterResponse'
+
+  /ApplicationUninit:
+    get:
+      tags:
+      - Gateway
+      operationId: service_mgr_api.applicationuninit
+      summary: API to stop a application and its associated services
+      security: []
+      parameters:
+        - name: name
+          in: query
+          description: The name of the application
+          type: string
+          required: true
+
+      responses:
+        '200':
+          description: Return state
+          schema:
+            $ref: '#/definitions/ServiceRegisterResponse'
+
+  /ApplicationReset:
+    get:
+      tags:
+      - Gateway
+      operationId: service_mgr_api.applicationreset
+      summary: API to reset the application
+      security: []
+
+      responses:
+        '200':
+          description: Return state
+          schema:
+            $ref: '#/definitions/ServiceRegisterResponse'
+
+definitions:
+  APIStatus:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+          
+  SystemResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        $ref: '#/definitions/System'
+      status:
+        $ref: '#/definitions/APIStatus'
+  
+  ServiceRegisterResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        description: Service registered or not
+        type: boolean
+      status:
+        $ref: '#/definitions/APIStatus'
+        
+  System:
+    type: object
+    required:
+      - name
+      - version
+    properties:
+      version:
+        type: string
+        description: Unique identifier
+        example: "1.0"
+        readOnly: true
+      name:
+        type: string
+        description: Tool name
+        minLength: 1
+        maxLength: 100
+      app:
+        type: string
+        description: Application name that is running
+        minLength: 1
+        maxLength: 100
+      copyright:
+        type: string
+        description: Tool copyright
+        minLength: 1
+        maxLength: 100
+      ula:
+        type: string
+        description: Path to ULA document
+
+  ServiceDetails:
+    type: object
+    required:
+      - service_name
+      - service_details
+    properties:
+      service_name:
+        type: string
+        description: Unique identifier
+        readOnly: true
+      service_details:
+        type: object
+        description: Service details
+
+  ServiceEntry:
+    type: object
+    required:
+      - name
+      - basepath
+      - version
+      - ip 
+      - port 
+    properties:
+      name:
+        type: string
+        description: Unique identifier
+        example: "1.0"
+        readOnly: true
+      basepath:
+        type: string
+        description: Tool name
+        minLength: 1
+        maxLength: 100
+      version:
+        type: string
+        description: Dhcp server status
+        example: "0"
+        minLength: 1
+      ip:
+        type: string
+        description: Tool copyright
+        minLength: 1
+        maxLength: 100
+      port:
+        type: string
+        description: Tool copyright
+        minLength: 1
+        maxLength: 100
+      apis:
+        type: array
+        description: Tool copyright
+        items:
+            $ref: '#/definitions/ServiceAPIs'
+    
+  ServiceAPIs:
+    type: object
+    required:
+      - name
+      - scope
+    properties:
+      name:
+        type: string
+        description: Unique identifier
+        example: "1.0"
+        readOnly: true
+      scope:
+        type: string
+        description: Tool name
+        minLength: 1
+        maxLength: 100
+      
+
+
+
+
+
+

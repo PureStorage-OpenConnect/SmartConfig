@@ -1,0 +1,9 @@
+<services>
+    <service name="service_mgr" port="8080"/>
+    <service name="pdt" port="8081"/>
+    <service name="dms" port="8082"/>
+    <service name="dbservice" port="8091"/>
+    <service name="alerts" port="8092"/>
+    <service name="scheduler" port="8093"/>
+    <service name="upgrade" port="8094"/>
+</services>

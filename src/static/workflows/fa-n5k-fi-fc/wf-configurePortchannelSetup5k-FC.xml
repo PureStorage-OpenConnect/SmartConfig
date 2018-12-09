@@ -1,0 +1,218 @@
+<?xml version="1.0" ?>
+<workflow desc="Port-Channel Setup in Nexus switches" hidden="1" htype="fa-n5k-fi-fc" id="configurePortchannelSetup5k-FC" isdeletable="0" name="Nexus Port Channel Setup" simulate="0" type="Nexus">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="VPC domain for switch A" id="NEXUS5kCreateVPCDomain" inittask="1" name="VPC domain for switch A" texecid="t300">
+      <outputs>
+        <output name="vpc_id" tvalue="10" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vpc_role" tvalue="10" value="no-op"/>
+        <output name="ip_b" tvalue="192.168.10.67" value="no-op"/>
+        <output name="ip_a" tvalue="192.168.10.66" value="no-op"/>
+        <output name="delay" tvalue="150" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="vpc_id" value="10"/>
+        <arg name="vpc_role" value="10"/>
+        <arg mapval="3" name="ip_b" value="nexus_switch_b"/>
+        <arg mapval="3" name="ip_a" value="nexus_switch_a"/>
+        <arg name="delay" value="150"/>
+      </args>
+    </task>
+    <task OnSuccess="t302" Onfailure="None" desc="VPC domain for switch B" id="NEXUS5kCreateVPCDomain" inittask="0" name="VPC domain for switch B" texecid="t301">
+      <outputs>
+        <output name="vpc_id" tvalue="10" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vpc_role" tvalue="20" value="no-op"/>
+        <output name="ip_b" tvalue="192.168.10.66" value="no-op"/>
+        <output name="ip_a" tvalue="192.168.10.67" value="no-op"/>
+        <output name="delay" tvalue="150" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg mapval="1" name="vpc_id" value="__t300.VPC domain for switch A.vpc_id"/>
+        <arg name="vpc_role" value="20"/>
+        <arg mapval="3" name="ip_b" value="nexus_switch_a"/>
+        <arg mapval="3" name="ip_a" value="nexus_switch_b"/>
+        <arg mapval="1" name="delay" value="__t300.VPC domain for switch A.delay"/>
+      </args>
+    </task>
+    <task OnSuccess="t303" Onfailure="None" desc="Portchannel member interfaces for switch A" id="NEXUS5kConfigurePortChannelMemberInterfaces" inittask="0" name="Portchannel member interfaces for switch A" texecid="t302">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/13-14" value="no-op"/>
+        <output name="port_channel_number" tvalue="11" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115,200-203" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="slot_chassis" value="Eth2/13|Eth2/14"/>
+        <arg name="port_channel_number" value="11"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t304" Onfailure="None" desc="Portchannel member interfaces for switch B" id="NEXUS5kConfigurePortChannelMemberInterfaces" inittask="0" name="Portchannel member interfaces for switch B" texecid="t303">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/13-14" value="no-op"/>
+        <output name="port_channel_number" tvalue="11" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115,200-203" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="slot_chassis" value="Eth2/13|Eth2/14"/>
+        <arg mapval="1" name="port_channel_number" value="__t302.Portchannel member interfaces for switch A.port_channel_number"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t305" Onfailure="None" desc="Virtual port channels to UCS A from switch A" id="NEXUS5kConfigureVirtualPortChannelsToUCS" inittask="0" name="Virtual port channels to UCS A from switch A" texecid="t304">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/15" value="no-op"/>
+        <output name="port_channel_number" tvalue="151" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115,200-203" value="no-op"/>
+        <output name="counter_value" tvalue="3" value="no-op"/>
+        <output name="interval_delay" tvalue="60" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="slot_chassis" value="Eth2/15"/>
+        <arg mapval="3" name="port_channel_number" value="up_port_a"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
+        <arg name="counter_value" value="3"/>
+        <arg name="interval_delay" value="60"/>
+      </args>
+    </task>
+    <task OnSuccess="t306" Onfailure="None" desc="Virtual port channels to UCS A from switch B" id="NEXUS5kConfigureVirtualPortChannelsToUCS" inittask="0" name="Virtual port channels to UCS A from switch B" texecid="t305">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/15" value="no-op"/>
+        <output name="port_channel_number" tvalue="151" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115,200-203" value="no-op"/>
+        <output name="counter_value" tvalue="3" value="no-op"/>
+        <output name="interval_delay" tvalue="60" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="slot_chassis" value="Eth2/15"/>
+        <arg mapval="3" name="port_channel_number" value="up_port_a"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
+        <arg mapval="1" name="counter_value" value="__t304.Virtual port channels to UCS A from switch A.counter_value"/>
+        <arg mapval="1" name="interval_delay" value="__t304.Virtual port channels to UCS A from switch A.interval_delay"/>
+      </args>
+    </task>
+    <task OnSuccess="t307" Onfailure="None" desc="Virtual port channels to UCS B from switch A" id="NEXUS5kConfigureVirtualPortChannelsToUCS" inittask="0" name="Virtual port channels to UCS B from switch A" texecid="t306">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/16" value="no-op"/>
+        <output name="port_channel_number" tvalue="152" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115,200-203" value="no-op"/>
+        <output name="counter_value" tvalue="3" value="no-op"/>
+        <output name="interval_delay" tvalue="60" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="slot_chassis" value="Eth2/16"/>
+        <arg mapval="3" name="port_channel_number" value="up_port_b"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
+        <arg name="counter_value" value="3"/>
+        <arg name="interval_delay" value="60"/>
+      </args>
+    </task>
+    <task OnSuccess="t308" Onfailure="None" desc="Virtual port channels to UCS B from switch B" id="NEXUS5kConfigureVirtualPortChannelsToUCS" inittask="0" name="Virtual port channels to UCS B from switch B" texecid="t307">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/16" value="no-op"/>
+        <output name="port_channel_number" tvalue="152" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115,200-203" value="no-op"/>
+        <output name="counter_value" tvalue="3" value="no-op"/>
+        <output name="interval_delay" tvalue="60" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="slot_chassis" value="Eth2/16"/>
+        <arg mapval="3" name="port_channel_number" value="up_port_b"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
+        <arg mapval="1" name="counter_value" value="__t306.Virtual port channels to UCS B from switch A.counter_value"/>
+        <arg mapval="1" name="interval_delay" value="__t306.Virtual port channels to UCS B from switch A.interval_delay"/>
+      </args>
+    </task>
+    <task OnSuccess="t309" Onfailure="None" desc="Virtual port channels to upstream switch A from switch A" id="NEXUS5kConfigureVirtualPortChannelsToNetworkSwitch" inittask="0" name="Virtual port channels to upstream switch A from switch A" texecid="t308">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/17" value="no-op"/>
+        <output name="port_channel_number" tvalue="153" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="slot_chassis" value="Eth2/11"/>
+        <arg name="port_channel_number" value="153"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t310" Onfailure="None" desc="Virtual port channels to upstream switch A from switch B" id="NEXUS5kConfigureVirtualPortChannelsToNetworkSwitch" inittask="0" name="Virtual port channels to upstream switch A from switch B" texecid="t309">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/17" value="no-op"/>
+        <output name="port_channel_number" tvalue="153" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="slot_chassis" value="Eth2/11"/>
+        <arg mapval="1" name="port_channel_number" value="__t308.Virtual port channels to upstream switch A from switch A.port_channel_number"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t311" Onfailure="None" desc="Virtual port channels to upstream switch B from switch A" id="NEXUS5kConfigureVirtualPortChannelsToNetworkSwitch" inittask="0" name="Virtual port channels to upstream switch B from switch A" texecid="t310">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/18" value="no-op"/>
+        <output name="port_channel_number" tvalue="154" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="slot_chassis" value="Eth2/12"/>
+        <arg name="port_channel_number" value="154"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Virtual port channels to upstream switch B from switch B" id="NEXUS5kConfigureVirtualPortChannelsToNetworkSwitch" inittask="0" name="Virtual port channels to upstream switch B from switch B" texecid="t311">
+      <outputs>
+        <output name="slot_chassis" tvalue="2/18" value="no-op"/>
+        <output name="port_channel_number" tvalue="154" value="no-op"/>
+        <output name="native_vlan_id" tvalue="2" value="no-op"/>
+        <output name="allowed_vlans_set" tvalue="115" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="slot_chassis" value="Eth2/12"/>
+        <arg mapval="1" name="port_channel_number" value="__t310.Virtual port channels to upstream switch B from switch A.port_channel_number"/>
+        <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
+        <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>
+

@@ -1,0 +1,11 @@
+{
+    "name": "SmartConfig",
+    "description": "FlashStack SmartConfig Tool",
+    "service_syspath": "/var/www/restserver/pure_dir/services/apps/pdt",
+    "api": "smartconfig_api.yaml",
+    "ip": "127.0.0.1",
+    "basepath": "pdt",
+    "version": "1.0",
+    "port": "8081"
+}
+

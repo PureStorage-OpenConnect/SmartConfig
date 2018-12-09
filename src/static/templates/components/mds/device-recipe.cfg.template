@@ -1,0 +1,15 @@
+{
+"serial-number":"{{serial_number}}",
+"kick-start-image":{
+"image-name":"{{kickstart_image}}",
+"download-server":"Default_TFTP_Repository"
+},
+"system-image":{
+"image-name":"{{system_image}}",
+"download-server":"Default_TFTP_Repository"
+},
+"startup-config":{
+"config-name":"conf_{{serial_number}}.cfg",
+"download-server":"Default_TFTP_Repository"
+}
+}

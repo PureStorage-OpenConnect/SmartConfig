@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<workflow id="FlashArrayStorageDeployment-n5k-iSCSI" name="Configure FlashArray Storage" desc="Create Hosts, Host Groups and Volumes" wtype="wgroup" type="FlashArray" simulate="0" isdeletable="0" order="6" htype="fa-n5k-fi-iscsi" prereq="CreateServiceProfileAttachGroup-iSCSI">
+        <wfs>
+                <wf id="HostRegistration-n5k-iSCSI" name="Host Registration" wexecid="g310" OnSuccess="g311" OnFailure="None" initwf="1"/>
+                <wf id="PrivateVolumes-n5k-iSCSI" name="Private Volumes" wexecid="g311" OnSuccess="g312" OnFailure="None" initwf="0"/>
+                <wf id="HostGroups-n5k-iSCSI" name="Host Groups" wexecid="g312" OnSuccess="g313" OnFailure="None" initwf="0"/>
+                <wf id="PublicVolume-n5k-iSCSI" name="Shared Volume" wexecid="g313" OnSuccess="None" OnFailure="None" initwf="0"/>
+        </wfs>
+</workflow>
+
+
+

@@ -1,0 +1,4 @@
+<applications>
+    <application name="pdt" depends="" />
+    <application name="dms" depends="scheduler,alerts,dbservice,upgrade" />
+</applications>

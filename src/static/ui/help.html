@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8">
+        <title>SmartConfig :: Help</title>
+        <link rel="shortcut icon" type="image/x-icon" href="static/images/favicon.ico">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/bootstrap.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/fontawesome-all.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/font-awesome-animation.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/animate.min.css">
+        <link type="text/css" rel="stylesheet" href="static/css/common.css">
+        <link type="text/css" rel="stylesheet" href="static/css/fonts.css">
+        <link type="text/css" rel="stylesheet" href="static/css/popup.css">
+        <link type="text/css" rel="stylesheet" href="static/css/help.css">
+	<script type="text/javascript" src="static/js/lib/jquery-1.11.3.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.mask.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.mCustomScrollbar.concat.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/download.min.js"></script>
+	<script type="text/javascript" src="static/js/common.js"></script>
+	<script type="text/javascript" src="static/js/templates.js"></script>
+	<script type="text/javascript" src="static/js/pdt/layout.js"></script>
+	<script>
+		function loadPageContent() {}
+	</script>
+</head>
+<body>
+<header lpanel-effect="shrink" class="minimized-lpanel" color-type="logo-bg5">
+        <div class="right-header" position-type="relative" color-type="header-bg4">
+                <ul class="left-navbar pull-left">
+                        <li class="logo img-responsive"></li>
+                        <li class="header">SmartConfig</li>
+                </ul>
+        </div>
+</header>
+<div class="content">
+	<div class="modal-frame">
+		<div class="modal">
+			<div class="modal-inset widget col-lg-7 col-md-7 col-sm-10 col-xs-10 center">
+				<div class="modal-head widget-header">
+					<div class="widget-title col-lg-11 col-md-11 col-sm-11 col-xs-11 nopadding"></div>
+					<div class="widget-subtitle col-lg-1 col-md-1 col-sm-1 col-xs-1 nopadding">
+						<i class="fa fa-times pull-right closeModel" alt="Close" title="Close"></i>
+						<div class="clear"></div>
+					</div>
+				</div>
+				<div class="modal-body widget-content">
+					<div id="popupFrm">
+						<input type="hidden" id="form_primaryid" name="form_primaryid" class="form-control hide">
+						<div id="form-body"></div>
+						<div class="form-footer"></div>
+	            			</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-overlay"></div>
+	<div class="footer">
+		<div class="copyright title pull-left"></div>
+		<div class="software-version title pull-right"></div>
+	</div>
+<h1>SmartConfig Tool</h1>
+<p>Installation and User Guide</p>
+<h3>Contents</h3>
+<ul>
+<li>
+<h5><a href="#Introduction">Introduction</a></h5>
+<ul>
+<li>
+<h6><a href="#FlashStack-Deployment-tool">FlashStack™ Deployment tool</a></h6>
+</li>
+</ul>
+</li>
+<li>
+<h5><a href="#Installation">Installation</a></h5>
+<ul>
+<li>
+<h6><a href="#System-Requirements-and-Pre-Installation">System Requirements and Pre-Installation</a></h6>
+</li>
+<li>
+<h6><a href="#Tool-Support-Matrix">Tool Support Matrix</a></h6>
+</li>
+<li>
+<h6><a href="#Hardware-and-software-prerequisite">Hardware and software prerequisite</a></h6>
+</li>
+<li>
+<h6><a href="#Installing-SmartConfig-in-host-Environment">Installing SmartConfig in host Environment</a></h6>
+</li>
+</ul>
+</li>
+<li>
+<h5><a href="#Deploying-FlashStack">Deploying FlashStack™</a></h5>
+</li>
+<li>
+<h5><a href="#Select-FlashStack-Deployment-Type">Step 1. Select FlashStack Deployment Type</a></h5>
+</li>
+<li>
+<h5><a href="#Enable-DHCP-for-device-discovery">Step 2. Enable DHCP for device discovery</a></h5>
+</li>
+<li>
+<h5><a href="#Add-FlashArray">Step 3. Add FlashArray</a></h5>
+</li>
+<li>
+<h5><a href="#Uploading-the-ISO-libraries">Step 4. Uploading the ISO libraries</a></h5>
+</li>
+<li>
+<h5><a href="#Configuring-FlashStack-components">Step 5. Configuring FlashStack components</a></h5>
+</li>
+<li>
+<h5><a href="#Device-Initialization">Step 6. Device Initialization</a></h5>
+</li>
+<li>
+<h5><a href="#Workflow-deployment">Step 7. Workflow deployment</a></h5>
+</li>
+<li>
+<h5><a href="#SmartConfig-Additional-configurations">SmartConfig Additional configurations</a></h5>
+</li>
+<li>
+<h5><a href="#Download-Configuration">Download Configuration</a></h5>
+</li>
+<li>
+<h5><a href="#System-logs">System logs</a></h5>
+</li>
+<li>
+<h5><a href="#Factory-Reset">Factory Reset</a></h5>
+</li>
+<li>
+<h5><a href="#Troubleshooting-SmartConfig">Troubleshooting SmartConfig</a></h5>
+</li>
+<li>
+<h5><a href="#Common-Icons">Common Icons</a></h5>
+</li>
+<li>
+<h5><a href="#FAQ">FAQ</a></h5>
+</li>
+</ul>
+<p><a name="Introduction"></a></p>
+<h2>Introduction</h2>
+<p>SmartConfig is a provisioning tool to handle the basic zero-day deployment scenario for the FlashStack™ hardware</p>
+<p>The tool covers the following aspects:</p>
+<p><a name="FlashStack-Deployment-tool"></a></p>
+<h2>FlashStack™ Deployment tool</h2>
+<ul>
+<li>Deployment tool for Pure FlashStack™ converged infrastructure solution</li>
+<li>Provides operational simplicity with GUI for Day-0 provisioning</li>
+<li>Provides the tool as a virtual appliance that can be hosted as VM in Oracle Virtual Box environment</li>
+<li>Tool to cover the following operations:<ul>
+<li>Automation of UCS basic and advanced workflows </li>
+<li>Workflows for MDS and Nexus switches</li>
+<li>Provide VMware vSphere 6.5 hypervisor environment based on Cisco customized ISO image </li>
+<li>DHCP based Discovery</li>
+<li>Integration with Pure Flash Array</li>
+</ul>
+</li>
+</ul>
+<p>This guide describes the steps for configuring FlashStack™ hardware using SmartConfig tool. In addition, it highlights best practices, illustrates configurations, and describes current limitations of the tool. The guide assumes that the FlashStack™ converged infrastructure is setup with the components physically connected as per CISCO validated Design (CVD) and the zero-day provisioning will be configured by the SmartConfig. </p>
+<p><a name="Installation"></a></p>
+<h2>Installation</h2>
+<p><a name="System-Requirements-and-Pre-Installation"></a></p>
+<h3>System Requirements and Pre-Installation:</h3>
+<p>Minimum requirement for hosting the SmartConfig Virtual Machine(VM) is as follows:
+<em> SmartConfig VM has a fixed RAM size of 2GB, and it is recommended that customer does not change default RAM or storage settings
+</em> The VM uses Cent OS (64 bit) as the base OS and occupies 3-4 GB of actual disk space, it can grow to 60 GB based on number of ISO uploaded</p>
+<p>The optimal Host requirements are as follows:
+<em> Windows/Linux/MAC with 4 GB ram, 64-bit processor and &gt;= 3.2 GHz with Oracle virtual machine / VMware workstation installed
+</em> VM requires to be deployed in an isolated network with accessibility to the flash stack for device auto discovery 
+* No DHCP server should be running in the environment for device auto discovery</p>
+<p>Network diagram for the configuration:</p>
+<p><img alt="alt text" src="./static/images/network-diagram.png" /></p>
+<p><a name="Tool-Support-Matrix"></a></p>
+<h3>Tool Support Matrix</h3>
+<p>Pure Converged Infrastructure majorly supports the following deployment scenarios.</p>
+<p><strong>(FA – Pure Flash Array, FI - Cisco Fabric Interconnect)</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center">Sl.No</th>
+<th align="center">Components</th>
+<th align="center">+MDS</th>
+<th align="center">+Nexus 5k</th>
+<th align="center">+Nexus 9K</th>
+<th align="left">Remarks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">1</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="center"></td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="left">FC Config</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="left">FC Config</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="center"></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="left">FC Config</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="left">FC Config</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="left">FC Direct Connect</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="left">iSCSI Config</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/success.png" /></td>
+<td align="center"><img alt="alt text" src="./static/images/m_xicon-1.png" /></td>
+<td align="left">iSCSI Config</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td align="center">FA &amp; FI</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="left">iSCSI Direct Connect</td>
+</tr>
+</tbody>
+</table>
+<p>The current SmartConfig Tool (version 1.1) only supports following deployment scenarios
+<em> FA//MDS//Nexus 9k//FI (FC)
+</em> FA//Nexus 9K//FI (iSCSI)</p>
+<p><a name="Hardware-and-software-prerequisite"></a></p>
+<h3>Hardware and software prerequisite</h3>
+<p>Following are the minimum hardware and software requirements </p>
+<table>
+<thead>
+<tr>
+<th align="center">Layer</th>
+<th align="center">Hardware</th>
+<th align="center">Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><strong>Compute</strong></td>
+<td align="center">UCS (FI)</td>
+<td align="center"><strong>3.1(3a)</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>Storage</strong></td>
+<td align="center">MDS</td>
+<td align="center"><strong>7.3</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>Network</strong></td>
+<td align="center">Nexus 9k</td>
+<td align="center"><strong>6.x</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>Storage</strong></td>
+<td align="center">FlashArray</td>
+<td align="center"><strong>4.9.3</strong></td>
+</tr>
+</tbody>
+</table>
+<p><a name="Installing-SmartConfig-in-host-Environment"></a></p>
+<h3>Installing SmartConfig in host Environment</h3>
+<h5>Step 1. Launch SmartConfig OVA using Oracle Virtual box/VMware workstation</h5>
+<p>Once launched, SmartConfig VM console screen displays the IP information for the tool.  User will be able to alter the IP settings by selecting the advanced option in VM console.</p>
+<p><img alt="VM Console" src="./static/images/vm-console1.png" title="VM Console" /> <img alt="VM Console" src="./static/images/vm-console2.png" title="VM Console" />
+<img alt="VM Console" src="./static/images/vm-console3.png" title="VM Console" /> <img alt="VM Console" src="./static/images/vm-console4.png" title="VM Console" /></p>
+<p>Launch the IP(http://<ip>/) in web browser for accessing SmartConfig tool as shown in below screen.</p>
+<p><img alt="EULA Agreement" src="./static/images/eula-agreement.png" title="EULA Agreement" /></p>
+<h5>Step 2. Review and Accept EULA Agreement</h5>
+<p>Accept EULA Agreement to start using the tool</p>
+<p><img alt="EULA Agreement" src="./static/images/eula-agreement1.png" title="EULA Agreement" /></p>
+<p>User will be able to use the tool, only after the EULA is accepted.
+<a name="Deploying-FlashStack"></a></p>
+<h3>Deploying FlashStack™</h3>
+<p><a name="Select-FlashStack-Deployment-Type"></a></p>
+<h4>Step 1. Select FlashStack Deployment Type</h4>
+<p>The FlashStack deployment screen is used to select the FlashStack type for deployment.</p>
+<p><img alt="Deployment Type Selection" src="./static/images/stack-selection.png" title="Deployment Type Selection" /></p>
+<p><a name="Enable-DHCP-for-device-discovery"></a></p>
+<h4>Step 2. Enable DHCP for device discovery</h4>
+<p>By default, DHCP discovery is disabled in the tool. User needs to enable it to discover available FlashStack™ hardware in the network
+Below screen shows no devices discovered
+<img alt="Discovery" src="./static/images/discovery-empty.png" title="Discovery" /></p>
+<p>Below screen shows DHCP settings.</p>
+<p><img alt="DHCP Settings" src="./static/images/dhcp-settings.png" title="DHCP Settings" /></p>
+<p><strong>Note:</strong>  ‘DHCP range’ will be used to provide IP for hardware during discovery phase and ‘STATIC range’ will be used to auto suggest IP during Initial Configuration. </p>
+<p>Below Screen shows discovered FlashStack Hardware once the DHCP has been enabled:</p>
+<p><img alt="Discovery" src="./static/images/discovery.png" title="Discovery" /></p>
+<p><strong>Note:</strong> Based on the flash stack selection you have made, user need to select the correct number of hardware to move to the next step. The colour indicator in the Devices tittle bar turns green when right number of hardware is selected.
+Please note that some hardware may require a reboot to get it discovered.</p>
+<p><a name="Add-FlashArray"></a></p>
+<h4>Step 3. Add Flash Array</h4>
+<p>Current version of SmartConfig does not support auto discovery of FlashArray and it needs to be added <img alt="Burger/Menu Icon" src="./static/images/burger-icon.png" title="Burger/Menu Icon" /> manually by clicking burger icon     &gt; Add FlashArray. Provide credentials for FlashArray when prompted. </p>
+<p><img alt="Add FlashArray" src="./static/images/add-flasharray.png" title="Add FlashArray" /></p>
+<p><a name="Uploading-the-ISO-libraries"></a></p>
+<h4>Step 4. Uploading the ISO libraries</h4>
+<p>SmartConfig requires the user to upload the images/kickstart file for various FlashStack components. The uploaded firmware images will be used during initial flashing of hardware and during ESX installation in blade server.</p>
+<p><img alt="ISO Library" src="./static/images/iso-library.png" title="ISO Library" /></p>
+<p>Please refer to FlashStack™ documentation to identify appropriate images and upload to the tool.</p>
+<p><a name="Configuring-FlashStack-components"></a></p>
+<h4>Step 5. Configuring FlashStack components</h4>
+<p>Select required number of unconfigured devices for the flash stack selection you made as per CVD and click on next for initial configuration options.</p>
+<p>Enter the component name, IP address, Gateway, netmask and other respective details (NEXUS/MDS and select firmware images that have been uploaded to the ISO library in previous step) as shown in screens below.</p>
+<p><img alt="Basic Configuration" src="./static/images/configuration.png" title="Basic Configuration" /></p>
+<p>Switch to advanced tab for configuration for advanced user</p>
+<p><img alt="Advanced Configuration" src="./static/images/advanced-configuration.png" title="Advanced Configuration" /></p>
+<p><a name="Device-Initialization"></a></p>
+<h4>Step 6. Device Initialization</h4>
+<p>Click on initialize button to flush the configurations to the respective hardware as shown in the below screen</p>
+<p><img alt="Device Initialization" src="./static/images/device-initialization.png" title="Device Initialization" /></p>
+<p>Screen shot below shows configuration update in progress</p>
+<p><img alt="Device Initialization" src="./static/images/device-initialization-status.png" title="Device Initialization" /></p>
+<p><a name="Workflow-deployment"></a></p>
+<h4>Step 7. Workflow deployment</h4>
+<p>SmartConfig offers two methods of deployment
+<em> Basic / Single Touch deployment 
+</em> Advanced deployment</p>
+<p><strong>Basic/Single Touch Deployment:</strong>
+In Basic deployment, the user will be provided with a single touch deployment, where standard inputs defined as per CISCO validated design (CVD) will be used for deployment. The tool will take care of the Deployment once the user clicks on “Deploy” button. During the deployment, tool provides status of the deployment.</p>
+<p><strong>Advanced deployment:</strong>
+Advanced workflow deployment is meant for user who wants to edit the field values prior to deployment to certain specific values as per their needs. It consists of sub workflows and each sub workflow containing individual tasks. Each task will have its own input and needs to be configured prior to the deployment of the same.</p>
+<p>Below screen shot shows the basic deployment in progress.</p>
+<p><img alt="Advanced Deployment" src="./static/images/basic-deployment.png" title="Advanced Deployment" /></p>
+<p>Below screen shot shows advanced workflow deployment</p>
+<p><img alt="Advanced Deployment Finished state" src="./static/images/basic-deployment-finished.png" title="Advanced Deployment Finished state" /></p>
+<p>Below is the screen shot for advanced workflow configuration group</p>
+<p><img alt="Advanced Deployment Group" src="./static/images/basic-deployment-inprogress.png" title="Advanced Deployment Group" /></p>
+<p>Below is the screen shot for advanced workflow inputs</p>
+<p><img alt="Task Input" src="./static/images/task-inputs.png" title="Task Input" /></p>
+<p><a name="SmartConfig-Additional-configurations"></a></p>
+<h3>SmartConfig Additional configurations</h3>
+<p><a name="Download-Configuration"></a></p>
+<h4>Download Configuration</h4>
+<p>SmartConfig allows the user to download the configurations used for deployment once deployment is complete. The option will be available next to finish button</p>
+<p><a name="System-logs"></a></p>
+<h4>System logs</h4>
+<p>SmartConfig users can download system log by going to About &gt; System logs. The log can be used to diagnose any system defects by support team. </p>
+<p><a name="Factory-Reset"></a></p>
+<h4>Factory Reset</h4>
+<p>Factory reset will bring the VM back to the original factory settings, all logs will be deleted. </p>
+<p>Note: Factory reset will not clear contents of ISO library</p>
+<p>Below is the screen shot for system logs and factory reset icons in help page</p>
+<p><img alt="Factory Reset" src="./static/images/about-us.png" title="Factory Reset" /></p>
+<p><a name="Troubleshooting-SmartConfig"></a></p>
+<h3>Troubleshooting SmartConfig</h3>
+<ol>
+<li>
+<p>Unable to discover the device</p>
+<ul>
+<li>Ensure the device is properly connected to management network</li>
+<li>Reboot the device</li>
+</ul>
+</li>
+<li>
+<p>Failure during initial configuration of flash stack components</p>
+<ul>
+<li>Perform a reboot/factory reset physically</li>
+</ul>
+</li>
+<li>
+<p>Failure during Workflow deployment</p>
+<ul>
+<li>Ensure the task parameters values are intact in case of advanced workflow</li>
+<li>Finish the deployment and perform factory reset of the hardware and restart the initial configuration and deployment.</li>
+</ul>
+</li>
+</ol>
+<p><a name="Common-Icons"></a></p>
+<h3>Common Icons</h3>
+<p>The Following table provides information about the common icons used in the End User Portal. You can see the name of an icon when you hover over it with your mouse. Some icons may have a different name, depending upon the context in which they’re used.</p>
+<table>
+<thead>
+<tr>
+<th align="center">Icon</th>
+<th align="left">Name</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><i class="fa fas fa-sync faa-spin animated blue-text"></i></td>
+<td align="left">In-Progress</td>
+<td align="left">The icon represents <strong>in-progress state</strong> for operations in SmartConfig</td>
+</tr>
+<tr>
+<td align="center"><img alt="Burger Menu" src="./static/images/burger-icon.png" title="Burger Menu" /></td>
+<td align="left">Menu</td>
+<td align="left">This icon represents any <strong>additional options</strong>.</td>
+</tr>
+<tr>
+<td align="center"><div class="icon"><img alt="Reachable/Online" src="./static/images/online.png" title="Reachable/Online" /></div></td>
+<td align="left">Reachable(Online)</td>
+<td align="left">The icon is used to represent <strong>Online state</strong> of a device</td>
+</tr>
+<tr>
+<td align="center"><div class="icon"><img alt="Reachable/Offline" src="./static/images/offline.png" title="Reachable/Offline" /></div></td>
+<td align="left">Not Reachable(Offline)</td>
+<td align="left">The icon is used to represent <strong>Offline state</strong> of a device</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-times"></i></td>
+<td align="left">Close</td>
+<td align="left">To represent closure of a window or popup.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-trash-alt red-text"></i></td>
+<td align="left">Trash</td>
+<td align="left">Click <strong>Trash</strong> to delete an object, such as devices, images, etc</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-th-large"></i></td>
+<td align="left">Library</td>
+<td align="left">This icon is used for <strong>uploading and selecting</strong> the firmware images.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-info-circle"></i></td>
+<td align="left">Info</td>
+<td align="left">To represent detailed information</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-question-circle"></i></td>
+<td align="left">Help</td>
+<td align="left">Represents generic help.</td>
+</tr>
+<tr>
+<td align="center"><span class="required"></span></td>
+<td align="left">Asterisks</td>
+<td align="left">Indiactes mandatory field to be filled.</td>
+</tr>
+<tr>
+<td align="center"><div class="progress-bar orange-bar shine stripes small"><span class="orange-background" style="width: 50%"></span></div></td>
+<td align="left">Progress bar</td>
+<td align="left">Shows the progress of an operation</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-expand-arrows-alt"></i></td>
+<td align="left">Expand</td>
+<td align="left">This icon appears in each block of the flow. Where the user can click and see <strong>expanded view</strong> of the block.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-download"></i></td>
+<td align="left">Download</td>
+<td align="left">Represents the <strong>download</strong> operation.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-plus-circle"></i></td>
+<td align="left">Zoom In</td>
+<td align="left">Represents the <strong>zoom in/scale up</strong> operation.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-minus-circle"></i></td>
+<td align="left">Zoom Out</td>
+<td align="left">Represents the <strong>zoom out/scale down</strong> operation.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-stop-circle"></i></td>
+<td align="left">Zoom Reset</td>
+<td align="left">To reset the zoom operation.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-clipboard-list"></i></td>
+<td align="left">System Log</td>
+<td align="left">To <strong>download</strong> the syetem log</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-undo red-text"></i></td>
+<td align="left">Factory Reset</td>
+<td align="left">This icon is used to <strong>Reset</strong> the tool</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-check-circle green-text"></i></td>
+<td align="left">Success</td>
+<td align="left">Represents the <strong>successful completion</strong> of an operation.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-exclamation-triangle red-text"></i></td>
+<td align="left">Warning</td>
+<td align="left">Represents the <strong>failed state</strong> of an operation.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-play blue-text"></i></td>
+<td align="left">Play</td>
+<td align="left">To <strong>Trigger</strong> an operation</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-pencil-alt"></i></td>
+<td align="left">Edit</td>
+<td align="left">Represents to <strong>edit/modify</strong> the default value of an object.</td>
+</tr>
+<tr>
+<td align="center"><i class="fa fas fa-clipboard-list grey-text"></i></td>
+<td align="left">Log</td>
+<td align="left">Shows the deployment log for each workflow. Error logs shows the exact CLI failures.</td>
+</tr>
+<tr>
+<td align="center"><div class="icon"><img alt="Rolling Back" src="./static/images/anticlockwise.gif" title="Rolling Back" /></div></td>
+<td align="left">Rolling Back</td>
+<td align="left">The icon represents <strong>Rolling Back state</strong> for operations in SmartConfig</td>
+</tr>
+</tbody>
+</table>
+<p><a name="FAQ"></a></p>
+<h3>FAQ</h3>
+<ol>
+<li>
+<p>Why DHCP is required?</p>
+<blockquote>
+<p>DHCP is used for discovering the FlashStack hardware components available in the network. Only devices in factory reset state will be discovered via DHCP. DHCP is also used to update the firmware for MDS and Nexus using POAP.</p>
+</blockquote>
+</li>
+<li>
+<p>What the slider DHCP &amp; Static Range in DHCP settings used for?</p>
+<blockquote>
+<p>DHCP range is used to provide IP for devices in the network for discovery purpose. Static range is used to provide IP suggestion for hardware during initial configuration.</p>
+</blockquote>
+</li>
+<li>
+<p>How to add FlashArray?</p>
+<blockquote>
+<p>Go to burger icon <img alt="Burger/Menu Icon" src="./static/images/burger-icon.png" title="Burger/Menu Icon" /> in discovery page and select add FlashArray. Provide credentials when prompted.</p>
+</blockquote>
+</li>
+<li>
+<p>Why FlashArray is not getting discovered?</p>
+<blockquote>
+<p>Current SmartConfig has no auto discovery mechanism for FlashArray. Flash array needs to be added manually</p>
+</blockquote>
+</li>
+<li>
+<p>How to use custom VLAN ID, VSAN ID, port-channel settings?</p>
+<blockquote>
+<p>VLAN, VSAN, port-channel settings can be modified in configuration step &gt; advanced tab.</p>
+</blockquote>
+</li>
+<li>
+<p>How to factory reset the tool?</p>
+<blockquote>
+<p>Got to About us, click on ‘Factory Reset’. Factory reset will remove all the configurations. Please note that the factory reset will not remove contents of ISO library</p>
+</blockquote>
+</li>
+<li>
+<p>How to download diagnostic logs?</p>
+<blockquote>
+<p>Go to About us, click on ‘System Logs’ to start downloading the log.</p>
+</blockquote>
+</li>
+<li>
+<p>What is ISO library?</p>
+<blockquote>
+<p>ISO library is used to store the firmware update images for MDS, NEXUS and ESX iso.</p>
+</blockquote>
+</li>
+<li>
+<p>How to upload kickstart for ISO?</p>
+<blockquote>
+<p>ESX kickstart file can be added by going to ISO library, select type as ESXi kickstart, and select the ESX iso from drop down, select file and upload</p>
+</blockquote>
+</li>
+<li>
+<p>How to download the deployment configuration?</p>
+<blockquote>
+<p>Deployment configuration can be downloaded after a successful deployment </p>
+</blockquote>
+</li>
+<li>
+<p>Can I upgrade an already existing FlashStack?</p>
+<blockquote>
+<p>No, currently SmartConfig can be only used for a Day-0 Deployment scenario</p>
+</blockquote>
+</li>
+<li>
+<p>What does discovery do?</p>
+<blockquote>
+<p>Discovery stage allows automatic discovery of hardware components, selection for initial configuration. User needs to select the hardware which are required for the flash stack selection he has made. </p>
+</blockquote>
+</li>
+<li>
+<p>What is the deployment stage?</p>
+<blockquote>
+<p>Deployment stage runs multiple workflows to configure the hardware.</p>
+</blockquote>
+</li>
+</ol></div>
+</body>
+</html>

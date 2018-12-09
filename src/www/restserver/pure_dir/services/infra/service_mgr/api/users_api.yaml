@@ -1,0 +1,320 @@
+
+paths:
+  /Users:
+    get:
+      tags: 
+      - Users
+      operationId: service_mgr_api.users
+      summary: Get the list of users
+      security: []
+      responses:
+        '200':
+          description: Return the list of users
+          schema:
+            $ref: '#/definitions/UsersResponse'
+           
+    post:
+      tags:
+      - Users
+      operationId: service_mgr_api.usercreate
+      summary: Add a new user
+      security: 
+        - basic: []
+        - apiKey: []
+      parameters:
+        - name: user
+          in: body
+          description: The user information (id, name, password, confirm password)
+          schema:
+            $ref: '#/definitions/UserCreate'
+          required: true
+      responses:
+        '200':
+          description: Return state of user creation
+          schema:
+            $ref: '#/definitions/UserCreateResponse'
+        
+  /Users/{name}:
+    parameters:
+        - in: path
+          name: name   
+          required: true
+          type: string
+          minimum: 1
+          description: The user ID.
+    get:
+      tags:
+      - Users
+      operationId: service_mgr_api.userinfo
+      security: 
+        - basic: []
+        - apiKey: []
+      summary: Get the user information based on id
+      responses:
+        '200':
+          description: Return the user information based on id
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+            
+    delete:
+      tags:
+      - Users
+      operationId: core.usermanager.userdelete
+      security: 
+        - basic: []
+        - apiKey: []
+      summary: Deletes the user information based on id
+      parameters:
+       - name: username
+         in : query
+         description: User to be deleted
+         type: string
+         required: true
+       - name: application
+         in : query
+         type: string
+         description: Application detail
+         required: true    
+      responses:
+        '200':
+          description: Return state of user deletion
+          schema:
+            type: boolean
+            
+            
+  /UserLogin:
+    post:
+      tags:
+      - Users
+      operationId: service_mgr_api.userlogin
+      summary: Login to flashstack application
+      security: []
+      parameters:
+       - name: user
+         in: body
+         description: The user information (id, name, password, confirm password)
+         schema:
+           $ref: '#/definitions/UserVerify'
+         required: true
+      responses:
+        '200':
+          description: Return state of login key for the user
+          schema:
+            $ref: '#/definitions/UserLoginResponse'
+   
+  /SessionUser:
+    get:
+      tags:
+      - Users
+      operationId: service_mgr_api.sessionuser
+      summary: Return the user login info for the corresponding loginkey
+      security: []
+      parameters:
+       - name: loginkey
+         in: query
+         type: string
+         description: The session login key
+         required: true
+      responses:
+        '200':
+          description: Return username and usertype of login key for the user
+          schema:
+            $ref: '#/definitions/SessionResponse'       
+            
+  /SessionLogout:
+    get:
+      tags:
+      - Users
+      operationId: service_mgr_api.sessionlogout
+      security: 
+        - basic: []
+        - apiKey: []
+      summary: Logout the user session
+      parameters:
+       - name: loginkey
+         in: query
+         type: string
+         description: The session login key
+         required: true
+      responses:
+        '200':
+          description: Return status of session
+          schema:
+            $ref: '#/definitions/SessionResponse'      
+            
+  /UserVerify:
+    post:
+      tags:
+      - Users
+      operationId: service_mgr_api.userverify
+      summary: Verify the user whether present or not
+      security: []
+      parameters:
+       - name: user
+         in: body
+         description: The user information (id, name, password, confirm password)
+         schema:
+           $ref: '#/definitions/UserVerify'
+         required: true
+      responses:
+        '200':
+          description: Return state of user verification
+          schema:
+            $ref: '#/definitions/UserVerifyResponse'
+        
+          
+
+definitions:
+  UsersResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: array
+        items:
+            $ref: '#/definitions/Users'
+      status:
+        $ref: '#/definitions/APIStatus'
+        
+  UserVerifyResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        description: Status of user verification
+        type: boolean
+      status:
+        $ref: '#/definitions/APIStatus'
+
+  UserCreateResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        description: Status of user creation
+        type: array
+        $ref: '#/definitions/CreateRes'
+      status:
+        $ref: '#/definitions/APIStatus'
+
+ 
+  CreateRes:
+    required:
+      - field
+      - msg
+    properties:
+      field:
+        description: Field which is empty
+        type: string
+      msg:
+        description: Message
+        type: string
+
+
+  UserInfoResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        $ref: '#/definitions/Users'
+      status:
+        $ref: '#/definitions/APIStatus'
+
+  UserLoginResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        description: Login key 
+        type: array
+        items:
+          $ref: '#/definitions/Login'
+      status:
+        $ref: '#/definitions/APIStatus'
+        
+  Login:
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    
+  SessionResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        description: User name
+        type: string
+      status:
+        $ref: '#/definitions/APIStatus'
+        
+  Users:
+    type: object
+    properties:
+      name:
+        type: string
+        description: User name
+      isadmin:
+        type: boolean
+        description: Admin or Non-admin
+        
+  UserCreate:
+    type: object
+    required:
+      - name
+      - isadmin
+      - password
+      - confirm_password
+      - application
+    properties:
+      name:
+        type: string
+        description: User name
+      isadmin:
+        type: boolean
+        description: Admin or Non-admin
+      password:
+        type: string
+        description: User password
+      confirm_password:
+        type: string
+        description: User confirm password
+      application:
+        type: string
+        description: User belongs to which application
+        
+  UserVerify:
+    type: object
+    #type: array
+    properties:
+      name:
+        type: string
+        description: User name
+      password:
+        type: string
+        description: User password
+      application:
+        type: string
+        description: Application to which user belongs to
+
+
+
+
+
+

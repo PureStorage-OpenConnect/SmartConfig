@@ -1,0 +1,122 @@
+msgid "PDT_SUCCESS_MSG"
+msgstr "success"
+
+
+msgid "PDT_FAILED_MSG"
+msgstr "failed"
+
+
+msgid "PDT_INVALID_FLASHSTACK_TYPE_MSG"
+msgstr "No such flash stack type"
+
+
+msgid "PDT_UNEXPECTED_INTERNAL_ERR_MSG"
+msgstr "Unexpected Internal Error Occoured"
+
+
+msgid "PDT_INVALID_FLASHSTACK_DEPLOYMENT_ORDER_MSG"
+msgstr "Deployment is not in order"
+
+
+msgid "PDT_RESOURCE_UNAVAILABLE_ERR_MSG"
+msgstr "Resource Unavailable"
+
+
+msgid "PDT_INCORRECT_DETAILS_ERR_MSG"
+msgstr "Make sure the details are correct"
+
+
+msgid "PDT_INCOMPLETE_MANDATORY_FIELD_ERR_MSG"
+msgstr "Please fill all mandatory fields."
+
+
+msgid "PDT_OPERATION_UNSUPPORTED_ERR_MSG"
+msgstr "Unsupported Operation."
+
+
+msgid "PDT_INVALID_INPUT_ERR_MSG"
+msgstr "Enter Valid Details."
+
+
+msgid "PDT_ENTER_VALID_INPUT_ERR_MSG"
+msgstr "Invalid inputs."
+
+
+msgid "PDT_UNABLE_TO_RETRY_ERR_MSG"
+msgstr "Something went wrong. Unable to retry"
+
+
+msgid "PDT_ROLLBACK_FAILED_INSUFF_DATA_MSG"
+msgstr "Unable to trigger Rollback: Insufficient data"
+
+
+msgid "PDT_ITEM_NOT_FOUND_ERR_MSG"
+msgstr "No such item found"
+
+
+msgid "PDT_NAME_CONFLICT_ERR_MSG"
+msgstr "Name conflict. Plese enter a diffrent name"
+
+msgid "PDT_UNSUPPORTED_FILE_TYPE_ERR_MSG"
+msgstr "Unsupported file type"
+
+#Discovery strings
+
+msgid "PDT_NO_ACTIVE_COMPONENTS"
+msgstr "No active components are present"
+
+
+msgid "PDT_DHCP_ALREADY_EXISTS_ERR_MSG"
+msgstr "DHCP server already exists in the network"
+
+
+msgid "PDT_NETWORK_SETTINGS_SAVE_FAILED_ERR_MSG"
+msgstr "Failed to save the network settings"
+
+msgid "PDT_DHCP_ENABLED_MSG"
+msgstr "DHCP enabled successfully"
+
+msgid "PDT_DHCP_DISABLED_MSG"
+msgstr "DHCP disabled successfully"
+
+msgid "PDT_DHCP_ENABLE_FAILED_ERR_MSG"
+msgstr "Failed to configure DHCP. Check the settings"
+
+msgid "PDT_MISSING_MANDATORY_FIELD_ERR_MSG"
+msgstr "Please fill all mandatory fields."
+
+msgid "PDT_DEVICE_ALREADY_EXIST_ERR_MSG"
+msgstr "Device already exists"
+
+msgid "PDT_DEVICE_NOT_REACHABLE_ERR_MSG"
+msgstr "Device not reachable"
+
+msgid "PDT_DEVICE_ADDED_MSG"
+msgstr "Device added successfully"
+
+msgid "PDT_DEVICE_DELETED_MSG"
+msgstr "Device deleted successfully"
+
+msgid "PDT_INVALID_DEVICE_TYPE_MSG"
+msgstr "Please provide a valid device type"
+
+msgid "PDT_INVALID_DEVICE_MSG"
+msgstr "Please add a valid device"
+
+msgid "PDT_NO_SUCH_DEVICE_MSG"
+msgstr "Device does not exist"
+
+msgid "PDT_CONFIRM_SSH_CREDENTIALS_MSG"
+msgstr "Incorrect Username or Password"
+
+msgid "PDT_FAILED_TO_SET_REQUESTED_SETTINGS_MSG"
+msgstr "Failed to update the requested settings"
+
+msgid "PDT_NO_FREE_IP_ERR_MSG"
+msgstr "No free IPs available for configuration"
+
+msgid "PDT_RECONFIG_MSG"
+msgstr "Reconfigure needs device to be in factory reset state"
+
+msgid "PDT_RECONFIG_FAILED_ERR_MSG"
+msgstr "Failed to reconfigure"

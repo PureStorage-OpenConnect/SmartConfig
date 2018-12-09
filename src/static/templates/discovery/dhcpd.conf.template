@@ -1,0 +1,63 @@
+# dhcpd.conf
+#
+# Sample configuration file for ISC dhcpd
+#
+
+# option definitions common to all supported networks...
+#
+set vendor-string = option vendor-class-identifier;
+set serial = option dhcp-client-identifier;
+log(info, option vendor-class-identifier);
+option domain-name "example.org";
+option domain-name-servers {{dns_ip}};
+
+default-lease-time 600;
+max-lease-time 7200;
+
+# Use this to enble / disable dynamic dns updates globally.
+ddns-update-style none;
+
+# If this DHCP server is the official DHCP server for the local
+# network, the authoritative directive should be uncommented.
+authoritative;
+
+# Use this to send dhcp log messages to a different log file (you also
+# have to hack syslog.conf to complete the redirection).
+log-facility local7;
+
+# No service will be given on this subnet, but declaring it helps the 
+# DHCP server to understand the network topology.
+
+
+# This is a very basic subnet declaration.
+
+
+# This declaration allows BOOTP clients to get dynamic addresses,
+# which we don't really recommend.
+
+
+# A slightly different configuration for an internal subnet.
+option tftp-server-name "{{server_ip}}";
+subnet {{subnet}} netmask {{netmask}} {
+  range {{start_ip}} {{end_ip}};
+  option routers {{gateway}};
+  option subnet-mask {{subnet_mask}};
+
+class "nexus_9k" {
+  match if substring (option vendor-class-identifier, 0, 9) = "Cisco N9K";
+  option bootfile-name "poap_n9k.py";
+}
+class "nexus_5k" {
+  match if substring (option vendor-class-identifier, 0, 9) = "Cisco N5K";
+  option bootfile-name "poap_n5k.py";
+}
+class "mds" {
+  match if substring (option vendor-class-identifier, 0, 9) = "cisco MDS";
+  option bootfile-name "poap_script.tcl";
+}
+class "ucs" {
+  match if substring (option vendor-class-identifier, 0, 9) = "Cisco UCS";
+  option vendor-class-identifier "Cisco UCS";
+}
+}
+

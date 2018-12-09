@@ -1,0 +1,11 @@
+{
+  "repositories": {
+"Default_TFTP_Repository":{
+"url":"tftp://{{server_ip}}/",
+"username":"root",
+"password": "root",
+}
+  },
+  "resources":{
+  }
+}

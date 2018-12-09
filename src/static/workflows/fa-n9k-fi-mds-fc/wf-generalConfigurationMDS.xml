@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<workflow desc="Configuration of Cisco MDS Multilayer fabric switches" htype="fa-n9k-fi-mds-fc" id="generalConfigurationMDS" isdeletable="0" name="MDS Configuration" order="2" prereq="ConfigureNEXUS" simulate="0" type="MDS" hidden="1">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" id="MDSEnableFeatures" desc2="Enable additional set of features for MDS" inittask="1" name="Enable Features for switch A" desc="Enable Features for switch A" texecid="t300">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_a"/>
+        <arg name="feature_list" value="npiv|fport-channel-trunk"/>
+      </args>
+    </task>
+    <task OnSuccess="t302" Onfailure="None" id="MDSEnableFeatures" desc2="Enable additional set of features for MDS" inittask="1" name="Enable Features for switch B" desc="Enable Features for switch B" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_b"/>
+        <arg name="feature_list" value="npiv|fport-channel-trunk"/>
+      </args>
+    </task>
+    <task OnSuccess="t303" Onfailure="None" id="MDSCreatePortchannel" desc2="Create portchannel that will uplink to the Cisco UCS Fabric Interconnect" inittask="0" name="Create Port Channel for switch A" desc="Create Portchannel for switch A" texecid="t302">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="portchannel_id" tvalue="po" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_a"/>
+        <!-- Only <1-256> numbers are allowed for creating portchannel -->
+        <arg name="portchannel_id" mapval="3" value="fc_portchannel_a"/>
+      </args>
+    </task>
+    <task OnSuccess="t304" Onfailure="None" id="MDSCreatePortchannel" desc2="Create portchannel that will uplink to the Cisco UCS Fabric Interconnect" inittask="0" name="Create Port Channel for switch B" desc="Create Portchannel for switch B" texecid="t303">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="portchannel_id" tvalue="po" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_b"/>
+        <!-- Only <1-256> numbers are allowed for creating portchannel -->
+        <arg name="portchannel_id" mapval="3" value="fc_portchannel_b"/>
+      </args>
+    </task>
+    <task OnSuccess="t305" Onfailure="None" id="MDSCreateAndConfigureVSAN" desc2="Create VSAN and assign it to the interfaces that will be used for connectivity to the Cisco UCS Fabric Interconnect and the Pure Storage FlashArray" inittask="0" name="Create VSAN and Apply to the Interfaces for switch A" desc="Create and Configure VSAN for switch A" texecid="t304">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_a"/>
+        <arg name="vsan_id" mapval="3" value="vsan_a"/>
+        <arg name="fc_list" value="fc1/1|fc1/2|fc1/3|fc1/4"/>
+        <arg mapval="1" name="pc_list" value="__t302.Create Port Channel for switch A.portchannel_id"/>
+      </args>
+    </task>
+    <task OnSuccess="t306" Onfailure="None" id="MDSCreateAndConfigureVSAN" desc2="Create VSAN and assign it to the interfaces that will be used for connectivity to the Cisco UCS Fabric Interconnect and the Pure Storage FlashArray" inittask="0" name="Create VSAN and Apply to the Interfaces for switch B" desc="Create and Configure VSAN for switch B" texecid="t305">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_b"/>
+        <arg name="vsan_id" mapval="3" value="vsan_b"/>
+        <arg name="fc_list" value="fc1/1|fc1/2|fc1/3|fc1/4"/>
+        <arg mapval="1" name="pc_list" value="__t303.Create Port Channel for switch B.portchannel_id"/>
+      </args>
+    </task>
+    <task OnSuccess="t307" Onfailure="None" id="MDSConfigurePortchannel" desc2="Configure portchannel that will uplink to the Cisco UCS Fabric Interconnect" inittask="0" name="Configure Port Channel for switch A" desc="Configure Port Channel for switch A" texecid="t306">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_a"/>
+        <arg mapval="1" name="portchannel_id" value="__t302.Create Port Channel for switch A.portchannel_id"/>
+        <arg name="fc_list" value="fc1/5|fc1/6|fc1/7|fc1/8"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" id="MDSConfigurePortchannel" desc2="Configure portchannel that will uplink to the Cisco UCS Fabric Interconnect" inittask="0" name="Configure Port Channel for switch B" desc="Configure Port Channel for switch B" texecid="t307">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg name="mds_id" mapval="3" value="mds_switch_b"/>
+        <arg mapval="1" name="portchannel_id" value="__t303.Create Port Channel for switch B.portchannel_id"/>
+        <arg name="fc_list" value="fc1/5|fc1/6|fc1/7|fc1/8"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

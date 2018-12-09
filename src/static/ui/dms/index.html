@@ -1,0 +1,155 @@
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Drift Management System</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="language" content="english">
+	<link rel="shortcut icon" type="image/x-icon" href="static/images/favicon.ico">
+    
+	<link type="text/css" rel="stylesheet" href="static/css/lib/jquery-ui.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/bootstrap.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/jquery.mCustomScrollbar.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/font-awesome.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/font-awesome-animation.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/custom-checkbox.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/jquery.fileupload.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/jquery.multiselect.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/animate.min.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/jquery.toolbar.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/multiple-emails.css">
+	<link type="text/css" rel="stylesheet" href="static/css/lib/fullcalendar.min.css">
+	
+	<link type="text/css" rel="stylesheet" href="static/css/accordion.css">
+	<link type="text/css" rel="stylesheet" href="static/css/notification.css">
+	<link type="text/css" rel="stylesheet" href="static/css/paging.css">
+	<link type="text/css" rel="stylesheet" href="static/css/common.css">
+	<link type="text/css" rel="stylesheet" href="static/css/dms/layout.css">
+</head>
+<body class="pure-skin">
+	<div class="nn-alert-container"></div>
+	<nav class="left-menu pushmenu pushmenu-left">
+		<ul>
+			<li class="logo nohover">
+				<a href="javascript:;"></a>
+			</li>
+			<li class="active dashboard">
+				<a href="javascript:;">
+					<div class="menu-icons fa fa-dashboard" alt="Dashboard" title="Dashboard"></div>
+					<div class="menu-label">Dashboard</div>
+					<div class="arrow-left"></div>
+					<div class="clear"></div>
+				</a>
+			</li>
+			<li class="settings">
+				<a href="javascript:;">
+					<div class="menu-icons fa fa-cogs" alt="Settings" title="Settings"></div>
+					<div class="menu-label">Settings</div>
+					<div class="arrow-left"></div>
+					<div class="clear"></div>
+				</a>
+			</li>
+			<li class="alerts">
+				<a href="javascript:;">
+					<div class="menu-icons fa fa-bell" alt="Alerts" title="Alerts"></div>
+					<div class="menu-label">Alerts</div>
+					<div class="arrow-left"></div>
+					<div class="clear"></div>
+				</a>
+			</li>
+			<li class="seperator nohover">
+				<a href="javascript:;"></a>
+			</li>
+			<li class="footer nohover">
+				<a href="javascript:;">
+					<div class="copyright-minimize">&copy; Pure</div>
+					<div class="copyright-maximize">&copy; 2018 Pure Storage</div>
+				</a>
+			</li>
+		</ul>
+	</nav>
+	<div class="content-container pushmenu-push">
+		<header>
+			<div class="menu pull-left"><i class="fa fa-bars"></i></div>
+			<div class="pull-left page-title widget-title">Dashboard</div>
+			<div class="right pull-right icons-container">
+				<i class="fa" alt="Notification" title="Notification"></i>
+				<div class="dropdown pull-right">
+					<button class="dropbtn" type="button"><i class="fa fa-cog"></i></button>
+					<div class="dropdown-content">
+						<a href="javascript:;" class="help icon-with-link"><i class="fa fa-question"></i> Help</a>
+						<a href="javascript:;" class="about-us icon-with-link"><i class="fa fa-info"></i> About</a>
+						<a href="javascript:;" class="signout icon-with-link"><i class="fa fa-sign-out"></i> Logout</a>
+					</div>
+				</div>
+			</div>
+		</header>
+		<div class="clear"></div>
+		<div id="content-container"></div>
+	</div>
+	<div class="clear"></div>
+	<div class="modal-frame">
+		<div class="modal">
+			<div class="modal-inset widget">
+				<div class="modal-head widget-header">
+					<div class="widget-title col-lg-11 col-md-11 col-sm-11 col-xs-11 nopadding"></div>
+					<div class="widget-subtitle col-lg-1 col-md-1 col-sm-1 col-xs-1 nopadding">
+						<i class="fa fa-times pull-right closeModel" alt="Close" title="Close"></i>
+						<div class="clear"></div>
+					</div>
+				</div>
+				<div class="modal-body widget-content">
+					<div id="popupFrm">
+						<div id="form-body" class=""></div>
+						<div class="form-footer">
+							<div class="pull-left">
+								<button type="button" id="cancelBtn">Cancel</button>
+							</div>
+							<div class="pull-right">
+								<button type="button" id="submitBtn" class="pull-right primary">Submit</button>
+								<button type="submit" id="submit-Btn" class="pull-right primary hide">Submit</button>
+							</div>
+							<input type="hidden" id="form_primaryid" name="form_primaryid" class="form-control hide">
+							<div class="clear"></div>
+						</div>
+       				</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-overlay"></div>
+	<div id="alert-options" class="hidden">
+		<a id="more_info" href="javascript:;" alt="More Info" title="More Info"><i class="fa fa-info-circle"></i></a>
+		<a id="acknowledge" href="javascript:;" alt="Acknowledge Alert" title="Acknowledge Alert"><i class="fa fa-check-square-o"></i></a>
+		<a id="delete" href="javascript:;" alt="Delete Alert" title="Delete Alert"><i class="fa fa-trash-o"></i></a>
+	</div>
+	<div id="schedule-options" class="hidden">
+		<a id="runnow" href="javascript:;" alt="Run Now" title="Run Now"><i class="fa fa-play"></i></a>
+		<a id="delete" href="javascript:;" alt="Delete Schedule" title="Delete Schedule"><i class="fa fa-trash-o"></i></a>
+	</div>
+
+	<script type="text/javascript" src="static/js/lib/moment.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery-1.11.3.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.mCustomScrollbar.concat.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.cookie.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.mask.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.flip.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.multiselect.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.toolbar.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fullscreen-min.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.iframe-transport.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fileupload.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fileupload-process.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fileupload-validate.js"></script>
+	<script type="text/javascript" src="static/js/lib/fullcalendar.min.js"></script>
+	<script type="text/javascript" src="static/js/lib/multiple-emails.js"></script>
+	<script type="text/javascript" src="static/js/lib/jquery.fittext.js"></script>
+
+	<script type="text/javascript" src="static/js/ajaxupload.js"></script>
+	<script type="text/javascript" src="static/js/common.js"></script>
+	<script type="text/javascript" src="static/js/templates.js"></script>
+	<script type="text/javascript" src="static/js/dms/settings.js"></script>
+	<script type="text/javascript" src="static/js/dms/dashboard.js"></script>
+	<script type="text/javascript" src="static/js/dms/layout.js"></script>
+	<script type="text/javascript" src="static/js/dms/templates.js"></script>
+	<script type="text/javascript" src="static/js/dms/shared.js"></script>
+</body>

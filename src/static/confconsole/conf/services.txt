@@ -1,0 +1,2 @@
+Web:       http://$ipaddr
+SSH/SFTP:  root@$ipaddr (port 22)

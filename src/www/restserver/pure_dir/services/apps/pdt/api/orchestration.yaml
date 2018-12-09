@@ -1,0 +1,2896 @@
+#swagger: '2.0'
+#info:
+# title: Header for Debug Alone
+# version: "1.0"
+#consumes:
+#  - application/json
+#produces:
+#  - application/json
+
+basePath: /v1.0
+paths:
+   /Workflows:
+     get:
+      tags: 
+        - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.workflows
+      summary: Used to get Default workflows
+      parameters:
+           - in: query
+             name: stacktype
+             description: Type
+             required: false
+             type: string
+      responses:
+        '200':
+          description: Returns list of workflow
+          schema:
+              $ref: '#/definitions/WorkflowListResponse'
+  
+   /Tasks:
+     get:
+      tags: 
+        - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.tasks
+      summary: Used to get the list of tasks
+      parameters:
+           - in: query
+             name: htype
+             description: Type
+             required: false
+             type: string
+      responses:
+        '200':
+          description: Returns list of tasks
+          schema:
+              $ref: '#/definitions/TaskListResponse'
+  
+   /WorkflowGroupTasks:
+     get:
+      tags:
+        - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.workflowgroups
+      summary: Get List of workflows in the group
+      parameters:
+           - in: query
+             name: id
+             description: Workflow / job ID
+             required: true
+             type: string
+           - in: query
+             name: ttype
+             description: Task type
+             required: false
+             type: string
+
+      responses:
+        '200':
+          description: Returns list of workflow
+          schema:
+              $ref: '#/definitions/GWorkflowResponse'
+
+
+   /CreateWorkflow:
+     get:
+      tags:
+          - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.createworkflow
+      summary: Used to Create workflow
+      responses:
+        '200':
+          description: Returns workflow ID
+          schema:
+              $ref: '#/definitions/WName'
+
+
+   /AddTask:
+     post:
+      tags:
+          - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.addtask
+      summary: Used to add task
+      parameters:
+           - in: body
+             name: data
+             description: Workflow ID
+             required: true
+             schema:
+                 $ref: '#/definitions/TaskParam'
+      responses:
+        '200':
+          description: Returns Execution ID
+          schema:
+              $ref: '#/definitions/Exec'
+
+   /DeleteTask:
+     delete:
+      tags:
+          - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.deletetask
+      summary: Used to add task
+      parameters:
+           - in: query
+             name: wid
+             description: Workflow ID
+             required: true
+             type: string
+
+           - in: query
+             name: execid
+             description: Task ID
+             required: true
+             type: string
+      responses:
+        '200':
+          description: Returns Execution ID
+          schema:
+              $ref: '#/definitions/GenericStatus'
+
+   /DeleteAllTask:
+     delete:
+      tags:
+          - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.deletealltask
+      summary: Used to add task
+      parameters:
+           - in: query
+             name: wid
+             description: Workflow ID
+             required: true
+             type: string
+
+      responses:
+        '200':
+          description: Returns Execution ID
+          schema:
+              $ref: '#/definitions/GenericStatus'
+
+   /CreateConnection:
+     post:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.createconnection
+       summary: Used to Create connection beween tasks
+       parameters:
+           - in: body
+             name: data
+             description: Connection
+             required: true
+             schema:
+              $ref: '#/definitions/CreateParam'
+
+       responses:
+         '200':
+           description: Returns Connection status
+           schema:
+               $ref: '#/definitions/GenericStatus'
+
+
+   /DeleteConnection:
+     delete:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.deleteconnection
+       summary: Used to Delete connection beween tasks
+       parameters:
+           - in: query
+             name: wid
+             description: Workflow ID
+             required: true
+             type: string
+           - in: query
+             name: execid
+             description: Exec ID
+             required: true
+             type: string
+           - in: query
+             name: ttype
+             description: Type
+             required: true
+             type: string
+
+       responses:
+         '200':
+           description: Returns Connection status
+           schema:
+               $ref: '#/definitions/GenericStatus'
+
+
+   /DeleteAllConnection:
+     delete:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.deleteallconnection
+       summary: Used to Delete connection beween tasks
+       parameters:
+           - in: query
+             name: wid
+             description: Workflow ID
+             required: true
+             type: string
+
+       responses:
+         '200':
+           description: Returns Connection status
+           schema:
+               $ref: '#/definitions/GenericStatus'
+
+   /SaveWorkflow:
+     post:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.saveworkflow
+       summary: Used to Save workflow info
+       parameters:
+           - in: body
+             name: data
+             description: Connection
+             required: true
+             schema:
+              $ref: '#/definitions/SaveWorkflow'
+
+       responses:
+         '200':
+           description: Returns Connection status
+           schema:
+               $ref: '#/definitions/GenericStatus'
+
+   /FlashStackTypes:
+     get:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.flashstacktype
+       summary: Used to get Default workflows based on type
+       responses:
+         '200':
+           description: Returns workflow information
+           schema:
+               $ref: '#/definitions/TypeValue'
+ 
+     
+   /WorkflowInfo:
+     get:
+       tags: 
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.workflowinfo
+       summary: Used to get Default workflows
+       parameters:
+           - in: query
+             name: wid
+             description: Workflow ID
+             required: true
+             type: string
+       responses:
+         '200':
+           description: Returns workflow information
+           schema:
+               $ref: '#/definitions/WorkflowInfoResponse'
+   /EulaContent:
+    get:
+      security: []
+      summary: Eula Info
+      responses:
+        '200':
+          description: Return Eula Content
+          schema:
+            $ref: '#/definitions/EulaResponse'
+      tags:
+      - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.eulacontent
+
+   /EulaAgreement:
+     put:
+      security: []
+      summary: Eula Info
+      parameters:
+         - in: query
+           name: isagree
+           description: Eula agreement status
+           required: true
+           type: string
+
+      responses:
+        '200':
+          description: Return Eula Agreement status
+          schema:
+            $ref: '#/definitions/EulaAgreementResponse'
+      tags:
+      - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.eulaagreement
+
+
+   /ListImages:
+     get:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.listimages
+       summary: Used to get list of images
+       parameters:
+           - in: query
+             name: imagetype
+             description: type
+             required: false
+             type: string
+       responses:
+         '200':
+           description: Returns list of images name and type
+           schema:
+               $ref: '#/definitions/ImageList'
+
+   /DeleteImage:
+     get:
+       tags:
+         - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.deleteimage
+       summary: Used to delete image
+       parameters:
+           - in: query
+             name: imagename
+             description: Image To delete
+             required: true
+             type: string
+       responses:
+         '200':
+           description: Delete  image
+           schema:
+              $ref: '#/definitions/GenericStatus'
+
+   /ImportImage:
+     post:
+      tags:
+       - pdt
+      consumes:
+        - multipart/form-data
+      parameters:
+        - required: true
+          in: formData
+          description: The file need to be uploaded
+          name: uploadfile
+          type: file
+        - required: false
+          in: formData
+          description: image type
+          name: image_type
+          type: string
+        - required: false
+          in: formData
+          description: image sub type
+          name: image_sub_type
+          type: string
+        - required: false
+          in: formData
+          description: image os  sub type
+          name: image_os_sub_type
+          type: string
+
+
+      operationId: pure_dir.services.apps.pdt.pdt_api.importimage
+      summary: Import
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ImportResponse'
+  
+ #  /IsoBinding:
+ #    post:
+ #     tags:
+ #      - pdt
+ #     consumes:
+ #       - multipart/form-data
+ #     parameters:
+ #       - required: true
+ #         in: formData
+ #         description: The file need to be uploaded
+ #         name: isofile
+ #         type: file
+ #       - required: false
+ #         in: formData
+ #         description: image type
+ #         name: kickstart
+ #         type: file
+
+ #     operationId: pure_dir.services.apps.pdt.pdt_api.isobinding
+ #     summary: Import
+ #     security: []
+ #     responses:
+ #       '200':
+ #         description: Return tool information
+ #         schema:
+ #           $ref: '#/definitions/ImportResponse'
+ 
+   /DeleteWorkflow:
+     get:
+       tags:
+           - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.deleteworkflow
+       summary: Used to delete Default workflows
+       parameters:
+           - in: query
+             name: wid
+             description: Workflow ID
+             required: true
+             type: string
+       responses:
+         '200':
+           description: Delete  workflow information
+           schema:
+               $ref: '#/definitions/GenericStatus'
+  
+   /JobTasks:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobtasks  
+        summary: List of tasks in Job
+        parameters:
+           - in: query
+             name: id
+             description:  ID
+             required: true
+             type: string
+           - in: query
+             name: ttype
+             description: Task Type
+             required: false
+             type: string
+
+
+        responses:
+          '200':
+             description: List of tasks in the workflow
+             schema:
+                $ref: '#/definitions/JobTaskListResponse'
+     
+
+   /JobTaskInputSave:
+      post:
+        tags: 
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobtaskinputsave 
+        summary: List of inputs to be saved for a task
+        parameters:
+            - in : query
+              name: id
+              description: Workflow/Job id
+              required: true
+              type: string
+
+            - in : query            
+              name: execid
+              description: task exec id
+              required: true
+              type: string
+
+            - in : body            
+              name: input_list
+              description: task input
+              required: true
+              schema:
+                 $ref: '#/definitions/TaskInputEntries'
+
+            - in : query            
+              name: ttype
+              description: task type
+              required: false
+              type: string
+        
+        responses:
+          '200':
+            description: Success or not
+            schema:
+              $ref: '#/definitions/FieldValidate'
+            
+                               
+   /JobTaskMandatoryInputSave:
+      post:
+        tags: 
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobtaskmandatoryinputsave 
+        summary: List of inputs to be saved for a job
+        parameters:
+            - in : query
+              name: id
+              description: Workflow/Job ID
+              required: true
+              type: string
+
+            - in : query
+              name: ttype
+              description: Task type
+              required: false
+              type: string
+
+            - in : body            
+              name: input_list
+              description: task input
+              required: true
+              schema:
+                 $ref: '#/definitions/TaskInputEntries'
+        
+        responses:
+          '200':
+            description: Success or not
+            schema:
+              $ref: '#/definitions/GenericStatus'
+
+   /WorkflowPrepare:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.workflowprepare
+        summary: Prepare workflow for execution
+        parameters:
+            - in : query
+              name: id
+              description: Workflow ID
+              required: true
+              type: string
+
+        responses:
+          '200':
+            description: Success or not 
+            schema: 
+                $ref: '#/definitions/WorkflowPrepareResponse'
+
+   /WorkflowPersistantPrepare:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.workflowpersistantprepare
+        summary: Prepare workflow for execution
+        parameters:
+            - in : query
+              name: id
+              description: Workflow ID
+              required: true
+              type: string
+
+        responses:
+          '200':
+            description: Success or not
+            schema:
+                $ref: '#/definitions/WorkflowPrepareResponse'
+ 
+
+   /JobDiscard:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobdiscard
+        summary: Prepare workflow for execution
+        parameters:
+            - in : query
+              name: wname
+              description: Workflow Name
+              required: true
+              type: string
+
+            - in : query
+              name: force
+              description: Workflow Name
+              required: true
+              type: string
+
+        responses:
+          '200':
+            description: Success or not 
+            schema:
+             type: string
+
+   /JobSaveAs:
+      post:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobsaveas
+        summary: Save the job as new workflow
+        parameters:
+            - in : query
+              name: jobid
+              description: Job ID
+              required: true
+              type: string
+
+            - in : body
+              name: data
+              description: New Workflow Name and description
+              required: true
+              schema:
+                 $ref: '#/definitions/JobDetails'
+        responses:
+         '200':
+          description: Return JobSaveAs status
+          schema:
+            $ref: '#/definitions/JobSaveAsResponse'
+
+
+
+   /JobValidate:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobvalidate
+        summary: Validate the job
+        parameters:
+            - in : query
+              name: jobid
+              description: Job ID
+              required: true
+              type: string
+            - in : query
+              name: execid
+              description: Execution ID
+              required: false
+              type: string
+
+        responses:
+          '200':
+            description: Success or not 
+            schema:
+             $ref: '#/definitions/JobValidateResponse'
+
+   /JobValidateMandatoryInputs:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobmandatoryvalidate
+        summary: Validate the mandatory inputs for the job
+        parameters:
+            - in : query
+              name: jobid
+              description: Job ID
+              required: true
+              type: string
+
+        responses:
+          '200':
+            description: Success or not 
+            schema:
+             $ref: '#/definitions/JobValidateResponse'
+
+   /JobExecute:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobexecute
+        summary: Execute the job
+        parameters:
+            - in : query
+              name: jobid
+              description: Job ID
+              required: true
+              type: string
+
+        responses:
+          '200':
+            description: Success or not 
+            schema:
+              $ref: '#/definitions/GenericStatus'
+
+   /BatchExecute:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.batchexecute
+        summary: Execute Batch  Job for simgle click deploy
+        parameters:
+            - in : query
+              name: stacktype
+              description: Stack type
+              required: true
+              type: string
+            - in : query
+              name: wid
+              description: Workflow id if want to execute a single workflow
+              type: string
+
+        responses:
+          '200':
+            description: Success or not
+            schema:
+              $ref: '#/definitions/GenericStatus'
+
+ 
+   /JobRevert:
+      get:
+        tags:
+         - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobrevert
+        summary: Execute the job
+        parameters:
+            - in : query
+              name: stacktype
+              description: Job ID or stack type
+              required: false
+              type: string
+
+            - in : query
+              name: jobid
+              description: Job ID
+              required: false
+              type: string
+
+        responses:
+          '200':
+            description: Success or not
+            schema:
+              $ref: '#/definitions/GenericStatus'
+
+
+   /JobResume:
+      get:
+        tags:
+         - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobretry
+        summary: Execute the job
+        parameters:
+            - in : query
+              name: stacktype
+              description: Job ID or stack type
+              required: false
+              type: string
+
+            - in : query
+              name: jobid
+              description: Job ID or stack type
+              required: false
+              type: string
+
+        responses:
+          '200':
+            description: Success or not
+            schema:
+              $ref: '#/definitions/GenericStatus'
+
+
+
+
+   /ServiceRequests:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.servicerequests 
+        summary: List of service requests
+
+        responses:
+          '200':
+            description: List of service requests
+            schema:
+                $ref: '#/definitions/ServiceRequestListResponse'
+
+   /ServiceRequestInfo:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.servicerequestinfo
+        summary: Service request information
+        parameters:
+           - in: query
+             name: jobid
+             description: job id or flash stack type
+             type: string
+        responses:
+          '200':
+            description: service requests info
+            schema:
+                $ref: '#/definitions/ServiceRequestInfoData'
+
+   /RollBackTaskData:
+      get:
+        tags:
+          - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.rollbacktaskdata
+        summary: Service request information
+        parameters:
+           - in: query
+             name: jobid
+             description: job id
+             type: string
+
+           - in: query
+             name: pjobid
+             description: parent job id
+             type: string
+
+           - in: query
+             name: tid
+             description: Task ID
+             type: string
+        responses:
+          '200':
+            description: service requests info
+            schema:
+                $ref: '#/definitions/RollbackTaskInfoData'
+ 
+                
+
+   /LibraryTaskInfo:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.librarytaskinfo  
+        summary: Task information
+        parameters:
+           - in: query
+             name: tid
+             description: task id
+             required: true
+             type: string
+
+        responses:
+          '200':
+             description: List of tasks in the workflow
+             schema:
+                $ref: '#/definitions/TaskDetailsListResponse'
+
+   /JobTaskInputs:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobtaskinputs 
+        summary: Get the input args for the task
+        parameters:
+           - in: query
+             name: execid
+             description: task execution id
+             required: true
+             type: string
+
+           - in: query
+             name: ttype
+             description: task type
+             required: false
+             type: string
+
+           - in: query
+             name: id
+             description: Workflow or Job id
+             required: true
+             type: string
+
+        responses:
+          '200':
+             description: Get the inputs args for the task
+             schema:
+                 $ref: '#/definitions/WFTasksInputsResponse'
+
+   /JobTaskMandatoryInputs:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobtaskmandatoryinputs 
+        summary: Get the mandatory input args for all the tasks
+        parameters:
+           - in: query
+             name: id
+             description: Workflow/Job ID
+             required: true
+             type: string
+           - in: query
+             name: ttype
+             description: Task type
+             required: false
+             type: string
+        responses:
+          '200':
+             description: Get the inputs args for the task
+             schema:
+                 $ref: '#/definitions/WFTasksInputsResponse'
+
+   /WorkflowInputs:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.workflowinputs
+        summary: Get the workflow inputs
+        parameters:
+           - in: query
+             name: id
+             description: Workflow ID
+             required: true
+             type: string
+           - in: query
+             name: stacktype
+             description: Stack type
+             required: true
+             type: string
+        responses:
+          '200':
+             description: Get the inputs args for the workflow
+             schema:
+                 $ref: '#/definitions/WFTasksInputsResponse'
+
+   /JobTaskOutputs:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.jobtaskoutputs
+        summary: Get the output args for the task
+        parameters:
+           - in: query
+             name: texecid
+             description: task id
+             required: true
+             type: string
+
+           - in: query
+             name: jobid
+             description: job ID
+             required: true
+             type: string
+
+        responses:
+          '200':
+             description: Get the output args for the task
+             schema:
+                 $ref: '#/definitions/WFTasksOutputsResponse'
+
+   /LibraryTasks:
+      get:
+        tags:
+           - pdt
+        operationId: pure_dir.services.apps.pdt.pdt_api.librarytasks
+        summary: Get the list of tasks available in the library    
+        responses:
+          '200':
+             description: Get the list of tasks available in the library
+             schema:
+                type: array
+                items:
+                   $ref: '#/definitions/Tasks'
+          default:
+             description: unexpected error
+             schema:
+              $ref: '#/definitions/Status'
+   
+   /JobStatus:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.jobstatus
+       summary: Get overall execution status of Job
+       parameters:
+          - in: query
+            name: jobid
+            description: job ID
+            required: false
+            type: string
+
+       responses:
+          '200':
+             description: Get the status of the workflow
+             schema:
+                 $ref: '#/definitions/WFJobStatusResponse'
+   /RollbackStatus:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.rollbackstatus
+       summary: Get overall execution status of Job
+       parameters:
+          - in: query
+            name: jobid
+            description: job ID
+            required: false
+            type: string
+
+       responses:
+          '200':
+             description: Get the status of the Rollback
+             schema:
+                 $ref: '#/definitions/WFRollbackStatusResponse'
+
+
+   /GroupJobStatus:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.groupjobstatus
+       summary: Get overall execution status of Job
+       parameters:
+          - in: query
+            name: jobid
+            description: job ID
+            required: false
+            type: string
+
+       responses:
+          '200':
+             description: Get the status of the workflow
+             schema:
+                 $ref: '#/definitions/WFJobGroupStatusResponse'
+
+
+
+
+   /TaskSuggestedInputs:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.tasksuggestedinputs
+       summary: returns the list of available inputs from previous task
+       parameters:
+          - in: query
+            name: id
+            description: job id
+            required: true
+            type: string
+         
+          - in: query
+            name: execid
+            description: task execution id
+            required: true
+            type: string
+          - in: query
+            name: ttype
+            description: Types of the workflow
+            required: false
+            type: string
+
+          - in: query
+            name: field
+            description: Nmae of the field
+            required: false
+            type: string
+       responses:
+          '200':
+             description: returns the list of available inputs from previous task
+             schema:
+                $ref: '#/definitions/TaskSuggestedInputsResponse'
+
+   /Logs:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.logs
+       summary: Location of the log file for the particular job
+       parameters:
+          - in: query
+            name: jobid
+            description: job id
+            required: true
+            type: string
+
+       responses:
+          '200':
+             description: Location of the log file for the particular job 
+             schema:
+                $ref: '#/definitions/LogsResponse'
+
+   /DeploymentLogs:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.deploymentlogs
+       summary: Location of the log file for the particular job
+       parameters:
+          - in: query
+            name: stacktype
+            description: stack type
+            required: true
+            type: string
+
+       responses:
+          '200':
+             description: Location of the log file for the particular job
+             schema:
+                $ref: '#/definitions/LogsResponse'
+
+   /GetOptions:
+     post:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.getoptions
+       summary: Options to be listed incase of Dropdown or Check box
+       parameters:
+          - in: query
+            name: jobid
+            description: Job ID
+            required: true
+            type: string
+
+          - in: query
+            name: execid
+            description: Task execution id
+            required: true
+            type: string
+
+          - in: query
+            name: operation
+            description: operation
+            required: true
+            type: string
+
+          - in: query
+            name: isGroup
+            description: Group operation or not
+            required: false
+            type: boolean
+
+          - in: query
+            name: ttype
+            description: Task type
+            required: false
+            type: string
+
+          - in: body
+            name: keys
+            description: keys
+            schema:
+              properties:
+               keyvalues:
+                type: array
+                items:
+                  $ref: '#/definitions/KeysData'     
+
+       responses:
+          '200':
+             description: Location of the log file for the particular job 
+             schema:
+                $ref: '#/definitions/GetOptionsData'
+
+
+   /GetGlobalOptions:
+     post:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.getglobaloptions
+       summary: Prefetch option for global variables
+       parameters:
+          - in: query
+            name: operation
+            description: operation
+            required: true
+            type: string
+
+          - in: query
+            name: ttype
+            description: Type
+            required: false
+            type: string
+
+          - in: body
+            name: keys
+            description: keys
+            schema:
+              properties:
+               keyvalues:
+                type: array
+                items:
+                  $ref: '#/definitions/KeysData'
+       responses:
+          '200':
+             description: Location of the log file for the particular job
+             schema:
+                $ref: '#/definitions/GetOptionsData'
+
+
+
+   /GetFieldValue:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.getfieldvalue
+       summary: API to list the saved values in a task group 
+       parameters:
+          - in: query
+            name: jobid
+            description: Job ID
+            required: true
+            type: string
+
+          - in: query
+            name: execid
+            description: Task execution id
+            required: true
+            type: string
+
+          - in: query
+            name: fieldname
+            description: Name of the input field
+            required: true
+            type: string
+
+       responses:
+          '200':
+             description: List containing the values of the specified input field
+             schema:
+                $ref: '#/definitions/GetGroupMemberValues'
+
+   /GetGroupMemberValues:
+     get:
+       tags:
+          - pdt
+       operationId: pure_dir.services.apps.pdt.pdt_api.getgroupmembervalues
+       summary: API to list the saved values in a task group 
+       parameters:
+          - in: query
+            name: jobid
+            description: Job ID
+            required: true
+            type: string
+
+          - in: query
+            name: execid
+            description: Task execution id
+            required: true
+            type: string
+
+          - in: query
+            name: groupid
+            description: Parameter name for the group input type
+            required: true
+            type: string
+
+          - in: query
+            name: membername
+            description: Member name in the selected group
+            required: true
+            type: string
+
+       responses:
+          '200':
+             description: List of the values of the specified member in the group
+             schema:
+                $ref: '#/definitions/GetGroupMemberValues'
+
+   /ExportWorkflow:
+     post:
+      tags:
+        - pdt
+      parameters:
+        - required: true
+          in: body
+          description: The id's of the job
+          name: wkflowlist
+          schema:
+            $ref: '#/definitions/Export'
+      operationId: pure_dir.services.apps.pdt.pdt_api.exportworkflow
+      summary: Export
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ExportResponse'
+
+   /ExportLog:
+     get:
+      tags:
+        - pdt
+      operationId: pure_dir.services.apps.pdt.pdt_api.exportlog
+      summary: Export
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ExportResponse'
+
+   /ImportWorkflow:
+     post:
+      tags:
+       - pdt
+      consumes:
+        - multipart/form-data
+      parameters:
+        - required: true
+          in: formData
+          description: The file need to be uploaded
+          name: uploadfile
+          type: file
+      operationId: pure_dir.services.apps.pdt.pdt_api.importworkflow
+      summary: Import
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/ImportResponse'
+
+
+   /TaskInputValue:
+     get:
+      tags:
+       - pdt
+      consumes:
+        - multipart/form-data
+      parameters:
+        - required: true
+          in: query
+          description: The file need to be open
+          name: jid
+          type: string
+        - required: true
+          in: query
+          description: task input
+          name: taskid
+          type: string
+
+      operationId: pure_dir.services.apps.pdt.pdt_api.taskinputvalue
+      summary: Return Value
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/TaskInputResponse'
+   /CheckPreReq:
+     get:
+      tags:
+       - pdt
+      parameters:
+        - required: true
+          in: query
+          description: Workflow id
+          name: wid
+          type: string
+
+      operationId: pure_dir.services.apps.pdt.pdt_api.checkprereq
+      summary: Return Value
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/WfId'
+
+   
+   /GetGlobals:
+     get:
+      tags:
+       - pdt
+      parameters:
+        - required: true
+          in: query
+          description: StackType
+          name: stacktype
+          type: string
+
+        - required: false
+          in: query
+          description: If true return hidden varalbles also
+          name: hidden
+          type: boolean
+
+
+      operationId: pure_dir.services.apps.pdt.pdt_api.getglobals
+      summary: Return Value
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/GlobalInputsResponse'
+
+   /SetGlobals:
+     put:
+      tags:
+       - pdt
+      parameters:
+        - required: true
+          in: query
+          description: Stack Type
+          name: stacktype
+          type: string
+
+        - in : body
+          name: input_list
+          description: task input
+          required: false
+          schema:
+             $ref: '#/definitions/SetGlobalEntries'
+
+      operationId: pure_dir.services.apps.pdt.pdt_api.setglobals
+      summary: Return Value
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/GenericStatus'
+
+   /BatchStatus:
+     get:
+      tags:
+       - pdt
+      parameters:
+        - required: true
+          in: query
+          description: Stack Type
+          name: stacktype
+          type: string
+      operationId: pure_dir.services.apps.pdt.pdt_api.batchstatus
+      summary: Return Value
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/BatchResponse'
+ 
+
+definitions:
+   
+   EulaResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: object
+        items:
+          $ref: '#/definitions/Eula'
+   Eula:
+    properties:
+      url:
+        type: string
+        description: Path to ULA document
+      isagree:
+        type: boolean
+        description: Eula Status
+
+   Config:
+    properties:
+      url:
+        type: string
+        description: Path to ULA document
+
+   EulaAgreementResponse:
+    required:
+   #  - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+    #  data:
+     #   type: boolean
+      #  description: Status of Agreement
+
+   BatchResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/BatchData'
+
+   BatchData:
+    properties:
+        wid:
+          type: string
+        jid:
+          type: string
+        status:
+          type: string
+        msg:
+          type: string
+
+
+   WfId:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/WfData'
+
+   WfData:
+       required:
+           - name
+           - msg
+           - prereq
+       properties:
+           name:
+             type: string
+           msg:
+             type: string
+           prereq:
+             type: string
+   WName:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: object
+        items:
+          $ref: '#/definitions/WId'
+
+   WId:
+      required:
+         - wid
+      properties:
+        wid:
+          type: string
+   
+   Exec:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: object
+        items:
+          $ref: '#/definitions/ExecId'
+
+   ExecId:
+      required:
+         - execid
+      properties:
+        execid:
+          type: string
+
+                   
+   TypeValue:
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: array
+               items:
+                 $ref: '#/definitions/TypeData'
+             status:
+                description: data status
+                $ref: '#/definitions/Status'
+
+   TypeData:
+        required:
+           - value
+           - label
+           - enabled
+        properties:
+           value:
+             type: string
+           label:
+             type: string
+           enabled:
+             type: boolean
+           tag:
+             type: string
+           req_hardwares:
+             type: object
+             description: requeired hardwares & its count
+             $ref: '#/definitions/ReqHardwareData'
+
+   ReqHardwareData:
+        properties:
+           UCSM:
+             type: integer
+           PURE:
+             type: integer
+           MDS:
+             type: integer
+           Nexus 5k:
+             type: integer
+           Nexus 9k:
+             type: integer
+
+
+   GetOptionsData:
+        #type: object
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: array
+               items: 
+                 $ref: '#/definitions/OptionData'
+             status:
+                #type: object
+                description: data status
+
+                $ref: '#/definitions/Status'
+
+
+   GetGroupMemberValues:
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: array
+               items: 
+                 type: string
+             status:
+                description: data status
+                $ref: '#/definitions/Status'
+   OptionData:
+     properties:
+        id:
+          type: string
+        label:
+          type: string
+        selected:
+          type: string
+        extrafields:
+          type: string
+
+   KeysData:
+        type: object
+        properties: 
+          key:
+            type: string
+          value:
+            type: string
+          ismapped:
+            type: string
+
+
+   TaskDetailsList:
+    type: object
+    required:
+      - name
+      - desc
+      - args
+      - output
+    properties:
+      name:
+        type: string
+        description: name of the task
+
+      desc:
+        type: string
+        description: Description of task
+
+      args:
+        type: string
+        description: Input arguments
+      
+      output:
+        type: string
+        description: Output arguments
+
+   TaskDetailsListResponse:
+        type: object
+        required:
+          - data
+          - status
+        properties:
+          data:
+            $ref: '#/definitions/TaskDetailsList'
+          status:
+           type: object
+           description: data status
+           $ref: '#/definitions/Status'        
+
+
+   WorkflowPrepareResponse:
+    #type: object
+    required:
+      - data
+      - status
+    properties:
+        data:
+          required:
+             - jobid
+             - subjobs
+          properties:
+            jobid:
+              type: string
+              description: job id
+            subjobs:
+              type: array
+              #required: false
+              items:
+               description: Sub Job info in case of Workflow groups
+               required:
+                 - job_id
+                 - wid
+               properties:
+                 job_id:
+                   type: string
+                   description: job id
+                 wid:
+                   type: string
+                   description: wid 
+
+        status:
+           #type: object
+           description: data status
+           $ref: '#/definitions/Status'
+   
+
+   WorkflowList:
+    #type: object
+    required:
+      - id
+      - name
+      - desc
+      - type
+    properties:
+      id:
+        type: string
+        description: workflow id
+
+      name:
+        type: string
+        description: name of workflow
+
+      desc:
+        type: string
+        description: Workflow description
+
+      type:
+        type: string
+        description: Specifies the hardware components used in workflow      
+
+      isdeletable: 
+        type: string
+        description: Workflow can be deleted or not
+
+      wtype:
+        type: string
+        description: Specifies if it is standalone workflow or group
+
+      order:
+        type: string
+        description: Order of execution not valid in case of custom workflows
+     
+      execstatus:
+        type: string
+        description: Denotes temparory workfloew status
+      
+   TaskList:
+    required:
+      - id
+      - name
+      - desc
+      - type
+    properties:
+      id:
+        type: string
+        description: task id
+
+      name:
+        type: string
+        description: name of task
+
+      desc:
+        type: string
+        description: task description
+
+      type:
+        type: string
+        description: hardware type for the task
+ 
+
+   WorkflowListResponse:
+        #type: object
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: array
+               items: 
+                  $ref: '#/definitions/WorkflowList'
+             status:
+                #type: object
+                description: data status
+                $ref: '#/definitions/Status'
+
+   TaskListResponse:
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: array
+               items: 
+                  $ref: '#/definitions/TaskList'
+             status:
+                description: data status
+                $ref: '#/definitions/Status'
+
+   WorkflowInfoResponse:
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: object
+               items: 
+                  $ref: '#/definitions/WorkflowList'
+             status:
+                #type: object
+                description: data status
+                $ref: '#/definitions/Status'
+
+
+   JobTaskList:
+    required:
+      - tid
+      - execid
+      - name
+      - desc
+      - onsuccess
+      - onfailure
+      - isinittask
+      #- gtags
+      #- gtdesc
+    
+    properties:
+      tid:
+        type: string
+        description: task id
+        example: "tid1"
+        readOnly: true
+
+      execid: 
+        type: string
+        description: task exec id
+        example: "tid1"
+        readOnly: true
+
+      name:
+        type: string
+        description: task name
+        example: "tid1"
+        readOnly: true
+
+      desc:
+        type: string
+        description: description of task
+        example: "tid1"
+        readOnly: true
+
+      onsuccess:
+        type: string
+        description: On success
+        example: "tid1"
+        readOnly: true
+
+      onfailure:
+        type: string
+        description: on failure
+        example: "tid1"
+        readOnly: true
+
+      isinittask:
+        type: string
+        description: is an initial task
+        example: "1"
+        readOnly: true
+
+      gtags:
+        type: string
+        description: grouptag name
+        readOnly: true
+        #required: false
+
+      gtdesc:
+       type: string
+       description: grouptag description
+       readOnly: true
+       #required: false
+
+   GWorkflowResponse:
+       type: object
+       required:
+        - data
+        - status
+       properties:
+         data:
+          required:
+           - wexecid
+           - desc
+           - onsuccess
+
+          properties:
+           wexecid:
+            type: string
+            description: workflow execid
+           
+           id:
+            type: string
+            description: workflow ID
+
+           jobid:
+            type: string
+            description: job ID
+
+           desc:
+            type: string
+            description: Description of WF
+
+           onsuccess:
+            type: string
+            description: On Success
+
+
+         status:
+            type: object
+            description: "data status"
+            $ref: '#/definitions/Status'
+
+   
+   JobTaskListResponse:
+       type: object
+       required:
+        - data
+        - status
+       properties:
+         data:
+           $ref: '#/definitions/JobTaskList'
+         status:
+            type: object
+            description: "data status"
+            $ref: '#/definitions/Status'   
+
+   ServiceRequestList:
+    type: object
+    required:
+      - name
+      - jobid
+      - desc
+      - etime
+
+    properties:
+      name:
+        type: string
+        description: name
+        example: "sr21"
+        readOnly: true
+
+      jobid: 
+        type: string
+        description: job id
+        example: "jobid1"
+        readOnly: true
+
+        
+      desc:
+        type: string
+        description: "Description"
+        example: "tid1"
+        readOnly: true
+
+      etime:
+        type: string
+        description: "Execution time"
+        example: "tid1"
+        readOnly: true
+
+   ServiceRequestListResponse:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+           data:
+              type: array
+              items: 
+                $ref: '#/definitions/ServiceRequestList'  
+           status:
+              type: object
+              description: Data status
+              $ref: '#/definitions/Status'
+
+
+   ServiceRequestInfoData:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+          data:
+           type: array
+           items:
+            required:
+             - jobid
+             - name
+             - order
+             - subwflist
+            properties:
+             jobid:
+                type: string
+                description: Job ID
+             name:
+                type: string
+                description: Name of workflow
+             order:
+                type: string
+                description: Sequence number workflow
+             subwflist:
+                type: array
+                description: Sub workflow List
+                items: 
+                   required:
+                     - wname
+                     - tasklist   
+                properties:
+                     wname:
+                       type: string
+                     tasklist:
+                       type: array
+                       items:
+                         properties:
+                           task_name:
+                             type: string
+                             description: task name
+                           task_id:
+                             type: string
+                             description: task id
+                           seq_no:
+                             type: string
+                             description: sequence number inside workflow group
+
+          status:
+              type: object
+              description: Data status
+              $ref: '#/definitions/Status'
+
+
+   RollbackTaskInfoData:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+           data:
+             type: object
+             properties:
+              inputlist:
+                  type: array
+                  items:
+                   properties:
+                    key:
+                     type: string
+                     description: key
+                    value:
+                     type: string
+                     description: value
+                    gmembers:
+                      type: array
+                      items:
+                        properties:
+                          label:
+                           type: string
+                           description: label
+                          name:
+                           type: string
+                           description: name
+
+              outputlist:
+                  type: array
+                  items:
+                   properties:
+                    key:
+                     type: string
+                     description: key
+                    value:
+                     type: string
+                     description: value
+
+           status:
+              type: object
+              description: Data status
+              $ref: '#/definitions/Status'
+
+   GlobalInput:
+    properties:
+      name:
+        type: string
+        description: Name of field
+
+      label:
+        type: string
+        description: Label to be display in UI
+
+      iptype:
+        type: string
+        description: Type of field, text-box
+
+      api:
+        type: object
+        required: false
+        description: api name to be called in case if input type is drop-down or multiselect
+        required:
+           - tasktype
+           - name
+           - args
+        properties:
+          tasktype:
+            type: string
+            description: Type of task
+          name:
+            type: string
+            description: Name of the API
+          args:
+            type: object
+            description: Input arguments to the getOptions API
+            required:
+              - field
+              - isdynamic
+              - value
+            properties:
+              field:
+                type: string
+                description: Name of the parameter
+              isdynamic:
+                type: boolean
+                description: is a static value or represents a dependency field
+              value:
+                type: string
+                description: Value of the string
+      isstatic:
+        type: boolean
+        description: If there is a limited data to be represened isstatic is set as True and dfvalues represents the data
+      dfvalues:
+       type: array
+       items:
+        description: List values embedded within API
+        required:
+           - id
+           - label
+           - selected
+        properties:
+           id:
+             type: string
+             description: name
+
+           label:
+             type: string
+             description: Label to be display in UI
+           selected:
+             type: string
+             description: selection status
+
+      helptext:
+        type: string
+        description: Helptext for the field
+
+      value:
+        type: string
+        description: Value for the field
+    
+
+   TasksInput:
+    #type: object
+    required:
+      - name
+      - label
+      - iptype
+      - svalue
+      - isstatic
+      - dfvalues
+
+    properties:
+      name:
+        type: string
+        description: Name of field
+
+      label:
+        type: string
+        description: Label to be display in UI
+
+      iptype:
+        type: string
+        description: Type of field, text-box 
+
+      hwtype:
+        type: array
+        items:
+          type: string
+        description: Hardware type 
+      
+      svalue:
+        type: string
+        description: Suggested value
+
+      api:
+        type: object
+        #required: false
+        description: api name to be called in case if input type is drop-down or multiselect
+        #required:
+        #  - name
+        properties: 
+          tasktype:
+            type: string
+            description: Type of task
+          name:
+            type: string
+            description: Name of the API
+          args:
+            type: array
+            items:
+              type: object
+              description: Input arguments to the getOptions API
+              required:
+               - field
+               - isdynamic 
+               - value
+              properties:
+               field:
+                type: string
+                description: Name of the parameter
+               isdynamic:
+                type: boolean
+                description: is a static value or represents a dependency field
+               value:
+                type: string
+                description: Value of the stringi
+
+      isstatic:
+        type: boolean
+        description: If there is a limited data to be represened isstatic is set as True and dfvalues represents the data
+
+      addmore:
+        type: boolean
+        description: True if + button needs to be placed
+
+      dfvalues:
+       type: array
+       items:
+        description: List values embedded within API
+        #required:
+         # - id
+         # - label
+         # - selected
+        properties:
+           id:
+             type: string
+             description: name
+           label:
+             type: string
+             description: Label to be display in UI
+           selected:
+             type: string
+             description: selection status             
+           min_range:
+             type: integer
+             description: Slider minimum range         
+           max_range:
+             type: integer
+             description: Slider maximum range
+           min_interval:
+             type: integer
+             description: Minimum difference between the selected values
+           max_interval:
+             type: integer
+             description: Max difference between the selected values             
+      group_fields:
+       type: array
+       items:
+        description: Group members
+        #required:
+        #   - name
+        #   - label
+        #   - type
+        #   - svalue
+        #   - isstatic
+        #   - api
+        #   - dfvalues
+        properties:
+           name:
+             type: string
+             description: Name of field
+           label:
+             type: string
+             description: Label to be display in UI
+           type:
+             type: string
+             description: Type of field, text-box
+           svalue:
+             type: string
+             description: Suggested value
+           isstaic:
+             type: boolean
+             description: If there is a limited data to be represened isstatic is set as True and dfvalues represents the data
+           api:
+             type: object
+             description: api name to be called in case if input type is drop-down or multiselect
+             #required:
+             #   - tasktype
+             #   - name
+             #   - args
+             properties:
+               tasktype:
+                 type: string
+                 description: Type of task
+               name:
+                 type: string
+                 description: Name of the API
+
+               args:
+                type: array
+                items:
+                  type: object
+                  description: Input arguments to the getOptions API
+                  required:
+                   - field
+                   - isdynamic 
+                   - value
+                  properties:
+                   field:
+                     type: string
+                     description: Name of the parameter
+                   isdynamic:
+                     type: boolean
+                     description: is a static value or represents a dependency field
+                   value:
+                     type: string
+                     description: api name to be called in case if input type is drop-down or multiselect
+           dfvalues:
+            type: array
+            items:
+             description: List values embedded within API
+             required:
+                - id
+                - label
+                - selected
+             properties:
+                id:
+                  type: string
+                  description: name
+                label:
+                  type: string
+                  description: Label to be display in UI
+                selected:
+                  type: string
+                  description: selection status
+
+      execid:
+        type: string
+        description: Task execution id
+
+      desc:
+        type: string
+        description: Task description
+
+      helptext:
+        type: string
+        description: Help text for each field
+
+      isbasic:
+        type: boolean
+        description: To be displayed in basic view
+
+      hidden:
+        type: boolean
+        description: To be hidden from both basic & advanced view
+      view:
+        type: string
+        description: basic or advanced view
+      hwtype:
+        description: To show the hw type
+        type: array
+        items:
+          type: string
+      additional:
+        type: string
+        description: Additional functionalities for the field
+      mandatory:
+        type: boolean
+        description: Mandatory state
+
+   WFTasksInputsResponse:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/definitions/TasksInput'
+          status:
+            #type: object
+            description: "data status"
+            $ref: '#/definitions/Status'
+        
+               
+   JobValidateResponse:
+     type: object
+     required:
+        - data
+        - status
+     properties:
+      data:
+        type: object
+        description: "Data"
+        #$ref: '#/definitions/JobValidateData'
+        required:
+           - isvalid
+        properties:
+           isvalid:
+              type: boolean
+              description: "isvalid or not"
+           execid:
+              type: array
+              items: 
+                 type: string
+           error:
+              type: array
+              items:
+                 type: string
+
+      status:
+        type: object
+        description: "data status"
+        $ref: '#/definitions/Status'
+
+   WFTasksOutputsList:
+    #type: object
+    required:
+      - argname
+      - argtype
+
+    properties:
+      argname:
+        type: string
+        description: "Name of argument"
+
+      argtype:
+        type: string
+        description: "Type of argument"
+  
+   WFTasksOutputsResponse:
+        type: object
+        required:
+          - data
+          - status
+        properties:
+          data:
+            $ref: '#/definitions/WFTasksOutputsList'
+          status:
+             #type: object
+             description: "data status"
+             $ref: '#/definitions/Status'
+ 
+   Tasks:
+     type: object
+     required:
+        - name
+        - desc
+
+     properties:
+        name:
+          type: string
+          description: "Task name"
+        
+        desc:
+          type: string
+          description: "Task description"
+
+   GroupJobStatusList:
+    type: object
+    required:
+      - overallstatus
+      - taskstatus
+    properties:
+      overallstatus:
+        type: string
+        description: Overall status
+
+      taskstatus:
+        type: array
+        items:
+         description: List values embedded within API
+         required:
+           - id
+           - jid
+           - execid
+           - status
+         properties:
+           id:
+             type: string
+             description: workflow ID
+
+           jid:
+             type: string
+             description: job ID
+
+           execid:
+             type: string
+             description: Task execution ID
+
+           status:
+             type: string
+             description: Task status
+
+   JobStatusList:
+    type: object
+    required:
+      - overallstatus
+      - taskstatus
+    properties:
+      overallstatus:
+        type: string
+        description: Overall status
+
+      taskstatus:
+        type: array
+        items:
+         description: List values embedded within API
+         required:
+           - id
+           - execid
+           - status
+         properties:
+           id:
+             type: string
+             description: Task ID
+
+           execid:
+             type: string
+             description: Task execution ID
+
+           status:
+             type: string
+             description: Task status
+
+
+
+   WFJobStatusResponse:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+           data:
+             $ref: '#/definitions/JobStatusList'
+           status:
+             type: object
+             description: "data status"
+             $ref: '#/definitions/Status'       
+
+   WFRollbackStatusResponse:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+           data:
+            type: object
+            required:
+             - rbstatus
+            properties:
+             rbstatus:
+               type: array
+               items:
+                required:
+                 - jid
+                 - order
+                 - status
+                properties:
+                 jid:
+                   type: string
+                   description: Job ID
+                 order:
+                   type: string
+                   description: Job order
+                 status:
+                   type: array
+                   description: Task status
+                   items:
+                     required: 
+                      - execid
+                      - status
+                      - order
+                   properties:
+                    execid:
+                      type: string
+                      description: Execution ID   
+                    status:
+                      type: string
+                      description: status  
+                    order:
+                      type: string
+                      description: order with in the Job  
+           status:
+            description: "data status"
+            $ref: '#/definitions/Status'
+
+
+   WFJobGroupStatusResponse:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+           data:
+             $ref: '#/definitions/GroupJobStatusList'
+           status:
+             type: object
+             description: "data status"
+             $ref: '#/definitions/Status'
+
+
+ 
+   TaskSuggestedInputsData:
+    #type: object
+    required:
+      - input
+    properties:
+      input:
+        type: string
+        description: Inputs
+
+   TaskSuggestedInputsResponse:
+        type: object
+        required:
+         - data
+         - status
+        properties:
+          data:
+            $ref: '#/definitions/TaskSuggestedInputsData'
+          status:
+             #type: object
+             description: "Data Status"
+             $ref: '#/definitions/Status'
+
+   LogsData:
+    type: object
+    required:
+      - logs
+    properties:
+      logs:
+        type: string
+        description: Logs read from log file
+
+   LogsResponse:
+        type: object
+        required:
+            - data
+            - status
+        properties:
+           data:
+             $ref: '#/definitions/LogsData'
+           status:
+             type: object
+             description: "Data Status"
+             $ref: '#/definitions/Status'
+   
+   Export:
+    type: object
+    description: A list of workflowid
+    required:
+     - jobid
+    properties:
+     jobid:
+       type: array
+       items:
+         type: string
+
+   TaskInputEntries:
+    description: Key value pair of inputs to task
+    properties:
+     input_list:
+       type: string
+   
+
+   ExportResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: string
+        description: path of the file
+
+
+   TaskInputResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: string
+        description : Return Value 
+
+   JobSaveAsResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: boolean
+        description: Status of the import functionality
+
+   TaskParam:
+    required:
+     - wid
+     - taskid
+    properties:
+     wid:
+       type: string
+       description: Workflow ID
+     taskid:
+       type: string
+       description: TaskID
+
+   CreateParam:
+     required:
+      - wid
+      - fmexecid
+      - toexecid
+      - ttype
+     properties:
+       wid:
+         type: string
+         description: Workflow ID
+       fmexecid:
+          type: string
+          description: TaskID
+       toexecid:
+          type: string
+          description: Exec ID
+       ttype:
+          description: Type
+          type: string
+
+   SaveWorkflow:
+     required:
+      - wid
+      - name
+      - descr
+     properties:
+       wid:
+         type: string
+         description: Workflow ID
+       name:
+          type: string
+          description: Workflow Name
+       descr:
+          type: string
+          description: Workflow Description
+
+   JobDetails:
+    required:
+     - name
+     - desc
+    properties:
+     name:
+       type: string
+       description: New job name
+     desc:
+       type: string
+       description: Job description
+   
+
+   Status:
+     type: object
+     required:
+      - code
+      - message
+     properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+
+   ImageList:
+        required:
+           - data
+           - status
+        properties:
+             data:
+               type: array
+               items:
+                 $ref: '#/definitions/ImageData'
+             status:
+                description: data status
+                $ref: '#/definitions/Status'
+
+   ImageData:
+        required:
+           - name
+           - type
+        properties:
+           name:
+             type: string
+           type:
+             type: string
+
+   GenericStatus:
+        required:
+          - status
+        properties:
+          status:
+            description: API status
+            $ref: '#/definitions/Status'
+
+
+   ImportISOResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: string
+        description: Return version
+
+   ImportResponse:
+    required:
+     - data
+     - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: boolean
+        description: Status of the import functionality
+   GlobalInputsResponse:
+        type: object
+        required:
+           - data
+           - status
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/definitions/TasksInput'
+          status:
+            #type: object
+            description: "data status"
+            $ref: '#/definitions/Status'
+           
+   SetGlobalEntries:
+    description: Key value pair of inputs to task
+    properties:
+     input_list:
+       type: string
+ 
+   FieldValidate:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: array
+        items:
+          properties:
+            field:
+              type: string
+              description: field name
+            msg:
+              type: string
+              description: message to be displayed
+            order:
+              type: integer
+              description: sequence
+
+ 

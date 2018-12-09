@@ -1,0 +1,1101 @@
+# The format of this file is documented in the dhcpd.leases(5) manual page.
+# This lease file was written by isc-dhcp-4.2.5
+
+lease 192.168.10.15 {
+  starts 4 2018/04/05 05:46:18;
+  ends 4 2018/04/05 05:46:19;
+  tstp 4 2018/04/05 05:46:19;
+  cltt 4 2018/04/05 05:46:18;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 05:53:49;
+  ends 4 2018/04/05 05:53:53;
+  tstp 4 2018/04/05 05:53:53;
+  cltt 4 2018/04/05 05:53:49;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 05:54:20;
+  ends 4 2018/04/05 05:54:21;
+  tstp 4 2018/04/05 05:54:21;
+  cltt 4 2018/04/05 05:54:20;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 05:55:40;
+  ends 4 2018/04/05 05:55:44;
+  tstp 4 2018/04/05 05:55:44;
+  cltt 4 2018/04/05 05:55:40;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.22 {
+  starts 4 2018/04/05 05:56:16;
+  ends 4 2018/04/05 05:56:41;
+  tstp 4 2018/04/05 05:56:41;
+  cltt 4 2018/04/05 05:56:16;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.24 {
+  starts 4 2018/04/05 05:57:25;
+  ends 4 2018/04/05 05:57:26;
+  tstp 4 2018/04/05 05:57:26;
+  cltt 4 2018/04/05 05:57:25;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.18 {
+  starts 4 2018/04/05 05:59:19;
+  ends 4 2018/04/05 05:59:23;
+  tstp 4 2018/04/05 05:59:23;
+  cltt 4 2018/04/05 05:59:19;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.19 {
+  starts 4 2018/04/05 06:00:56;
+  ends 4 2018/04/05 06:01:24;
+  tstp 4 2018/04/05 06:01:24;
+  cltt 4 2018/04/05 06:00:56;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.10 {
+  starts 4 2018/04/05 06:04:25;
+  ends 4 2018/04/05 06:04:26;
+  tstp 4 2018/04/05 06:04:26;
+  cltt 4 2018/04/05 06:04:25;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.17 {
+  starts 4 2018/04/05 06:05:45;
+  ends 4 2018/04/05 06:05:49;
+  tstp 4 2018/04/05 06:05:49;
+  cltt 4 2018/04/05 06:05:45;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.23 {
+  starts 4 2018/04/05 06:17:52;
+  ends 4 2018/04/05 06:17:57;
+  tstp 4 2018/04/05 06:17:57;
+  cltt 4 2018/04/05 06:17:52;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.14 {
+  starts 4 2018/04/05 06:19:08;
+  ends 4 2018/04/05 06:19:34;
+  tstp 4 2018/04/05 06:19:34;
+  cltt 4 2018/04/05 06:19:08;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.25 {
+  starts 4 2018/04/05 06:20:54;
+  ends 4 2018/04/05 06:20:55;
+  tstp 4 2018/04/05 06:20:55;
+  cltt 4 2018/04/05 06:20:54;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.12 {
+  starts 4 2018/04/05 06:20:04;
+  ends 4 2018/04/05 06:22:04;
+  cltt 4 2018/04/05 06:20:04;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.13 {
+  starts 4 2018/04/05 06:29:18;
+  ends 4 2018/04/05 06:29:45;
+  tstp 4 2018/04/05 06:29:45;
+  cltt 4 2018/04/05 06:29:18;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.11 {
+  starts 4 2018/04/05 06:29:41;
+  ends 4 2018/04/05 06:31:41;
+  cltt 4 2018/04/05 06:29:41;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.30 {
+  starts 4 2018/04/05 06:31:45;
+  ends 4 2018/04/05 06:31:46;
+  tstp 4 2018/04/05 06:31:46;
+  cltt 4 2018/04/05 06:31:45;
+  binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:34:11;
+  ends 4 2018/04/05 06:34:24;
+  tstp 4 2018/04/05 06:34:24;
+  cltt 4 2018/04/05 06:34:11;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:34:13;
+  ends 4 2018/04/05 08:33:38;
+  cltt 4 2018/04/05 06:34:13;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.29 {
+  starts 4 2018/04/05 06:33:56;
+  ends 4 2018/04/05 08:33:56;
+  cltt 4 2018/04/05 06:33:56;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+server-duid "\000\001\000\001\"\016&\311\010\000'\262L%";
+
+lease 192.168.10.29 {
+  starts 4 2018/04/05 06:34:28;
+  ends 4 2018/04/05 08:34:28;
+  cltt 4 2018/04/05 06:34:28;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:34:50;
+  ends 4 2018/04/05 08:34:50;
+  cltt 4 2018/04/05 06:34:50;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:34:58;
+  ends 4 2018/04/05 08:34:58;
+  cltt 4 2018/04/05 06:34:58;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:34:58;
+  ends 4 2018/04/05 06:35:11;
+  tstp 4 2018/04/05 06:35:11;
+  cltt 4 2018/04/05 06:34:58;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:35:25;
+  ends 4 2018/04/05 08:35:25;
+  cltt 4 2018/04/05 06:35:25;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.29 {
+  starts 4 2018/04/05 06:35:22;
+  ends 4 2018/04/05 06:35:26;
+  tstp 4 2018/04/05 06:35:26;
+  cltt 4 2018/04/05 06:35:22;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:35:26;
+  ends 4 2018/04/05 08:35:26;
+  cltt 4 2018/04/05 06:35:26;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.20 {
+  starts 4 2018/04/05 06:35:52;
+  ends 4 2018/04/05 06:35:52;
+  cltt 4 2018/04/05 06:35:52;
+  binding state abandoned;
+  next binding state free;
+  rewind binding state free;
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:35:53;
+  ends 4 2018/04/05 08:35:53;
+  cltt 4 2018/04/05 06:35:53;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:35:54;
+  ends 4 2018/04/05 08:35:54;
+  cltt 4 2018/04/05 06:35:54;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:36:16;
+  ends 4 2018/04/05 08:36:16;
+  cltt 4 2018/04/05 06:36:16;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:36:16;
+  ends 4 2018/04/05 06:36:29;
+  tstp 4 2018/04/05 06:36:29;
+  cltt 4 2018/04/05 06:36:16;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:36:31;
+  ends 4 2018/04/05 08:36:31;
+  cltt 4 2018/04/05 06:36:31;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:36:34;
+  ends 4 2018/04/05 08:36:34;
+  cltt 4 2018/04/05 06:36:34;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:36:59;
+  ends 4 2018/04/05 08:36:59;
+  cltt 4 2018/04/05 06:36:59;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:37:02;
+  ends 4 2018/04/05 08:37:02;
+  cltt 4 2018/04/05 06:37:02;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:37:02;
+  ends 4 2018/04/05 06:37:15;
+  tstp 4 2018/04/05 06:37:15;
+  cltt 4 2018/04/05 06:37:02;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:37:24;
+  ends 4 2018/04/05 08:37:24;
+  cltt 4 2018/04/05 06:37:24;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:37:48;
+  ends 4 2018/04/05 08:37:48;
+  cltt 4 2018/04/05 06:37:48;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:37:49;
+  ends 4 2018/04/05 08:37:49;
+  cltt 4 2018/04/05 06:37:49;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:37:50;
+  ends 4 2018/04/05 08:37:50;
+  cltt 4 2018/04/05 06:37:50;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.20 {
+  starts 4 2018/04/05 06:35:52;
+  ends 4 2018/04/05 06:35:52;
+  cltt 4 2018/04/05 06:35:52;
+  binding state free;
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:37:59;
+  ends 4 2018/04/05 08:37:59;
+  cltt 4 2018/04/05 06:37:59;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:37:48;
+  ends 4 2018/04/05 06:38:01;
+  tstp 4 2018/04/05 06:38:01;
+  cltt 4 2018/04/05 06:37:48;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.26 {
+  starts 4 2018/04/05 06:38:13;
+  ends 4 2018/04/05 06:38:17;
+  tstp 4 2018/04/05 06:38:17;
+  cltt 4 2018/04/05 06:38:13;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:38:17;
+  ends 4 2018/04/05 08:38:17;
+  cltt 4 2018/04/05 06:38:17;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:38:18;
+  ends 4 2018/04/05 08:38:18;
+  cltt 4 2018/04/05 06:38:18;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:38:26;
+  ends 4 2018/04/05 08:38:26;
+  cltt 4 2018/04/05 06:38:26;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:38:47;
+  ends 4 2018/04/05 08:38:47;
+  cltt 4 2018/04/05 06:38:47;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:38:49;
+  ends 4 2018/04/05 08:38:49;
+  cltt 4 2018/04/05 06:38:49;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 06:39:06;
+  ends 4 2018/04/05 08:39:06;
+  cltt 4 2018/04/05 06:39:06;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:39:19;
+  ends 4 2018/04/05 08:39:19;
+  cltt 4 2018/04/05 06:39:19;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 06:39:06;
+  ends 4 2018/04/05 06:39:19;
+  tstp 4 2018/04/05 06:39:19;
+  cltt 4 2018/04/05 06:39:06;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:39:21;
+  ends 4 2018/04/05 08:39:21;
+  cltt 4 2018/04/05 06:39:21;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:39:25;
+  ends 4 2018/04/05 08:39:25;
+  cltt 4 2018/04/05 06:39:25;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:39:44;
+  ends 4 2018/04/05 08:39:44;
+  cltt 4 2018/04/05 06:39:44;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 06:39:52;
+  ends 4 2018/04/05 08:39:52;
+  cltt 4 2018/04/05 06:39:52;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 06:39:52;
+  ends 4 2018/04/05 06:40:05;
+  tstp 4 2018/04/05 06:40:05;
+  cltt 4 2018/04/05 06:39:52;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:40:10;
+  ends 4 2018/04/05 08:40:10;
+  cltt 4 2018/04/05 06:40:10;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.15 {
+  starts 4 2018/04/05 06:40:20;
+  ends 4 2018/04/05 06:40:24;
+  tstp 4 2018/04/05 06:40:24;
+  cltt 4 2018/04/05 06:40:20;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 06:40:24;
+  ends 4 2018/04/05 08:40:24;
+  cltt 4 2018/04/05 06:40:24;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:40:47;
+  ends 4 2018/04/05 08:40:47;
+  cltt 4 2018/04/05 06:40:47;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:40:48;
+  ends 4 2018/04/05 08:40:48;
+  cltt 4 2018/04/05 06:40:48;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:41:10;
+  ends 4 2018/04/05 08:41:10;
+  cltt 4 2018/04/05 06:41:10;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:41:15;
+  ends 4 2018/04/05 08:41:15;
+  cltt 4 2018/04/05 06:41:15;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:41:10;
+  ends 4 2018/04/05 06:41:23;
+  tstp 4 2018/04/05 06:41:23;
+  cltt 4 2018/04/05 06:41:10;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:41:41;
+  ends 4 2018/04/05 08:41:41;
+  cltt 4 2018/04/05 06:41:41;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.27 {
+  starts 4 2018/04/05 06:41:37;
+  ends 4 2018/04/05 06:41:41;
+  tstp 4 2018/04/05 06:41:41;
+  cltt 4 2018/04/05 06:41:37;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:41:41;
+  ends 4 2018/04/05 08:41:41;
+  cltt 4 2018/04/05 06:41:41;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:41:42;
+  ends 4 2018/04/05 08:41:42;
+  cltt 4 2018/04/05 06:41:42;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:42:16;
+  ends 4 2018/04/05 08:42:16;
+  cltt 4 2018/04/05 06:42:16;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:42:29;
+  ends 4 2018/04/05 08:42:29;
+  cltt 4 2018/04/05 06:42:29;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:42:29;
+  ends 4 2018/04/05 06:42:42;
+  tstp 4 2018/04/05 06:42:42;
+  cltt 4 2018/04/05 06:42:29;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:42:43;
+  ends 4 2018/04/05 08:42:43;
+  cltt 4 2018/04/05 06:42:43;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:43:04;
+  ends 4 2018/04/05 08:43:04;
+  cltt 4 2018/04/05 06:43:04;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:43:15;
+  ends 4 2018/04/05 08:43:15;
+  cltt 4 2018/04/05 06:43:15;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:43:22;
+  ends 4 2018/04/05 08:43:22;
+  cltt 4 2018/04/05 06:43:22;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:43:15;
+  ends 4 2018/04/05 06:43:28;
+  tstp 4 2018/04/05 06:43:28;
+  cltt 4 2018/04/05 06:43:15;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:43:59;
+  ends 4 2018/04/05 08:43:59;
+  cltt 4 2018/04/05 06:43:59;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:44:00;
+  ends 4 2018/04/05 08:44:00;
+  cltt 4 2018/04/05 06:44:00;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:44:01;
+  ends 4 2018/04/05 08:44:01;
+  cltt 4 2018/04/05 06:44:01;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:44:04;
+  ends 4 2018/04/05 08:44:04;
+  cltt 4 2018/04/05 06:44:04;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:44:01;
+  ends 4 2018/04/05 06:44:14;
+  tstp 4 2018/04/05 06:44:14;
+  cltt 4 2018/04/05 06:44:01;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:44:35;
+  ends 4 2018/04/05 08:44:35;
+  cltt 4 2018/04/05 06:44:35;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:44:47;
+  ends 4 2018/04/05 08:44:47;
+  cltt 4 2018/04/05 06:44:47;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:44:47;
+  ends 4 2018/04/05 06:45:00;
+  tstp 4 2018/04/05 06:45:00;
+  cltt 4 2018/04/05 06:44:47;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:45:02;
+  ends 4 2018/04/05 08:45:02;
+  cltt 4 2018/04/05 06:45:02;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.21 {
+  starts 4 2018/04/05 06:45:15;
+  ends 4 2018/04/05 06:45:20;
+  tstp 4 2018/04/05 06:45:20;
+  cltt 4 2018/04/05 06:45:15;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:45:20;
+  ends 4 2018/04/05 08:45:20;
+  cltt 4 2018/04/05 06:45:20;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:45:29;
+  ends 4 2018/04/05 08:45:29;
+  cltt 4 2018/04/05 06:45:29;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.16 {
+  starts 4 2018/04/05 06:45:20;
+  ends 4 2018/04/05 06:45:47;
+  tstp 4 2018/04/05 06:45:47;
+  cltt 4 2018/04/05 06:45:20;
+  binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+}
+lease 192.168.10.22 {
+  starts 4 2018/04/05 06:45:47;
+  ends 4 2018/04/05 08:45:47;
+  cltt 4 2018/04/05 06:45:47;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:45:56;
+  ends 4 2018/04/05 08:45:56;
+  cltt 4 2018/04/05 06:45:56;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:46:20;
+  ends 4 2018/04/05 08:46:20;
+  cltt 4 2018/04/05 06:46:20;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.24 {
+  starts 4 2018/04/05 06:46:37;
+  ends 4 2018/04/05 08:46:37;
+  cltt 4 2018/04/05 06:46:37;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}
+lease 192.168.10.22 {
+  starts 4 2018/04/05 06:46:40;
+  ends 4 2018/04/05 08:46:40;
+  cltt 4 2018/04/05 06:46:40;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.22 {
+  starts 4 2018/04/05 06:46:43;
+  ends 4 2018/04/05 08:46:43;
+  cltt 4 2018/04/05 06:46:43;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.24 {
+  starts 4 2018/04/05 06:46:37;
+  ends 4 2018/04/05 06:46:50;
+  tstp 4 2018/04/05 06:46:50;
+  cltt 4 2018/04/05 06:46:37;
+  binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+}
+lease 192.168.10.22 {
+  starts 4 2018/04/05 06:47:10;
+  ends 4 2018/04/05 08:47:10;
+  cltt 4 2018/04/05 06:47:10;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a1:0e:50;
+  uid "\000JPG200600TM";
+  set serial = "\000JPG200600TM";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.28 {
+  starts 4 2018/04/05 06:47:14;
+  ends 4 2018/04/05 08:47:14;
+  cltt 4 2018/04/05 06:47:14;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:78:88:a6:69:e0;
+  uid "\000JPG200500A3";
+  set serial = "\000JPG200500A3";
+  set vendor-string = "cisco MDS - tcl";
+}
+lease 192.168.10.24 {
+  starts 4 2018/04/05 06:47:23;
+  ends 4 2018/04/05 08:47:23;
+  cltt 4 2018/04/05 06:47:23;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 00:fe:c8:3f:3c:ec;
+  uid "\000FDO21191E09";
+  set serial = "\000FDO21191E09";
+  set vendor-string = "Cisco N9K-C93180YC-EX";
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<workflow id="ConfigureFI-N5k-iSCSI" name="Configure UCS Fabric Interconnects" desc="Deploy UCS Configuration for Servers, LAN, Boot Policy" wtype="wgroup" type="UCSM" simulate="0" isdeletable="0" order="3" htype="fa-n5k-fi-iscsi" prereq="configureFANetworkInterface">
+	<wfs>
+		<wf id="configureUCSServers-N5k-iSCSI" name="Configure UCS Servers" wexecid="g200" OnSuccess="g201" OnFailure="None" initwf="1"/>
+                <wf id="configureUCSLANConnectivity-N5k-iSCSI" name="Configure UCS LAN Connectivity" wexecid="g201" OnSuccess="g202" OnFailure="None" initwf="0"/>
+                <wf id="CreateUCSBootPolicy-N5k-iSCSI" name="Create Boot Policy" wexecid="g202" OnSuccess="None" OnFailure="None" initwf="0"/>
+	</wfs>
+</workflow>

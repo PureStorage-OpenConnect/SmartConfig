@@ -1,0 +1,27 @@
+switchname {{switch_name}}
+
+feature nxapi
+
+feature ssh
+ssh key rsa 1024 force
+
+no feature telnet
+terminal dont-ask persist
+
+ntp server {{ntp_server}} 
+
+no password strength-check
+username admin password 5 $5$cbBHXMJK$a2qpwqSzy8J/.6aTEc8G4sXPdCex/WE4yjjwLxwjhx5  role network-admin
+
+copp profile strict
+
+system default switchport
+system default switchport shutdown
+
+vrf context management
+  ip route 0.0.0.0/0 {{switch_gateway}}
+
+interface mgmt0
+  ip address {{switch_ip}} {{switch_netmask}}
+
+no shutdown

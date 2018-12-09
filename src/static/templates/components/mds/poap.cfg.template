@@ -1,0 +1,31 @@
+switchname {{switch_name}}
+
+feature nxapi
+feature http-server
+
+feature ssh
+ssh key rsa 2048 force
+
+no feature telnet
+terminal dont-ask persist
+
+ntp server {{ntp_server_ip}}
+
+no password strength-check
+username admin password 5 $5$cbBHXMJK$a2qpwqSzy8J/.6aTEc8G4sXPdCex/WE4yjjwLxwjhx5  role network-admin
+
+system default switchport shutdown
+system default switchport trunk mode on
+
+interface mgmt0
+  ip address {{switch_ip}} {{switch_netmask}}
+  no shutdown
+
+ip default-gateway {{switch_gateway}}
+
+system timeout congestion-drop default mode F
+system timeout congestion-drop default mode E
+
+no system default zone default-zone permit
+no system default zone distribute full
+no system default zone mode enhanced

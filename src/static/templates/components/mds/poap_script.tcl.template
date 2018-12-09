@@ -1,0 +1,1671 @@
+#!/usr/bin/env tclsh
+#md5sum="be3b89799ed7175007dcbcf1ea27fa58"
+# The above is the (embedded) md5sum of this file taken without this line,
+# can be # created this way:
+#f=poap_script.tcl; cat $f | sed '/^#md5sum/d' > $f.md5 ; sed -i "s/^#md5sum=.*/#md5sum=\"$(md5sum $f.md5 | sed 's/ .*//')\"/" $f
+# This way this script's integrity can be checked in case you do not trust
+# tftp's ip checksum. This integrity check is done by /isan/bin/poap.bin).
+# The integrity of the files downloaded later (images, config) is checked
+# by downloading the corresponding file with the .md5 extension and is
+# done by this script itself.
+
+# **** Here are all variables that parametrize this script ****
+# *************************************************************
+#REPLACE image versions or directly modify the image src below
+set mds_9100_s3ek9_image_version       "{{image_version}}"
+set mds_9100_s5ek9_image_version       "{{image_version}}"
+
+# REPLACE below system/kickstart image source to the images you want POAP to download
+#set mds_9100_s3ek9_system_image_src    [format "m9100-s3ek9-mzg.%s.bin" $mds_9100_s3ek9_image_version]
+#set mds_9100_s3ek9_kickstart_image_src [format "m9100-s3ek9-kickstart-mzg.%s.bin" $mds_9100_s3ek9_image_version]
+#set mds_9100_s5ek9_system_image_src    [format "m9100-s5ek9-mzg.%s.bin" $mds_9100_s5ek9_image_version]
+#set mds_9100_s5ek9_kickstart_image_src [format "m9100-s5ek9-kickstart-mzg.%s.bin" $mds_9100_s5ek9_image_version]
+
+set mds_9100_s3ek9_system_image_src "MDS9148_isan"
+set mds_9100_s3ek9_kickstart_image_src  "MDS9148_boot"
+set mds_9100_s5ek9_system_image_src "MDS9148S_isan"
+set mds_9100_s5ek9_kickstart_image_src "MDS9148S_boot"
+
+# REPLACE below line with the dir info on TFTP server
+set image_dir_src       "/"
+set config_path         "/"
+
+# REPLACE below line with POAP database filename if mode = "database"
+set config_db_file_src  "poap_database.cfg_SN"
+
+# REPLACE below line with config filename
+#set config_file_src     "conf_AMS17170121.cfg"
+#set config_file_src     "conf_JAF17524X93.cfg"
+# Destination file names the below files will be stored as on the device
+set image_dir_dst       "bootflash:poap"
+set system_image_dst    "bootflash:system.img"
+set kickstart_image_dst "bootflash:kickstart.img"
+set config_db_file_dst  "bootflash:poap_database_dst.cfg"
+set config_file_dst     "bootflash:poap_dst.cfg"
+set config_file_dst_tmp  "bootflash:poap_dst1.cfg"
+
+# Destination file name for those lines in config which need reboot
+# example: system vlan or interface breakout or hardware profile tcam
+set config_file_dst_first   "bootflash:poap_1.cfg"
+
+# Desination file name for those lines in config which does not match above criterea.
+set config_file_dst_second "bootflash:poap_2.cfg"
+
+# indicates whether first config file is empty or not
+set emptyFirstFile 1
+
+# indicates whether the files have been copied or not
+set FoundTemplate 0
+set config_copied 0
+set system_image_copied 0
+set kickstart_image_copied 0
+set template_config_copied 0
+set database_copied 0
+
+# indicates whether the final config generated is available or not
+set generatedConfig 0
+
+# extension of file containing md5sum of the one without ext.
+set md5sum_ext_src      "md5"
+# there is no md5sum_ext_dst because one the target it is a temp file
+# Required space on /bootflash (for config and kick/system images)
+set required_space 250000
+
+# Protocol to use to download images/config
+# Supported protocols are scp/sftp/ftp/tftp
+set protocol "tftp"
+
+# Host name and user credentials
+# REPLACE below 3 lines with your TFTP server info
+set g_dcnm_hostname "{{server_ip}}"
+set g_dcnm_username "root"
+set g_dcnm_password "pureuser"
+
+set hostname $g_dcnm_hostname
+set username $g_dcnm_username
+set password $g_dcnm_password
+
+set g_dcnm_port "80"
+set g_socket_timeout 10000
+set g_token "None"
+
+set BOOT_STATE_STARTED "Bootup file is started"
+set BOOT_STATE_DOWNLOADING_IMAGE_CONFIG_SERVER_LIST "Downloading image & config server list"
+set BOOT_STATE_DOWNLOADED_IMAGE_CONFIG_SERVER_LIST "Image & config server list is downloaded"
+set BOOT_STATE_DOWNLOADING_DEVICE_RECIPE "Downloading device recipe"
+set BOOT_STATE_DOWNLOADED_DEVICE_RECIPE "Device recipe is downloaded"
+set BOOT_STATE_DOWNLOADING_LICENSE_FILE "Downloading license files"
+set BOOT_STATE_DOWNLOADED_LICENSE_FILE "License files are downloaded"
+set BOOT_STATE_DOWNLOADING_IMAGE "Downloading image"
+set BOOT_STATE_DOWNLOADED_IMAGE "Image is downloaded"
+set BOOT_STATE_VERIFYING_IMAGE "Verifying image"
+set BOOT_STATE_VERIFIED_IMAGE "Image is verified"
+set BOOT_STATE_DOWNLOADING_CONFIG "Downloading startup config"
+set BOOT_STATE_DOWNLOADED_CONFIG "Startup config is downloaded"
+set BOOT_STATE_DOWNLOADING_CABLE "Downloading cable plan"
+set BOOT_STATE_DOWNLOADED_CABLE "Cable plan is downloaded"
+set BOOT_STATE_WAIT_BOX_ONLINE "Waiting the device to take install commands"
+set BOOT_STATE_INSTALLING_BOOT_COMMAND "Installing Boot Commands"
+set BOOT_STATE_INSTALLED_BOOT_COMMAND "Boot Commands are installed"
+set BOOT_STATE_SCHEDULE_CONFIG "Create shedule config, reboot device"
+set BOOT_STATE_SPLIT_SCHEDULE_CONFIG_1 "Create first shedule config, reboot device"
+set BOOT_STATE_SPLIT_SCHEDULE_CONFIG_2 "Create second shedule config, reboot device"
+set BOOT_STATE_BEFORE_EXECUTE_POST_PROCESSING_COMMANDS "Before executing post-processing commands"
+set BOOT_STATE_AFTER_EXECUTE_POST_PROCESSING_COMMANDS "After executing post-processing commands"
+set BOOT_STATE_READY_FOR_SECOND_BOOTUP "Ready for second bootup"
+set BOOT_STATE_COMPLETE "POAP script is finished"
+
+set g_boot_stage $BOOT_STATE_STARTED
+
+
+set g_image_server_host ""
+set g_image_server_username ""
+set g_image_server_password ""
+set g_config_server_host ""
+set g_config_server_username ""
+set g_config_server_password ""
+
+
+# Timeout info (from biggest to smallest image, should be f(image-size, protocol))
+set system_timeout    2100
+set kickstart_timeout 900  
+set config_timeout    120
+set md5sum_timeout    120  
+
+# POAP can use 6 modes to obtain the config file.
+# - 'static' - filename is static
+# - 'serial_number' - switch serial number is part of the filename
+#    if serial-number is abc, then filename is conf_abc.cfg
+# - 'location' - CDP neighbor of interface on which DHCPDISCOVER arrived
+#                is part of filename
+#    if cdp neighbor's device_id=abc and port_id=111,
+#    then filename is conf_abc_111.cfg
+# - 'mac' - use the interface (mgmt 0 interface / Single MAC address for all the
+#        front-panel interface) MAC address to derive the configuration filename
+#        (Example: for MAC Address 00:11:22:AA:BB:CC" the default configuration
+#        file looked for would be conf_001122AABBCC.cfg
+# - 'hostname' - Use the hostname from the DHCP OFFER to derive the configuration
+#       file name (Example: conf_N5K-Switch-1.cfg for hostname 'N5K-Switch-1'
+# - 'database' - config file is obtained from a database
+# Note: the next line can be overwritten by command-line arg processing later
+#set config_file_type "conf_c067afcfbba0.cfg"
+set config_file_type "serial_number"
+
+# parameters passed through environment:
+set pid ""
+if { [info exists $env(POAP_PID)] && ![string equal $env(POAP_PID) "" ] } {
+    set pid $env(POAP_PID)
+}
+set serial_number ""
+if { [info exists env(POAP_SERIAL)] && ![string equal $env(POAP_SERIAL) ""] } {
+    set serial_number $env(POAP_SERIAL)
+}
+
+
+set config_file_src [format "conf_%s.cfg" $serial_number]
+puts [format "config file src is %s" $config_file_src]
+#set cdp_interface ""
+#if { [info exists env(POAP_INTF)] && ![string equal $env(POAP_INTF) ""] } {
+#    set cdp_interface $env(POAP_INTF)
+#}
+
+# vrf info
+#set vrf "management"
+#if { [info exists env(POAP_VRF)] && ![string equal $env(POAP_VRF) ""] } {
+#    set vrf $env(POAP_VRF)
+#}
+
+# POAP phase info (USB or DHCP)
+set poap_phase ""
+if { [info exists env(POAP_PHASE)] && ![string equal $env(POAP_PHASE) ""] } {
+    set poap_phase $env(POAP_PHASE)
+}
+
+# will append date/timespace into the name later
+set log_filename "/bootflash/poap.log"
+set now ""
+# **** end of parameters ****
+
+# *************************************************************
+# ***** argv parsing and online help (for test through cli) ******
+# ****************************************************************
+
+# poap.bin passes args (serial-number/cdp-interface) through env var
+# for no seeminly good reason: we allow to overwrite those by passing
+# argv, this is usufull when testing the script from vsh (even simple
+# script have many cases to test, going through a reboto takes too long)
+
+# Command Line version of cdp-interface
+set cl_cdp_interface ""  
+# can overwrite the corresp. env var
+set cl_serial_number ""  
+
+proc parse_args {argv_list {help ""} } {
+    global cl_cdp_interface cl_serial_number
+    foreach { a b } $argv_list {
+        if {[string compare -length [string length $a] $a "cdp-interface"] == 0} {
+           catch {
+                set cl_cdp_interface $b
+            } error
+            if {$error != ""} {
+                if { $help !="" } {
+                    set cl_cdp_interface -1
+                }
+            }
+            if {[string length $a]!=[string length "cdp-interface"] && $help!=""} {
+                set cl_cdp_interface ""
+            }
+            continue
+        }
+        if {[string compare -length [string length $a] $a "serial-number"] == 0} {
+            catch {
+                set cl_serial_number $b
+            } error
+            if {$error!=""} {
+                if { $help !="" } {
+                    set cl_serial_number -1
+                }
+            }
+            if {[string length $a]!=[string length "serial-number"] && $help!=""} {
+                set cl_serial_number ""
+            }
+            continue
+        }
+        puts "Syntax Error|invalid token:"
+        puts $a
+        exit -1
+    }
+}
+
+########### display online help (if asked for) #################
+if { $argc > 0 } {
+    set m [regexp -all "__cli_script.*help" [lindex $argv 0]]
+    if { $m>0 } {
+        # first level help: display script description
+        if { [lindex $argv 0] == "__cli_script_help" } {
+            puts "loads system/kickstart images and config file for POAP\n"
+            exit 0
+        }
+        # argument help
+        set argv_new [lreplace $argv 0 0]
+        # dont count last arg if it was partial help (no-space-question-mark)
+        if { [lindex $argv 0] == "__cli_script_args_help_partial" } {
+          set argv_new [lreplace $argv_new [expr [llength $argv_new]-1] [expr [llength $argv_new]-1]]
+        }
+        parse_args $argv_new "help"
+        if {$cl_serial_number== -1} {
+            puts "WORD|Enter the serial number"
+            exit 0
+        }
+        if { $cl_cdp_interface==-1 } {
+            puts "WORD|Enter the CDP interface instance"
+            exit 0
+        }
+        if { $cl_serial_number!="" } {
+             puts "serial-number|The serial number to use for the config filename"
+        }
+        if { $cl_cdp_interface!="" } {
+             puts "cdp-interface|The CDP interface to use for the config filename"
+        }
+        puts "<CR>|Run it (use static name for config file)"
+        # we are done
+        exit 0
+   }
+}
+
+# *** now overwrite env vars with command line vars (if any given)
+
+parse_args $argv
+if { $cl_serial_number != ""} {
+    set serial_number $cl_serial_number
+    set config_file_type "serial_number"
+}
+if {$cl_cdp_interface != ""} {
+    set cdp_interface $cl_cdp_interface
+    set config_file_type "location"
+}
+
+# figure out what kind of box we have (to download the correct images)
+set ver [cli {show version | grep "cisco "}]
+if {[regexp (MDS.*) $ver] && [regexp (9148S.*) $ver]} {
+    set box "mds_9100_s5ek9"
+} elseif {[regexp (MDS.*) $ver] && [regexp (9148.*) $ver]} {
+    set box "mds_9100_s3ek9"
+} else {
+    set box "unknown"
+}
+
+# Get final image name based on actual box
+# The variable box is the box platform, like mds
+# This is to generate the kickstart or system image src variable names defined
+# in the beginning of the file, e.g., mds_9100_s3ek9_system_image_src
+# For different sup, e.g., sup1, sup2, assign the correct image name to image
+# src variable
+puts [format "Box is %s" $box]
+
+if {$box == "unknown"} {
+    exit -1
+}
+
+set system_image [format "%s_system_image_src" $box]
+set system_image_src [set $system_image]
+
+set kickstart_image [format "%s_kickstart_image_src" $box]
+set kickstart_image_src [set $kickstart_image]
+
+# images are copied to temporary location first (dont want to
+# overwrite good images with bad ones).
+set system_image_dst_tmp "bootflash:system.img.new"
+set kickstart_image_dst_tmp "bootflash:kickstart.img.new"
+
+proc poap_cleanup_script_logs { } {
+    set    poap_log_path "/bootflash/"
+    set    keep_last_logs 4
+  
+    if { [catch {set files [ glob -directory $poap_log_path "poap.log*" ] } reason ] } {
+        return 1
+    }
+
+    set files [lsort -decreasing $files]
+
+    set count 0
+    foreach file $files {
+        set count [expr $count + 1]
+            if { $count > $keep_last_logs } {
+                file delete $file
+            }
+    }
+}
+
+# clean up log files
+poap_cleanup_script_logs
+
+# setup log file and associated utils
+if {$now == ""} {
+    set t [clock seconds]
+    set now [clock format $t -format %m_%d_%H_%M]
+}
+catch {
+    set log_filename [format "%s.%s" $log_filename $now]
+} error
+if {$error!=""} {
+    #puts $error
+}
+
+set poap_log_file [open $log_filename "w+"]
+puts $poap_log_file "POAP log file opened.\n"
+
+proc poap_log {info} {
+    global poap_log_file
+    puts $poap_log_file $info
+    puts $info
+    cli logit $info
+}
+
+proc poap_log_close {} {
+    global poap_log_file
+    close $poap_log_file
+}
+
+proc abort_cleanup_exit {} {
+    poap_log "INFO: cleaning up"
+#    cleanup_files
+#    poap_log_close
+    exit -1
+}
+
+# some argument sanity checks:
+
+if {$config_file_type == "serial_number" && $serial_number==""} {
+    poap_log "ERR: serial-number required (to derive config name) but none give"
+    exit -1
+}
+
+if {$config_file_type == "location" && $cdp_interface == ""} {
+    poap_log "ERR: interface required (to derive config name) but none given"
+    exit -1
+}
+
+# setup the cli session
+cli "no terminal color"
+cli "terminal dont-ask"
+cli [format "terminal password %s" $password]
+cli "clear ssh host"
+
+# Convert the CLI path to a unix path
+proc to_unix_path { path } {
+    regsub -all ":" $path "/" path
+    return [format "/%s" $path]
+}
+set image_dir_dst_u [to_unix_path $image_dir_dst]
+
+if {[file exists $image_dir_dst_u] != 1} {
+    # If it doesn't exist create the directory
+    file mkdir $image_dir_dst_u
+}
+
+# utility functions
+proc run_cli { cmd } {
+    poap_log [format "CLI : %s" $cmd]
+    set output [cli $cmd]
+    return $output
+}
+
+proc rm_rf { filename } {
+    catch {
+        if {file exists $filename } {
+            run_cli [format "delete %s" $filename]
+        }
+    }
+}
+
+# signal handling
+proc sig_handler_no_exit {signum frame} {
+    poap_log "INFO: SIGTERM Handler while configuring boot variables"
+}
+
+proc sigterm_handler {signum frame} {
+    poap_log "INFO: SIGTERM Handler"
+    abort_cleanup_exit
+    exit -1
+}
+
+#signal trap sigterm_handler SIGTERM
+
+# transfers file, return True on success; on error exits unless 'fatal' is False in which case we return False
+{% raw %}
+proc doCopy {{protocol ""} {host ""} {source ""} {dest ""} {login_timeout 10} {username ""} {password ""} {phase ""} {fatal ""}} {
+{% endraw %}
+    
+    rm_rf $dest
+    if {$phase == "USB"} {
+        poap_log [format "INFO: Copying %s from USB" $source]
+        set cmd [format "copy %s %s" $source $dest]
+    } else {
+#set cmd [format "copy %s://%s@%s%s %s" $protocol $username $host $source $dest]
+set cmd [format "copy %s://%s%s %s" $protocol $host $source $dest]
+    }
+
+    catch {
+        run_cli $cmd
+    } error
+
+    if {[file exists [to_unix_path $dest]]==0} {
+        poap_log [format "WARN: Copy Failed: %s" $error]
+        if { $fatal==true } {
+            poap_log "ERR : aborting"
+            abort_cleanup_exit
+            exit -1
+        }
+        return false
+    }
+
+    return true
+}
+
+proc ini2dict { filepath {separator =}} {
+    
+    if {$filepath ==""} {
+        return ""
+    }
+    
+    if {![file exists $filepath] || [catch { set fh [open $filepath r] } ] } {
+         return ""
+    }
+    
+    while {![chan eof $fh]} {
+        gets $fh line
+        
+        if { [string length $line] < 2 } {
+             continue
+        }
+        
+        if { [regexp {^[[:blank:]]*\[{1}.*\]{1}} $line sect] } {
+            set sect [string range $sect 1 end-1]
+            continue
+        }
+        
+        set seppoint [string first $separator $line]
+        if { [string length $sect] && $seppoint > 1 } {
+            set key [string range $line 0 [expr { $seppoint - 1 }]]
+            set value [string range $line [expr { $seppoint + 1}] end ]
+            dict set dic $sect $key $value
+        }
+    }
+    
+    close $fh
+    return $dic
+}
+
+
+proc get_md5sum_src { file_name } {
+    #global protocol hostname md5_file_name_sr md5_file_name_dst vrf md5sum_timeout username password md5sum_ext_src poap_phase
+    global protocol hostname md5_file_name_sr md5_file_name_dst md5sum_timeout username password md5sum_ext_src poap_phase
+
+    set md5_file_name_src [format "%s.%s"  $file_name $md5sum_ext_src]
+    set l [split $md5_file_name_src "/"]
+    set md5_file_name_dst [format "volatile:%s.poap_md5" [lindex $l end]]
+    rm_rf $md5_file_name_dst
+
+    #set ret [doCopy $protocol $hostname $md5_file_name_src $md5_file_name_dst $vrf $md5sum_timeout $username $password $poap_phase false]
+    set ret [doCopy $protocol $hostname $md5_file_name_src $md5_file_name_dst $md5sum_timeout $username $password $poap_phase false]
+    if {$ret == true} {
+        set sum [run_cli [format "show file %s | grep -v '^#' | head lines 1" $md5_file_name_dst]]
+        set sum [string range $sum 7 end-1]
+        poap_log [format "INFO: md5sum %s (.md5 file)" $sum]
+        rm_rf $md5_file_name_dst
+        return $sum
+    }
+
+    poap_log "INFO: No md5sum (.md5 file)"
+    return ""
+}
+
+proc get_md5sum_dst { filename } {
+    set sum [run_cli [format "show file %s md5sum" $filename]]
+    set sum [string range $sum 0 end-1]
+    poap_log [format "INFO: md5sum %s (recalculated)" $sum]
+    return $sum  
+}
+
+proc check_md5sum {filename_src filename_dst lname} {
+    set md5sum_src [get_md5sum_src $filename_src]
+    # we found a .md5 file on the server
+    if { $md5sum_src!=""} {
+            set md5sum_dst [get_md5sum_dst $filename_dst]
+            if {$md5sum_dst != $md5sum_src} {
+                poap_log [format "INFO: md5sum src: %s" $md5sum_src]	
+                poap_log [format "INFO: md5sum dst: %s" $md5sum_dst]	
+                poap_log [format "ERR : MD5 verification failed for %s! (%s)" $lname $filename_dst]
+                abort_cleanup_exit
+            }
+    }
+}
+
+# Procedure to split config file using global information
+proc splitConfigFile {} {
+    global config_file_dst config_file_dst_first config_file_dst_second emptyFirstFile poap_script_log_handler
+        set configFile [open [to_unix_path $config_file_dst] r]
+        set configFile_first [open [to_unix_path $config_file_dst_first] w]
+        set configFile_second [open [to_unix_path $config_file_dst_second] w]
+
+        while {[gets $configFile line] >= 0} {
+            if [expr {[string match "system vlan*" $line] || [string match "interface breakout*" $line] || [string match "hardware access-list lou resource threshold*" $line] || [string match "hardware profile multicast max-limit*" $line] || [string match "hardware profile openflow agent*" $line] || [string match "hardware profile route resource service-template*" $line] || [string match "hardware profile tcam feature nat limit*" $line] || [string match "hardware profile tcam resource service-template*" $line] || [string match "fabricpath mode transit" $line] || [string match "*type fc" $line] || [string match "fabric-mode 40G" $line] || [string match "fabric-mode 10G" $line] || [string match "system default trunk allocate vlan dynamic" $line]}] {
+                if {[string match "fabricpath mode transit" $line]} {
+                    puts $configFile_first "install feature-set fabricpath"
+                    puts $configFile_first "feature-set fabricpath"
+                }
+                puts $configFile_first $line
+                if {$emptyFirstFile == 1} {
+                    set emptyFirstFile 0
+                }
+            } else {
+                puts $configFile_second $line
+            }
+        }
+        close $configFile
+        file delete [to_unix_path $config_file_dst]
+        set config_copied 0
+        close $configFile_first
+        if {$emptyFirstFile == 1} {
+            file delete [to_unix_path $config_file_dst_first]
+        }
+
+        close $configFile_second
+}
+
+# Will run our CLI command to test MD5 checksum and if images are valid
+# This check is also performed while setting the boot variables, but this is an
+# additional check
+
+proc get_version {msg} {
+    set lines [split $msg "\n"]
+    set ret {}
+    foreach { line } $lines {
+        set index [string first "MD5" $line]
+        if { $index!=-1 } {
+           lappend ret [lindex $line end]
+        }
+        set index [string first "kickstart:" $line]
+        if {$index!=-1} {
+            set index [string first "version" $line]
+            lappend ret [string range $line $index end]
+            return $ret
+        }
+        set index [string first "system:" $line]
+        if {$index!=-1} {
+            set index [string first "version" $line]
+            lappend ret [string range $line $index end]
+            return $ret
+        }
+    }
+}
+
+# Procedure to clean up the temporary file
+proc cleanup_files { } {
+    global config_file_dst config_db_file_dst config_file_dst_tmp system_image_dst kickstart_image_dst database_copied config_copied template_config_copied system_image_copied kickstart_image_copied generatedConfig emptyFirstFile config_file_dst_first config_file_dst_second
+    poap_log "INFO: FINISH: Clean up files."
+    if {$config_copied == 1} {
+        run_cli [format "delete %s no" $config_file_dst]
+    }
+    if {$database_copied == 1} {
+        run_cli [format "delete %s no" $config_db_file_dst]
+    }
+    if {$template_config_copied == 1} {
+        run_cli [format "delete %s no" $config_file_dst_tmp]
+    }
+    if {$generatedConfig == 1} {
+        run_cli [format "delete %s no" $config_file_dst_second]
+        if {$emptyFirstFile == 0} {
+            run_cli [format "delete %s no" $config_file_dst_first]
+        }
+    }
+    if {$kickstart_image_copied == 1} {
+        run_cli [format "delete %s no" $kickstart_image_dst]
+    }
+    if {$system_image_copied == 1} {
+        run_cli [format "delete %s no" $system_image_dst]
+    }
+}
+
+# Procedure to copy config file using global information
+proc copyTemplateConfig {src_file} {
+    global protocol hostname config_timeout username password config_file_dst_tmp template_config_copied poap_phase
+
+    poap_log [format "INFO:#Starting Copy of Template Config File %s" $src_file]
+    # Add return value check in all palces doCopy is called.
+    set ret [doCopy $protocol $hostname $src_file $config_file_dst_tmp $config_timeout $username $password $poap_phase true]
+    if {$ret == false} {
+        poap_log "ERR: Unable to Copy Template Config File "
+        abort_cleanup_exit
+    } else {
+        poap_log "INFO: Completed Copy of Template Config File"
+        set template_config_copied 1
+    }
+
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log "INFO: Check md5 of Template Config File"
+    check_md5sum $src_file $config_file_dst_tmp "Template Config file"
+}
+
+proc get_db_config {} {
+    global protocol hostname config_path config_file_src config_db_file_src config_db_file_dst config_timeout username password config_file_dst config_file_dst_tmp serial_number FoundTemplate database_copied generatedConfig poap_phase
+
+    poap_log "INFO: Starting Copy of Database File"
+    if {$poap_phase == "USB"} {
+        set config_db_file_src [format "usb1:%s" $config_db_file_src]
+    } else {
+        set config_db_file_src [format "%s%s" $config_path $config_db_file_src]
+    }
+
+    # Copy the file
+    set ret [doCopy $protocol $hostname $config_db_file_src $config_db_file_dst $config_timeout $username $password $poap_phase true]
+    if {$ret == false} {
+        poap_log "ERR: Unable to copy Database File"
+        abort_cleanup_exit
+    } else {
+        poap_log "INFO: Copy of Database File Successful"
+        set database_copied 1
+    }
+
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log "INFO:Check MD5 of Fabric Database File:"
+    check_md5sum $config_db_file_src $config_db_file_dst "config file"
+
+
+    poap_log "INFO: Fetch Template Configuration from Fabric Database File:"
+    set get_mac [run_cli "show int mgmt0"]
+    set lines [split $get_mac "\n"]
+    foreach { line } $lines {
+        set index [ string first "Hardware:" $line]
+        if {$index!=-1} {    
+            set ln [split $line " "]
+            set device_mac [lindex $ln 5]
+            poap_log [format "INFO: Device MAC is: %s" $device_mac]
+        }
+    }
+
+    set device_serial $serial_number
+    poap_log [format "INFO: Serial Number of Device is: %s" $device_serial]
+    
+    set r3 [to_unix_path $config_db_file_dst]
+    set config [ini2dict $r3]
+    dict for { sect keyval } $config {
+        set sect [string trim $sect " "]
+        if { ($sect == $device_serial) || ($sect == $device_mac) } {
+            poap_log [format "INFO: Section header in DB file %s " $sect]
+            dict for { key val } $keyval {
+                if { $key == "template_to_use " } {
+                    set val [string trim $val " "]
+                    if {$poap_phase == "USB"} {
+                        set config_file_src [format "usb1:%s" $val]
+                    } else {
+                        set config_file_src [format "%s%s" $config_path $val]
+                    }
+                    poap_log [format "INFO: Configuration template to use: %s" $config_file_src]
+                    copyTemplateConfig $config_file_src
+                    set r1 [to_unix_path $config_file_dst_tmp]
+                    set fh [open $r1 r]
+                    set r2 [to_unix_path $config_file_dst]
+                    set fout [open $r2 w]
+                    set FoundTemplate 1
+                    while {![chan eof $fh]} {
+                        gets $fh line
+                        set index [string first "%" $line]
+                        if {$index != -1 } {
+                            set words [split $line " ,:"]
+                            foreach { word } $words {
+                                set r5 [string first "%" $word]
+                                if {$r5 != -1 } {
+                                    set pn [string trim $word "%"]
+                                    dict for { key val } $keyval {
+                                        set key [string trim $key " "]
+                                        set val [string trim $val " "]
+                                        if {[string match -nocase $key $pn]} {
+                                            set start [string first "%" $line]
+                                            set end [string length $word]  
+                                            set line [string replace $line $start [expr $start + $end - 1] $val]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        puts $fout "$line"
+                        puts "$line"
+                    }
+                    close $fh
+                    close $fout
+                }
+            }
+            break
+        }
+    }
+
+    if {$FoundTemplate == 1} {
+        poap_log "INFO: Split Config Invoked"
+        splitConfigFile
+        set generatedConfig 1
+        poap_log "INFO: Completed copy of config file from database"
+    } else {
+        poap_log "ERR: Unable to fetch configuration from database"
+        abort_cleanup_exit
+    }
+}
+
+proc verify_images {} {
+    global kickstart_image_dst system_image_dst
+
+    set kick_cmd [format "show version image %s" $kickstart_image_dst]
+    set sys_cmd [format "show version image %s" $system_image_dst]
+    set kick_msg [run_cli $kick_cmd]
+    set sys_msg [run_cli $sys_cmd]
+    set kick_v [get_version $kick_msg]
+    set sys_v [get_version $sys_msg]
+
+    if {[lindex $kick_v 0] =="Passed" && [lindex $sys_v 0]=="Passed"} {
+        # MD5 verification passed
+        if {[lindex $kick_v 1]!=[lindex $sys_v 1]} {
+            poap_log [format "ERR : Image version mismatch. (kickstart : %s) (system : %s)" [lindex $kick_v 1] [lindex $sys_v 1]]
+            abort_cleanup_exit
+        }
+    } else {
+        # HACK till "show version image" CLI is fixed.
+        #poap_log "ERR : MD5 verification failed!"
+        #poap_log [format "%s\n%s" $kick_msg $sys_msg]
+        #abort_cleanup_exit
+    }
+
+    #poap_log [format "INFO: Verification passed. (kickstart : %s) (system : %s)" [lindex $sys_v 1] [lindex $sys_v 1]]
+
+    return true
+}
+
+# get config file from server
+proc get_config {} {
+    global protocol hostname config_file_src config_file_dst config_timeout username password config_path config_copied generatedConfig poap_phase
+    poap_log "INFO: Fetch Configuration File:"
+    if {$poap_phase == "USB"} {
+        set config_file_src [format "usb1:%s" $config_file_src]
+    } else {
+        set config_file_src [format "%s%s" $config_path $config_file_src]
+    }
+
+    poap_log [format "INFO: Copying %s " $config_file_src]
+    set ret [doCopy $protocol $hostname $config_file_src $config_file_dst $config_timeout $username $password $poap_phase true]
+    if {$ret == false} {
+        poap_log "ERR: Unable to Copy Configuration File"
+    } else {
+        poap_log "INFO: Completed Copy of Configuration File"
+        set config_copied 1
+    }
+
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log "INFO: Check md5 of Configuration File"
+
+    poap_log "INFO: Split Config invoked ..."
+    splitConfigFile
+    set generatedConfig 1
+}
+
+# get system image file from server
+proc get_system_image {} {
+    global protocol hostname system_image_src system_image_dst_tmp system_image_dst system_timeout username password image_dir_src system_image_copied poap_phase
+
+    poap_log "INFO: Starting Copy of System Image"
+    if {$poap_phase == "USB"} {
+        set system_image_src [format "usb1:%s" $system_image_src]
+    } else {
+        set system_image_src [format "%s%s" $image_dir_src $system_image_src]
+    }
+
+    poap_log [format "INFO: Copying %s " $system_image_src]
+    set ret [doCopy $protocol $hostname $system_image_src $system_image_dst_tmp $system_timeout $username $password $poap_phase true]
+    if {$ret == false} {
+        poap_log "ERR: Unable to Copy System Image"
+    } else {
+        poap_log "INFO: Copy of System Image Successful"
+    }
+
+    # get file's md5 from server (if any) and verify it
+    poap_log "INFO: Check md5 of System Image"
+
+    #Now that system image has been copied successfully
+    #delete old system image and move tmp image to system image
+    set tmp [to_unix_path $system_image_dst_tmp]
+    if {[file exists [to_unix_path $system_image_dst]]} {
+        poap_log "INFO: Deleting old version of $system_image_dst"
+        file delete [to_unix_path $system_image_dst]
+    }
+    poap_log [format "INFO: Copy %s to %s" $system_image_dst_tmp $system_image_dst]
+    run_cli "copy $system_image_dst_tmp $system_image_dst"
+    file delete $tmp
+
+    set system_image_copied 1
+    
+}
+
+# get kickstart image file from server
+proc get_kickstart_image {} {
+    global protocol hostname kickstart_image_src kickstart_image_dst_tmp kickstart_image_dst kickstart_timeout username password image_dir_src kickstart_image_copied poap_phase
+
+    poap_log "INFO: Starting Copy of Kickstart Image"
+    if {$poap_phase == "USB"} {
+        set kickstart_image_src [format "usb1:%s" $kickstart_image_src]
+    } else {
+        set kickstart_image_src [format "%s%s" $image_dir_src $kickstart_image_src]
+    }
+
+    set ret [ doCopy $protocol $hostname $kickstart_image_src $kickstart_image_dst_tmp $kickstart_timeout $username $password $poap_phase true]
+    if {$ret == false } {
+        poap_log "ERR: Unable to Copy Kickstart Image"
+        abort_cleanup_exit
+    } else {
+        poap_log "INFO: Copy of Kickstart Image Successful"
+    }
+    
+    # get file's md5 from server (if any) and verify it, failure is fatal (exit)
+    poap_log "INFO: Check MD5 of Kickstart Image"
+
+    #Now that kickstart image has been copied successfully
+    #delete old kickstart image and move tmp image to kickstart image
+    set tmp [to_unix_path $kickstart_image_dst_tmp]
+    if {[file exists [to_unix_path $kickstart_image_dst]]} {
+        poap_log "INFO: Deleting old version of $kickstart_image_dst"
+        file delete [to_unix_path $kickstart_image_dst]
+    }
+    poap_log [format "INFO: Copy %s to %s" $kickstart_image_dst_tmp $kickstart_image_dst]
+    run_cli "copy $kickstart_image_dst_tmp $kickstart_image_dst"
+    file delete $tmp
+
+    set kickstart_image_copied 1
+
+}
+
+proc wait_box_online {} {
+    while {1} {
+        set r [run_cli "show system internal ascii-cfg event-history | grep BOX_ONLINE"]
+        # TBD: Fix this
+        if {[lsearch $r "SUCCESS"] == -1} {
+            poap_log "success"
+            break
+        }
+        after 5000
+        poap_log "INFO: Waiting for box online..."
+    }
+}
+
+# install (make persistent) images and config
+proc install_it {} {
+    global kickstart_image_dst system_image_dst config_file_dst config_file_dst_first config_file_dst_second emptyFirstFile box kickstart_image_copied system_image_copied
+
+    set timeout -1
+
+    global g_boot_stage BOOT_STATE_WAIT_BOX_ONLINE
+    set g_boot_stage $BOOT_STATE_WAIT_BOX_ONLINE
+    send_boot_status
+
+    wait_box_online
+    poap_log "INFO: Setting the boot variables"
+
+    global g_boot_stage BOOT_STATE_INSTALLING_BOOT_COMMAND
+    set g_boot_stage $BOOT_STATE_INSTALLING_BOOT_COMMAND
+    send_boot_status
+
+    set r1 [run_cli [format "config terminal ; boot kickstart %s" $kickstart_image_dst]]
+    set r2 [run_cli [format "config terminal ; boot system %s" $system_image_dst]]
+    set x 1
+    while {$x} {
+        set r3 [run_cli "copy running-config startup-config"]
+        poap_log "## $r3"
+
+        if {[lsearch $r3 "aborted:"] != -1} {
+            poap_log "INFO: Wait 10 sec and retry"
+            after 10000
+        } elseif {[lsearch $r3 "complete,"] != -1 || [lsearch $r3 "complete."] != -1} {
+            poap_log "success copy running-config to startup-config"
+            set x 0
+        } else {
+            poap_log "command failed. Abort POAP."
+            abort_cleanup_exit
+        }
+    }
+
+
+    global g_boot_stage BOOT_STATE_INSTALLED_BOOT_COMMAND
+    set g_boot_stage $BOOT_STATE_INSTALLED_BOOT_COMMAND
+    send_boot_status
+
+    if {$emptyFirstFile == 0} {
+        global g_boot_stage BOOT_STATE_SPLIT_SCHEDULE_CONFIG_1
+        set g_boot_stage $BOOT_STATE_SPLIT_SCHEDULE_CONFIG_1
+        send_boot_status
+
+        set r4 [run_cli [format "copy %s scheduled-config" $config_file_dst_first]]
+        if { $box == "titanium"} {
+            if {[lsearch $r4 "complete."]==-1} {
+                poap_log "ERR: copy 1st config to scheduled config Failed!"
+                abort_cleanup_exit
+            }
+        } else {
+            if {[lsearch $r4 "complete,"]==-1} {
+                poap_log "ERR: copy 1st config to scheduled config Failed!"
+                abort_cleanup_exit
+            }
+        }
+        poap_log "### Copying the first scheduled cfg done ###"
+    }
+
+    global g_boot_stage BOOT_STATE_SPLIT_SCHEDULE_CONFIG_2
+    set g_boot_stage $BOOT_STATE_SPLIT_SCHEDULE_CONFIG_2
+    send_boot_status
+
+    set r5 [run_cli [format "copy %s scheduled-config" $config_file_dst_second]]
+    if { $box == "titanium"} {
+        if {[lsearch $r1 "Failed"]!=-1 || [lsearch $r2 "Failed"]!=-1 ||
+            [lsearch $r3 "complete."]==-1 || [lsearch $r5 "complete."]==-1} {
+            poap_log "ERR : setting bootvars or copy run start failed!"
+            abort_cleanup_exit
+        }
+    } else {
+        if {[lsearch $r1 "Failed"]!=-1 || [lsearch $r2 "Failed"]!=-1 ||
+            [lsearch $r3 "complete."]==-1 || [lsearch $r5 "complete."]==-1} {
+            poap_log "ERR : setting bootvars or copy run start failed!"
+            abort_cleanup_exit
+        }
+    }
+    poap_log "INFO: Configuration successful"
+    # If we are at this stage,it means that there is no error. We dont want to
+    # delete the system/kickstart images that were downloaded
+    set kickstart_image_copied 0
+    set system_image_copied 0
+}
+
+# Verify if free space is available to download config, kickstart and system images
+proc verify_freespace {} {
+    global required_space
+
+    poap_log "INFO: Verifying Free Space:"
+
+    set freespace [run_cli "dir bootflash: | last 3 | grep free | tr -d -c 0-9"]
+    set freespace [expr $freespace / 1024]
+
+    poap_log [format "INFO: free space is %s kB"  $freespace]
+
+    if {$required_space > $freespace} {
+        poap_log "ERR : Not enough space to copy the config, kickstart image and system image, aborting!"
+        abort_cleanup_exit
+    }
+}
+
+# figure out config filename to download based on serial-number
+proc set_config_file_src_serial_number {} {
+    global config_file_src serial_number
+    set config_file_src [format "conf_%s.cfg" $serial_number]
+    poap_log [format "INFO: Selected config filename (serial-nb) : %s" $config_file_src]
+}
+
+# figure out config filename to download based on cdp neighbor info
+# sample output:
+#   switch# show cdp neig
+#   Capability Codes: R - Router, T - Trans-Bridge, B - Source-Route-Bridge
+#                     S - Switch, H - Host, I - IGMP, r - Repeater,
+#                     V - VoIP-Phone, D - Remotely-Managed-Device,
+#                     s - Supports-STP-Dispute, M - Two-port Mac Relay
+#
+#   Device ID              Local Intrfce   Hldtme  Capability  Platform      Port ID
+#   Switch                 mgmt0           148     S I         WS-C2960G-24T Gig0/2
+#   switch(Nexus-Switch)   Eth1/1          150     R S I s     Nexus-Switch  Eth2/1
+#   switch(Nexus-Switch)   Eth1/2          150     R S I s     Nexus-Switch  Eth2/2
+# in xml:
+#   <ROW_cdp_neighbor_brief_info>
+#    <ifindex>83886080</ifindex>
+#    <device_id>Switch</device_id>
+#    <intf_id>mgmt0</intf_id>
+#    <ttl>137</ttl>
+#    <capability>switch</capability>
+#    <capability>IGMP_cnd_filtering</capability>
+#    <platform_id>cisco WS-C2960G-24TC-L</platform_id>
+#    <port_id>GigabitEthernet0/4</port_id>
+#   </ROW_cdp_neighbor_brief_info>
+
+###@@@ This needs to be worked on and checked @@@###
+proc set_config_file_src_location {} {
+    global cdp_interface config_file_src
+    set cmd [format "show cdp neighbors interface %s" $cdp_interface]
+    poap_log [format "CLI: %s" $cmd]
+    set r [ run_cli $cmd]
+    if { [lsearch $r "Capability"]==-1 } {
+        poap_log $r
+        poap_log [format "ERR: canot get neighbor info on %s" $cdp_interface]
+        exit -1
+    }
+    set lines [split $r "\n"]
+    set line [lindex $lines 7]
+    set temp [split [lindex $line 0] "("]
+    set switchName [lindex $temp 0]
+    if { [llength $line] != 1 } {
+         set intfName [lindex $line end]
+    } else {
+         set intfName [lindex [lindex $lines 8] end]
+    }
+    if { $switchName=="" || $intfName=="" } {
+        poap_log [format "ERR: unexpected 'show cdp neigbhor' output: %s" $r]
+        exit -1
+    }
+    set neighbor [format "%s_%s" $switchName $intfName]
+    regsub -all "/" $neighbor "_" neighbor
+    set config_file_src [format "conf_%s.cfg" $neighbor]
+    poap_log [format "INFO: Selected config filename (cdp-neighbor) : %s" $config_file_src]
+}
+
+# Procedure to set config_file based on switch interface MAC
+proc set_config_file_src_mac {} {
+    global config_file_src poap_script_log_handler env
+    if [info exists env(POAP_MAC)] {
+        poap_log "INFO: Interface MAC: $env(POAP_MAC)"
+        set config_file_src [format "conf_%s.cfg" $env(POAP_MAC)]
+    } else {
+        poap_log "WARN: MAC info Missing, falling back to static mode"
+    }
+    poap_log "INFO: Selected conf file name : $config_file_src"
+}
+
+proc set_config_file_src_hostname {} {
+        global config_file_src poap_script_log_handler env
+        if [info exists env(POAP_HOST_NAME)] {
+                poap_log "INFO: Using Host Name: $env(POAP_HOST_NAME)"
+                set config_file_src [format "conf_%s.cfg" $env(POAP_HOST_NAME)]
+        } else {
+                poap_log "WARN: Host Name Missing, falling back to static mode"
+        }
+        poap_log "INFO: Selected conf file name : $config_file_src"
+}
+
+
+# set complete name of config_file_src based on serial-number/interface (add extension)
+
+if {$config_file_type == "location"} {
+    #set source config file based on location
+    set_config_file_src_location
+} elseif {$config_file_type == "serial_number"} {
+    #set source config file based on switch's serial number
+    set_config_file_src_serial_number
+} elseif {$config_file_type == "hostname"} {
+    set_config_file_src_hostname
+} elseif {$config_file_type == "mac"} {
+    set_config_file_src_mac
+}
+
+
+### start of JSON library
+{% raw %}
+proc getc {{txtvar txt}} {
+{% endraw %}
+    # pop single char off the front of the text
+    upvar 1 $txtvar txt
+    if {$txt eq ""} {
+    	return -code error "unexpected end of text"
+    }
+
+    set c [string index $txt 0]
+    set txt [string range $txt 1 end]
+    return $c
+}
+
+proc json2dict {txt} {
+    return [_json2dict]
+}
+
+{% raw %}
+proc _json2dict {{txtvar txt}} {
+{% endraw %}
+    upvar 1 $txtvar txt
+
+    set state TOP
+
+    set txt [string trimleft $txt]
+    while {$txt ne ""} {
+    	set c [string index $txt 0]
+
+    	# skip whitespace
+    	while {[string is space $c]} {
+    	    getc
+    	    set c [string index $txt 0]
+    	}
+
+	if {$c eq "\{"} {
+	    # object
+	    switch -- $state {
+		TOP {
+		    # we are dealing with an Object
+		    getc
+		    set state OBJECT
+		    set dictVal [dict create]
+		}
+		VALUE {
+		    # this object element's value is an Object
+		    dict set dictVal $name [_json2dict]
+		    set state COMMA
+		}
+		LIST {
+		    # next element of list is an Object
+		    lappend listVal [_json2dict]
+		    set state COMMA
+		}
+		default {
+		    return -code error "unexpected open brace in $state mode"
+		}
+	    }
+	} elseif {$c eq "\}"} {
+	    getc
+	    if {$state ne "OBJECT" && $state ne "COMMA"} {
+		return -code error "unexpected close brace in $state mode"
+	    }
+	    return $dictVal
+	} elseif {$c eq ":"} {
+	    # name separator
+	    getc
+
+	    if {$state eq "COLON"} {
+		set state VALUE
+	    } else {
+		return -code error "unexpected colon in $state mode"
+	    }
+	} elseif {$c eq ","} {
+	    # element separator
+	    if {$state eq "COMMA"} {
+		getc
+		if {[info exists listVal]} {
+		    set state LIST
+		} elseif {[info exists dictVal]} {
+		    set state OBJECT
+		}
+	    } else {
+		return -code error "unexpected comma in $state mode"
+	    }
+	} elseif {$c eq "\""} {
+	    # string
+	    # capture quoted string with backslash sequences
+	    set reStr {(?:(?:\")(?:[^\\\"]*(?:\\.[^\\\"]*)*)(?:\"))}
+	    set string ""
+	    if {![regexp $reStr $txt string]} {
+		set txt [string replace $txt 32 end ...]
+		return -code error "invalid formatted string in $txt"
+	    }
+	    set txt [string range $txt [string length $string] end]
+	    # chop off outer ""s and substitute backslashes
+	    # This does more than the RFC-specified backslash sequences,
+	    # but it does cover them all
+	    set string [subst -nocommand -novariable \
+			    [string range $string 1 end-1]]
+
+	    switch -- $state {
+		TOP {
+		    return $string
+		}
+		OBJECT {
+		    set name $string
+		    set state COLON
+		}
+		LIST {
+		    lappend listVal $string
+		    set state COMMA
+		}
+		VALUE {
+		    dict set dictVal $name $string
+		    unset name
+		    set state COMMA
+		}
+	    }
+	} elseif {$c eq "\["} {
+	    # JSON array == Tcl list
+	    switch -- $state {
+		TOP {
+		    getc
+		    set state LIST
+		}
+		LIST {
+		    lappend listVal [_json2dict]
+		    set state COMMA
+		}
+		VALUE {
+		    dict set dictVal $name [_json2dict]
+		    set state COMMA
+		}
+		default {
+		    return -code error "unexpected open bracket in $state mode"
+		}
+	    }
+	} elseif {$c eq "\]"} {
+	    # end of list
+	    getc
+	    if {![info exists listVal]} {
+		#return -code error "unexpected close bracket in $state mode"
+		# must be an empty list
+		return ""
+	    }
+
+	    return $listVal
+	} elseif {0 && $c eq "/"} {
+	    # comment
+	    # XXX: Not in RFC 4627
+	    getc
+	    set c [getc]
+	    switch -- $c {
+		/ {
+		    # // comment form
+		    set i [string first "\n" $txt]
+		    if {$i == -1} {
+			set txt ""
+		    } else {
+			set txt [string range $txt [incr i] end]
+		    }
+		}
+		* {
+		    # /* comment */ form
+		    getc
+		    set i [string first "*/" $txt]
+		    if {$i == -1} {
+			return -code error "incomplete /* comment"
+		    } else {
+			set txt [string range $txt [incr i] end]
+		    }
+		}
+		default {
+		    return -code error "unexpected slash in $state mode"
+		}
+	    }
+	} elseif {[string match {[-0-9]} $c]} {
+	    # one last check for a number, no leading zeros allowed,
+	    # but it may be 0.xxx
+	    string is double -failindex last $txt
+	    if {$last > 0} {
+		set num [string range $txt 0 [expr {$last - 1}]]
+		set txt [string range $txt $last end]
+
+		switch -- $state {
+		    TOP {
+			return $num
+		    }
+		    LIST {
+			lappend listVal $num
+			set state COMMA
+		    }
+		    VALUE {
+			dict set dictVal $name $num
+			set state COMMA
+		    }
+		    default {
+			getc
+			return -code error "unexpected number '$c' in $state mode"
+		    }
+		}
+	    } else {
+		getc
+		return -code error "unexpected '$c' in $state mode"
+	    }
+	} elseif {[string match {[ftn]} $c]
+		  && [regexp {^(true|false|null)} $txt val]} {
+	    # bare word value: true | false | null
+	    set txt [string range $txt [string length $val] end]
+
+	    switch -- $state {
+		TOP {
+		    return $val
+		}
+		LIST {
+		    lappend listVal $val
+		    set state COMMA
+		}
+		VALUE {
+		    dict set dictVal $name $val
+		    set state COMMA
+		}
+		default {
+		    getc
+		    return -code error "unexpected '$c' in $state mode"
+		}
+	    }
+	} else {
+	    # error, incorrect format or unexpected end of text
+	    return -code error "unexpected '$c' in $state mode"
+	}
+    }
+}
+
+proc dict2json {dictVal} {
+    # XXX: Currently this API isn't symmetrical, as to create proper
+    # XXX: JSON text requires type knowledge of the input data
+    set json ""
+
+    dict for {key val} $dictVal {
+	# key must always be a string, val may be a number, string or
+	# bare word (true|false|null)
+	if {0 && ![string is double -strict $val]
+	    && ![regexp {^(?:true|false|null)$} $val]} {
+	    set val "\"$val\""
+	}
+    	append json "\"$key\": $val," \n
+    }
+
+    return "\{${json}\}"
+}
+
+proc parse_device_server_list { txt } {
+  set repo [json2dict $txt]
+  return $repo
+}
+proc parse_device_recipe { txt } {
+  set recipe [json2dict $txt]
+  return $recipe
+}
+
+proc handle_db { repo recipe } {
+  global serial_number
+
+  #puts "repository $repo"
+  #puts "recipe $recipe"
+  set img_server [dict get $recipe "system-image" "download-server"]
+  set config_server [dict get $recipe "startup-config" "download-server"]
+  set image_repo [dict get $repo "repositories" $img_server]
+  set config_repo [dict get $repo "repositories" $config_server]
+
+  set config_server_url [dict get $image_repo "url"]
+  set config_server_username [dict get $image_repo "username"]
+  set config_server_password [decode [dict get $image_repo "password"]]
+  regexp {(.*)://([^/]*)(.*)} $config_server_url matched config_server_protocol config_server_host config_server_path
+
+  set image_server_url [dict get $image_repo "url"]
+  set image_server_username [dict get $image_repo "username"]
+  set image_server_password [decode [dict get $image_repo "password"]]
+  regexp {(.*)://([^/]*)(.*)} $image_server_url matched image_server_protocol image_server_host image_server_path
+
+  set ks_img_name [dict get $recipe "kick-start-image" "image-name"]
+  set sys_img_name [dict get $recipe "system-image" "image-name"]
+  set config_name [dict get $recipe "startup-config" "config-name"]
+
+  puts "ks_img_name: $ks_img_name"
+  puts "sys_img_name: $sys_img_name"
+  puts "config_name: $config_name"
+
+  puts "config_server_url: $config_server_url"
+  puts "config_server_procotol: $config_server_protocol"
+  puts "config_server_server: $config_server_host"
+  puts "config_server_path: $config_server_path"
+  puts "config_server_username: $config_server_username"
+  puts "config_server_password: $config_server_password"
+
+  puts "image_server_url: $image_server_url"
+  puts "image_server_procotol: $image_server_protocol"
+  puts "image_server_server: $image_server_host"
+  puts "image_server_path: $image_server_path"
+  puts "image_server_username: $image_server_username"
+  puts "image_server_password: $image_server_password"
+
+  global g_image_server_host g_image_server_username g_image_server_password g_config_server_host g_config_server_username g_config_server_password
+
+  set g_image_server_host $image_server_host
+  set g_image_server_username $image_server_username
+  set g_image_server_password $image_server_password
+  set g_config_server_host $config_server_host
+  set g_config_server_username $config_server_username
+  set g_config_server_password $config_server_password
+
+  puts "################################"
+  puts "g_image_server_host $image_server_host"
+  puts "g_image_server_username $image_server_username"
+  puts "g_image_server_password $image_server_password"
+  puts "g_config_server_host $config_server_host"
+  puts "g_config_server_username $config_server_username"
+  puts "g_config_server_password $config_server_password"
+
+  #update the global variables
+  global image_dir_src config_path system_image_src kickstart_image_src config_file_src
+
+  set image_dir_src [format "%s/" $image_server_path]
+  set system_image_src $sys_img_name
+  set kickstart_image_src $ks_img_name
+
+  set config_path [format "%s/%s/" $config_server_path $serial_number]
+  set config_file_src $config_name
+
+  puts "################################"
+  puts "image_dir_src $image_dir_src"
+  puts "system_image_src $system_image_src"
+  puts "kickstart_image_src $kickstart_image_src"
+  puts "config_path $config_path"
+  puts "config_file_src $config_file_src"
+}
+
+#### end of JSON library
+
+######## start of base64 library
+proc b64en str {
+    binary scan $str B* bits
+    switch [expr {[string length $bits]%6}] {
+        0 {set tail ""}
+        2 {append bits 0000; set tail ==}
+        4 {append bits 00; set tail =}
+    }
+    return [string map {
+        000000 A 000001 B 000010 C 000011 D 000100 E 000101 F
+        000110 G 000111 H 001000 I 001001 J 001010 K 001011 L
+        001100 M 001101 N 001110 O 001111 P 010000 Q 010001 R
+        010010 S 010011 T 010100 U 010101 V 010110 W 010111 X
+        011000 Y 011001 Z 011010 a 011011 b 011100 c 011101 d
+        011110 e 011111 f 100000 g 100001 h 100010 i 100011 j
+        100100 k 100101 l 100110 m 100111 n 101000 o 101001 p
+        101010 q 101011 r 101100 s 101101 t 101110 u 101111 v
+        110000 w 110001 x 110010 y 110011 z 110100 0 110101 1
+        110110 2 110111 3 111000 4 111001 5 111010 6 111011 7
+        111100 8 111101 9 111110 + 111111 /
+    } $bits]$tail
+}
+proc b64de {str} {
+    set tail [expr [string length $str] - [string length [string trimright $str =]]]
+    set str [string trimright $str =]
+    set bits [string map {
+        A 000000 B 000001 C 000010 D 000011 E 000100 F 000101
+        G 000110 H 000111 I 001000 J 001001 K 001010 L 001011
+        M 001100 N 001101 O 001110 P 001111 Q 010000 R 010001
+        S 010010 T 010011 U 010100 V 010101 W 010110 X 010111
+        Y 011000 Z 011001 a 011010 b 011011 c 011100 d 011101
+        e 011110 f 011111 g 100000 h 100001 i 100010 j 100011
+        k 100100 l 100101 m 100110 n 100111 o 101000 p 101001
+        q 101010 r 101011 s 101100 t 101101 u 101110 v 101111
+        w 110000 x 110001 y 110010 z 110011 0 110100 1 110101
+        2 110110 3 110111 4 111000 5 111001 6 111010 7 111011
+        8 111100 9 111101 + 111110 / 111111
+    } $str]
+    set bytes [binary format B* $bits]
+    return [string range $bytes 0 end-$tail]
+}
+
+proc encode { data } {
+  set raw [b64en $data]
+  return [format "%sj%s" [string range $raw 0 1] [string range $raw 2 [string length $raw]]]
+}
+
+proc decode { data } {
+  set raw [format "%s%s" [string range $data 0 1] [string range $data 3 [string length $data]] ]
+  return [b64de $raw]
+}
+######## end of base64 library
+
+###### begin of boot status update library 
+proc send { method ip port path headers status } {
+  global g_dcnm_hostname g_dcnm_port g_socket_timeout
+  set response "None"
+  set request [format "%s %s HTTP/1.0\n" $method $path]
+  set request $request$headers$status
+  set connected "unknown"
+  after $g_socket_timeout {set connected "timeout"}
+  set my_sock [socket -async $ip $port]
+  fileevent $my_sock w {set connected "ok"}
+  vwait connected
+  fileevent $my_sock w {}
+  if { $connected == "timeout" } {
+    puts "ERROR TIMEOUT"
+  } else {
+    fconfigure $my_sock -buffering line
+    puts $my_sock $request
+    set result ""
+    while { [gets $my_sock line] >= 0 } {
+    	append result $line
+    }
+    regexp {(.*)\{(.*):"(.*)"\}} $result matched headers key response
+  }  
+  return $response
+}
+
+proc logon {} {
+  global g_dcnm_hostname g_dcnm_port g_dcnm_username g_dcnm_password
+  set token "None"
+  set header "Content-Type: application/json\n"
+  set encoded [b64en "$g_dcnm_username:$g_dcnm_password"]
+  set authorization "Authorization: Basic $encoded\ni"
+  set status "{'expirationTime':1800000}"
+ set content_length [string length $status]
+  set ctnLen "Content-Length: $content_length\n\n"
+  set headers $header$authorization$ctnLen
+  set token [send "POST" $g_dcnm_hostname $g_dcnm_port  "/rest/logon" $headers $status] 
+  return $token
+
+}
+
+proc create_boot_status { stage detail } {
+  global serial_number
+  set boot_status "$stage:$detail"
+  set status [format "{\"serialNumber\":\"%s\",\"bootStatus\":\"%s\"}" $serial_number $boot_status ]
+  return $status
+}
+
+proc send_boot_status { {detail ""} } {
+  global g_dcnm_hostname g_dcnm_port g_token g_boot_stage
+#  if { $g_token == "None" } {
+#   set g_token [logon]
+#  }
+  if { $g_token == "None" } {
+    return
+  }
+  set header "Content-Type: application/json\n"
+  set authorization "Dcnm-Token:$g_token\n"
+  set boot_status [create_boot_status $g_boot_stage $detail]
+  set content_length [string length $boot_status]
+  set ctnLen "Content-Length: $content_length\n\n"
+  set headers $header$authorization$ctnLen
+
+  send "POST" $g_dcnm_hostname $g_dcnm_port  "/rest/poap/switch-definitions/bootstatus" $headers $boot_status] 
+
+}
+##### end of boot status update library
+
+# use global username,password, host later
+proc dcnm_setup {} {
+  global serial_number username password hostname
+  # download server-list.cfg
+  global g_boot_stage BOOT_STATE_DOWNLOADING_IMAGE_CONFIG_SERVER_LIST BOOT_STATE_DOWNLOADED_IMAGE_CONFIG_SERVER_LIST
+  set g_boot_stage $BOOT_STATE_DOWNLOADING_IMAGE_CONFIG_SERVER_LIST
+  send_boot_status "downloading image&config server list from host $hostname"
+  #set cmd [format "copy scp://%s@%s%s %s" $username $hostname "/var/lib/dcnm/server-list.cfg" "bootflash:server-list.cfg"]
+  set cmd [format "copy tftp://%s%s %s" $hostname "/server-list.cfg" "bootflash:server-list.cfg"]
+  #cli [format "terminal password %s" $password]
+  catch {
+        run_cli $cmd
+  } error
+  set g_boot_stage $BOOT_STATE_DOWNLOADED_IMAGE_CONFIG_SERVER_LIST
+  send_boot_status "Image&config server list from host $hostname is downloaded"
+
+  if {[file exists [to_unix_path "bootflash:server-list.cfg"]]==0} {
+  } else {
+    	set fp [open [to_unix_path "bootflash:server-list.cfg"] r]
+	set device_server_list [read $fp]
+	close $fp
+	set repo [parse_device_server_list $device_server_list]
+	puts "repo: $repo"
+        file delete [to_unix_path "bootflash:server-list.cfg"]
+  }
+
+  # download device-recipe.cfg 
+  global g_boot_stage BOOT_STATE_DOWNLOADING_DEVICE_RECIPE BOOT_STATE_DOWNLOADED_DEVICE_RECIPE
+  set g_boot_stage $BOOT_STATE_DOWNLOADING_DEVICE_RECIPE
+  send_boot_status "downloading device recipe /var/lib/dcnm/$serial_number/device-recipe.cfg"
+
+  #set cmd [format "copy scp://%s@%s%s %s" $username $hostname [format "/var/lib/tftpboot/%s/device-recipe.cfg" $serial_number] "bootflash:device-recipe.cfg"]
+  set cmd [format "copy tftp://%s%s %s" $hostname [format "/%s/device-recipe.cfg" $serial_number] "bootflash:device-recipe.cfg"]
+  #cli [format "terminal password %s" $password]
+  catch {
+        run_cli $cmd
+  } error
+
+  set g_boot_stage $BOOT_STATE_DOWNLOADED_DEVICE_RECIPE
+  send_boot_status "device recipe /var/lib/dcnm/$serial_number/device-recipe.cfg is downloaded"
+
+
+  if {[file exists [to_unix_path "bootflash:device-recipe.cfg"]]==0} {
+  } else {
+    	set fp [open [to_unix_path "bootflash:device-recipe.cfg"] r]
+	set device_recipe [read $fp]
+	close $fp
+	set recipe [parse_device_recipe $device_recipe]
+        puts "recipe: $recipe"
+	handle_db $repo $recipe
+        file delete [to_unix_path "bootflash:device-recipe.cfg"]
+  }
+
+}
+
+# Execute the commands
+#set g_token [logon]
+#set g_boot_stage $BOOT_STATE_STARTED
+#send_boot_status
+
+verify_freespace
+send_boot_status "Check Free Space"
+dcnm_setup
+if {$config_file_type == "database"} {
+    get_db_config
+} else {
+    set hostname $g_config_server_host
+    set username $g_config_server_username
+    set password $g_config_server_password
+
+    get_config
+}
+
+# 1) keep the hostname/username/password for image, config repo
+# 2) every call to get_config, get_kickstart_image, get_system_image
+#    ,remember to set the hostname/username/password accordingly
+# 3) keep the dcnm hostname/username/password
+# 4) logon 
+# 5) send bootscript status
+# 6) encode/decode password of server-list, encode/decode dcnm credential
+# 7) script to change dcnm hostname/username[encoded]/password[encoded]
+# 8) handledb should change hostname/username/password using dcnm one
+
+set hostname $g_image_server_host
+set username $g_image_server_username
+set password $g_image_server_password
+puts "usernam/pswd set"
+set g_boot_stage $BOOT_STATE_DOWNLOADING_IMAGE
+send_boot_status "downloading image $kickstart_image_src"
+get_kickstart_image
+set g_boot_stage $BOOT_STATE_DOWNLOADED_IMAGE
+send_boot_status "image $kickstart_image_src is downloaded"
+
+set g_boot_stage $BOOT_STATE_DOWNLOADED_IMAGE
+send_boot_status "downloading image $system_image_src"
+get_system_image
+set g_boot_stage $BOOT_STATE_DOWNLOADED_IMAGE
+send_boot_status "image $system_image_src is downloaded"
+
+#verify_images
+# Don't let people abort the final stage that concretize everything
+install_it
+cleanup_files
+set g_boot_stage $BOOT_STATE_COMPLETE
+send_boot_status
+poap_log_close
+exit 0
+
+

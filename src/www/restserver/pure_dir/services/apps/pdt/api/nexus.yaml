@@ -1,0 +1,210 @@
+paths:
+   /NEXUSConfigure:
+    post:
+      tags:
+      - Nexus
+      parameters:
+      - required: true
+        in: body
+        description: Configure parameters
+        name: data
+        schema:
+          $ref: '#/definitions/NexusConfigure'
+      operationId: pdt_api.nexusconfigure
+      summary: Configure Nexus switch
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/NexusConfigureResponse'
+
+   /NEXUS9kImages:
+    get:
+      tags:
+      - Nexus
+      operationId: pdt_api.nexus9kimages
+      summary: API to list all nexus 9k images
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/NexusImages'
+
+   /NEXUS5kSystemImages:
+    get:
+      tags:
+      - Nexus
+      operationId: pdt_api.nexus5ksystemimages
+      summary: API to list all nexus 5k system images
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/NexusImages'
+
+   /NEXUS5kKickstartImages:
+    get:
+      tags:
+      - Nexus
+      operationId: pdt_api.nexus5kkickstartimages
+      summary: API to list all nexus 5k kickstart images
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/NexusImages'
+
+   /NEXUSValidate:
+    post:
+      tags:
+      - Nexus
+      parameters:
+      - in: query
+        name: model
+        description: Nexus model
+        required: false
+        type: string
+      - required: true
+        in: body
+        description: Configure parameters
+        name: data
+        schema:
+          $ref: '#/definitions/NexusConfigure'
+      operationId: pdt_api.nexusvalidate
+      summary: Validate input parameters
+      security: []
+      responses:
+        '200':
+          description: Validation status
+          schema:
+            $ref: '#/definitions/NEXUSValidate'
+
+definitions:
+  NexusConfigure:
+    required:
+    - switch_name
+    - switch_mac
+    - switch_serial_no
+    - switch_vendor
+    - ntp_server
+    - switch_gateway
+    - switch_ip
+    - switch_netmask
+    - pri_passwd
+    - conf_passwd
+    - domain_name
+    type: object
+    properties:
+      switch_name:
+        type: string
+        description: Switch name
+      switch_mac:
+        type: string
+        description: Switch mac
+      switch_serial_no:
+        type: string
+        description: Switch serial number
+      switch_vendor:
+        type: string
+        description: Switch vendor identifier
+      ntp_server:
+        type: string
+        description: NTP Server
+      switch_gateway:
+        type: string
+        description: Gateway
+      switch_ip:
+        type: string
+        description: Switch IP
+      switch_netmask:
+        type: string
+        description: Netmask
+      switch_image:
+        type: string
+        description: NX os image
+      switch_kickstart_image:
+        type: string
+        description: NX os kickstart image
+      switch_system_image:
+        type: string
+        description: NX os system image
+      pri_passwd:
+        type: string
+        description: Password
+      conf_passwd:
+        type: string
+        description: Confirm password
+      domain_name:
+        type: string
+        description: Domain name
+
+  NexusConfigureResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: boolean
+        description: Configuration state
+
+  APIStatus:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+
+  NexusImages:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+         required: 
+          - images
+         properties:
+            images:
+              type: string
+              description: image name
+              minLength: 1
+              maxLength: 100
+
+  NEXUSValidate:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        type: array
+        items:
+         required:
+            - field
+            - msg
+         properties:
+            field:
+              type: string
+              description: field name
+            msg:
+              type: string
+              description: message to be displayed
+
