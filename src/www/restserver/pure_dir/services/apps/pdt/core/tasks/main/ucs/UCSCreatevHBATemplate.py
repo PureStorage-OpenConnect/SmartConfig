@@ -139,7 +139,7 @@ class UCSCreatevHBATemplateInputs:
     ident_pool_name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='', dt_type="string", static="False", static_values="None",
                               api="getwwpn()|[fabric_id:1:fabric_id.value]", mapval="1", name="ident_pool_name", label="WWPN Pool ", svalue="", mandatory='1', order=4)
     ucs_fabric_id = Radiobutton(hidden='False', isbasic='True', helptext='', dt_type="string", static="True", static_values="A:1:Fabric Interconnect A(primary)|B:0:Fabric Interconnect B(subordinate)",
-                            api="", name="ucs_fabric_id", label="Fabric ID", svalue="", mandatory='1', mapval="0", order=5)
+                                api="", name="ucs_fabric_id", label="Fabric ID", svalue="", mandatory='1', mapval="0", order=5)
     redundancy_type = Radiobutton(hidden='False', isbasic='True', helptext='', dt_type="string", api="", static="True", static_values="none:1:No Redundancy|pimary:0:Primary Template|secondary:0:Secondary Template",
                                   name="redundancy_type", label="Redundancy Type", svalue="", mandatory='1', mapval="0", order=6)
     max_data_field_size = Textbox(validation_criteria='int|min:256|max:2048',  hidden='False', isbasic='True', helptext='', dt_type="integer", api="", static="False", static_values="None",

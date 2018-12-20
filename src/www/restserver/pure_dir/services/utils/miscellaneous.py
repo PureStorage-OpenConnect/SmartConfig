@@ -38,7 +38,7 @@ def pretty_print(data): return '\n'.join([line for line in parseString(
 
 def get_xml_element(file_name, attribute_key, attribute_value=''):
     if os.path.exists(file_name) is True:
-        lock = FileLock(file_name+".lock")
+        lock = FileLock(file_name + ".lock")
         with lock.acquire(timeout=-1):
             try:
                 tree = etree.parse(file_name)
@@ -75,7 +75,7 @@ def add_xml_element(file_name, data, element_name=''):
     file_basename = os.path.basename(file_name)
     if os.path.exists(file_name) == False:
         doc = Document()
-	roottag = doc.createElement(file_basename[:-4])
+        roottag = doc.createElement(file_basename[:-4])
         doc.appendChild(roottag)
     else:
         try:
@@ -83,13 +83,13 @@ def add_xml_element(file_name, data, element_name=''):
         except Exception as e:
             return False
 
-    ele_name = file_basename[:-5] if element_name == '' else element_name	
+    ele_name = file_basename[:-5] if element_name == '' else element_name
     node = doc.createElement(ele_name)
     for name, value in data.items():
         node.setAttribute(name, value)
     doc.childNodes[0].appendChild(node)
 
-    lock = FileLock(file_name+".lock")
+    lock = FileLock(file_name + ".lock")
     with lock.acquire(timeout=-1):
         o = open(file_name, "w")
         o.write(pretty_print(doc.toprettyxml(indent="")))
@@ -103,7 +103,8 @@ def delete_xml_element(file_name, matching_key, matching_value='', element_name=
     if os.path.exists(file_name) is True:
         try:
             doc = parse_xml(file_name)
-            ele_name = file_basename[:-5] if element_name == '' else element_name	
+            ele_name = file_basename[:-
+                                     5] if element_name == '' else element_name
             for subelement in doc.getElementsByTagName(ele_name):
                 if matching_value == '':
                     if subelement.hasAttribute(matching_key):
@@ -112,7 +113,7 @@ def delete_xml_element(file_name, matching_key, matching_value='', element_name=
                 elif subelement.getAttribute(matching_key) == matching_value:
                     doc.documentElement.removeChild(subelement)
 
-            lock = FileLock(file_name+".lock")
+            lock = FileLock(file_name + ".lock")
             with lock.acquire(timeout=-1):
                 o = open(file_name, "w+")
                 o.write(pretty_print(doc.toprettyxml(indent="")))
@@ -130,13 +131,14 @@ def update_xml_element(file_name, matching_key, matching_value, data, element_na
     if os.path.exists(file_name) is True:
         try:
             doc = parse_xml(file_name)
-            ele_name = file_basename[:-5] if element_name == '' else element_name	
+            ele_name = file_basename[:-
+                                     5] if element_name == '' else element_name
             for subelement in doc.getElementsByTagName(ele_name):
-		if subelement.hasAttribute(matching_key):
+                if subelement.hasAttribute(matching_key):
                     if (matching_value == '') or (matching_value != '' and subelement.getAttribute(matching_key) == matching_value):
                         for name, value in data.items():
                             subelement.setAttribute(name, value)
-                        lock = FileLock(file_name+".lock")
+                        lock = FileLock(file_name + ".lock")
                         with lock.acquire(timeout=-1):
                             o = open(file_name, "w+")
                             o.write(pretty_print(doc.toprettyxml(indent="")))
@@ -149,7 +151,7 @@ def update_xml_element(file_name, matching_key, matching_value, data, element_na
 
 
 def parse_xml(file_name):
-    lock = FileLock(file_name+".lock")
+    lock = FileLock(file_name + ".lock")
     with lock.acquire(timeout=-1):
         doc = parse(file_name)
         return doc
@@ -382,4 +384,3 @@ def findIPs(start, end):
         result.append(str(start))
         start += 1
     return result
-

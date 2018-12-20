@@ -8,10 +8,10 @@ from pure_dir.services.utils.miscellaneous import *
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
 metadata = dict(
-        task_id="NEXUS9kCreateVPCDomain",
-        task_name="Create VPC Domain",
-        task_desc="Create VPC Domain for Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS9kCreateVPCDomain",
+    task_name="Create VPC Domain",
+    task_desc="Create VPC Domain for Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -23,10 +23,10 @@ class NEXUS9kCreateVPCDomain:
         res = result()
         loginfo("NEXUS Create VPC Domain")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusCreateVPCDomain(taskinfo['inputs'], logfile)
             else:
@@ -46,10 +46,10 @@ class NEXUS9kCreateVPCDomain:
         res = result()
         loginfo("NEXUS Create VPC Domain rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusDeleteVPCDomain(inputs, logfile)
             else:
@@ -110,7 +110,7 @@ class NEXUS9kCreateVPCDomain:
     def get_detail(self, mac, src, dst):
         nexus_list = []
         status, details = get_xml_element(
-                file_name=static_discovery_store, attribute_key="device_type", attribute_value="Nexus 9k")
+            file_name=static_discovery_store, attribute_key="device_type", attribute_value="Nexus 9k")
 
         if status:
             for detail in details:

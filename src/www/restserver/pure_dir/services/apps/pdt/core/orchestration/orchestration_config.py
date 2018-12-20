@@ -45,12 +45,15 @@ TASK_DELAY = 2
 TASK_ROLLBACK_DELAY = 2
 
 try:
-   _
-except NameError: 
-	locale_path = "/var/www/restserver/pure_dir/services/apps/pdt/locales/"
-	os.system("msgfmt "+ locale_path +"en_US/LC_MESSAGES/messages.po -o " + locale_path + "en_US/LC_MESSAGES/messages.mo")
-	language = gettext.translation('messages', localedir = locale_path, languages=['en_US'])
-	language.install()
+    _
+except NameError:
+    locale_path = "/var/www/restserver/pure_dir/services/apps/pdt/locales/"
+    os.system("msgfmt " + locale_path + "en_US/LC_MESSAGES/messages.po -o " +
+              locale_path + "en_US/LC_MESSAGES/messages.mo")
+    language = gettext.translation(
+        'messages', localedir=locale_path, languages=['en_US'])
+    language.install()
+
 
 def get_error_log():
     return g_error_log

@@ -20,10 +20,16 @@ from pure_dir.infra.logging.logmanager import *
 
 class Nexus:
     def __init__(self, ipaddress='', username='', password=''):
-        # TODO: Get the switch details from xml
+        """
+        Constructor - Nexus Handler
+
+        :param ipaddress: Switch ip 
+        :param username : Switch username
+        :param password : Switch password
+        """
         if ipaddress:
             self.handle = Device(
-                    ip=ipaddress, username=username, password=password)
+                ip=ipaddress, username=username, password=password)
         else:
             pass
 
@@ -202,7 +208,8 @@ class Nexus:
 
             for interface in interfaces[0]:
                 if "Ethernet" in interface['interface'] and interface['interface'].split('/')[0][-1] == slot:
-                    tmp_list.append(int(interface['interface'].split('/')[0][-1]))
+                    tmp_list.append(
+                        int(interface['interface'].split('/')[0][-1]))
 
             eth_list = sorted(list(set(tmp_list)))
 
@@ -221,7 +228,7 @@ class Nexus:
 
     def get_features_list(self):
         """
-        Gets the list of features available in nexus switch
+        Gets the list of features available in nexus 9k switch
 
         :return: Returns the feature list
         """
@@ -239,6 +246,11 @@ class Nexus:
             return flist
 
     def get_feature_list_n5k(self):
+        """
+        Gets the list of features available in nexus 5k switch
+
+        :return: Returns the feature list
+        """
         try:
             feat_list = []
             tmp_list = []
@@ -296,6 +308,15 @@ class Nexus:
             return None
 
     def configure_portchannel(self, handle, pc_id, interface_list):
+        """
+        Configures port-channel in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param pc_id: Port-Channel id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['interface %s' %
@@ -332,6 +353,14 @@ class Nexus:
         return obj
 
     def configure_fcport(self, handle, fc_id, descr=""):
+        """
+        Configures the FC port in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param fc_id: FC port id
+        :param descr: FC port description
+        :return: Returns the port configuration status
+        """
         obj = result()
         if descr == "":
             commands = ['interface %s' % fc_id,
@@ -366,6 +395,15 @@ class Nexus:
         return obj
 
     def unconfigure_portchannel(self, handle, pc_id, interface_list):
+        """
+        Unbinds the interfaces from the port-channel in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param pc_id: Port-Channel id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['interface %s' %
@@ -398,6 +436,11 @@ class Nexus:
         return obj
 
     def get_portchannel_list(self):
+        """
+        Gets the list of port-channels in nexus switch
+
+        :return: Returns the port-channel list
+        """
         obj = result()
         iface_list = []
         try:
@@ -431,6 +474,14 @@ class Nexus:
             return obj
 
     def getfc_list(self, slot, ports):
+        """
+        Gets the list of FC interfaces in nexus 5k switch
+
+        :slot: Slot in nexus switch 
+        :ports: Corresponding ports in nexus switch
+
+        :return: Returns the interface list
+        """
         obj = result()
         iface_list = [{'iface_id': "fc" + slot + "/" + str(i)} for i in
                       range(int(ports.split('-')[0]), int(ports.split('-')[1]) + 1)]
@@ -438,6 +489,13 @@ class Nexus:
         return obj
 
     def get_fc_list(self, pc_bind=""):
+        """
+        Gets the list of FC interfaces in nexus 9k switch
+
+        :param pc_bind: If True it returns the FC interfaces which are binded to port-channel
+
+        :return: Returns the interface list
+        """
         obj = result()
         iface_list = []
         try:
@@ -453,7 +511,8 @@ class Nexus:
                         tmp_list = [x for x in row.split(' ') if x != '']
                         iface_dict = {}
                         iface_dict['iface_id'] = tmp_list[0].encode('utf-8')
-                        iface_dict['iface_status'] = tmp_list[4].encode('utf-8')
+                        iface_dict['iface_status'] = tmp_list[4].encode(
+                            'utf-8')
                         iface_dict['iface_vsan'] = tmp_list[1].encode('utf-8')
                         iface_dict['iface_pc'] = tmp_list[-1].encode('utf-8')
                         iface_list.append(iface_dict)
@@ -471,17 +530,17 @@ class Nexus:
                             iface_notpc_list.append(iface)
                     if pc_bind == True:
                         loginfo(
-                                "Nexus interface list which are binded to port channel: " + str(iface_pc_list))
+                            "Nexus interface list which are binded to port channel: " + str(iface_pc_list))
                         obj.setResult(iface_pc_list, PTK_OKAY, "Success")
                         return obj
                     elif pc_bind == False:
                         loginfo(
-                                "Nexus interface list which are not binded to port channel: " + str(iface_notpc_list))
+                            "Nexus interface list which are not binded to port channel: " + str(iface_notpc_list))
                         obj.setResult(iface_notpc_list, PTK_OKAY, "Success")
                         return obj
                     else:
                         loginfo(
-                                "Nexus interface list: Invalid parameter %s" % pc_bind)
+                            "Nexus interface list: Invalid parameter %s" % pc_bind)
                         obj.setResult(iface_pc_list, PTK_NOTEXIST,
                                       "Invalid parameter")
                         return obj
@@ -499,6 +558,14 @@ class Nexus:
             return obj
 
     def create_vsan(self, handle, vsan_id):
+        """
+        Creates VSAN in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param vsan_id: VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['vsan database', 'vsan %s' % vsan_id,
                     'exit']
@@ -527,6 +594,14 @@ class Nexus:
             return obj
 
     def delete_vsan(self, handle, vsan_id):
+        """
+        Deletes VSAN in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param vsan_id: VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['vsan database', 'no vsan %s' % vsan_id, 'exit']
         cmds_to_string = ' ; '.join(commands)
@@ -554,6 +629,15 @@ class Nexus:
             return obj
 
     def configure_vsan(self, handle, vsan_id, interface_list):
+        """
+        Configures VSAN by adding the interfaces to VSAN in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param vsan_id: VSAN id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['vsan database', 'vsan %s interface %s' %
@@ -592,6 +676,15 @@ class Nexus:
         return obj
 
     def unconfigure_vsan(self, handle, vsan_id, interface_list):
+        """
+        Unconfigures VSAN by removing the interfaces from VSAN in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param vsan_id: VSAN id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['vsan database', 'no vsan %s interface %s' %
@@ -625,6 +718,15 @@ class Nexus:
         return obj
 
     def create_portchannel(self, handle, pc_id, descr=""):
+        """
+        Creates port-channel in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param pc_id: Port-Channel id
+        :param descr: Port-Channel description
+
+        :return: Returns the status
+        """
         obj = result()
         if descr == "":
             commands = ['interface san-port-channel %s' % pc_id,
@@ -658,6 +760,14 @@ class Nexus:
             return obj
 
     def delete_portchannel(self, handle, pc_id):
+        """
+        Deletes port-channel in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param pc_id: Port-Channel id
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['no interface san-port-channel %s' % pc_id]
         cmds_to_string = ' ; '.join(commands)
@@ -686,6 +796,14 @@ class Nexus:
             return obj
 
     def create_device_aliases(self, handle, flogi_list):
+        """
+        Creates device aliases for pwwn in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param flogi_list: List of FLOGI
+
+        :return: Returns the status
+        """
         obj = result()
         for flogi in flogi_list:
             obj = self.create_alias(handle, flogi['alias'], flogi['pwwn'])
@@ -702,6 +820,15 @@ class Nexus:
         return obj
 
     def create_alias(self, handle, name, pwwn):
+        """
+        Creates device aliase for a pwwn in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param name: Alias name
+        :param pwwn: Port WWN
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['device-alias database', 'device-alias name %s pwwn %s' % (name, pwwn),
                     'exit', 'device-alias commit']
@@ -715,7 +842,7 @@ class Nexus:
                 raise cli_error
             else:
                 loginfo(
-                        "Nexus: Device alias %s for pwwn  %s created successfully" % (name, pwwn))
+                    "Nexus: Device alias %s for pwwn  %s created successfully" % (name, pwwn))
                 obj.setResult(True, PTK_OKAY, "Success")
                 return obj
 
@@ -731,6 +858,15 @@ class Nexus:
             return obj
 
     def create_zoneset(self, handle, name, vsan_id):
+        """
+        Creates a VSAN zoneset in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param name: Name of the zoneset
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset creation status
+        """
         obj = result()
         commands = ['zoneset name %s vsan %s' % (name, vsan_id), 'exit']
         cmds_to_string = ' ; '.join(commands)
@@ -757,6 +893,15 @@ class Nexus:
             return obj
 
     def create_zone(self, handle, name, vsan_id):
+        """
+        Creates a VSAN zone in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param name: Name of the zone
+        :param vsan_id: VSAN id
+
+        :return: Returns the zone creation status
+        """
         obj = result()
         commands = ['zone name %s vsan %s' % (name, vsan_id), 'exit']
         cmds_to_string = ' ; '.join(commands)
@@ -783,6 +928,15 @@ class Nexus:
             return obj
 
     def delete_zone(self, handle, name, vsan_id=""):
+        """
+        Deletes a VSAN zone in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param name: Name of the zone
+        :param vsan_id: VSAN id
+
+        :return: Returns the zone deletion status
+        """
         obj = result()
         if vsan_id == "":
             vsan_id = get_vsanid_for_zone(name)
@@ -793,7 +947,7 @@ class Nexus:
 
         try:
             conf_op = handle.config(
-                    'no zone name %s vsan %s' % (name, vsan_id), fmat='json')
+                'no zone name %s vsan %s' % (name, vsan_id), fmat='json')
             cli_error = handle.cli_error_check(json.loads(conf_op[1]))
             if cli_error:
                 raise cli_error
@@ -815,6 +969,15 @@ class Nexus:
             return obj
 
     def delete_zoneset(self, handle, name, vsan_id=""):
+        """
+        Deletes a VSAN zoneset in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param name: Name of the zoneset
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset creation status
+        """
         obj = result()
         if vsan_id == "":
             vsan_id = get_vsanid_for_zoneset(name)
@@ -826,7 +989,7 @@ class Nexus:
 
         try:
             conf_op = handle.config(
-                    'no zoneset name %s vsan %s' % (name, vsan_id), fmat='json')
+                'no zoneset name %s vsan %s' % (name, vsan_id), fmat='json')
             cli_error = handle.cli_error_check(json.loads(conf_op[1]))
             if cli_error:
                 raise cli_error
@@ -848,6 +1011,14 @@ class Nexus:
             return obj
 
     def delete_device_aliases(self, handle, alias_list):
+        """
+        Deletes device aliases in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param alias_list: List of device aliases
+
+        :return: Returns the status
+        """
         obj = result()
         for alias in alias_list:
             obj = self.delete_alias(handle, alias)
@@ -863,6 +1034,14 @@ class Nexus:
         return obj
 
     def delete_alias(self, handle, name):
+        """
+        Deletes device aliase for a pwwn in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param name: Alias name
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['device-alias database', 'no device-alias name %s' % name,
                     'exit', 'device-alias commit']
@@ -876,7 +1055,7 @@ class Nexus:
                 raise cli_error
             else:
                 loginfo(
-                        "Nexus: Device alias %s deleted successfully" % name)
+                    "Nexus: Device alias %s deleted successfully" % name)
                 obj.setResult(True, PTK_OKAY, "Success")
                 return obj
 
@@ -892,6 +1071,11 @@ class Nexus:
             return obj
 
     def get_flogi_sessions(self):
+        """
+        Gets the list of FLOGI sessions in nexus switch
+
+        :return: Returns the FLOGI list
+        """
         obj = result()
         flogi_sessions = []
         try:
@@ -927,6 +1111,11 @@ class Nexus:
         return obj
 
     def get_vsan_list(self):
+        """
+        Gets the list of VSANs in nexus switch
+
+        :return: Returns the VSAN list
+        """
         obj = result()
         try:
             vsan_list = []
@@ -956,6 +1145,13 @@ class Nexus:
             return obj
 
     def get_vsanid_for_zone(self, name):
+        """
+        Gets a VSAN id for a zone in nexus switch
+
+        :param name: Name of the zone
+
+        :return: Returns the VSAN id
+        """
         zone_list = get_zone_list()
         for zone in zone_list:
             if zone['name'] == name:
@@ -964,6 +1160,13 @@ class Nexus:
         return -1
 
     def get_vsanid_for_zoneset(self, name):
+        """
+        Gets a VSAN id for a zoneset in nexus switch
+
+        :param name: Name of the zoneset
+
+        :return: Returns the VSAN id
+        """
         zoneset_list = get_zoneset_list()
         for zoneset in zoneset_list:
             if zoneset['name'] == name:
@@ -972,6 +1175,11 @@ class Nexus:
         return -1
 
     def get_zone_list(self):
+        """
+        Gets the zone list in nexus switch
+
+        :return: Returns the zone list
+        """
         obj = result()
         try:
             zone_list = []
@@ -1005,6 +1213,11 @@ class Nexus:
             return obj
 
     def get_zoneset_list(self):
+        """
+        Gets the zoneset list in nexus switch
+
+        :return: Returns the zoneset list
+        """
         obj = result()
         try:
             zoneset_list = []
@@ -1038,6 +1251,16 @@ class Nexus:
             return obj
 
     def add_to_zone(self, handle, zone_name, members, vsan_id=''):
+        """
+        Configure a VSAN zone in nexus switch by adding ports' pwwn to the zone
+
+        :param handle: Login handle of nexus switch
+        :param zone_name: Name of the zone
+        :param members: List of zone pwwn/device-aliases
+        :param vsan_id: VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
         if vsan_id == '':
             vsan_id = get_vsanid_for_zone(zone_name)
@@ -1077,6 +1300,16 @@ class Nexus:
         return obj
 
     def add_to_zoneset(self, handle, zoneset_name, members, vsan_id=''):
+        """
+        Configure a VSAN zoneset in nexus switch by adding zones to the zoneset
+
+        :param handle: Login handle of nexus switch
+        :param zoneset_name: Name of the zoneset
+        :param members: List of zones
+        :param vsan_id: VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
 
         if vsan_id == '':
@@ -1098,7 +1331,8 @@ class Nexus:
                 if cli_error:
                     raise cli_error
                 else:
-                    loginfo("Nexus: Zone %s added to zoneset %s successfully" % (member, zoneset_name))
+                    loginfo("Nexus: Zone %s added to zoneset %s successfully" % (
+                        member, zoneset_name))
 
             except error.CLIError as e:
                 loginfo("CLI Error: " + str(e.err))
@@ -1117,6 +1351,15 @@ class Nexus:
         return obj
 
     def activate_zoneset(self, handle, zoneset_name, vsan_id=''):
+        """
+        Activate a VSAN zoneset in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param zoneset_name: Name of the zoneset
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset activation status
+        """
         obj = result()
 
         if vsan_id == '':
@@ -1155,6 +1398,15 @@ class Nexus:
             return obj
 
     def deactivate_zoneset(self, handle, zoneset_name, vsan_id=''):
+        """
+        Deactivate a VSAN zoneset in nexus switch
+
+        :param handle: Login handle of nexus switch
+        :param zoneset_name: Name of the zoneset
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset deactivation status
+        """
         obj = result()
 
         if vsan_id == '':
@@ -1193,6 +1445,13 @@ class Nexus:
             return obj
 
     def fieldvalidation(self, value):
+        """
+        Validates whether value is an integer
+
+        :param value: Value to be validated
+
+        :return: Returns the status
+        """
         try:
             val = int(value)
             return True, ""
@@ -1200,8 +1459,15 @@ class Nexus:
             return False, "Enter Valid Number"
 
     def get_allowed_vlans(self, vlan_list):
+        """
+        Gets the allowed vlans from the vlan list
+
+        :param vlan_list: Vlan list
+
+        :return: Returns allowed vlans list
+        """
         vlans = vlan_list.split('|')
-	allowed_vlans = []
+        allowed_vlans = []
         for vlan in vlans:
             data = eval(vlan)
             allowed_vlans.append(data['vlan']['value'])
@@ -1211,28 +1477,28 @@ class Nexus:
         """
         Changes the Nexus password
 
+        :param password: Password of the nexus switch
+
         :return: Returns the status
         """
         try:
-	    cmd = "username admin password %s" % password
+            cmd = "username admin password %s" % password
             sys_op = self.handle.config(cmd, fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
             if cli_error:
-		loginfo("Failed to set Nexus password")
-		loginfo("CLI error")
+                loginfo("Failed to set Nexus password")
+                loginfo("CLI error")
                 return False
             else:
-		return True
+                return True
 
         except error.CLIError as e:
-	    loginfo("Failed to set Nexus password")
+            loginfo("Failed to set Nexus password")
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
             return False
 
         except urllib2.URLError as e:
-	    loginfo("Failed to set Nexus password")
+            loginfo("Failed to set Nexus password")
             loginfo("Error msg: " + str(e.reason))
             return False
-
-

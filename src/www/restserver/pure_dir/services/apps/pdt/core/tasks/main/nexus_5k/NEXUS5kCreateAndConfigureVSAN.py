@@ -5,10 +5,10 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
 
 metadata = dict(
-        task_id="NEXUS5kCreateAndConfigureVSAN",
-        task_name="Create and Configure VSAN",
-        task_desc="Create VSAN and apply to the interfaces in the NEXUS switch",
-        task_type="NEXUS"
+    task_id="NEXUS5kCreateAndConfigureVSAN",
+    task_name="Create and Configure VSAN",
+    task_desc="Create VSAN and apply to the interfaces in the NEXUS switch",
+    task_type="NEXUS"
 )
 
 
@@ -20,7 +20,7 @@ class NEXUS5kCreateAndConfigureVSAN:
         res = result()
         loginfo("Configuring vsan for NEXUS")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(cred['ipaddress'],
                              cred['username'], cred['password'])
@@ -36,10 +36,11 @@ class NEXUS5kCreateAndConfigureVSAN:
                         res.setResult(False, PTK_INTERNALERROR,
                                       "VSAN Configuration failed")
                     else:
-                        loginfo("NEXUSCreateAndConfigureVSAN executed successfully")
+                        loginfo(
+                            "NEXUSCreateAndConfigureVSAN executed successfully")
                         res.setResult(
-                                parseResult(res)['data'], PTK_OKAY,
-                                "NEXUSCreateAndConfigureVSAN task executed successfully")
+                            parseResult(res)['data'], PTK_OKAY,
+                            "NEXUSCreateAndConfigureVSAN task executed successfully")
                 else:
                     loginfo("Failed to create VSAN")
                     res.setResult(False, PTK_INTERNALERROR,
@@ -59,7 +60,7 @@ class NEXUS5kCreateAndConfigureVSAN:
         res = result()
         loginfo("Rollback - CreateAndConfigureVSAN for NEXUS")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(cred['ipaddress'],
                              cred['username'], cred['password'])
@@ -71,10 +72,11 @@ class NEXUS5kCreateAndConfigureVSAN:
                     res.setResult(False, PTK_INTERNALERROR,
                                   "VSAN deletion failed")
                 else:
-                    loginfo("NEXUSCreateAndConfigureVSAN rollback executed successfully")
+                    loginfo(
+                        "NEXUSCreateAndConfigureVSAN rollback executed successfully")
                     res.setResult(
-                            parseResult(res)['data'], PTK_OKAY,
-                            "NEXUSCreateAndConfigureVSAN rollback task executed successfully")
+                        parseResult(res)['data'], PTK_OKAY,
+                        "NEXUSCreateAndConfigureVSAN rollback task executed successfully")
             else:
                 loginfo("Unable to login to the NEXUS")
                 res.setResult(False, PTK_INTERNALERROR,
@@ -98,8 +100,10 @@ class NEXUS5kCreateAndConfigureVSAN:
         fc_list = []
 
         try:
-            jobid = str([arg['value'] for args in keys.values() for arg in args if arg['key'] == "jobid"][0])
-            texecid = str([arg['value'] for args in keys.values() for arg in args if arg['key'] == "texecid"][0])
+            jobid = str([arg['value'] for args in keys.values()
+                         for arg in args if arg['key'] == "jobid"][0])
+            texecid = str([arg['value'] for args in keys.values()
+                           for arg in args if arg['key'] == "texecid"][0])
             if jobid == "" or texecid == "":
                 res.setResult(fc_list, PTK_OKAY, "success")
                 return res
@@ -108,7 +112,8 @@ class NEXUS5kCreateAndConfigureVSAN:
             fd = open(job_xml, 'r')
             doc = xmltodict.parse(fd.read())
 
-            tag = [task['@desc'][-1] for task in doc['workflow']['tasks']['task'] if task['@texecid'] == texecid][0]
+            tag = [task['@desc'][-1] for task in doc['workflow']
+                   ['tasks']['task'] if task['@texecid'] == texecid][0]
             slot = [[switch['@value'] for switch in task['args']['arg'] if switch['@name'] == "slot"][0]
                     for task in doc['workflow']['tasks']['task'] if
                     task['@id'] == "NEXUS5kConfigureUnifiedPorts" and task['@desc'][-1] == tag][0]
@@ -124,7 +129,7 @@ class NEXUS5kCreateAndConfigureVSAN:
             tmp_fc_list = obj.getfc_list(slot, ports).getResult()
             for index, fc in enumerate(tmp_fc_list):
                 fc_list.append(
-                        {"id": fc['iface_id'], "selected": "0", "label": fc['iface_id']})
+                    {"id": fc['iface_id'], "selected": "0", "label": fc['iface_id']})
 
         except Exception as e:
             loginfo(str(e))
@@ -155,7 +160,7 @@ class NEXUS5kCreateAndConfigureVSAN:
                 tmp_pc_list = obj.get_portchannel_list().getResult()
                 for index, pc in enumerate(tmp_pc_list):
                     pc_list.append(
-                            {"id": pc['iface_id'], "selected": "0", "label": pc['iface_id']})
+                        {"id": pc['iface_id'], "selected": "0", "label": pc['iface_id']})
             else:
                 loginfo("Unable to login to the NEXUS")
                 res.setResult(pc_list, PTK_INTERNALERROR,

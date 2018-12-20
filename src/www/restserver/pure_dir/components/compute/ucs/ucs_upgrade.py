@@ -2,8 +2,6 @@ import os
 import datetime
 import glob
 import time
-from ucsmsdk.utils.ccoimage import get_ucs_cco_image_list
-from ucsmsdk.utils.ccoimage import get_ucs_cco_image
 from pure_dir.infra.apiresults import *
 from pure_dir.infra.logging.logmanager import *
 from ucsmsdk.ucseventhandler import UcsEventHandle
@@ -21,18 +19,28 @@ image_dir = "/mnt/system/uploads"
 
 
 def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
+    """
+    Upgrade UCS Manager
+    :param ip: UCSM FI IP Address
+    :param username: FI username
+    :param password: FI password
+    :infra: Infra image
+    :blade: Blade image
+    :logfile: handle logging
+    :return : ucs upgrade status
+    """
     handle = UcsHandle(ip, username, password)
     handle.login()
     if infra:
         loginfo("Starting infra upgrade. Selected bundle %s" % infra)
         loginfo("Uploading image %s to UCS" % infra)
         if not upload_image_to_ucs([infra], handle, image_dir):
-	    handle.logout()
+            handle.logout()
             return False, "Failed to upload image"
         if validate_infra(handle, infra):
 
             if not firmware_activate_infra(handle, get_version(infra)):
-		handle.logout()
+                handle.logout()
                 loginfo("Failed to perform infra upgrade")
                 return False, "Failed to perform infra upgrade"
             loginfo("Infra upgrade done for UCS. Waiting for completion.")
@@ -58,11 +66,11 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
             loginfo("Checking for infra upgrade completion")
             status, msg = check_infra_completion(handle, get_version(infra))
             if not status:
-		handle.logout()
+                handle.logout()
                 loginfo(msg)
                 return False, msg
             loginfo("Infra upgrade for UCS completed successfully")
-	handle.logout()
+        handle.logout()
 
     if blade:
         customlogs("Selected bundle %s" % blade, logfile)
@@ -78,7 +86,8 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
             if not firmware_activate_blade(handle, get_version(blade)):
                 customlogs("Failed to perform blade firmware upgrade", logfile)
                 return False, "Failed to perform blade firmware upgrade"
-            customlogs("Blade firmware upgrade done for UCS. Waiting for completion", logfile)
+            customlogs(
+                "Blade firmware upgrade done for UCS. Waiting for completion", logfile)
 
             diff_seconds = 0
             loginfo("Sleep for 900 seconds")
@@ -90,13 +99,15 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
                     handle, get_version(blade))
                 if status is False:
                     loginfo(msg)
-                    loginfo("Blade firmware upgrade yet to complete. Checking the status again")
+                    loginfo(
+                        "Blade firmware upgrade yet to complete. Checking the status again")
                     time.sleep(10)
                     diff_seconds = int(time.time()) - int(float(blade_time))
                 else:
                     return True, "Blade firmware upgrade completed successfully"
 
-            customlogs("Time exceeded. Failed to perform blade firmware upgrade", logfile)
+            customlogs(
+                "Time exceeded. Failed to perform blade firmware upgrade", logfile)
             return False, "Time exceeded. Failed to perform blade firmware upgrade"
 
     loginfo("UCS upgrade completed successfully")
@@ -104,6 +115,14 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
 
 
 def ucsm_validate_upgrade(handle, infra='', blade=''):
+    """
+    Validate for UCSM upgrade
+    :param handle: UCSM login handle
+    :infra: Infra image
+    :blade: Blade image
+    :return : ucs validation status
+    """
+
     res = result()
     if infra:
         status, msg = validate_infra(handle, infra)
@@ -121,6 +140,13 @@ def ucsm_validate_upgrade(handle, infra='', blade=''):
 
 
 def validate_infra(handle, image):
+    """
+    Validate infra image
+    :param handle: UCSM login handle
+    :image: Infra image
+    :return : ucs infra running version status
+    """
+
     version = get_version(image)
     running_version = handle.query_dn(
         "sys/mgmt/fw-system").package_version[:-1]
@@ -134,6 +160,12 @@ def validate_infra(handle, image):
 
 
 def validate_blade(handle, image):
+    """
+    Validate blade image
+    :param handle: UCSM login handle
+    :image: Blade image
+    :return : ucs blade running version status
+    """
     version = get_version(image)
     blades = handle.query_classid("ComputeBlade")
     for blade in blades:
@@ -149,6 +181,12 @@ def validate_blade(handle, image):
 
 
 def check_infra_completion(handle, version):
+    """
+    Verify if infra upgrade is completed
+    :param handle: UCSM login handle
+    :version: Infra version to upgrade
+    :return : ucs infra upgrade status
+    """
     running_version = handle.query_dn(
         "sys/mgmt/fw-system").package_version[:-1]
     if version == running_version:
@@ -165,6 +203,12 @@ def check_infra_completion(handle, version):
 
 
 def check_blade_completion(handle, version):
+    """
+    Verify if blade upgrade is completed
+    :param handle: UCSM login handle
+    :version: Blade version to upgrade
+    :return : ucs blade upgrade status
+    """
     blades = handle.query_classid("ComputeBlade")
     for blade in blades:
         running_version = _get_blade_firmware_running(
@@ -176,6 +220,12 @@ def check_blade_completion(handle, version):
 
 
 def firmware_activate_infra(handle, version):
+    """
+    Activate infra bundle on UCSM
+    :param handle: UCSM login handle
+    :version: version
+    :return : infra upgrade completion status
+    """
 
     loginfo("Infrastructure upgrade started. Upgrading to %s" % version)
     try:
@@ -202,7 +252,12 @@ def firmware_activate_infra(handle, version):
 
 
 def firmware_activate_blade(handle, version):
-
+    """
+    Activate blade bundle on UCSM
+    :param handle: UCSM login handle
+    :version: version
+    :return : blade upgrade completion status
+    """
     loginfo("Blade server upgrade started. Upgrading to %s" % version)
     try:
         blade_bundle = version + "B"
@@ -267,6 +322,13 @@ def firmware_activate_blade(handle, version):
 
 
 def upload_image_to_ucs(bundles, handle, image_dir):
+    """
+    Check if image is already available in UCS and perform upload
+    :param handle: UCSM login handle
+    :image_dir: UCS image directory
+    :return : image upload status
+    """
+
     try:
         # check if image is already available in ucs
         images_to_upload = []
@@ -294,8 +356,15 @@ def upload_image_to_ucs(bundles, handle, image_dir):
         return False
 
 
-def firmware_add_local(handle, image_dir, image_name, timeout=10*60):
-
+def firmware_add_local(handle, image_dir, image_name, timeout=10 * 60):
+    """
+    Downloads the firmware image on ucsm from local server
+    :param handle: UCSM login handle
+    :param image_dir: path of download directory
+    :param image_name: firmware image name
+    :param timeout: timeout in seconds
+    :return firmwaredownloader managed object
+    """
     try:
         file_path = os.path.join(image_dir, image_name)
 
@@ -344,7 +413,11 @@ def firmware_add_local(handle, image_dir, image_name, timeout=10*60):
 
 
 def is_image_available_on_ucsm(handle, image):
-
+    """
+    Check if image file is already uploaded in UCS
+    :param image: image
+    :return :image file available status
+    """
     loginfo("Checking if image file: '%s' is already uploaded to UCS" % image)
     deleted = False
     filter_str = '(name, %s, type="eq")' % image
@@ -367,6 +440,12 @@ def is_image_available_on_ucsm(handle, image):
 
 
 def _get_blade_firmware_running(handle, blade):
+    """
+    Get running firmware version
+    :param handle:UCS login handle
+    :param blade: ComputeBlade managed object
+    :return: firmwareRunning managed object
+    """
 
     mgmt_controllers = handle.query_children(in_mo=blade,
                                              class_id="MgmtController")
@@ -390,6 +469,11 @@ def _get_blade_firmware_running(handle, blade):
 
 
 def ucsinfraimages():
+    """
+    Get UCS infra images
+    :return: infra image
+    """
+
     res = result()
     images = [os.path.basename(fn) for fn in glob.glob(
         '/mnt/system/uploads/ucs*.A.bin')]
@@ -398,27 +482,37 @@ def ucsinfraimages():
 
 
 def ucsbladeimages(version=''):
+    """
+    Get UCS blade images
+    :return: blade image
+    """
+
     image_list = []
     images = [os.path.basename(fn) for fn in glob.glob(
         '/mnt/system/uploads/ucs*.B.bin')]
 
     for image in images:
-	details = {}
-	if version:
+        details = {}
+        if version:
             details['label'] = get_version(image) + "B"
             details['id'] = get_version(image) + "B"
             details['selected'] = "1"
-	else:
+        else:
             details['label'] = image
             details['id'] = image
             details['selected'] = "0"
-	
-	image_list.append(details)
+
+        image_list.append(details)
 
     return image_list
 
 
 def get_version(image):
+    """
+    Compute version from the image name
+    :return: version
+    """
+
     ver = image[-12:].split('.')
     version = ver[0] + "." + ver[1] + "(" + ver[2] + ")"
     return version

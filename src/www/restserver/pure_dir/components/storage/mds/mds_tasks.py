@@ -19,9 +19,24 @@ from pure_dir.components.storage.mds.mds import *
 
 class MDSTasks:
     def __init__(self, ipaddress='', username='', password=''):
+        """
+        Constructor - MDS Handler
+
+        :param ipaddress: Switch ip 
+        :param username : Switch username
+        :param password : Switch password
+        """
         self.helper = MDS(ipaddr=ipaddress, uname=username, passwd=password)
 
     def enable_features(self, input_dict, logfile):
+        """
+        Task - Enables Features
+
+        :param input_dict: Dictionary(feature_list)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -31,20 +46,27 @@ class MDSTasks:
 
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Enable_Features task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to enable features", logfile)
 
         else:
-	    op_feature_list = tuple([x.encode('utf-8') for x in feature_list])
+            op_feature_list = tuple([x.encode('utf-8') for x in feature_list])
             customlogs("Features %s enabled successfully" %
                        str(op_feature_list), logfile)
             output_dict['status'] = "SUCCESS"
 
-        customlogs("MDS: Enable_Features task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def disable_features(self, input_dict, logfile):
+        """
+        Rollback - Disable Features
+
+        :param input_dict: Dictionary(feature_list)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -54,20 +76,27 @@ class MDSTasks:
 
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Disable_Features task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to disable features", logfile)
 
         else:
-	    op_feature_list = tuple([x.encode('utf-8') for x in feature_list])
+            op_feature_list = tuple([x.encode('utf-8') for x in feature_list])
             customlogs("Features %s disabled successfully" %
                        str(op_feature_list), logfile)
             output_dict['status'] = "SUCCESS"
 
-        customlogs("MDS: Disable_Features task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def create_portchannel(self, input_dict, logfile):
+        """
+        Task - Create Port-Channel
+
+        :param input_dict: Dictionary(portchannel_id)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -76,8 +105,8 @@ class MDSTasks:
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
             output_dict['portchannel_id'] = ""
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Create_PortChannel task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to create portchannel", logfile)
 
         else:
             customlogs("Portchannel '%s' created successfully" %
@@ -85,11 +114,18 @@ class MDSTasks:
             output_dict['status'] = "SUCCESS"
             output_dict['portchannel_id'] = input_dict['portchannel_id']
 
-        customlogs("MDS: Create_PortChannel task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def delete_portchannel(self, input_dict, logfile):
+        """
+        Rollback - Delete Port-Channel
+
+        :param input_dict: Dictionary(portchannel_id)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -98,8 +134,8 @@ class MDSTasks:
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
             output_dict['portchannel_id'] = ""
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Delete_PortChannel task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to delete portchannel", logfile)
 
         else:
             customlogs("Portchannel '%s' deleted successfully" %
@@ -107,11 +143,18 @@ class MDSTasks:
             output_dict['status'] = "SUCCESS"
             output_dict['portchannel_id'] = input_dict['portchannel_id']
 
-        customlogs("MDS: Delete_PortChannel task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def configure_portchannel(self, input_dict, logfile):
+        """
+        Task - Configure Port-Channel
+
+        :param input_dict: Dictionary(fc_list, portchannel_id)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -122,20 +165,27 @@ class MDSTasks:
 
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Configure_PortChannel task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to configure portchannel", logfile)
 
         else:
-	    op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
-            customlogs("Port-channel '%s' configured with interfaces %s" %
+            op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
+            customlogs("Portchannel '%s' configured with interfaces %s" %
                        (input_dict['portchannel_id'], str(op_fc_list)), logfile)
             output_dict['status'] = "SUCCESS"
 
-        customlogs("MDS: Configure_PortChannel task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def unconfigure_portchannel(self, input_dict, logfile):
+        """
+        Rollback - Unconfigure Port-Channel
+
+        :param input_dict: Dictionary(fc_list, portchannel_id)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -146,20 +196,27 @@ class MDSTasks:
 
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Unconfigure_PortChannel task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to remove portchannel configuration", logfile)
 
         else:
-	    op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
-            customlogs("Port-channel '%s' with interfaces %s removed" %
+            op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
+            customlogs("Portchannel '%s' with interfaces %s removed" %
                        (input_dict['portchannel_id'], str(op_fc_list)), logfile)
             output_dict['status'] = "SUCCESS"
 
-        customlogs("MDS: Unconfigure_PortChannel task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def create_vsan(self, input_dict, logfile):
+        """
+        Task - Create VSAN
+
+        :param input_dict: Dictionary(vsan_id)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -168,20 +225,27 @@ class MDSTasks:
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
             output_dict['vsan_id'] = ""
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Create_VSAN task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to create VSAN", logfile)
 
         else:
-            customlogs("Vsan '%s' created successfully" %
+            customlogs("VSAN '%s' created successfully" %
                        input_dict['vsan_id'], logfile)
             output_dict['status'] = "SUCCESS"
             output_dict['vsan_id'] = input_dict['vsan_id']
 
-        customlogs("MDS: Create_VSAN task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def delete_vsan(self, input_dict, logfile):
+        """
+        Rollback - Delete VSAN
+
+        :param input_dict: Dictionary(vsan_id)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -190,20 +254,27 @@ class MDSTasks:
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
             output_dict['vsan_id'] = ""
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Delete_VSAN task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to delete VSAN", logfile)
 
         else:
-            customlogs("Vsan '%s' deleted successfully" %
+            customlogs("VSAN '%s' deleted successfully" %
                        input_dict['vsan_id'], logfile)
             output_dict['status'] = "SUCCESS"
             output_dict['vsan_id'] = input_dict['vsan_id']
 
-        customlogs("MDS: Delete_VSAN task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def configure_vsan(self, input_dict, logfile):
+        """
+        Task - Configure VSAN
+
+        :param input_dict: Dictionary(vsan_id, fc_list, pc_list)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -213,26 +284,34 @@ class MDSTasks:
         for pc in tmp_pc_list:
             interface_list.append("port-channel " + pc)
 
-        loginfo("MDS: Configuring vsan %s with interfaces %s" %
+        loginfo("Configuring vsan %s with interfaces %s" %
                 (input_dict['vsan_id'], str(interface_list)))
         res = self.helper.configure_vsan(input_dict['vsan_id'], interface_list)
 
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Configure_VSAN task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to configure VSAN", logfile)
 
         else:
-	    op_interface_list = tuple([x.encode('utf-8') for x in interface_list])
-            customlogs("Vsan '%s' configured with interfaces %s successfully" %
+            op_interface_list = tuple([x.encode('utf-8')
+                                       for x in interface_list])
+            customlogs("VSAN '%s' configured with interfaces %s successfully" %
                        (input_dict['vsan_id'], str(op_interface_list)), logfile)
             output_dict['status'] = "SUCCESS"
 
-        customlogs("MDS: Configure_VSAN task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def unconfigure_vsan(self, input_dict, logfile):
+        """
+        Rollback - Unconfigure VSAN
+
+        :param input_dict: Dictionary(vsan_id, fc_list, pc_list)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -242,27 +321,35 @@ class MDSTasks:
         for pc in tmp_pc_list:
             interface_list.append("port-channel " + pc)
 
-        loginfo("MDS: Unconfiguring vsan %s with interfaces %s" %
+        loginfo("Unconfiguring vsan %s with interfaces %s" %
                 (input_dict['vsan_id'], str(interface_list)))
         res = self.helper.unconfigure_vsan(
             input_dict['vsan_id'], interface_list)
 
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Unconfigure_VSAN task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to remove VSAN configuration", logfile)
 
         else:
-	    op_interface_list = tuple([x.encode('utf-8') for x in interface_list])
-            customlogs("Interfaces %s removed from vsan '%s' successfully" %
+            op_interface_list = tuple([x.encode('utf-8')
+                                       for x in interface_list])
+            customlogs("Interfaces %s removed from VSAN '%s' successfully" %
                        (str(op_interface_list), input_dict['vsan_id']), logfile)
             output_dict['status'] = "SUCCESS"
 
-        customlogs("MDS: Unconfigure_VSAN task success\n", logfile)
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def create_device_aliases(self, input_dict, logfile):
+        """
+        Task - Create Device Aliases
+
+        :param input_dict: Dictionary([pwwn, alias_name])
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
         fl_list = []
@@ -282,21 +369,28 @@ class MDSTasks:
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
             output_dict['alias'] = str(alias_list)
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Create_Device_Aliases task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to create device aliases", logfile)
 
         else:
             output_dict['status'] = "SUCCESS"
             output_dict['alias'] = str(alias_list)
-	    op_alias_list = tuple([x.encode('utf-8') for x in alias_list])
+            op_alias_list = tuple([x.encode('utf-8') for x in alias_list])
             customlogs("Device aliases %s created successfully" %
                        str(op_alias_list), logfile)
-            customlogs("MDS: Create_Device_Aliases task success\n", logfile)
 
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def delete_device_aliases(self, input_dict, logfile):
+        """
+        Rollback - Delete Device Aliases
+
+        :param input_dict: Dictionary(aliases_list)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -306,21 +400,28 @@ class MDSTasks:
         if res.getStatus() != PTK_OKAY:
             output_dict['status'] = "FAILURE"
             output_dict['alias'] = str(alias_list)
-            customlogs("MDS: %s" % res.getMsg(), logfile)
-            customlogs("MDS: Delete_Device_Aliases task failed", logfile)
+            customlogs("%s" % res.getMsg(), logfile)
+            customlogs("Failed to delete device aliases", logfile)
 
         else:
             output_dict['status'] = "SUCCESS"
             output_dict['alias'] = str(alias_list)
-	    op_alias_list = tuple([x.encode('utf-8') for x in alias_list])
+            op_alias_list = tuple([x.encode('utf-8') for x in alias_list])
             customlogs("Device aliases %s deleted successfully" %
                        str(op_alias_list), logfile)
-            customlogs("MDS: Delete_Device_Aliases task success\n", logfile)
 
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
 
     def create_zones(self, input_dict, logfile):
+        """
+        Task - Create Zones
+
+        :param input_dict: Dictionary(vsan_id, zones)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
         zone_list = []
@@ -334,9 +435,9 @@ class MDSTasks:
                 zone_dict['zone_name']['value'], input_dict['vsan_id'])
             if res.getStatus() != PTK_OKAY:
                 output_dict['status'] = "FAILURE"
-                customlogs("MDS: %s" % res.getMsg(), logfile)
+                customlogs("%s" % res.getMsg(), logfile)
                 customlogs(
-                    "MDS: Create_Zones task failed with zone creation", logfile)
+                    "Failed to create zones", logfile)
                 obj.setResult(output_dict, res.getStatus(), res.getMsg())
                 return obj
             else:
@@ -356,16 +457,16 @@ class MDSTasks:
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
                     customlogs(
-                        "MDS: Create_Zones task failed with adding members to zone", logfile)
+                        "Failed to add members to the zone", logfile)
                     obj.setResult(output_dict, res.getStatus(), res.getMsg())
                     return obj
                 else:
-	            op_zone_members = tuple([x.encode('utf-8') for x in zone_members])
-                    customlogs("Members %s added to the zone '%s' with vsan '%s' successfully" % (str(op_zone_members),
-                                                                                                    zone_dict['zone_name']['value'], vsan_id), logfile)
+                    op_zone_members = tuple(
+                        [x.encode('utf-8') for x in zone_members])
+                    customlogs("Members %s added to the zone '%s' with VSAN '%s' successfully" % (str(op_zone_members),
+                                                                                                  zone_dict['zone_name']['value'], vsan_id), logfile)
                     zone_list.append(zone_dict['zone_name']['value'])
 
-        customlogs("MDS: Create_Zones task success\n", logfile)
         output_dict['status'] = 'SUCCESS'
         output_dict['zone_list'] = zone_list
         obj.setResult(output_dict, PTK_OKAY,
@@ -373,6 +474,14 @@ class MDSTasks:
         return obj
 
     def delete_zones(self, input_dict, logfile):
+        """
+        Rollback - Delete Zones
+
+        :param input_dict: Dictionary(vsan_id, zones)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -382,14 +491,13 @@ class MDSTasks:
             res = self.helper.delete_zone(zone, input_dict['vsan_id'])
             if res.getStatus() != PTK_OKAY:
                 output_dict['status'] = "FAILURE"
-                customlogs("MDS: %s" % res.getMsg(), logfile)
-                customlogs("MDS: Delete_Zones task failed", logfile)
+                customlogs("%s" % res.getMsg(), logfile)
+                customlogs("Failed to delete zones", logfile)
                 obj.setResult(output_dict, res.getStatus(), res.getMsg())
                 return obj
             else:
                 customlogs("Zone '%s' deleted successfully" % zone, logfile)
 
-        customlogs("MDS: Delete_Zones task success\n", logfile)
         output_dict['status'] = 'SUCCESS'
         output_dict['zone_list'] = zones
         obj.setResult(output_dict, PTK_OKAY,
@@ -397,6 +505,14 @@ class MDSTasks:
         return obj
 
     def create_zonesets(self, input_dict, logfile):
+        """
+        Task - Create Zoneset
+
+        :param input_dict: Dictionary(vsan_id, zoneset)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
         zoneset_list = []
@@ -410,9 +526,9 @@ class MDSTasks:
                 zoneset_dict['zoneset_name']['value'], input_dict['vsan_id'])
             if res.getStatus() != PTK_OKAY:
                 output_dict['status'] = "FAILURE"
-                customlogs("MDS: %s" % res.getMsg(), logfile)
+                customlogs("%s" % res.getMsg(), logfile)
                 customlogs(
-                    "MDS: Create_Zoneset task failed with zoneset creation", logfile)
+                    "Failed to create zoneset", logfile)
                 obj.setResult(output_dict, res.getStatus(), res.getMsg())
                 return obj
             else:
@@ -424,20 +540,21 @@ class MDSTasks:
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
                     customlogs(
-                        "MDS: Create_Zoneset task failed with adding members to zoneset", logfile)
+                        "Failed to add members to the zoneset", logfile)
                     obj.setResult(output_dict, res.getStatus(), res.getMsg())
                     return obj
                 else:
-	            op_zoneset_members = tuple([x.encode('utf-8') for x in zoneset_members])
+                    op_zoneset_members = tuple(
+                        [x.encode('utf-8') for x in zoneset_members])
                     customlogs("Members %s added to the zoneset '%s' with vsan '%s' successfully" % (str(op_zoneset_members),
-                                                                                                       zoneset_dict['zoneset_name']['value'], vsan_id), logfile)
+                                                                                                     zoneset_dict['zoneset_name']['value'], vsan_id), logfile)
                     time.sleep(10)
                     res = self.helper.activate_zoneset(
                         zoneset_dict['zoneset_name']['value'], input_dict['vsan_id'])
                     if res.getStatus() != PTK_OKAY:
                         output_dict['status'] = "FAILURE"
                         customlogs(
-                            "MDS: Zoneset activation failed", logfile)
+                            "Zoneset activation failed", logfile)
                         obj.setResult(
                             output_dict, res.getStatus(), res.getMsg())
                         return obj
@@ -447,7 +564,6 @@ class MDSTasks:
                         zoneset_list.append(
                             zoneset_dict['zoneset_name']['value'])
 
-            customlogs("MDS: Create_Zoneset task success\n", logfile)
             output_dict['status'] = 'SUCCESS'
             output_dict['zoneset_list'] = zoneset_list
             obj.setResult(output_dict, PTK_OKAY,
@@ -455,6 +571,14 @@ class MDSTasks:
             return obj
 
     def delete_zonesets(self, input_dict, logfile):
+        """
+        Rollback - Delete Zoneset
+
+        :param input_dict: Dictionary(vsan_id, zonesets)
+        :param logfile   : Log file handler
+
+        :return: Returns the status
+        """
         obj = result()
         output_dict = {}
 
@@ -465,7 +589,7 @@ class MDSTasks:
                 zoneset, input_dict['vsan_id'])
             if res.getStatus() != PTK_OKAY:
                 output_dict['status'] = "FAILURE"
-                customlogs("MDS: Zoneset deactivation failed", logfile)
+                customlogs("Zoneset deactivation failed", logfile)
                 obj.setResult(output_dict, res.getStatus(), res.getMsg())
                 return obj
             else:
@@ -475,15 +599,14 @@ class MDSTasks:
                     zoneset, input_dict['vsan_id'])
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
-                    customlogs("MDS: %s" % res.getMsg(), logfile)
-                    customlogs("MDS: Delete_Zonesets task failed", logfile)
+                    customlogs("%s" % res.getMsg(), logfile)
+                    customlogs("Failed to delete zoneset", logfile)
                     obj.setResult(output_dict, res.getStatus(), res.getMsg())
                     return obj
                 else:
                     customlogs("Zoneset '%s' deleted successfully" %
                                zoneset, logfile)
 
-        customlogs("MDS: Delete_Zonesets task success\n", logfile)
         output_dict['status'] = 'SUCCESS'
         output_dict['zone_list'] = zonesets
         obj.setResult(output_dict, PTK_OKAY,

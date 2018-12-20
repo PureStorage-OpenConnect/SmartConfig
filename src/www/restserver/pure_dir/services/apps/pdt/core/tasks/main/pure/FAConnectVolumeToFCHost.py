@@ -113,7 +113,7 @@ class FAConnectVolumeToFCHost:
         for pre in range(1, blade_len + 1):
             host_prefix = 'VM-Host-FC-' + str(pre).zfill(2)
             vol_prefix = 'VM-Vol-FC-' + str(pre).zfill(2)
-            mdata += mhosts + host_prefix + "'}, "+mvols+vol_prefix+"'}}|"
+            mdata += mhosts + host_prefix + "'}, " + mvols + vol_prefix + "'}}|"
 
         loginfo(
             "host and vol list for connect going is :{}".format(mdata[:-1]))
@@ -153,11 +153,11 @@ class FAConnectVolumeToFCHost:
                 sp_cnt.append(sp.name)
 
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-        print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res
@@ -204,7 +204,8 @@ class FAConnectVolumeToFCHost:
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Host-FC-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
@@ -219,11 +220,11 @@ class FAConnectVolumeToFCHost:
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Vol-FC-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
-
 
     def getfilist(self, keys):
         res = result()
@@ -235,10 +236,10 @@ class FAConnectVolumeToFCHost:
 class FAConnectVolumeToFCHostInputs:
     pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
                        label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
- 
+
     fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
                          label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=2)
- 
+
     hostname = Dropdown(hidden='False', isbasic='True', helptext='Host Name', dt_type="string", static="False", api="getHostApi()|[fabric_id:1:fabric_id.value]", name="hostname", label="Host Name",
                         svalue="", mandatory="0", group_member="1", static_values="", mapval="", order=3)
 

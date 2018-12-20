@@ -111,7 +111,7 @@ class NEXUSSetup:
         nexus_py['server_ip'] = get_ip_address(get_filtered_ifnames()[0])
         nexus_py['switch_image'] = data['switch_image']
         gen_from_template(
-                poap_n9k_py_template, nexus_py, poap_n9k_py_tgt)
+            poap_n9k_py_template, nexus_py, poap_n9k_py_tgt)
 
         loginfo("Created poap file for Nexus switch %s" % data['switch_name'])
 
@@ -149,20 +149,21 @@ class NEXUSSetup:
         update_xml_element(static_discovery_store, matching_key="mac", matching_value=data['switch_mac'],
                            data={"configured": "In-progress", "timestamp": str(time.time())})
 
-        stacktype = get_xml_element("/mnt/system/pure_dir/pdt/settings.xml", "stacktype")[1][0]['stacktype']
-	if "fc" in stacktype:
+        stacktype = get_xml_element(
+            "/mnt/system/pure_dir/pdt/settings.xml", "stacktype")[1][0]['stacktype']
+        if "fc" in stacktype:
             self.createconfig(data['switch_name'], data['ntp_server'], data['switch_gateway'],
-                          data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n5k_fc_cfg_template, data['domain_name'])
-	else:
+                              data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n5k_fc_cfg_template, data['domain_name'])
+        else:
             self.createconfig(data['switch_name'], data['ntp_server'], data['switch_gateway'],
-                          data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n5k_iscsi_cfg_template, data['domain_name'])
+                              data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n5k_iscsi_cfg_template, data['domain_name'])
 
         nexus_py = {}
         nexus_py['server_ip'] = get_ip_address(get_filtered_ifnames()[0])
         nexus_py['switch_kickstart_image'] = data['switch_kickstart_image']
         nexus_py['switch_system_image'] = data['switch_system_image']
         gen_from_template(
-                poap_n5k_py_template, nexus_py, poap_n5k_py_tgt)
+            poap_n5k_py_template, nexus_py, poap_n5k_py_tgt)
 
         loginfo("Created poap file for Nexus switch %s" % data['switch_name'])
 
@@ -212,12 +213,12 @@ class NEXUSSetup:
         cfg_name = "conf_" + mac + ".cfg"
         poap_cfg_tgt = tgt_dir + "/" + cfg_name
         gen_from_template(
-                poap_cfg_template, nexus_config, poap_cfg_tgt)
+            poap_cfg_template, nexus_config, poap_cfg_tgt)
 
         if domain_name:
-	    msg = "\nip domain-name %s" % domain_name
-	    with open(poap_cfg_tgt, 'a') as fp:
-		fp.write(msg)
+            msg = "\nip domain-name %s" % domain_name
+            with open(poap_cfg_tgt, 'a') as fp:
+                fp.write(msg)
 
         cmd = "cp %s %s" % (poap_cfg_tgt, tftp_dir)
         execute_local_command(cmd)
@@ -308,12 +309,12 @@ class NEXUSSetup:
         """
         res = result()
         images = [os.path.basename(fn) for fn in glob.glob(
-                '/mnt/system/uploads/nxos.*')]
+            '/mnt/system/uploads/nxos.*')]
         version_lst = list(
-                set([re.search('nxos.(.+?).I', x).group(1) for x in images]))
+            set([re.search('nxos.(.+?).I', x).group(1) for x in images]))
         version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
         images = [ks for ver in version_lst for ks in filter(
-                lambda x: ver in x, images)]
+            lambda x: ver in x, images)]
         res.setResult(images, PTK_OKAY, "success")
         return res
 
@@ -325,12 +326,12 @@ class NEXUSSetup:
         """
         res = result()
         images = [os.path.basename(fn) for fn in glob.glob(
-                '/mnt/system/uploads/n5000-uk9-kickstart.*')]
+            '/mnt/system/uploads/n5000-uk9-kickstart.*')]
         version_lst = list(
-                set([re.search('n5000-uk9-kickstart.(.+?).N', x).group(1) for x in images]))
+            set([re.search('n5000-uk9-kickstart.(.+?).N', x).group(1) for x in images]))
         version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
         images = [ks for ver in version_lst for ks in filter(
-                lambda x: ver in x, images)]
+            lambda x: ver in x, images)]
         res.setResult(images, PTK_OKAY, "success")
         return res
 
@@ -342,12 +343,12 @@ class NEXUSSetup:
         """
         res = result()
         images = [os.path.basename(fn) for fn in glob.glob(
-                '/mnt/system/uploads/n5000-uk9.*')]
+            '/mnt/system/uploads/n5000-uk9.*')]
         version_lst = list(
-                set([re.search('n5000-uk9.(.+?).N', x).group(1) for x in images]))
+            set([re.search('n5000-uk9.(.+?).N', x).group(1) for x in images]))
         version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
         images = [ks for ver in version_lst for ks in filter(
-                lambda x: ver in x, images)]
+            lambda x: ver in x, images)]
         res.setResult(images, PTK_OKAY, "success")
         return res
 
@@ -362,19 +363,19 @@ class NEXUSSetup:
         ret = []
         if model == "n9k":
             ret = validate_input_data(
-                    {'switch_name': 'Switch name', 'switch_gateway': 'Gateway', 'switch_ip': 'IP address',
-                     'switch_netmask': 'Netmask', 'switch_mac': 'MAC address',
-                     'ntp_server': 'NTP Server ip', 'switch_image': 'Switch image',
-		     'pri_passwd': 'Password', 'conf_passwd': 'Confirm password',
-                     'switch_serial_no': 'Serial number', 'switch_vendor': 'Switch vendor'}, data)
+                {'switch_name': 'Switch name', 'switch_gateway': 'Gateway', 'switch_ip': 'IP address',
+                 'switch_netmask': 'Netmask', 'switch_mac': 'MAC address',
+                 'ntp_server': 'NTP Server ip', 'switch_image': 'Switch image',
+                 'pri_passwd': 'Password', 'conf_passwd': 'Confirm password',
+                 'switch_serial_no': 'Serial number', 'switch_vendor': 'Switch vendor'}, data)
         else:
             ret = validate_input_data(
-                    {'switch_name': 'Switch name', 'switch_gateway': 'Gateway', 'switch_ip': 'IP address',
-                     'switch_netmask': 'Netmask', 'switch_mac': 'MAC address',
-                     'ntp_server': 'NTP Server ip', 'switch_system_image': 'System image',
-                     'switch_kickstart_image': 'Kickstart image', 'switch_serial_no': 'Serial number',
-		     'pri_passwd': 'Password', 'conf_passwd': 'Confirm password',
-                     'switch_vendor': 'Switch vendor'}, data)
+                {'switch_name': 'Switch name', 'switch_gateway': 'Gateway', 'switch_ip': 'IP address',
+                 'switch_netmask': 'Netmask', 'switch_mac': 'MAC address',
+                 'ntp_server': 'NTP Server ip', 'switch_system_image': 'System image',
+                 'switch_kickstart_image': 'Kickstart image', 'switch_serial_no': 'Serial number',
+                 'pri_passwd': 'Password', 'conf_passwd': 'Confirm password',
+                 'switch_vendor': 'Switch vendor'}, data)
 
         if data['pri_passwd'] != data['conf_passwd']:
             ret.append({'field': 'conf_passwd',
@@ -392,19 +393,19 @@ class NEXUSSetup:
         elif not ip_valid or not ntp_valid:
             if not ip_valid:
                 ret.append(
-                        {"field": "switch_ip", "msg": "Please Enter Valid IP Address"})
+                    {"field": "switch_ip", "msg": "Please Enter Valid IP Address"})
             if not ntp_valid:
                 ret.append(
-                        {"field": "ntp_server", "msg": "Please Enter Valid IP Address"})
+                    {"field": "ntp_server", "msg": "Please Enter Valid IP Address"})
             res.setResult(ret, PTK_INTERNALERROR,
                           "Make sure details are correct")
             return res
         else:
             if model == "n5k":
                 system_ver = re.search(
-                        'n5000-uk9.(.+?).bin', data['switch_system_image']).group(1)
+                    'n5000-uk9.(.+?).bin', data['switch_system_image']).group(1)
                 kickstart_ver = re.search(
-                        'n5000-uk9-kickstart.(.+?).bin', data['switch_kickstart_image']).group(1)
+                    'n5000-uk9-kickstart.(.+?).bin', data['switch_kickstart_image']).group(1)
                 if system_ver != kickstart_ver:
                     ret.append({"field": "switch_system_image",
                                 "msg": "Select similar system and kickstart version"})
@@ -415,7 +416,7 @@ class NEXUSSetup:
                     return res
             ipv = IpValidator()
             network_reach, ip_reach = ipv.validate_ip(
-                    data['switch_ip'], data['switch_netmask'], data['switch_gateway'])
+                data['switch_ip'], data['switch_netmask'], data['switch_gateway'])
             if network_reach == True:
                 if ip_reach == False:
                     res.setResult(ret, PTK_OKAY, "Success")

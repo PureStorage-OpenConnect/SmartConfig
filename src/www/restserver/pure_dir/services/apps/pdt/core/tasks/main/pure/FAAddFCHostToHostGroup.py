@@ -108,8 +108,8 @@ class FAAddFCHostToHostGroup:
         if len(blade_list) > 0:
             blade_len = int(blade_list[0]['id'])
         host_prefix = ""
-        for pre in range(1, blade_len+1):
-            host_prefix += "VM-Host-FC-"+str(pre).zfill(2)+"|"
+        for pre in range(1, blade_len + 1):
+            host_prefix += "VM-Host-FC-" + str(pre).zfill(2) + "|"
         loginfo("host list for add host to hg going is :{}".format(
             host_prefix[:-1]))
         job_input_save(jobid, texecid, 'hosts', host_prefix[:-1])
@@ -148,16 +148,14 @@ class FAAddFCHostToHostGroup:
                 sp_cnt.append(sp.name)
 
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-        print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res
-
-
 
     def ucsmbladeservers(self, keys):
         """
@@ -197,13 +195,14 @@ class FAAddFCHostToHostGroup:
         res = result()
         res = self.ucsm_get_associated_sp_cnt(keys)
         blade_list = res.getResult()
-	blade_len = 0
+        blade_len = 0
         if len(blade_list) > 0:
             blade_len = int(blade_list[0]['id'])
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Host-FC-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
@@ -244,7 +243,6 @@ class FAAddFCHostToHostGroup:
         return res
 
 
-
 class FAAddFCHostToHostGroupInputs:
 
     pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
@@ -254,7 +252,7 @@ class FAAddFCHostToHostGroupInputs:
                          label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=2)
 
     hgname = Dropdown(hidden='False', isbasic='True', helptext='Host Group Name', dt_type="string", static="False", api="get_hgroup_list()|[pure_id:1:pure_id.value]", name="hgname", label="Host Group Name",
-                     svalue="VM-HostGroup-FC", mandatory="0", static_values="", mapval="", order=3, recommended="1")
+                      svalue="VM-HostGroup-FC", mandatory="0", static_values="", mapval="", order=3, recommended="1")
 
     hosts = Multiselect(hidden='False', isbasic='True', helptext='Host List', dt_type="string", static="False", api="getHostApi()|[fabric_id:1:fabric_id.value]", name="hosts", label="Hosts",
                         svalue="", mandatory="0", static_values="", mapval="", order=4)

@@ -47,7 +47,7 @@ class UCSCreateWWNNPool:
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, "success")
         return res
-    
+
     def validate(self, item):
         if ":" in item:
             first_octet = item.split(":")
@@ -55,7 +55,7 @@ class UCSCreateWWNNPool:
                 return False, "WWNN Prefix must start with 20"
         else:
             return False, "Invalid WWNN Prefix"
-        return True , ""
+        return True, ""
 
 
 class UCSCreateWWNNPoolInputs:

@@ -8,10 +8,10 @@ from pure_dir.services.utils.miscellaneous import *
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
 metadata = dict(
-        task_id="NEXUS5kAddNTPDistributionInterface",
-        task_name="Add NTP Distribution Interface",
-        task_desc="Add NTP Distribution Interface for Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS5kAddNTPDistributionInterface",
+    task_name="Add NTP Distribution Interface",
+    task_desc="Add NTP Distribution Interface for Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -23,13 +23,13 @@ class NEXUS5kAddNTPDistributionInterface:
         res = result()
         loginfo("NEXUS Add NTP Distribution Interface")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusAddNTPDistributionInterface(
-                        taskinfo['inputs'], logfile, cred['ipaddress'])
+                    taskinfo['inputs'], logfile, cred['ipaddress'])
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -47,12 +47,13 @@ class NEXUS5kAddNTPDistributionInterface:
         res = result()
         loginfo("NEXUS Add NTP Distribution Interface rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusRemoveNTPDistributionInterface(inputs, logfile, cred['ipaddress'])
+                res = obj.nexusRemoveNTPDistributionInterface(
+                    inputs, logfile, cred['ipaddress'])
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -93,7 +94,7 @@ class NEXUS5kAddNTPDistributionInterface:
     def get_detail(self, mac, src, dst):
         nexus_list = []
         status, details = get_xml_element(
-                file_name=static_discovery_store, attribute_key="device_type", attribute_value="Nexus 5k")
+            file_name=static_discovery_store, attribute_key="device_type", attribute_value="Nexus 5k")
 
         if status:
             for detail in details:

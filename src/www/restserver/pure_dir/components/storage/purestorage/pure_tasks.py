@@ -1,5 +1,6 @@
 from purestorage import PureError, PureHTTPError
-import json, time
+import json
+import time
 import ast
 import os
 import urllib3
@@ -21,8 +22,8 @@ class PureTasks:
     def __init__(self,  ipaddress='', username='', password=''):
         self.handle = self.pure_handler(
             ipaddress=ipaddress, username=username, password=password)
-	self.username = username
-	self.pwd = password
+        self.username = username
+        self.pwd = password
         pass
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -38,9 +39,16 @@ class PureTasks:
             loginfo("Error code {} and reason {}".format(e.code, e.reason))
             return None
 
-    def pure_switch_info(self, ip):
+    def flash_array_info(self, ip):
+        """
+        Returns FlashArray details
+
+        :param ip: Management ip address of FlashArray
+        :return: Returns array information
+        """
+
         obj = result()
-        loginfo("comes in pure_switch_info ip : {}".format(ip))
+        loginfo("flash_array_info ip : {}".format(ip))
         switch = {}
         if self.handle == None:
             obj.setResult(opdict, PTK_INTERNALERROR,
@@ -54,18 +62,19 @@ class PureTasks:
 
         switch['mac_addr'] = res.getResult()
         switch['name'], switch['version'] = self.get_array()
-	switch['serial_no'] = self.getSerial_no(ip)
+        switch['serial_no'] = self.getSerial_no(ip)
         switch['model'] = self.get_array_controller()
         loginfo("switch array is :{}".format(switch))
-        if all(switch.values()) == True:
-            loginfo("PURE Switch details: %s" % str(switch))
-            return switch
-        else:
-            loginfo("PURE partial switch details: %s" % str(switch))
-            loginfo("Failed to retrieve pure switch details fully")
-            return switch
+
+        return switch
 
     def release_pure_handle(self):
+        """
+        Release handler
+
+        :return: status
+        """
+
         res = result()
         try:
             self.handle.invalidate_cookie()
@@ -76,25 +85,6 @@ class PureTasks:
 
         res.setResult(None, PTK_OKAY, "Success")
         return res
-
-    def get_multiple_names(self, name, st_no, count, num_digits):
-        loginfo("data is {} {} {} {}".format(name, st_no, count, num_digits))
-        old_num_digit = num_digits
-        result = []
-        name = ("-").join(name.split("-")[:-1]) + "-"
-        if count == 1 and num_digits == 0 and st_no == 0:  # for single host
-            result.append(("-").join(name.split("-")[:-1]))
-        else:
-            for i in range(0, int(count)):
-                for k in range(1, int(num_digits)):
-                    if old_num_digit > len(str(st_no)):
-                        name = name + "0"
-
-                name = name + str(st_no)
-                result.append(name)
-                name = ("-").join(name.split("-")[:-1]) + "-"
-                st_no = int(st_no) + 1
-        return result
 
     def get_multiple_host_names(self, name, st_no, count, num_digits):
         old_num_digit = num_digits
@@ -134,6 +124,14 @@ class PureTasks:
         return result
 
     def create_shared_volume(self, inputs, logfile):
+        """
+        Creates Shared Volume
+
+        :param inputs: Dictonary(name, size)
+        :param logfile: Logfile name  
+        :return: Retuns Name and status of volume created
+        """
+
         obj = result()
         opdict = {}
         dicts = {}
@@ -142,7 +140,7 @@ class PureTasks:
                           "Unable to get Handle to FlashArray")
             return obj
         loginfo("Create Shared Volume inputs is : {}".format(inputs))
-	vol_datas = inputs['vol_set']
+        vol_datas = inputs['vol_set']
         vol_size_data = eval(vol_datas)
         size = vol_size_data['size']['value']
         size_unit = vol_size_data['size_unit']['value']
@@ -157,28 +155,35 @@ class PureTasks:
             loginfo("Create shared volume data is {} {}".format(volName, vol_size))
             opdict = self.handle.create_volume(volName, int(vol_size))
             obj.setResult(opdict, PTK_OKAY, "Success")
-            customlogs("Create volume task is succeeded", logfile)
+            customlogs("Shared volume created successfully\n", logfile)
         except PureHTTPError as e:
             loginfo("err e is {}".format(e))
             err = e.text
-            dicts['status'] = "FAILURE"
             customlogs(msg, logfile)
             customlogs("Error message is :", logfile)
             loginfo("err 0 is {}".format(eval(err)[0]))
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Create shared volume task is failed", logfile)
-            obj.setResult(opdict, PTK_INTERNALERROR, "Failed to create volume")
+            customlogs("Failed to create shared volume", logfile)
+            obj.setResult(opdict, PTK_INTERNALERROR,
+                          "Failed to create shared volume")
             loginfo(" Error {}".format(str(e)))
             return obj
-        msg = "Create shared volume succeeded\n"
+        msg = "Shared volume created successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
-	dicts['name'] = inputs['name']
+        dicts['name'] = inputs['name']
         obj.setResult(dicts, PTK_OKAY,
                       msg)
         return obj
 
     def create_multiple_volumes(self, inputs, logfile):
+        """
+        Creates multiple Volumes
+
+        :param inputs: Dictonary(name, count)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         opdict = {}
         dicts = {}
@@ -193,7 +198,6 @@ class PureTasks:
         size_unit = vol_size_data['size_unit']['value']
 
         name = inputs['name']  # here name is service profile
-        # st_no = int(a.split(':')[-1]) # getting list 01 of wwn
         st_no = inputs['st_no']
         count = inputs['count']  # count of service profile
         num_digits = inputs['num_digits']
@@ -202,7 +206,6 @@ class PureTasks:
         for vol_data in vol_datas:
             data = {}
             loginfo("vol_data is {} {}".format(vol_data, type(vol_data)))
-            #data = eval(vol_data)
             try:
                 msg = "Creating volume %s" % vol_data
                 volName = vol_data
@@ -216,87 +219,33 @@ class PureTasks:
 
                 opdict = self.handle.create_volume(volName, int(vol_size))
                 obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Create volume task is succeeded", logfile)
+                customlogs("Volume created successfully", logfile)
             except PureHTTPError as e:
                 loginfo("err e is {}".format(e))
                 err = e.text
-                dicts['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 loginfo("err 0 is {}".format(eval(err)[0]))
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Create volume task is failed", logfile)
+                customlogs("Failed to create volume", logfile)
                 obj.setResult(opdict, PTK_INTERNALERROR,
                               "Failed to create volume")
                 return obj
-        msg = "Crete volume succeeded\n"
+        msg = "Volumes created successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
-        obj.setResult(dicts, PTK_OKAY,
-                      msg)
-        return obj
-
-    def create_host(self, inputs, logfile):
-        obj = result()
-        opdict = {}
-        dicts = {}
-        mult_output = ""
-
-        if self.handle == None:
-            obj.setResult(opdict, PTK_INTERNALERROR,
-                          "Unable to get Handle to FlashArray")
-            return obj
-        loginfo("create host inputs is {}".format(inputs))
-        #dicts['host_set'] = inputs['host_set']
-        #hv_datas = inputs['host_set'].split('|')
-        #portlist = inputs['ports'].split('|')
-
-        a = "20:00:00:25:B5:01:0A:01"  # wwn for getting prefix
-        name = 'VM-Host-infra-#'  # here name is service profile
-        st_no = int(a.split(':')[-1])  # getting list 01 of wwn
-        st_no = st_no if st_no > 0 else st_no+1
-        count = 3  # count of service profile
-        num_digits = 2
-        hv_datas = self.get_multiple_host_names(name, st_no, count, num_digits)
-        k = 0
-        ports = data['ports']['value']  # list of initiator ports
-        for h in range(0, len(hv_datas)):
-            host = hv_datas[h]
-            port_list = []
-            #global k
-            data = {}
-            data = eval(hv_data)
-            try:
-                msg = "Creating host %s" % host
-                customlogs(msg, logfile)
-                if k < len(ports):
-                    for p in range(0, 2):
-                        port_list.append(ports[k])
-                        k = k+1
-                if "iqn" in port_list[0]:
-                    opdict = self.handle.create_host(host, iqnlist=port_list)
-                else:
-                    opdict = self.handle.create_host(host, wwnlist=port_list)
-                obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Create host task is succeeded", logfile)
-            except PureHTTPError as e:
-                err = e.text
-                dicts['status'] = "FAILURE"
-                customlogs(msg, logfile)
-                customlogs("Error message is :", logfile)
-                customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Create host task is failed", logfile)
-                obj.setResult(opdict, PTK_INTERNALERROR,
-                              "Failed to create host")
-                return obj
-        msg = "Crete host succeeded\n"
-        customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY,
                       msg)
         return obj
 
     def create_multiple_hosts(self, inputs, logfile):
+        """
+        Create Multiple hosts
+
+        :param inputs: Dictonary(name, count)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         opdict = {}
 
@@ -310,7 +259,7 @@ class PureTasks:
         st_no = inputs['st_no']
         count = inputs['count']  # count of service profile
         num_digits = inputs['num_digits']
-        loginfo("values in create_multiple_hosts comes is {}".format(inputs))
+        loginfo("Create_multiple_hosts {}".format(inputs))
         hosts = self.get_multiple_host_names(name, st_no, count, num_digits)
         for host in hosts:
             try:
@@ -318,25 +267,31 @@ class PureTasks:
                 customlogs(msg, logfile)
                 opdict = self.handle.create_host(host)
                 obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Create host task is succeeded", logfile)
+                customlogs("Host created successfully", logfile)
             except PureHTTPError as e:
                 err = e.text
-                opdict['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Create host task is failed", logfile)
+                customlogs("Failed to create host", logfile)
                 obj.setResult(opdict, PTK_INTERNALERROR,
                               "Failed to create host")
                 return obj
-        msg = "Create host succeeded\n"
+        msg = "Hosts created successfully\n"
         customlogs(msg, logfile)
-        opdict['status'] = "SUCCESS"
         obj.setResult(opdict, PTK_OKAY,
                       msg)
         return obj
 
     def add_port_to_host(self, inputs, logfile):
+        """
+        Add Port to hosts
+
+        :param inputs: Dictonary(name, count)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         opdict = {}
         dicts = {}
@@ -344,12 +299,11 @@ class PureTasks:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
-        loginfo("add_port_to_host inputs is {}".format(inputs))
+        loginfo("add_port_to_host inputs: {}".format(inputs))
 
         dicts['host_set'] = inputs['host_set']
         hv_datas = inputs['host_set'].split('|')
         port_list = []
-        # ports = data['ports']['value'] #list of initiator ports
         for hv_data in hv_datas:
             data = {}
             data = ast.literal_eval(hv_data)
@@ -358,66 +312,37 @@ class PureTasks:
                 customlogs(msg, logfile)
                 host = data['hosts']['value']
                 port = data['ports']['value']
-		port_list = port.split(',')
+                port_list = port.split(',')
                 if "iqn" in port_list[0]:
                     opdict = self.handle.set_host(host, addiqnlist=port_list)
                 else:
                     opdict = self.handle.set_host(host, addwwnlist=port_list)
                 obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Add port to host task is succeeded", logfile)
+                customlogs("Added port to host successfully", logfile)
             except PureHTTPError as e:
                 err = e.text
-                dicts['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Add port to host task is failed", logfile)
+                customlogs("Failed to add port to host", logfile)
                 obj.setResult(opdict, PTK_INTERNALERROR,
                               "Failed to add port to host")
                 return obj
-        msg = "Add port to host succeeded\n"
+        msg = "Added ports to hosts successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY,
                       msg)
         return obj
 
-    def add_port_to_host_old(self, inputs, logfile):
-        obj = result()
-        opdict = {}
-        tdict = {}
-        if self.handle == None:
-            obj.setResult(opdict, PTK_INTERNALERROR,
-                          "Unable to get Handle for FlashArray")
-            return obj
-
-        a = "20:00:00:25:B5:01:0A:01"  # wwn for getting prefix
-        name = 'VM-Host-infra-#'  # here name is service profile
-        st_no = int(a.split(':')[-1])  # getting list 01 of wwn
-        st_no = st_no if st_no > 0 else st_no+1
-        count = 3  # count of service profile
-        num_digits = 2
-        hosts = self.get_multiple_host_names(name, st_no, count, num_digits)
-
-        try:
-            hostname = inputs['name']
-            portlist = inputs['ports']
-            portlist = portlist.split("|")
-            if "iqn" in portlist[0]:
-                tdict = self.handle.set_host(hostname, addiqnlist=portlist)
-            else:
-                tdict = self.handle.set_host(hostname, addwwnlist=portlist)
-            obj.setResult(tdict, PTK_OKAY, "Success")
-            customlogs("Add port to host task is succeeded", logfile)
-
-        except PureHTTPError as e:
-            err = e.text
-            customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Add port to host task is failed", logfile)
-            obj.setResult(dict, PTK_INTERNALERROR, "Failed to create host")
-        return obj
-
     def create_host_group(self, inputs, logfile):
+        """
+        Create Host Group
+
+        :param inputs: Dictonary(name)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         tdict = {}
         opdict = {}
@@ -428,22 +353,27 @@ class PureTasks:
 
         try:
             hgname = inputs['hgname']
-            #hostlist = inputs['hostlist']
-            #hostlist = hostlist.split("|")
-            #tdict = self.handle.create_hgroup(hgname, hostlist=hostlist)
             tdict = self.handle.create_hgroup(hgname)
-	    tdict['hgname'] = inputs['hgname']
+            tdict['hgname'] = inputs['hgname']
             obj.setResult(tdict, PTK_OKAY, "Success")
-            customlogs("Create host group task is succeeded", logfile)
+            customlogs("Host group created successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Create host group task is failed", logfile)
+            customlogs("Failed to create host group", logfile)
             obj.setResult(tdict, PTK_INTERNALERROR,
-                          "Failed to create hostgroup")
+                          "Failed to create host group")
         return obj
 
     def connect_host(self, inputs, logfile):
+        """
+        Connect Voume to host
+
+        :param inputs: Dictonary(hostname, volumename)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         dictopt = {}
         opdict = {}
@@ -466,26 +396,32 @@ class PureTasks:
                 volName = data['volumename']['value']
                 dictopt = self.handle.connect_host(hostname, volName)
                 obj.setResult(dicts, PTK_OKAY, "Success")
-                customlogs("Connect host task is succeeded", logfile)
+                customlogs("Connected volume to host successfully", logfile)
 
             except PureHTTPError as e:
                 err = e.text
-                dicts['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Connect volume to host task is failed", logfile)
+                customlogs("connect volume to host", logfile)
                 obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Failed to connect host to volume")
+                              "Failed to connect volume to host")
                 return obj
 
-        msg = "Connect volume to host succeeded\n"
+        msg = "Connected volumes to hosts successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
-        obj.setResult(dicts, PTK_OKAY, "Connect volume to host  completed")
+        obj.setResult(dicts, PTK_OKAY, "Connected volume to host successfully")
         return obj
 
     def connect_host_group(self, inputs, logfile):
+        """
+        Connect Voume to host group
+
+        :param inputs: Dictonary(hgname, volumename)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         dicts = {}
         try:
@@ -494,16 +430,24 @@ class PureTasks:
             dicts = self.handle.connect_hgroup(hgname, volName)
             obj.setResult(dicts, PTK_OKAY, "Success")
             customlogs(
-                "Connect volume to host group task is succeeded", logfile)
+                "Connected volume to host group successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Connect volume to host group task is failed", logfile)
+            customlogs("Failed to connect volume to host group", logfile)
             obj.setResult(dicts, PTK_INTERNALERROR,
-                          "Failed to connect host to hostgroup")
+                          "Failed to connect volume to hostgroup")
         return obj
 
     def add_host_to_hostgroup(self, inputs, logfile):
+        """
+        Add Host to host group
+
+        :param inputs: Dictonary(hgname, hostlist)
+        :param logfile: Logfile name  
+        :return: Retuns status 
+        """
+
         obj = result()
         opdict = {}
         tdict = {}
@@ -515,19 +459,24 @@ class PureTasks:
         try:
             name = inputs['hgname']
             host_list = inputs['hosts'].split("|")
-            #addhostlist = {"addhostlist": inputs['hostlist'].split("|")}
             tdict = self.handle.set_hgroup(name, addhostlist=host_list)
             obj.setResult(tdict, PTK_OKAY, "Success")
-            customlogs("Add host to host group task is succeeded", logfile)
+            customlogs("Added host to host group successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Add host to host group task is failed", logfile)
+            customlogs("Failed to add host to host group", logfile)
             obj.setResult(tdict, PTK_INTERNALERROR,
                           "Failed to add host to hostgroup")
         return obj
 
     def list_host_groups(self):
+        """
+        List host groups
+
+        :return: Retuns host group list 
+        """
+
         obj = result()
         tdict = {}
         try:
@@ -540,6 +489,12 @@ class PureTasks:
         return obj
 
     def get_host_list(self):
+        """
+        List hosts
+
+        :return: Retuns host list 
+        """
+
         obj = result()
         opdict = {}
 
@@ -558,6 +513,12 @@ class PureTasks:
         return obj
 
     def get_volume_list(self):
+        """
+        List volumes
+
+        :return: Retuns volume list 
+        """
+
         obj = result()
         if self.handle == None:
             obj.setResult(opdict, PTK_INTERNALERROR,
@@ -573,9 +534,17 @@ class PureTasks:
                           "Failed to get the list of volumes")
         return obj
 
-    def get_ports(self, blade_cnt=0, fc_ports= False):
+    def get_ports(self, blade_cnt=0, fc_ports=False):
+        """
+        List ports, In case of FC waits for all ports to be discovered
+
+        :param blade_cnt: Blade Count 
+        :param fc_ports: if True FC ports are returned
+        :return: Retuns the port list 
+        """
+
         obj = result()
-	dicts = {}
+        dicts = {}
         if self.handle == None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
@@ -583,35 +552,36 @@ class PureTasks:
 
         opdict = {}
         try:
-	    retry = 0
-	    all_wwn_cnt = blade_cnt*2
-	    while retry < 20:
+            retry = 0
+            all_wwn_cnt = blade_cnt * 2
+            while retry < 20:
                 opdict = self.handle.list_ports(initiators=True)
-	    	if not opdict:
-		    loginfo("Waiting for the port list to be available")
-		    time.sleep(20)
-		    retry += 1
-		elif fc_ports:
-		    ct0_wwns = []
-		    ct1_wwns = []
-		    for ports in opdict:
-			if "CT0" in str(ports['target']):
-			    ct0_wwns.append(str(ports['wwn']))
-			if "CT1" in str(ports['target']):
-			    ct1_wwns.append(str(ports['wwn']))
-		    if len(set(ct0_wwns)) < all_wwn_cnt and len(set(ct1_wwns)) < all_wwn_cnt:
-			loginfo("Waiting to get the list of wwns for all host")
-			time.sleep(20)
-			retry += 1
-		    else:
-			break
-		else:
-		    break
-	    if not opdict:
-		dicts['status'] = "FAILURE"
-	        loginfo("Failed to get the ports ")
-        	obj.setResult(dicts, PTK_INTERNALERROR,"Failed to get the  ports")
-	        return obj
+                if not opdict:
+                    loginfo("Waiting for the port list to be available")
+                    time.sleep(20)
+                    retry += 1
+                elif fc_ports:
+                    ct0_wwns = []
+                    ct1_wwns = []
+                    for ports in opdict:
+                        if "CT0" in str(ports['target']):
+                            ct0_wwns.append(str(ports['wwn']))
+                        if "CT1" in str(ports['target']):
+                            ct1_wwns.append(str(ports['wwn']))
+                    if len(set(ct0_wwns)) < all_wwn_cnt and len(set(ct1_wwns)) < all_wwn_cnt:
+                        loginfo("Waiting to get the list of wwns for all host")
+                        time.sleep(20)
+                        retry += 1
+                    else:
+                        break
+                else:
+                    break
+            if not opdict:
+                dicts['status'] = "FAILURE"
+                loginfo("Failed to get the ports ")
+                obj.setResult(dicts, PTK_INTERNALERROR,
+                              "Failed to get the  ports")
+                return obj
 
             obj.setResult(opdict, PTK_OKAY, "Success")
         except PureHTTPError as e:
@@ -620,6 +590,13 @@ class PureTasks:
         return obj
 
     def get_network_interfaces(self, ip_addr):
+        """
+        returns MAC Address 
+
+        :param ip_addr: ip address of interface 
+        :return: MAC Address
+        """
+
         dicts = {}
         res = result()
         hw_address = None
@@ -637,8 +614,13 @@ class PureTasks:
         res.setResult(hw_address, PTK_OKAY, "Success")
         return res
 
-# gives array name and id(serial)
     def get_array(self):
+        """
+        returns FlashArray name, version
+
+        :return: name, version
+        """
+
         dicts = {}
         try:
             dicts = self.handle.get()
@@ -648,6 +630,13 @@ class PureTasks:
         return dicts['array_name'], dicts['version']
 
     def getSerial_no(self, ip):
+        """
+        returns Serial number for FlashArray 
+
+        :param ip: ip address of managment interface 
+        :return: serial no
+        """
+
         import paramiko
         user = self.username
         pwd = self.pwd
@@ -664,34 +653,44 @@ class PureTasks:
             data = ' '
             data = stdout.read().splitlines()[1]
             res = data.split(' ')
-	    serial_no = str(res[-3])
+            serial_no = str(res[-3])
 
         except PureHTTPError as e:
             loginfo(str(e))
             serial_no = None
         return serial_no
 
-# gives model
     def get_array_controller(self):
+        """
+        returns Model No
+
+        :return: Model Number
+        """
+
         dicts = {}
         model = None
         try:
             dicts = self.handle.get(controllers=True)
             model = dicts[0]['model']
-	    if model == None:
-		model = dicts[1]['model']
+            if model == None:
+                model = dicts[1]['model']
         except PureHTTPError as e:
             loginfo("Get array controller is failed")
             loginfo(str(e))
         return model
 
-    def get_fc_controller_list(self):
+    def get_fc_port_list(self):
+        """
+        returns FC port list from FlashArray 
+
+        :return: FC port list
+        """
+
         obj = result()
-        opdict = {}
         data = []
 
         if self.handle == None:
-            obj.setResult(opdict, PTK_INTERNALERROR,
+            obj.setResult(data, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
 
@@ -703,8 +702,6 @@ class PureTasks:
                 kdict['name'] = mdict['name']
                 kdict['wwn'] = mdict['wwn']
                 data.append(kdict)
-            opdict['status'] = "SUCCESS"
-            opdict['name'] = data
             obj.setResult(data, PTK_OKAY, "Success")
 
         except PureHTTPError as e:
@@ -713,13 +710,18 @@ class PureTasks:
             loginfo(str(e))
         return obj
 
-    def get_iscsi_controller_list(self):
+    def get_iscsi_port_list(self):
+        """
+        returns iSCSI port list from FlashArray 
+
+        :return: iSCSI port list
+        """
+
         obj = result()
-        opdict = {}
         data = []
 
         if self.handle == None:
-            obj.setResult(opdict, PTK_INTERNALERROR,
+            obj.setResult(data, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
 
@@ -731,49 +733,11 @@ class PureTasks:
                 kdict['name'] = mdict['name']
                 kdict['iqn'] = mdict['iqn']
                 data.append(kdict)
-            opdict['status'] = "SUCCESS"
-            opdict['name'] = data
             obj.setResult(data, PTK_OKAY, "Success")
 
         except PureHTTPError as e:
             obj.setResult(data, PTK_INTERNALERROR,
                           "Failed to get the list of hosts")
-            loginfo(str(e))
-        return obj
-
-
-    def get_controller(self, inputs, logfile):
-        obj = result()
-        controller_dict = {}
-        if self.handle == None:
-            obj.setResult(controller_dict, PTK_INTERNALERROR,
-                          "Unable to get Handle")
-            return obj
-
-        try:
-            controller_dict['name'] = None
-            if "iqn" in inputs['pwwn']:
-                pwwn = inputs['pwwn']
-            else:
-                pwwn = inputs['pwwn'].replace(':', '')
-            ports = self.handle.list_ports()
-            ports = json.loads(json.dumps(ports))
-            for mdict in ports:
-                if "iqn" in pwwn:
-                    iqnOrwwn = mdict["iqn"]
-                else:
-                    iqnOrwwn = mdict["wwn"]
-                if str(pwwn) == str(iqnOrwwn):
-                    controller_dict['name'] = mdict['name']
-            controller_dict['status'] = "SUCCESS"
-            obj.setResult(controller_dict, PTK_OKAY, "Success")
-            customlogs("Get controller task is succeeded", logfile)
-        except PureHTTPError as e:
-            err = e.text
-            customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Get controller task is failed", logfile)
-            obj.setResult(controller_dict, PTK_INTERNALERROR,
-                          "Failed to get controller")
             loginfo(str(e))
         return obj
 
@@ -787,7 +751,6 @@ class PureTasks:
                 u_wwn += ':'
         return u_wwn
 
-# gives port number
     def get_port_number(self, inputs, logfile):
         port_dict = {}
         obj = result()
@@ -806,20 +769,26 @@ class PureTasks:
                         port_dict['pwwn'] = self.getWwnFormat(mdict['wwn'])
                     else:
                         port_dict['pwwn'] = mdict['iqn']
-            port_dict['status'] = "SUCCESS"
             obj.setResult(port_dict, PTK_OKAY, "Success")
-            customlogs("Get port number task is succeeded", logfile)
+            customlogs("Get port number successfull", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Get port number task is failed", logfile)
+            customlogs("Failed to get port number", logfile)
             obj.setResult(port_dict, PTK_INTERNALERROR,
                           "Failed to get port number")
             loginfo(str(e))
         return obj
 
-# list network interfaces for iscsi
     def get_iscsi_network_interfaces(self, inputs, logfile):
+        """
+        returns list of interface with 'iscsi' service configured 
+
+        :param inputs: Dictionary
+        :param logfile: Logfile name 
+        :return: list of interfaces
+        """
+
         dicts = {}
         res = result()
         try:
@@ -832,7 +801,7 @@ class PureTasks:
                     iscsi_interfaces.append(mInterface['name'])
                     iscsi_list.append(mInterface)
                 else:
-                    loginfo( "No iscsi network found")
+                    loginfo("No iscsi network found")
         except PureHTTPError as e:
             loginfo(str(e))
             res.setResult(None, PTK_INTERNALERROR,
@@ -842,14 +811,21 @@ class PureTasks:
         res.setResult(iscsi_list, PTK_OKAY, "Success")
         return res
 
-# configures iscsi network interface
     def set_iscsi_network_interface(self, inputs, logfile):
+        """
+        Configure Network Interface
+
+        :param inputs: Dictionary(address, mtu, netmask, name)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         res_dict = {}
         obj = result()
         if self.handle == None:
             obj.setResult(port_dict, PTK_INTERNALERROR, "Unable to get Handle")
             return obj
-	try:
+        try:
             address = inputs['address'].upper()
             enabled = True
             if inputs['enabled'] == "True":
@@ -861,7 +837,6 @@ class PureTasks:
             interface_name = inputs['name']
             data = {'address': address, 'enabled': enabled,
                     'netmask': netmask, 'mtu': mtu}
-            #interface_result = self.handle.set_network_interface(address=address)
             interface_result = self.handle.set_network_interface(
                 interface_name, enabled=enabled)
             interface_result = self.handle.set_network_interface(
@@ -870,21 +845,26 @@ class PureTasks:
                 interface_name, netmask=netmask)
             interface_result = self.handle.set_network_interface(
                 interface_name, mtu=mtu)
-            res_dict['status'] = "SUCCESS"
             obj.setResult(res_dict, PTK_OKAY, "Success")
-            customlogs("Set iscsi network interface task is succeeded", logfile)
+            customlogs(
+                "Set iscsi network interface completed successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Set iscsi network interface task is failed", logfile)
+            customlogs("Failed to set iscsi network interface", logfile)
             obj.setResult(port_dict, PTK_INTERNALERROR,
                           "Failed to set iscsi network interface")
         return obj
 
-
-# rollback functionality ....................................................
-
     def delete_multiple_hosts(self, inputs, logfile):
+        """
+        Delete multiple Hosts
+
+        :param inputs: Dictionary(name, count)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         opdict = {}
 
@@ -892,7 +872,7 @@ class PureTasks:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
-        loginfo("delete host inputs is {}".format(inputs))
+        loginfo("delete host inputs  {}".format(inputs))
 
         name = inputs['name']  # here name is service profile
         st_no = inputs['st_no']
@@ -906,25 +886,31 @@ class PureTasks:
                 customlogs(msg, logfile)
                 opdict = self.handle.delete_host(host)
                 obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Delete host task is succeeded", logfile)
+                customlogs("Deleted host successfully", logfile)
             except PureHTTPError as e:
                 err = e.text
-                opdict['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Delete host task is failed", logfile)
+                customlogs("Failed to Delete host", logfile)
                 obj.setResult(opdict, PTK_INTERNALERROR,
                               "Failed to delete host")
                 loginfo(str(e))
                 return obj
-        msg = "Delete host succeeded\n"
+        msg = "Deleted hosts successfully\n"
         customlogs(msg, logfile)
-        opdict['status'] = "SUCCESS"
         obj.setResult(opdict, PTK_OKAY, msg)
         return obj
 
     def remove_port_from_host(self, inputs, logfile):
+        """
+        Delete port from Hosts
+
+        :param inputs: Dictionary(host, port)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         opdict = {}
         dicts = {}
@@ -932,12 +918,11 @@ class PureTasks:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
-        loginfo("remove_port_from_host inputs is {}".format(inputs))
+        loginfo("remove_port_from_host inputs  {}".format(inputs))
 
         dicts['host_set'] = inputs['host_set']
         hv_datas = inputs['host_set'].split('|')
         port_list = []
-        # ports = data['ports']['value'] #list of initiator ports
         for hv_data in hv_datas:
             data = {}
             data = ast.literal_eval(hv_data)
@@ -946,30 +931,37 @@ class PureTasks:
                 customlogs(msg, logfile)
                 host = data['hosts']['value']
                 port = data['ports']['value']
-		port_list = port.split(',')
+                port_list = port.split(',')
                 if "iqn" in port_list[0]:
                     opdict = self.handle.set_host(host, remiqnlist=port_list)
                 else:
                     opdict = self.handle.set_host(host, remwwnlist=port_list)
                 obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Remove port from host task is succeeded", logfile)
+                customlogs(
+                    "Remove port from host completed successfully", logfile)
             except PureHTTPError as e:
                 err = e.text
-                dicts['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Remove port to host task is failed", logfile)
+                customlogs("Failed to remove port from host", logfile)
                 obj.setResult(opdict, PTK_INTERNALERROR,
                               "Failed to Remove port from host")
                 return obj
-        msg = "Remove port from host succeeded\n"
+        msg = "Remove ports from hosts completed successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY, msg)
         return obj
 
     def delete_multiple_volumes(self, inputs, logfile):
+        """
+        Delete multiple volumes
+
+        :param inputs: Dictionary(host, port)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         opdict = {}
         dicts = {}
@@ -996,26 +988,32 @@ class PureTasks:
                 opdict = self.handle.destroy_volume(volName)
                 opdict = self.handle.eradicate_volume(volName)
                 obj.setResult(opdict, PTK_OKAY, "Success")
-                customlogs("Delete volume task is succeeded", logfile)
+                customlogs("Volume deleted successfully", logfile)
             except PureHTTPError as e:
                 loginfo("err e is {}".format(e))
                 err = e.text
-                dicts['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 loginfo("err 0 is {}".format(eval(err)[0]))
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Delete volume task is failed", logfile)
+                customlogs("Failed to delete volume", logfile)
                 obj.setResult(opdict, PTK_INTERNALERROR,
                               "Failed to delete volume")
                 return obj
-        msg = "Delete volume succeeded\n"
+        msg = "Volumes deleted successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY, msg)
         return obj
 
     def disconnect_host(self, inputs, logfile):
+        """
+        Delete multiple volumes
+
+        :param inputs: Dictionary(hostname, volumename)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         dictopt = {}
         opdict = {}
@@ -1031,34 +1029,42 @@ class PureTasks:
             data = {}
             data = ast.literal_eval(hv_data)
             try:
-                msg = "Disconnecting volume %s to host %s" % (
+                msg = "Disconnecting volume %s from host %s" % (
                     data['volumename']['value'], data['hostname']['value'])
                 customlogs(msg, logfile)
                 hostname = data['hostname']['value']
                 volName = data['volumename']['value']
                 dictopt = self.handle.disconnect_host(hostname, volName)
                 obj.setResult(dicts, PTK_OKAY, "Success")
-                customlogs("Disconnect host task is succeeded", logfile)
+                customlogs(
+                    "Disconnected volume from host successfully", logfile)
 
             except PureHTTPError as e:
                 err = e.text
-                dicts['status'] = "FAILURE"
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(eval(err)[0]['msg'], logfile)
-                customlogs("Disconnect volume to host task is failed", logfile)
+                customlogs("Disconnect volume from host task failed", logfile)
                 obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Failed to disconnect host to volume")
+                              "Failed to disconnect volume from host")
                 loginfo(str(e))
                 return obj
 
-        msg = "Disconnect volume to host succeeded\n"
+        msg = "Disconnected volumes from host successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
-        obj.setResult(dicts, PTK_OKAY, "Disconnect volume to host completed")
+        obj.setResult(dicts, PTK_OKAY,
+                      "Disconnected volumes from host successfully")
         return obj
 
     def delete_host_group(self, inputs, logfile):
+        """
+        Delete Host Group
+
+        :param inputs: Dictionary(hgname)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         tdict = {}
         opdict = {}
@@ -1071,17 +1077,25 @@ class PureTasks:
             hgname = inputs['hgname']
             tdict = self.handle.delete_hgroup(hgname)
             obj.setResult(tdict, PTK_OKAY, "Success")
-            customlogs("Delete host group task is succeeded", logfile)
+            customlogs("Deleted host group successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Delete host group task is failed", logfile)
+            customlogs("Failed to delete host group", logfile)
             obj.setResult(tdict, PTK_INTERNALERROR,
                           "Failed to delete hostgroup")
             loginfo(str(e))
         return obj
 
     def remove_host_from_hostgroup(self, inputs, logfile):
+        """
+        Remove Host from Host Group
+
+        :param inputs: Dictionary(hgname, hosts)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         opdict = {}
         tdict = {}
@@ -1094,17 +1108,25 @@ class PureTasks:
             host_list = inputs['hosts'].split("|")
             tdict = self.handle.set_hgroup(name, remhostlist=host_list)
             obj.setResult(tdict, PTK_OKAY, "Success")
-            customlogs("Remove host from host group task is succeeded", logfile)
+            customlogs("Removed host from host group successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Remove host from host group task is failed", logfile)
+            customlogs("Failed to remove host from hostgroup", logfile)
             obj.setResult(tdict, PTK_INTERNALERROR,
                           "Failed to remove host from hostgroup")
             loginfo(str(e))
         return obj
 
     def delete_shared_volume(self, inputs, logfile):
+        """
+        Delete shared volume
+
+        :param inputs: Dictionary(name)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         opdict = {}
         dicts = {}
@@ -1121,26 +1143,32 @@ class PureTasks:
             opdict = self.handle.destroy_volume(volName)
             opdict = self.handle.eradicate_volume(volName)
             obj.setResult(opdict, PTK_OKAY, "Success")
-            customlogs("Delete volume task is succeeded", logfile)
+            customlogs("Deleted shared volume successfully", logfile)
         except PureHTTPError as e:
             loginfo("err e is {}".format(e))
             err = e.text
-            dicts['status'] = "FAILURE"
             customlogs(msg, logfile)
             customlogs("Error message is :", logfile)
             loginfo("err 0 is {}".format(eval(err)[0]))
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Delete shared volume task is failed", logfile)
+            customlogs("Failed to delete shared volume", logfile)
             obj.setResult(opdict, PTK_INTERNALERROR, "Failed to delete volume")
             loginfo(" Error {}".format(str(e)))
             return obj
-        msg = "Delete shared volume succeeded\n"
+        msg = "Deleted shared volume successfully\n"
         customlogs(msg, logfile)
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY, msg)
         return obj
 
     def disconnect_host_group(self, inputs, logfile):
+        """
+        Disconnect volume from host group
+
+        :param inputs: Dictionary(hgname, volumename)
+        :param logfile: Logfile name 
+        :return: status
+        """
+
         obj = result()
         dicts = {}
         try:
@@ -1149,14 +1177,14 @@ class PureTasks:
             dicts = self.handle.disconnect_hgroup(hgname, volName)
             obj.setResult(dicts, PTK_OKAY, "Success")
             customlogs(
-                "Disconnect volume to host group task is succeeded", logfile)
+                "Disconnected volume from host group successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
             customlogs(
-                "Disconnect volume to host group task is failed", logfile)
+                "Failed to disconnect volume from host group", logfile)
             obj.setResult(dicts, PTK_INTERNALERROR,
-                          "Failed to disconnect host to hostgroup")
+                          "Failed to disconnect volume from hostgroup")
             loginfo(str(e))
         return obj
 
@@ -1174,7 +1202,6 @@ class PureTasks:
             interface_name = inputs['name']
             data = {'address': address, 'enabled': enabled,
                     'netmask': netmask, 'mtu': mtu}
-            #interface_result = self.handle.set_network_interface(address=address)
             interface_result = self.handle.set_network_interface(
                 interface_name, enabled=enabled)
             interface_result = self.handle.set_network_interface(
@@ -1183,14 +1210,13 @@ class PureTasks:
                 interface_name, netmask=netmask)
             interface_result = self.handle.set_network_interface(
                 interface_name, mtu=mtu)
-            res_dict['status'] = "SUCCESS"
             obj.setResult(res_dict, PTK_OKAY, "Success")
             customlogs(
-                "Remove iscsi network interface task is succeeded", logfile)
+                "Removed iscsi network interface successfully", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
-            customlogs("Remove iscsi network interface task is failed", logfile)
+            customlogs("Failed to remove iscsi network interface", logfile)
             obj.setResult(port_dict, PTK_INTERNALERROR,
                           "Failed to remove iscsi network interface")
             loginfo(str(e))
@@ -1200,15 +1226,15 @@ class PureTasks:
         fc_ports = self.handle.list_ports()
         ethernet_ports = self.handle.list_network_interfaces()
 #	model = "XR2"
-	model = self.get_array_controller()
-	if model in ["FA-X10R2", "FA-X20R2", "FA-X50R2", "FA-X70R2", "FA-X90R2"] :
+        model = self.get_array_controller()
+        if model in ["FA-X10R2", "FA-X20R2", "FA-X50R2", "FA-X70R2", "FA-X90R2"]:
             for port in ethernet_ports:
-	        if port['speed'] == 1000000000 and 'eth4' in port['name']:
-                    return ["eth4","eth5"]
-	        elif port['speed'] == 4000000000 and 'eth14' in port['name']:
-                    return ["eth14","eth15"]
-	else:
+                if port['speed'] == 1000000000 and 'eth4' in port['name']:
+                    return ["eth4", "eth5"]
+                elif port['speed'] == 4000000000 and 'eth14' in port['name']:
+                    return ["eth14", "eth15"]
+        else:
             if fc_ports:
-                return ["eth8","eth9"]
+                return ["eth8", "eth9"]
             else:
-                return ["eth4","eth5"]
+                return ["eth4", "eth5"]

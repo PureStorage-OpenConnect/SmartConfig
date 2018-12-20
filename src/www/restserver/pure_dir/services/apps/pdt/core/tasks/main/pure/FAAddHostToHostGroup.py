@@ -60,8 +60,8 @@ class FAAddHostToHostGroup:
         if len(blade_list) > 0:
             blade_len = len(blade_list)
         host_prefix = ""
-        for pre in range(1, blade_len+1):
-            host_prefix += "VM-Host-FC-"+str(pre).zfill(2)+"|"
+        for pre in range(1, blade_len + 1):
+            host_prefix += "VM-Host-FC-" + str(pre).zfill(2) + "|"
         print "host list for add host to hg going is ", host_prefix[:-1]
         job_input_save(jobid, texecid, 'hosts', host_prefix[:-1])
 

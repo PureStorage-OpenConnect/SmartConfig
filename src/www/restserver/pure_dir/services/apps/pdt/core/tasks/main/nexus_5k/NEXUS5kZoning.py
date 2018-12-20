@@ -30,36 +30,44 @@ class NEXUS5kZoning:
                     for task in doc['workflow']['tasks']['task'] if task['@texecid'] == texecid][0]
         switch_tag = nexus_id.split('_')[-1].upper()
 
-        n5k_mac_addr = [mac['value'] for mac in inputs if mac['name'] == nexus_id][0]
-	ucs_mac_addr = [mac['value'] for mac in inputs if mac['name'] == 'ucs_switch_a'][0]
+        n5k_mac_addr = [mac['value']
+                        for mac in inputs if mac['name'] == nexus_id][0]
+        ucs_mac_addr = [mac['value']
+                        for mac in inputs if mac['name'] == 'ucs_switch_a'][0]
 
-        inp_dict = {"keyvalues": [{"key": "nexus_id", "value": n5k_mac_addr}, {"key": "group", "value": "1"}]}
+        inp_dict = {"keyvalues": [
+            {"key": "nexus_id", "value": n5k_mac_addr}, {"key": "group", "value": "1"}]}
 
         # Task1 - Creating device alias names
 
         flogi_sess_list = self.get_flogi_sessions(inp_dict).getResult()
-	ucsm_sp_pwwn_list = self.get_ucsm_sp_pwwn(ucs_mac_addr)
-	if ucsm_sp_pwwn_list == []:
-	    loginfo("Failed to get pwwn of blade servers from UCSM for Nexus 5K Zoning")
+        ucsm_sp_pwwn_list = self.get_ucsm_sp_pwwn(ucs_mac_addr)
+        if ucsm_sp_pwwn_list == []:
+            loginfo(
+                "Failed to get pwwn of blade servers from UCSM for Nexus 5K Zoning")
 
         alias_list = []
         zone_list = []
         for flogi in flogi_sess_list:
             if flogi['pwwn'].lower() in ucsm_sp_pwwn_list:
-	        # Alias for blade servers. UCSM itself accepts WWN even without OUI - 00:25:B5 eventhough it is recommended
-                alias_name = bs_alias_template % (str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
+                # Alias for blade servers. UCSM itself accepts WWN even without OUI - 00:25:B5 eventhough it is recommended
+                alias_name = bs_alias_template % (
+                    str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
                 zone_list.append(alias_name.encode('utf-8'))
             elif get_oui(flogi['pwwn']) == oui_pure:
-	        # Alias for flash array ports. FlashArray ports' WWN comes with OUI from vendor itself.
-                alias_name = fa_alias_template % (flogi['pwwn'][-2], flogi['pwwn'][-1], switch_tag.upper())
+                # Alias for flash array ports. FlashArray ports' WWN comes with OUI from vendor itself.
+                alias_name = fa_alias_template % (
+                    flogi['pwwn'][-2], flogi['pwwn'][-1], switch_tag.upper())
             else:
                 # This is done mainly to skip the UCS entry from flogi database
                 continue
             if alias_name:
                 alias_dict = {}
-                alias_dict['iface_id'] = {"ismapped": "0", "value": flogi['iface_id']}
+                alias_dict['iface_id'] = {
+                    "ismapped": "0", "value": flogi['iface_id']}
                 alias_dict['pwwn'] = {"ismapped": "0", "value": flogi['pwwn']}
-                alias_dict['alias_name'] = {"ismapped": "0", "value": alias_name.encode("utf-8")}
+                alias_dict['alias_name'] = {
+                    "ismapped": "0", "value": alias_name.encode("utf-8")}
                 alias_list.append(alias_dict)
 
         loginfo("Alias_list: %s" % str(alias_list))
@@ -73,8 +81,8 @@ class NEXUS5kZoning:
             zone_dict = {}
             zone_dict['zone_name'] = {"ismapped": "0", "value": zone}
             zone_dict['zone_members'] = {"ismapped": "2", "value": (
-            [alias['alias_name']['value'] for alias in alias_list if alias['alias_name']['value'] not in zone_list] + [
-                zone])}
+                [alias['alias_name']['value'] for alias in alias_list if alias['alias_name']['value'] not in zone_list] + [
+                    zone])}
             zone_lst.append(zone_dict)
 
         val = "|".join([str(k) for k in zone_lst])
@@ -84,7 +92,8 @@ class NEXUS5kZoning:
         zoneset_dict = {}
         vsan_id = getGlobalArg(inputs, 'vsan_%s' % switch_tag.lower())
         zoneset_name = "flashstack-zoneset-vsan-%s" % vsan_id
-        zoneset_dict['zoneset_name'] = {"ismapped": "0", "value": zoneset_name.encode("utf-8")}
+        zoneset_dict['zoneset_name'] = {
+            "ismapped": "0", "value": zoneset_name.encode("utf-8")}
         zoneset_dict['zoneset_members'] = {"ismapped": "2", "value": zone_list}
         job_input_save(jobid, texecid, 'zoneset', str(zoneset_dict))
 
@@ -94,7 +103,7 @@ class NEXUS5kZoning:
     def execute(self, taskinfo, logfile):
         res = result()
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(cred['ipaddress'],
                              cred['username'], cred['password'])
@@ -111,20 +120,25 @@ class NEXUS5kZoning:
                         loginfo("Creating zoneset in NEXUS")
                         res = obj.create_zonesets(taskinfo['inputs'], logfile)
                         if res.getStatus() != PTK_OKAY:
-                            obj.delete_zones(self.get_zones(taskinfo['inputs']), logfile)
-                            obj.delete_device_aliases(self.get_zoneset(taskinfo['inputs']), logfile)
+                            obj.delete_zones(self.get_zones(
+                                taskinfo['inputs']), logfile)
+                            obj.delete_device_aliases(
+                                self.get_zoneset(taskinfo['inputs']), logfile)
                             loginfo("Failed to create zoneset")
                             res.setResult(False, PTK_INTERNALERROR,
                                           "Zoneset Creation failed")
                         else:
                             loginfo("NEXUSZoning task executed successfully")
-                            customlogs("NEXUSZoning task executed successfully", logfile)
-                            time.sleep(30)  # Waiting for FlashArray to discover host pwwn
+                            customlogs(
+                                "NEXUSZoning task executed successfully", logfile)
+                            # Waiting for FlashArray to discover host pwwn
+                            time.sleep(30)
                             res.setResult(
-                                    parseResult(res)['data'], PTK_OKAY, "NEXUSZoning task executed successfully")
+                                parseResult(res)['data'], PTK_OKAY, "NEXUSZoning task executed successfully")
                     else:
                         loginfo("Failed to create zones")
-                        obj.delete_device_aliases(self.get_alias(taskinfo['inputs']), logfile)
+                        obj.delete_device_aliases(
+                            self.get_alias(taskinfo['inputs']), logfile)
                         res.setResult(False, PTK_INTERNALERROR,
                                       "Zone Creation failed")
                 else:
@@ -151,7 +165,7 @@ class NEXUS5kZoning:
         inp_dict.update(self.get_zoneset(inputs))
 
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(cred['ipaddress'],
                              cred['username'], cred['password'])
@@ -173,10 +187,11 @@ class NEXUS5kZoning:
                                           "Deleting device aliases failed")
                         else:
                             loginfo("NEXUSZoning rollback done")
-                            customlogs("NEXUSZoning rollback executed successfully", logfile)
+                            customlogs(
+                                "NEXUSZoning rollback executed successfully", logfile)
                             res.setResult(
-                                    parseResult(res)['data'], PTK_OKAY,
-                                    "NEXUSZoning task rollback executed successfully")
+                                parseResult(res)['data'], PTK_OKAY,
+                                "NEXUSZoning task rollback executed successfully")
                     else:
                         loginfo("Failed to delete zones")
                         res.setResult(False, PTK_INTERNALERROR,
@@ -229,10 +244,10 @@ class NEXUS5kZoning:
                 for index, flogi in enumerate(tmp_flogi_sess_list):
                     if group == 1:
                         flogi_sess_list.append(
-                                {"pwwn": flogi['pwwn'], "iface_id": flogi['iface_id']})
+                            {"pwwn": flogi['pwwn'], "iface_id": flogi['iface_id']})
                     else:
                         flogi_sess_list.append(
-                                {"id": flogi['pwwn'], "selected": "0", "label": flogi['iface_id']})
+                            {"id": flogi['pwwn'], "selected": "0", "label": flogi['iface_id']})
             else:
                 loginfo("Unable to login to the NEXUS")
                 res.setResult(flogi_sess_list, PTK_INTERNALERROR,
@@ -267,7 +282,7 @@ class NEXUS5kZoning:
                 tmp_vsan_list = obj.get_vsan_list().getResult()
                 for index, vsan in enumerate(tmp_vsan_list):
                     vsan_list.append(
-                            {"id": vsan, "selected": "0", "label": vsan})
+                        {"id": vsan, "selected": "0", "label": vsan})
             else:
                 loginfo("Unable to login to the NEXUS")
                 res.setResult(vsan_list, PTK_INTERNALERROR,
@@ -281,24 +296,27 @@ class NEXUS5kZoning:
         return res
 
     def get_ucsm_sp_pwwn(self, fi_mac_addr):
-	pwwn_list = []
+        pwwn_list = []
         if fi_mac_addr == None:
-	    return pwwn_list
+            return pwwn_list
         cred = get_device_credentials(key="mac", value=fi_mac_addr)
-	if cred:
-	    obj = UCSManager()
-	    if obj:
-	        res = obj.ucsm_sp_wwpn(cred['vipaddress'], cred['username'], cred['password'])
-		if res.getStatus() == PTK_OKAY:
-		    pwwn_list = map(str.lower, res.getResult())
+        if cred:
+            obj = UCSManager()
+            if obj:
+                res = obj.ucsm_sp_wwpn(
+                    cred['vipaddress'], cred['username'], cred['password'])
+                if res.getStatus() == PTK_OKAY:
+                    pwwn_list = map(str.lower, res.getResult())
                 else:
-                    loginfo("Unable to get pwwn of service profiles from UCS from Nexus 5K zoning")
+                    loginfo(
+                        "Unable to get pwwn of service profiles from UCS from Nexus 5K zoning")
             else:
-                loginfo("Unable to get access to UCS helper functions from Nexus 5K zoning")
+                loginfo(
+                    "Unable to get access to UCS helper functions from Nexus 5K zoning")
         else:
             loginfo("Unable to get device credentials of UCS from Nexus 5K zoning")
-	return pwwn_list
-	
+        return pwwn_list
+
     def get_alias(self, inputs):
         inp_dict = {}
         alias_list = []

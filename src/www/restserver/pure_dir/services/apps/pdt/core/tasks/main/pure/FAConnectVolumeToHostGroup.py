@@ -120,7 +120,6 @@ class FAConnectVolumeToHostGroup:
         return data
 
 
-
 class FAConnectVolumeToHostGroupInputs:
     pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
                        label="FlashArray", svalue="", mapval="", mandatory="0", static_values="", order=1)
@@ -129,7 +128,7 @@ class FAConnectVolumeToHostGroupInputs:
                      svalue="", static_values="", mandatory="0", mapval="", order=2, recommended="1")
 
     volumename = Dropdown(hidden='False', isbasic='True', helptext="Shared Volume's Name", dt_type="string", static="False", api="get_volume_list()|[pure_id:1:pure_id.value]", name="volumename", label="Volume Name",
-                         svalue="", static_values="", mandatory="0", mapval="", order=3, recommended="1")
+                          svalue="", static_values="", mandatory="0", mapval="", order=3, recommended="1")
 
 
 class FAConnectVolumeToHostGroupOutputs:

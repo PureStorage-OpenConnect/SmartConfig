@@ -54,7 +54,7 @@ class UCSAddSanBootToBootPolicyInputs:
     vhba = Textbox(validation_criteria='',  hidden='False', isbasic='True', helptext='vHBA', dt_type="string", api="", static="False", static_values="",
                    name="vhba", label="vHBA", svalue="Fabric-A", mandatory='1', mapval="0", order=2)
     type = Radiobutton(hidden='False', isbasic='True', helptext='Type', dt_type="string", api="", static="True", static_values="primary:1:Primary|secondary:0:Secondary",
-                   name="type", label="Type", svalue="primary", mandatory='1', mapval="0", order=3)
+                       name="type", label="Type", svalue="primary", mandatory='1', mapval="0", order=3)
     bootpolicyname = Textbox(validation_criteria='',  hidden='False', isbasic='True', helptext='Boot Policy Name', dt_type="string", api="", static="False", static_values="", name="bootpolicyname",
                              label="Boot Policy Name", mapval="1", svalue="__t201.UCSCreateBootPolicy.bootpolicyname", mandatory='1', order=4)
 

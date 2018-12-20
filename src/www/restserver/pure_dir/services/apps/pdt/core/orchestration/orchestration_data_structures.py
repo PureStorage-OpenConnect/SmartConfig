@@ -83,21 +83,23 @@ class Multiselectdropdown(Input):
                        svalue, mapval, mandatory, hidden, isbasic, helptext=helptext, group_member=group_member, order=order, recommended=recommended)
         self.ip_type = "multiselect-dropdown"
 
+
 class Dropbox(Input):
     def __init__(self, dt_type, static, api, name, label, static_values, svalue, mapval, mandatory, helptext="", group_member='0', order='0', recommended='0'):
         Input.__init__(self, dt_type, static, api, name, label, static_values,
                        svalue, mapval, mandatory, hidden, isbasic, helptext=helptext, group_member=group_member, order=order, recommended=recommended)
         self.ip_type = "drop-box"
 
+
 class Rangepicker(Input):
     def __init__(self, dt_type, static, api, name, label, static_values, svalue, mapval, mandatory, hidden, isbasic, min_range, max_range, max_fixed, min_interval, helptext="", group_member='0', order='0', recommended='0'):
         Input.__init__(self, dt_type, static, api, name, label, static_values,
                        svalue, mapval, mandatory, hidden, isbasic, helptext=helptext, group_member=group_member, order=order, recommended=recommended)
         self.ip_type = "range-picker"
-	self.min_range = min_range
-	self.max_range = max_range
-	self.max_fixed = max_fixed
-	self.min_interval = min_interval
+        self.min_range = min_range
+        self.max_range = max_range
+        self.max_fixed = max_fixed
+        self.min_interval = min_interval
 
 
 class Group(Input):

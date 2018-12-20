@@ -1,3 +1,11 @@
+"""
+    orchestration_globals
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+    Manages Global data for orchestration
+
+"""
+
 from pure_dir.infra.logging.logmanager import *
 from pure_dir.infra.apiresults import *
 from pure_dir.infra.common_helper import *
@@ -17,17 +25,24 @@ g_simulated = 0
 
 
 def get_globals_api(stacktype, hidden):
+    """
+    Returns list of global variables for the stacktype specified
+
+    :param stacktype: FlashStack stack type
+    :param hidden: If false, discards hidden global variables
+
+    """
+
     obj = result()
     global_list = []
     xmldoc = None
     try:
         xmldoc = parse(get_global_wf_config_file())
     except IOError:
-	loginfo("Globals file does not exist")
+        loginfo("Globals file does not exist")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return obj
     g_val = {}
-    #xmldoc = parse(get_global_wf_config_file())
     htypes = xmldoc.getElementsByTagName('htype')
     for htype in htypes:
         if htype.getAttribute('stacktype') == stacktype:
@@ -79,13 +94,20 @@ def get_globals_api(stacktype, hidden):
 
 
 def getglobalvals(stacktype):
+    """
+    Returns list of global variables as key value pair for orchestartion
+
+    :param stacktype: FlashStack stack type
+
+    """
+
     obj = result()
     global_list = []
     xmldoc = None
     try:
         xmldoc = parse(get_global_wf_config_file())
     except IOError:
-	loginfo("Globals file does not exist")
+        loginfo("Globals file does not exist")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return obj
     g_val = {}
@@ -123,9 +145,16 @@ def apivalidator(api_arg, tid):
 
 
 def set_globals_api(stacktype, input_list):
+    """
+    Updates the value for global variables
+
+    :param input_list: input list of global key value pair
+
+    """
+
     obj = result()
     if os.path.exists(get_global_wf_config_file()) == False:
-	loginfo("Globals file does not exist")
+        loginfo("Globals file does not exist")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return obj
 
@@ -157,17 +186,25 @@ def set_globals_api(stacktype, input_list):
         obj.setResult(err, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return obj
     else:
-        obj.setResult(err, PTK_NOTEXIST, _("PDT_INCOMPLETE_MANDATORY_FIELD_ERR_MSG"))
+        obj.setResult(err, PTK_NOTEXIST, _(
+            "PDT_INCOMPLETE_MANDATORY_FIELD_ERR_MSG"))
         return obj
 
 
 def set_globals_validate_api(ip_range):
+    """
+    Validates KVM Console IP range
+
+    :param iprange: KVM Console IP Range
+
+    """
+
     ip_list = IpValidator().get_ips_in_range()
     valid_err = []
     subnet = '.'.join(str(ip_list[0]).split('.', 3)[:-1])
     ip_obj = ip_range.split('-')
-    for i in range(int(ip_obj[0]), int(ip_obj[1])+1):
-        ip = subnet + "."+str(i)
+    for i in range(int(ip_obj[0]), int(ip_obj[1]) + 1):
+        ip = subnet + "." + str(i)
         xmldoc = parse(get_devices_wf_config_file())
         devices = xmldoc.getElementsByTagName('device')
         for device in devices:
@@ -185,16 +222,31 @@ def set_globals_validate_api(ip_range):
 
 
 def get_value(input_list, stacktype):
+    """
+    Aggregates error messages for empty fields in Global variables
+
+    :param input_list: list of inputs
+    :param stacktype: Flash stack type 
+    """
+
     valid_msg_list = []
     for inpts in input_list:
         dicts = {}
         if not inpts == 'undefined':
             if len(input_list[inpts]) == 0:
-                dicts = {"field": inpts, "msg": get_label(stacktype, inpts) + " should not be empty"}
+                dicts = {"field": inpts, "msg": get_label(
+                    stacktype, inpts) + " should not be empty"}
                 valid_msg_list.append(dicts)
     return valid_msg_list
 
+
 def get_label(stacktype, name):
+    """
+    Returns label for a  Global variable
+
+    :param stacktype: Flash stack type
+    :param name: Name of global field 
+    """
     xmldoc = parse(get_global_wf_config_file())
     htypes = xmldoc.getElementsByTagName('htype')
     for htype in htypes:
@@ -204,7 +256,15 @@ def get_label(stacktype, name):
                 if inpt.getAttribute('name') == name:
                     return inpt.getAttribute('label')
 
+
 def validate_data(stacktype, input_list):
+    """
+    Returns label for a  Global variable
+
+    :param stacktype: Flash stack type
+    :param name: Name of global field 
+    """
+
     valid_err = []
     xmldoc = parse(get_global_wf_config_file())
     htypes = xmldoc.getElementsByTagName('htype')
@@ -222,6 +282,14 @@ def validate_data(stacktype, input_list):
 
 
 def get_global_options(operation, realm, keys):
+    """
+    Returns dynamic options to be listed in global variables
+
+    :param operation: method to be invoked
+    :param realm: Class to be invoked
+    :param keys: Keys passed by UI  based on global inputs API
+    """
+
     ret = result()
     # TODO Ensure such a class exist, can exploit
     try:
@@ -247,6 +315,9 @@ def get_global_options(operation, realm, keys):
 
 
 def reset_global_config():
+    """
+    Removes any values in global configuration in 'deleteOnReset' is set
+    """
     xmldoc = parse(get_global_wf_config_file())
     htypes = xmldoc.getElementsByTagName('htype')
     for htype in htypes:

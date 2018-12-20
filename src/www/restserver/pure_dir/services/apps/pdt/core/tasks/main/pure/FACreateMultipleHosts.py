@@ -44,7 +44,6 @@ class FACreateMultipleHosts:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
 
-        #result = obj.create_host_map_ports(inputs['inputs'], logfile)
         result = obj.create_multiple_hosts(taskinfo['inputs'], logfile)
         obj.release_pure_handle()
         return parseTaskResult(result)
@@ -76,7 +75,6 @@ class FACreateMultipleHosts:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
 
-        #result = obj.create_host_map_ports(inputs['inputs'], logfile)
         result = obj.delete_multiple_hosts(inputs, logfile)
         obj.release_pure_handle()
         return parseTaskResult(result)
@@ -108,7 +106,8 @@ class FACreateMultipleHosts:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsm_get_associated_sp_cnt(keys) #self.ucsmbladeservers(keys)
+        res = self.ucsm_get_associated_sp_cnt(
+            keys)  # self.ucsmbladeservers(keys)
         blade_list = res.getResult()
         val = ''
 
@@ -144,18 +143,18 @@ class FACreateMultipleHosts:
             return parseTaskResult(res)
 
         handle = res.getResult()
-	service_profiles = handle.query_classid("lsServer")
-	sp_cnt = []
+        service_profiles = handle.query_classid("lsServer")
+        sp_cnt = []
         for sp in service_profiles:
             if sp.type != "updating-template" and sp.pn_dn != '':
-       		sp_cnt.append(sp.name)
- 
+                sp_cnt.append(sp.name)
+
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-	print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res

@@ -284,5 +284,3 @@ class SimpleMysql:
 
     def __exit__(self, type, value, traceback):
         self.end()
-
-

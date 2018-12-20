@@ -71,7 +71,6 @@ class FAGetFCPortNumber:
 
         """
 
-        # self.get_hgroup_list(keys)
         res = result()
         cont_list = []
         res = result()
@@ -92,7 +91,7 @@ class FAGetFCPortNumber:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
 
-        result_data = obj.get_fc_controller_list()
+        result_data = obj.get_fc_port_list()
         for contDict in result_data.getResult():
             cont_list.append(
                 {"id": contDict['name'], "selected": "0", "label": contDict['name']})

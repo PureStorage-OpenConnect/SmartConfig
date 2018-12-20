@@ -36,6 +36,13 @@ from pure_dir.infra.apiresults import *
 
 
 def jobrollback_helper(jobid):
+    """
+    Does rollback for individual Jobs
+
+    :param jobid: Job ID
+
+    """
+
     res = result()
 
     if os.path.exists(get_shelf_file(jobid)) == False:
@@ -59,7 +66,7 @@ def jobrollback_helper(jobid):
         taskcount = -1 if len(
             record['tasklist']) == 0 else len(
             record['tasklist']) - 1
-	customlogs("------ <b> " + record['wfname'] + "</b> ------\n", logfile)
+        customlogs("------ <b> " + record['wfname'] + "</b> ------\n", logfile)
         for i in range(taskcount, -1, -1):
             update_rollback_task_status(
                 jobid, record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_EXECUTING)
@@ -84,8 +91,9 @@ def jobrollback_helper(jobid):
                     update_rollback_task_status(
                         jobid,  record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_COMPLETED)
 
-		    #Update the original Job status as READY
-		    update_task_status(record['jobid'], record['tasklist'][str(i)]['texecid'], "READY")
+                    # Update the original Job status as READY
+                    update_task_status(
+                        record['jobid'], record['tasklist'][str(i)]['texecid'], "READY")
 
             else:
                 if retval['status'] != 'SUCCESS':
@@ -96,8 +104,9 @@ def jobrollback_helper(jobid):
                 else:
                     update_rollback_task_status(
                         jobid,  record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_COMPLETED)
-		    #Update the original Job status as READY
-		    update_task_status(record['jobid'], record['tasklist'][str(i)]['texecid'], "READY")
+                    # Update the original Job status as READY
+                    update_task_status(
+                        record['jobid'], record['tasklist'][str(i)]['texecid'], "READY")
         clear_job_failed_status(record['jobid'])
     clear_group_job_status(jobid)
     shelf.close()
@@ -106,13 +115,20 @@ def jobrollback_helper(jobid):
 
 
 def job_rollback_api(stacktype, jobid):
-    # Does the pre check for Job Rollback
+    """
+    Does the pre check for Job Rollback and trigger rollback
+
+    :param stacktype: Stack type
+    :param jobid: Job ID
+
+    """
+
     res = result()
 
     if stacktype != None and jobid != None:
-	loginfo("can't specify both jobid and stacktype")
+        loginfo("can't specify both jobid and stacktype")
         obj.setResult(None, PTK_FAILED,
-                       _("PDT_INVALID_INPUT_ERR_MSG"))
+                      _("PDT_INVALID_INPUT_ERR_MSG"))
         return obj
     if stacktype != None:
         jobid = stacktype
@@ -129,8 +145,8 @@ def job_rollback_api(stacktype, jobid):
             res.setResult(None, PTK_NOTEXIST,
                           _("PDT_ROLLBACK_FAILED_INSUFF_DATA_MSG"))
             return res
-       
-	fd = open(get_batch_status_file(jobid), 'r') 
+
+        fd = open(get_batch_status_file(jobid), 'r')
         doc = xmltodict.parse(fd.read())
         wfs = sorted(doc['Batchstatus']['workflows']['workflow'],
                      key=lambda x: x["@order"], reverse=True)
@@ -150,6 +166,13 @@ def job_rollback_api(stacktype, jobid):
 
 
 def get_htype_wid_from_jobid(jobid):
+    """
+    Get stack type from Job ID
+
+    :param jobid: Job ID
+
+    """
+
     try:
         fd = open(get_job_file(jobid), 'r')
         doc = xmltodict.parse(fd.read())
@@ -164,6 +187,13 @@ def get_htype_wid_from_jobid(jobid):
 
 
 def job_rollback_safe(jobid):
+    """
+    Incase of Batch Job, rollback all the Jobs involved
+
+    :param jobid: Job ID
+
+    """
+
     if not any(d['value'] == jobid for d in g_flash_stack_types):
         # Not a batch rollback, continue with jobid
         details = get_htype_wid_from_jobid(jobid)
@@ -187,25 +217,25 @@ def job_rollback_safe(jobid):
             for wf in wfs:
                 if wf['@status'] == 'READY':
                     continue
-                loginfo( "Attempting rollback for wid" + wf['@id'])
+                loginfo("Attempting rollback for wid" + wf['@id'])
                 update_batch_job_status(jobid, wf['@id'], None, 'ROLLBACK')
                 res = jobrollback_helper(wf['@jid'])
                 if res.getStatus() != PTK_OKAY:
-                    update_batch_job_status(jobid, wf['@id'], None, 'ROLLBACK_FAILED')
+                    update_batch_job_status(
+                        jobid, wf['@id'], None, 'ROLLBACK_FAILED')
                     loginfo("Batch rollback failed")
                     return res
                 update_batch_job_status(jobid, wf['@id'], None, 'READY')
 
         except Exception as e:
-            loginfo( "Exception" + str(e))
-            # get_batch_status_file(jobid)
-            # revert the batch Job
+            loginfo("Exception" + str(e))
 
 
 def service_request_list_api():
-    '''
-        Returns service request list 
-      '''
+    """
+    Returns service request list
+
+    """
     srs = glob.glob(get_shelf_files_pattern())
     sr_list = []
     obj = result()
@@ -218,12 +248,20 @@ def service_request_list_api():
             sr_list.append(res)
             rec.close()
         except Exception as e:
-            loginfo ("Error Ocoured" + str(e))
+            loginfo("Error Ocoured" + str(e))
     obj.setResult(sr_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
 
 
 def service_request_info_helper(jobid, shelf):
+    """
+    Get details of service request for sub jobs
+
+    :param shelf: Dict containing rollback data
+    :param jobid: Job ID
+
+    """
+
     res = result()
     job_list = []
     wfcount = 0 if (len(shelf['job'])) == -1 else len(shelf['job']) - 1
@@ -258,6 +296,14 @@ def _get_shelve_file(jobid):
 
 
 def service_request_info_api(jobid):
+    """
+    Get details of service request
+
+    :param stacktype: Stack type
+    :param jobid: Job ID
+
+    """
+
     data = []
     ret = result()
     if not any(d['value'] == jobid for d in g_flash_stack_types):
@@ -294,12 +340,20 @@ def service_request_info_api(jobid):
                     seqno = seqno + 1
                     data.append(tmp)
         except Exception as e:
-            loginfo ("Error Ocoured" + str(e))
+            loginfo("Error Ocoured" + str(e))
     ret.setResult(data, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return ret
 
 
 def get_field_name(jobid, field_id, texecid):
+    """
+    Get details of an input field
+
+    :param jobid: Job ID
+    :param stacktype: field_id
+
+    """
+
     try:
         fd = open(get_job_file(jobid), 'r')
         job_doc = xmltodict.parse(fd.read())
@@ -359,10 +413,6 @@ def rollback_task_data_api(jobid, pjobid, tid):
                     'key': key, 'value': job_rec['tasklist'][str(y)]['inputs'][key], 'label': label, 'gmembers': g_list}
 
                 data['inputlist'].append(input_data)
-            '''for key in job_rec['tasklist'][str(y)]['inputs']:
-                output_data = {
-                    'key': key, 'value': job_rec['tasklist'][str(y)]['inputs'][key]}
-                data['outputlist'].append(output_data)'''
             res.setResult(data, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 

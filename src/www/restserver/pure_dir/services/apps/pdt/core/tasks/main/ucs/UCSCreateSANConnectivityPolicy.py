@@ -100,7 +100,7 @@ class UCSCreateSANConnectivityPolicy:
 class UCSCreateSANConnectivityPolicyInputs:
     fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', api="getfilist()", dt_type="string", label="UCS Fabric Name", mandatory="1",
                          mapval="0", name="fabric_id", static="False", svalue="", static_values="None", order=1)
-    san_conn_policy_name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='SAN Connectivity policy', dt_type="string", api="", static="False", static_values="None",
+    san_conn_policy_name = Textbox(validation_criteria='str|min:1|max:16',  hidden='False', isbasic='True', helptext='SAN Connectivity policy', dt_type="string", api="", static="False", static_values="None",
                                    name="san_conn_policy_name", label="Name", svalue="", mapval="0", mandatory='1', order=2, recommended="1")
     san_conn_policy_desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Description', dt_type="string", api="", static="False", static_values="None",
                                    name="san_conn_policy_desc", label="Description", svalue="", mapval="0", mandatory='1', order=3)

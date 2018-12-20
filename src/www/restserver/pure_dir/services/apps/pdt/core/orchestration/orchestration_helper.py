@@ -28,7 +28,6 @@ def parseTaskResult(result):
         result.getResult()['status'] = TASK_SUCCESS
         return result.getResult()
     else:
-        # this should not have happend
         return {'status': TASK_FAILED}
 
 
@@ -96,6 +95,7 @@ def job_input_save(jobid, execid, field_name, value):
     obj.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
 
+
 def get_global_val(stacktype, field_name):
     xmldoc = None
     try:
@@ -113,7 +113,7 @@ def get_global_val(stacktype, field_name):
             for i in inpts:
                 g_val = {}
                 if i.getAttribute('name') == field_name:
-			return  i.getAttribute('value')
+                    return i.getAttribute('value')
     return None
 
 
@@ -127,33 +127,32 @@ def get_global_arg_from_jid(jobid, fieldname):
         fd = open(job_xml, 'r')
         doc = xmltodict.parse(fd.read())
         htype = doc['workflow']['@htype']
-	field_val = get_global_val(htype, fieldname)
-	#print field_val
-	return field_val
-
+        field_val = get_global_val(htype, fieldname)
+        return field_val
 
     except Exception as e:
         loginfo(str(e))
         loginfo("Exception occured in reading global argument")
 
-    return None	
+    return None
 
-#Method will only return from the first task with matching tid
-#TODO needs to add texecid in the check
+# Method will only return from the first task with matching tid
+# TODO needs to add texecid in the check
+
+
 def get_field_value_from_jobid(jobid, task_id, fieldname):
     try:
-    	job_xml = get_job_file(jobid)
-    	fd = open(job_xml, 'r')
-    	doc = xmltodict.parse(fd.read())
+        job_xml = get_job_file(jobid)
+        fd = open(job_xml, 'r')
+        doc = xmltodict.parse(fd.read())
 
-    	value = [[arg['@value'] for arg in task['args']['arg'] if arg['@name'] == fieldname][0]
-             for task in doc['workflow']['tasks']['task'] if
-                    task['@id'] == task_id][0]
-    	return value
+        value = [[arg['@value'] for arg in task['args']['arg'] if arg['@name'] == fieldname][0]
+                 for task in doc['workflow']['tasks']['task'] if
+                 task['@id'] == task_id][0]
+        return value
 
     except Exception as e:
         loginfo(str(e))
         loginfo("Exception occured in reading argument")
 
     return None
-

@@ -82,7 +82,7 @@ def fscomponents(mac=''):
 
     if len(unconfigured_list) > 0:
         unconfigured_list = remove_duplicate_clients(
-                unconfigured_list, mac_list)
+            unconfigured_list, mac_list)
 
     component_list = unconfigured_list + configured_list
     if len(component_list) == 0:
@@ -127,7 +127,7 @@ def get_unconfigured_device_list():
             identifiers = value.sets
             if "vendor-string" not in identifiers or "serial" not in identifiers:
                 loginfo(
-                        "Skipping dhcp client as vendor details and serial number are not available")
+                    "Skipping dhcp client as vendor details and serial number are not available")
                 loginfo(identifiers)
                 continue
             client['mac_address'] = key.upper()
@@ -144,18 +144,18 @@ def get_unconfigured_device_list():
                 client['config_state'] = is_mds(value.ip, "Unconfigured")
                 client['device_type'] = "MDS"
             elif "UCS" in identifiers['vendor-string']:
-	        client['config_state'] = is_ucsm(value.ip, "Unconfigured")
+                client['config_state'] = is_ucsm(value.ip, "Unconfigured")
                 client['device_type'] = "UCSM"
                 if client['config_state'] == "Unconfigured":
                     status, data = get_xml_element(
-                            static_discovery_store, "mac", client['mac_address'])
+                        static_discovery_store, "mac", client['mac_address'])
                     if status == True:
                         orig_ip_key = [
                             k for k in data[0].keys() if 'orig_ip' in k][0]
                         if data[0]['configured'] != "Configured" and data[0][orig_ip_key] != client['ip_address']:
                             loginfo(
-                                    "Updating the DHCP ip for the FI '%s' which is in Re-validate state" % client[
-                                        'serial_number'])
+                                "Updating the DHCP ip for the FI '%s' which is in Re-validate state" % client[
+                                    'serial_number'])
                             update_xml_element(static_discovery_store, "mac", client['mac_address'], {
                                 orig_ip_key: client['ip_address']})
             else:
@@ -191,18 +191,18 @@ def get_configured_device_list():
                 client['reval_msg'] = subelement.getAttribute("reval_msg")
             if subelement.hasAttribute("validated"):
                 client['validated'] = True if subelement.getAttribute(
-                        "validated") == "1" else False
+                    "validated") == "1" else False
             static_list.append(client)
 
             if client['config_state'] == "In-progress" or client['config_state'] == "Configured" or client[
-                'config_state'] == "Re-validate":
+                    'config_state'] == "Re-validate":
                 if subelement.hasAttribute('image_version'):
                     client['image_version'] = subelement.getAttribute(
-                            "image_version")
+                        "image_version")
 
             if client['device_type'] == "UCSM" and subelement.getAttribute("infra_image") != "":
                 client['infra_image'] = get_version(
-                        subelement.getAttribute("infra_image"))
+                    subelement.getAttribute("infra_image"))
 
             mac_list.append(client['mac_address'])
 
@@ -217,37 +217,37 @@ def check_configured_device_status(device_type, max_waittime, subelement):
     client = {}
     client['device_type'] = device_type
     if "Configured" in is_configured(subelement.getAttribute("ipaddress"), device_type):
-	if "Nexus" in device_type:
-	    loginfo("Setting password for Nexus")
-	    obj = Nexus(subelement.getAttribute("ipaddress"), "admin", "admin")
-	    obj.change_password(decrypt(subelement.getAttribute("password")))
-	elif "MDS" in device_type:
-	    loginfo("Setting password for MDS")
-	    obj = MDS(subelement.getAttribute("ipaddress"), "admin", "admin")
-	    obj.change_password(decrypt(subelement.getAttribute("password")))
+        if "Nexus" in device_type:
+            loginfo("Setting password for Nexus")
+            obj = Nexus(subelement.getAttribute("ipaddress"), "admin", "admin")
+            obj.change_password(decrypt(subelement.getAttribute("password")))
+        elif "MDS" in device_type:
+            loginfo("Setting password for MDS")
+            obj = MDS(subelement.getAttribute("ipaddress"), "admin", "admin")
+            obj.change_password(decrypt(subelement.getAttribute("password")))
         client['config_state'] = "Configured"
         update_device_details(key="mac", key_value=subelement.getAttribute(
-                "mac"), tag="configured", tag_value="Configured")
+            "mac"), tag="configured", tag_value="Configured")
         conf_cleanup(device_type, subelement)
         remove_dhcp_lease(subelement.getAttribute("mac"))
         loginfo("Conf clean up done for %s" %
                 subelement.getAttribute("ipaddress"))
     else:
         diff_seconds = int(time.time()) - \
-                       int(float(subelement.getAttribute("timestamp")))
+            int(float(subelement.getAttribute("timestamp")))
         if diff_seconds > max_waittime:
             loginfo("There is some problem with the configuration of %s. Please check the console"
                     % subelement.getAttribute("ipaddress"))
             update_device_details(key="mac", key_value=subelement.getAttribute(
-                    "mac"), tag="configured", tag_value="Re-validate")
+                "mac"), tag="configured", tag_value="Re-validate")
             update_device_details(key="mac", key_value=subelement.getAttribute(
-                    "mac"), tag="previous_state", tag_value="In-progress")
+                "mac"), tag="previous_state", tag_value="In-progress")
             update_device_details(key="mac", key_value=subelement.getAttribute(
-                    "mac"), tag="reval_msg", tag_value="Configuration failed. Please retry the configuration")
+                "mac"), tag="reval_msg", tag_value="Configuration failed. Please retry the configuration")
             client['config_state'] = "Re-validate"
         else:
             client['config_state'] = subelement.getAttribute(
-                    "configured")
+                "configured")
     """
     # Earlier case of identifying hardware factory reset done through console
     else:
@@ -283,26 +283,26 @@ def fs_update_device_status():
             else:
                 status = "Down"
             update_device_details(
-                    key="ipaddress", key_value=ip, tag="reachability", tag_value=status)
+                key="ipaddress", key_value=ip, tag="reachability", tag_value=status)
             loginfo("Checking configuration status for %s" % ip)
             if "N9K" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress":
                 client = check_configured_device_status(
-                        device_type="Nexus 9k", max_waittime=max_waittime_n9k, subelement=subelement)
+                    device_type="Nexus 9k", max_waittime=max_waittime_n9k, subelement=subelement)
                 loginfo(client)
 
             elif "N5K" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress":
                 client = check_configured_device_status(
-                        device_type="Nexus 5k", max_waittime=max_waittime_n5k, subelement=subelement)
+                    device_type="Nexus 5k", max_waittime=max_waittime_n5k, subelement=subelement)
                 loginfo(client)
 
             elif "MDS" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress":
                 client = check_configured_device_status(
-                        device_type="MDS", max_waittime=max_waittime_mds, subelement=subelement)
+                    device_type="MDS", max_waittime=max_waittime_mds, subelement=subelement)
                 loginfo(client)
 
             elif "UCS" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress" and subelement.getAttribute("infra_image") == "":
                 client = check_configured_device_status(
-                        device_type="UCSM", max_waittime=max_waittime_ucs, subelement=subelement)
+                    device_type="UCSM", max_waittime=max_waittime_ucs, subelement=subelement)
                 loginfo(client)
             loginfo("Configuration status for %s updated" % ip)
 
@@ -373,10 +373,10 @@ def dhcpvalidate(data):
 
     ipv = IpValidator()
     if ipv.ip_range(data['dhcp_start'], data['netmask'], data['gateway']) == False or \
-                    ipv.ip_range(data['dhcp_end'], data['netmask'], data['gateway']) == False or \
-                    ipv.ip_range(data['static_start'], data['netmask'], data['gateway']) == False or \
-                    ipv.ip_range(data['static_end'], data['netmask'], data['gateway']) == False or \
-                    ipv.ip_range(data['subnet'], data['netmask'], data['gateway']) == False:
+            ipv.ip_range(data['dhcp_end'], data['netmask'], data['gateway']) == False or \
+            ipv.ip_range(data['static_start'], data['netmask'], data['gateway']) == False or \
+            ipv.ip_range(data['static_end'], data['netmask'], data['gateway']) == False or \
+            ipv.ip_range(data['subnet'], data['netmask'], data['gateway']) == False:
         return "Check the Network settings", False, ret
 
     if int(data['dhcp_start'].split('.')[3]) >= int(data['dhcp_end'].split('.')[3]):
@@ -387,8 +387,8 @@ def dhcpvalidate(data):
     else:
         if int(data['static_start'].split('.')[3]) in range(int(data['dhcp_start'].split('.')[3]),
                                                             int(data['dhcp_end'].split('.')[3]) + 1) or \
-                        int(data['static_end'].split('.')[3]) in range(int(data['dhcp_start'].split('.')[3]),
-                                                                       int(data['dhcp_end'].split('.')[3]) + 1):
+            int(data['static_end'].split('.')[3]) in range(int(data['dhcp_start'].split('.')[3]),
+                                                           int(data['dhcp_end'].split('.')[3]) + 1):
             return "The given static IP range falls in your DHCP set", False, ret
 
     return "Success", True, ret
@@ -432,7 +432,8 @@ def adddevice(data):
                                'password': 'Password', 'type': 'Device type'}, data)
 
     if len(ret) > 0:
-        res.setResult(ret, PTK_NOTEXIST, _("PDT_MISSING_MANDATORY_FIELD_ERR_MSG"))
+        res.setResult(ret, PTK_NOTEXIST, _(
+            "PDT_MISSING_MANDATORY_FIELD_ERR_MSG"))
         return res
 
     if check_device_exists(data['ip'], "ipaddress") is True:
@@ -454,7 +455,7 @@ def adddevice(data):
                 exists = 0
                 obj = UCSManager()
                 details = obj.fabric_info(
-                        ip=data['ip'], username=data['username'], password=data['password'])
+                    ip=data['ip'], username=data['username'], password=data['password'])
                 for detail in details:
                     if check_device_exists(detail['ip'], "ipaddress") is False:
                         save_device_details(ipaddress=detail['ip'], username=data['username'],
@@ -482,8 +483,8 @@ def adddevice(data):
         if status == 'Configured':
             try:
                 pure_tasks = PureTasks(
-                        data['ip'], username=data['username'], password=data['password'])
-                details = pure_tasks.pure_switch_info(data['ip'])
+                    data['ip'], username=data['username'], password=data['password'])
+                details = pure_tasks.flash_array_info(data['ip'])
                 pure_tasks.release_pure_handle()
             except:
                 res.setResult(ret, PTK_NOTEXIST,
@@ -496,9 +497,9 @@ def adddevice(data):
         if status == "Configured":
             try:
                 switch_enable_nxapi(
-                        data['ip'], username=data['username'], password=data['password'])
+                    data['ip'], username=data['username'], password=data['password'])
                 obj = nexus.Nexus(
-                        ipaddress=data['ip'], username=data['username'], password=data['password'])
+                    ipaddress=data['ip'], username=data['username'], password=data['password'])
                 details = obj.nexus_switch_info()
             except:
                 res.setResult(ret, PTK_NOTEXIST,
@@ -511,9 +512,9 @@ def adddevice(data):
         if status == "Valid":
             try:
                 switch_enable_nxapi(
-                        data['ip'], username=data['username'], password=data['password'])
+                    data['ip'], username=data['username'], password=data['password'])
                 obj = mds.MDS(
-                        ipaddr=data['ip'], uname=data['username'], passwd=data['password'])
+                    ipaddr=data['ip'], uname=data['username'], passwd=data['password'])
                 details = obj.mds_switch_info()
             except:
                 res.setResult(ret, PTK_NOTEXIST,
@@ -560,11 +561,11 @@ def initialconfig():
                             "switch_ip": subelement.getAttribute("ipaddress"),
                             "switch_netmask": subelement.getAttribute("netmask"),
                             "switch_image": subelement.getAttribute("switch_image"),
-			    "domain_name" : subelement.getAttribute("domain_name")}
+                            "domain_name": subelement.getAttribute("domain_name")}
                     loginfo("Triggering Nexus 9k Configure api")
                     loginfo(data)
                     threading.Thread(
-                            target=obj.nexus9kconfigure, args=(data,)).start()
+                        target=obj.nexus9kconfigure, args=(data,)).start()
                 elif subelement.getAttribute("device_type") == "Nexus 5k":
                     obj = nexus_setup.NEXUSSetup()
                     data = {"switch_name": subelement.getAttribute("name"),
@@ -577,11 +578,11 @@ def initialconfig():
                             "switch_netmask": subelement.getAttribute("netmask"),
                             "switch_kickstart_image": subelement.getAttribute("switch_kickstart_image"),
                             "switch_system_image": subelement.getAttribute("switch_system_image"),
-			    "domain_name" : subelement.getAttribute("domain_name")}
+                            "domain_name": subelement.getAttribute("domain_name")}
                     loginfo("Triggering Nexus 5k Configure api")
                     loginfo(data)
                     threading.Thread(
-                            target=obj.nexus5kconfigure, args=(data,)).start()
+                        target=obj.nexus5kconfigure, args=(data,)).start()
                 elif subelement.getAttribute("device_type") == "MDS":
                     obj = mds_setup.MDSSetup()
                     data = {"switch_name": subelement.getAttribute("name"),
@@ -594,7 +595,7 @@ def initialconfig():
                             "switch_netmask": subelement.getAttribute("netmask"),
                             "switch_kickstart_image": subelement.getAttribute("kickstart_image"),
                             "switch_system_image": subelement.getAttribute("system_image"),
-			    "domain_name" : subelement.getAttribute("domain_name")}
+                            "domain_name": subelement.getAttribute("domain_name")}
                     loginfo("Triggering MDSConfigure api")
                     loginfo(data)
                     threading.Thread(target=obj.mdsconfigure,
@@ -694,7 +695,7 @@ def save_config(stacktype, datas):
                     return obj
             if 'sec_cluster' in data:
                 ret = set_globals_api(
-                        stacktype, {"ucs_switch_b": data['sec_switch_mac']})
+                    stacktype, {"ucs_switch_b": data['sec_switch_mac']})
                 if ret.getStatus() != PTK_OKAY:
                     obj.setResult([], PTK_INTERNALERROR,
                                   _("PDT_FAILED_TO_SET_REQUESTED_SETTINGS_MSG"))
@@ -731,10 +732,10 @@ def save_config(stacktype, datas):
                                            serial_no=data['switch_serial_no'],
                                            mac=data['switch_mac'], model=data['switch_vendor'], device_type="Nexus 9k",
                                            image_version=re.search(
-                                                   'nxos.(.+?).bin', data['switch_image']).group(1),
-                                           switch_image=data['switch_image'], configured="Unconfigured",
-                                           name=data['switch_name'], tag=data['tag'],
-                                           reachability="", validated="1", domain_name=data['domain_name'])
+                    'nxos.(.+?).bin', data['switch_image']).group(1),
+                    switch_image=data['switch_image'], configured="Unconfigured",
+                    name=data['switch_name'], tag=data['tag'],
+                    reachability="", validated="1", domain_name=data['domain_name'])
 
         elif config == "nexus_5k":
             obj = nexus_setup.NEXUSSetup()
@@ -749,12 +750,12 @@ def save_config(stacktype, datas):
                                            serial_no=data['switch_serial_no'],
                                            mac=data['switch_mac'], model=data['switch_vendor'], device_type="Nexus 5k",
                                            image_version=re.search(
-                                                   'n5000-uk9.(.+?).bin', data['switch_system_image']).group(1),
-                                           switch_kickstart_image=data[
+                    'n5000-uk9.(.+?).bin', data['switch_system_image']).group(1),
+                    switch_kickstart_image=data[
                                                'switch_kickstart_image'],
-                                           switch_system_image=data['switch_system_image'],
-                                           configured="Unconfigured", name=data['switch_name'], tag=data['tag'],
-                                           reachability="", validated="1", domain_name=data['domain_name'])
+                    switch_system_image=data['switch_system_image'],
+                    configured="Unconfigured", name=data['switch_name'], tag=data['tag'],
+                    reachability="", validated="1", domain_name=data['domain_name'])
 
         elif config == "mds":
             obj = mds_setup.MDSSetup()
@@ -768,11 +769,11 @@ def save_config(stacktype, datas):
                                       username="admin", password=encrypt(data['pri_passwd']), serial_no=data['switch_serial_no'],
                                       mac=data['switch_mac'], model=data['switch_vendor'], device_type="MDS",
                                       image_version=re.search(
-                                              'mz.(.*).bin', data['switch_kickstart_image']).group(1),
-                                      kickstart_image=data['switch_kickstart_image'],
-                                      system_image=data['switch_system_image'], tag=data['tag'],
-                                      configured="Unconfigured", name=data['switch_name'], reachability="",
-                                      validated="1", domain_name=data['domain_name'])
+                    'mz.(.*).bin', data['switch_kickstart_image']).group(1),
+                    kickstart_image=data['switch_kickstart_image'],
+                    system_image=data['switch_system_image'], tag=data['tag'],
+                    configured="Unconfigured", name=data['switch_name'], reachability="",
+                    validated="1", domain_name=data['domain_name'])
 
         elif config == "ucsm":
             obj = UCSManager()
@@ -782,33 +783,33 @@ def save_config(stacktype, datas):
                     delete_xml_element(static_discovery_store,
                                        "mac", data['pri_switch_mac'])
 
-                bundl_status = iso_binding(data['esxi_file'], data['esxi_kickstart'])
+                bundl_status = iso_binding(
+                    data['esxi_file'], data['esxi_kickstart'])
                 if bundl_status != True:
                     loginfo("Failed to bundle esx iso and kickstart.")
                     res = result()
-		    ret = []
-		    ret.append({'field': 'esxi_kickstart',
+                    ret = []
+                    ret.append({'field': 'esxi_kickstart',
                                 'msg': 'Unable to bind ESXi kickstart file with ESXi image'})
                     res.setResult(ret, PTK_INTERNALERROR,
                                   "ESXi kickstart file binding failed")
                     return res
 
-
                 obj._save_ucsm_primary_details(ipaddress=data['pri_ip'], username="admin",
                                                password=encrypt(
-                                                       data['pri_passwd']),
-                                               serial_no=data['pri_switch_serial_no'],
-                                               mac=data['pri_switch_mac'], model=data['pri_switch_vendor'],
-                                               device_type="UCSM", configured="Unconfigured",
-                                               name=data['pri_name'] + "-A", vipaddress=data['virtual_ip'],
-                                               leadership="primary", reachability="", dns=data['dns'],
-                                               domain_name=data['domain_name'], gateway=data['gateway'],
-                                               ipformat=data['ipformat'], netmask=data['netmask'],
-                                               pri_cluster=data['pri_cluster'], pri_id=data['pri_id'], tag="A",
-                                               pri_orig_ip=data['pri_orig_ip'], pri_setup_mode=data['pri_setup_mode'],
-                                               validated="1", esxi_file=data['esxi_file'], esxi_kickstart=data['esxi_kickstart'],
-                                               infra_image=data['infra_image'],
-                                               blade_image=data['blade_image'], ucs_upgrade=data['ucs_upgrade'])
+                    data['pri_passwd']),
+                    serial_no=data['pri_switch_serial_no'],
+                    mac=data['pri_switch_mac'], model=data['pri_switch_vendor'],
+                    device_type="UCSM", configured="Unconfigured",
+                    name=data['pri_name'] + "-A", vipaddress=data['virtual_ip'],
+                    leadership="primary", reachability="", dns=data['dns'],
+                    domain_name=data['domain_name'], gateway=data['gateway'],
+                    ipformat=data['ipformat'], netmask=data['netmask'],
+                    pri_cluster=data['pri_cluster'], pri_id=data['pri_id'], tag="A",
+                    pri_orig_ip=data['pri_orig_ip'], pri_setup_mode=data['pri_setup_mode'],
+                    validated="1", esxi_file=data['esxi_file'], esxi_kickstart=data['esxi_kickstart'],
+                    infra_image=data['infra_image'],
+                    blade_image=data['blade_image'], ucs_upgrade=data['ucs_upgrade'])
             if 'sec_cluster' in data:
                 if check_device_exists(data['sec_switch_mac'], "mac"):
                     delete_xml_element(static_discovery_store,
@@ -840,13 +841,13 @@ def update_config(stacktype, datas):
         if config == "ucsm":
             data = eval(datas[config])
             if 'pri_cluster' in data:
-		if data['blade_image'] == "":
+                if data['blade_image'] == "":
                     ret = set_globals_api(stacktype, {
-                        "ucs_switch_a": data['pri_switch_mac'], "remote_file": data['esxi_file'], "upgrade":"No"})
-		else:
+                        "ucs_switch_a": data['pri_switch_mac'], "remote_file": data['esxi_file'], "upgrade": "No"})
+                else:
                     ret = set_globals_api(stacktype, {
-                        "ucs_switch_a": data['pri_switch_mac'], "remote_file": data['esxi_file'], "upgrade":"Yes",
-			"firmware": data['blade_image']})
+                        "ucs_switch_a": data['pri_switch_mac'], "remote_file": data['esxi_file'], "upgrade": "Yes",
+                        "firmware": data['blade_image']})
 
                 if ret.getStatus() != PTK_OKAY:
                     obj.setResult([], PTK_INTERNALERROR,
@@ -854,7 +855,7 @@ def update_config(stacktype, datas):
                     return obj
             if 'sec_cluster' in data:
                 ret = set_globals_api(
-                        stacktype, {"ucs_switch_b": data['sec_switch_mac']})
+                    stacktype, {"ucs_switch_b": data['sec_switch_mac']})
                 if ret.getStatus() != PTK_OKAY:
                     obj.setResult([], PTK_INTERNALERROR,
                                   _("PDT_FAILED_TO_SET_REQUESTED_SETTINGS_MSG"))
@@ -914,14 +915,14 @@ def update_config(stacktype, datas):
                                       "blade_image": data['blade_image'], "ucs_upgrade": data['ucs_upgrade'],
                                       "configured": "Unconfigured"}
                     update_xml_element(
-                            static_discovery_store, "mac", data['pri_switch_mac'], data_to_update)
+                        static_discovery_store, "mac", data['pri_switch_mac'], data_to_update)
             if 'sec_cluster' in data:
                 if check_device_exists(data['sec_switch_mac'], "mac"):
                     data_to_update = {"ipaddress": data['sec_ip'], "name": data['pri_name'] +
-                                                                           "-B", "configured": "Unconfigured",
+                                      "-B", "configured": "Unconfigured",
                                       "pri_ip": data['pri_ip']}
                     update_xml_element(
-                            static_discovery_store, "mac", data['sec_switch_mac'], data_to_update)
+                        static_discovery_store, "mac", data['sec_switch_mac'], data_to_update)
 
     obj = result()
     obj.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -930,7 +931,8 @@ def update_config(stacktype, datas):
 
 def clearconfig():
     res = result()
-    status = delete_xml_element(static_discovery_store, matching_key='configured', matching_value='Unconfigured')
+    status = delete_xml_element(
+        static_discovery_store, matching_key='configured', matching_value='Unconfigured')
     if status == True:
         res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     else:
@@ -960,27 +962,30 @@ def deletedevice(mac_list):
                       _("PDT_DEVICE_DELETETION_FAILED_MSG"))
     return res
 
+
 def figenvalidate(filist, stacktype):
     res = result()
     if len(filist) != 2:
-	loginfo("FI count should be 2")
-	res.setResult(stacktype, PTK_INTERNALERROR, "FI count should be 2")
-	return res
+        loginfo("FI count should be 2")
+        res.setResult(stacktype, PTK_INTERNALERROR, "FI count should be 2")
+        return res
     if "FI-62" in filist[0] and "FI-62" in filist[1] and "n5k" in stacktype:
-	loginfo("Gen 2 FI detected")
+        loginfo("Gen 2 FI detected")
         if "fc" in stacktype:
             stacktype = "fa-n5k-figen2-fc"
         else:
             stacktype = "fa-n5k-figen2-iscsi"
-	loginfo("Setting stacktype to %s" % stacktype)
-	deployment_settings({'subtype': stacktype})
-	res.setResult(stacktype, PTK_OKAY, "Success")
-	return res
+        loginfo("Setting stacktype to %s" % stacktype)
+        deployment_settings({'subtype': stacktype})
+        res.setResult(stacktype, PTK_OKAY, "Success")
+        return res
     elif "FI-63" in filist[0] and "FI-63" in filist[1]:
         res.setResult(stacktype, PTK_OKAY, "Success")
         return res
-    res.setResult(stacktype, PTK_INTERNALERROR, "FI list is not as per requirement")
+    res.setResult(stacktype, PTK_INTERNALERROR,
+                  "FI list is not as per requirement")
     return res
+
 
 def configdefaults(data):
     res = result()
@@ -988,7 +993,7 @@ def configdefaults(data):
     for key, value in data.items():
         count = len(value)
         status, conf_hw_list = get_xml_element(
-                static_discovery_store, 'device_type', key)
+            static_discovery_store, 'device_type', key)
         if status == False:
             conf_hw_cnt = 0
             conf_hw_list = []
@@ -999,7 +1004,7 @@ def configdefaults(data):
             conf_ucs_list = [
                 x for x in conf_hw_list if x['device_type'] == "UCSM"]
             ucs_populate_lst = get_ucs_configdefaults(
-                    count, value, conf_ucs_list)
+                count, value, conf_ucs_list)
             conf_defaults.extend(ucs_populate_lst)
             continue
 
@@ -1009,7 +1014,7 @@ def configdefaults(data):
             hw_dict['device_type'] = key
             hw_dict['switch_mac'] = item
             hw_dict['switch_name'] = key.split('_')[0].lower() + "-" + \
-                                     string.ascii_lowercase[new_hw_index]
+                string.ascii_lowercase[new_hw_index]
             new_hw_index = new_hw_index + 1
             if key in ["MDS", "NEXUS_9K", "NEXUS_5K"]:
                 sw_image = get_latest_image(key)
@@ -1035,10 +1040,10 @@ def configdefaults(data):
         for hw_dict in conf_defaults:
             if hw_dict['device_type'] == "UCSM" and 'kvm_console_ip' in hw_dict:
                 hw_dict['kvm_console_ip']['kvm_range'] = "" if ip_list == [] else ip_list[ip_cnt].split(
-                        '.')[-1] + "-" + str(int(ip_list[ip_cnt].split('.')[-1]) + 11)
+                    '.')[-1] + "-" + str(int(ip_list[ip_cnt].split('.')[-1]) + 11)
                 ip_cnt = ip_cnt + 12
                 hw_dict['kvm_console_ip'] = json.dumps(
-                        hw_dict['kvm_console_ip'])
+                    hw_dict['kvm_console_ip'])
 
     except IndexError:
         res.setResult(conf_defaults, PTK_NOTEXIST,
@@ -1163,7 +1168,7 @@ def conf_cleanup(device_type, xml_entry):
         mds_setup.MDSSetup().confcleanup(xml_entry.getAttribute("serial_no"))
     elif device_type == "Nexus 9k" or device_type == "Nexus 5k":
         nexus_setup.NEXUSSetup().confcleanup(
-                xml_entry.getAttribute("mac").replace(':', ''))
+            xml_entry.getAttribute("mac").replace(':', ''))
 
 
 def update_device_details(key, key_value, tag, tag_value):
@@ -1230,7 +1235,7 @@ def remove_dhcp_lease(mac):
                               (dhcp_lease_file, old_dhcp_lease_file))
                     fh.write(updated_leases)
                     loginfo(
-                            "Deleted the lease entry which matches the MAC %s" % mac)
+                        "Deleted the lease entry which matches the MAC %s" % mac)
                     fh.close()
                     return True
                 else:
@@ -1251,7 +1256,7 @@ def check_dhcpserver_presence():
     conf.checkIPaddr = False
     fam, hw = get_if_raw_hwaddr(conf.iface)
     dhcp_discover = Ether(dst="ff:ff:ff:ff:ff:ff") / IP(src="0.0.0.0", dst="255.255.255.255") / UDP(
-            sport=68, dport=67) / BOOTP(chaddr=hw) / DHCP(options=[("message-type", "discover"), "end"])
+        sport=68, dport=67) / BOOTP(chaddr=hw) / DHCP(options=[("message-type", "discover"), "end"])
     ans, unans = srp(dhcp_discover, multi=True, timeout=5)
     if len(ans) == 0:
         return False
@@ -1277,7 +1282,7 @@ def exportdevices():
     data = {'filepath': ''}
     if os.path.exists(static_discovery_store) is True:
         dest = "/var/www/restserver/templates/downloads/%s" % static_discovery_store.split(
-                '/')[-1]
+            '/')[-1]
         shutil.copy2(static_discovery_store, dest)
 
         dest_path = "downloads/%s" % static_discovery_store.split('/')[-1]
@@ -1329,7 +1334,7 @@ def get_available_static_ips():
     status, data = get_xml_element(static_discovery_store, 'ipaddress')
     if status == True:
         configured_ips = list(chain.from_iterable(
-                (x['ipaddress'], (x['vipaddress'] if 'vipaddress' in x else '')) for x in data if x['configured'] != 'Unconfigured'))
+            (x['ipaddress'], (x['vipaddress'] if 'vipaddress' in x else '')) for x in data if x['configured'] != 'Unconfigured'))
         configured_ips = [x for x in configured_ips if x != '']
 
     if static_range_ips:
@@ -1367,7 +1372,7 @@ def is_configured(ip, device_type):
         return is_nexus(ip, "Unconfigured")
     elif device_type == "Nexus 5k":
         details = get_xml_element(
-                file_name=static_discovery_store, attribute_key="ipaddress", attribute_value=ip)
+            file_name=static_discovery_store, attribute_key="ipaddress", attribute_value=ip)
         return is_nexus(ip, "", "admin", "admin")
     elif device_type == "MDS":
         return is_mds(ip, "Unconfigured")
@@ -1393,7 +1398,7 @@ def is_ucsm(ip, mode, username='', password=''):
     else:
         try:
             (error, status) = execute_remote_command(
-                    ip, username, password, "show fabric-interconnect")
+                ip, username, password, "show fabric-interconnect")
             if "Fabric Interconnect:" in status:
                 return "Valid"
             else:
@@ -1417,7 +1422,7 @@ def is_nexus(ip, mode, username='', password=''):
     else:
         try:
             (error, status) = execute_remote_command(
-                    ip, username, password, "show version")
+                ip, username, password, "show version")
             if "Cisco Nexus" in status:
                 return "Configured"
             else:
@@ -1442,7 +1447,7 @@ def is_mds(ip, mode, username='', password=''):
     else:
         try:
             (error, status) = execute_remote_command(
-                    ip, username, password, "show version")
+                ip, username, password, "show version")
             if "cisco MDS" in status:
                 return "Valid"
             else:

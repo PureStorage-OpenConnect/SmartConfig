@@ -172,4 +172,3 @@ def clear_job_failed_status(jobid):
         return re
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
-

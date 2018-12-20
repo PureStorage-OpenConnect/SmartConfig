@@ -22,9 +22,9 @@ class Test_FlashArrayConfigureNI:
     def get_iscsi_intf_list(self, keys):
         res = result()
         intf_list = []
-        res.setResult([{'label':'eth0', 'id': 'eth0', 'selected': '1'}], PTK_OKAY, "success")
+        res.setResult(
+            [{'label': 'eth0', 'id': 'eth0', 'selected': '1'}], PTK_OKAY, "success")
         return res
-
 
     def purelist(self, keys):
         """
@@ -34,9 +34,8 @@ class Test_FlashArrayConfigureNI:
 
         """
         res = result()
-	pure_list = [{'label': 'pure-a', 'id': 'AB:CD', 'selected': '0'},
-                      {'label': 'pure-b', 'id': 'EF:GH', 'selected': '0'}]
+        pure_list = [{'label': 'pure-a', 'id': 'AB:CD', 'selected': '0'},
+                     {'label': 'pure-b', 'id': 'EF:GH', 'selected': '0'}]
 
         res.setResult(pure_list, PTK_OKAY, "success")
         return res
-

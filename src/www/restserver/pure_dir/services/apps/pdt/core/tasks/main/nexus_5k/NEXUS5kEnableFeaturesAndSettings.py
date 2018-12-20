@@ -6,10 +6,10 @@ from pure_dir.components.network.nexus.nexus import *
 from pure_dir.components.common import *
 
 metadata = dict(
-        task_id="NEXUS5kEnableFeaturesAndSettings",
-        task_name="Enable Features",
-        task_desc="Enable the features in the Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS5kEnableFeaturesAndSettings",
+    task_name="Enable Features",
+    task_desc="Enable the features in the Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -21,13 +21,13 @@ class NEXUS5kEnableFeaturesAndSettings:
         res = result()
         loginfo("NEXUS Enable Features And Settings")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusEnableFeaturesAndSettings(
-                        taskinfo['inputs'], logfile)
+                    taskinfo['inputs'], logfile)
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -45,10 +45,10 @@ class NEXUS5kEnableFeaturesAndSettings:
         res = result()
         loginfo("NEXUS Enable Features And Settings rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusDisableFeaturesAndSettings(inputs, logfile)
             else:

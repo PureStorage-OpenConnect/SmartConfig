@@ -43,7 +43,6 @@ class FAAddISCSIPortToHost:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
 
-        #result = obj.create_host_map_ports(inputs['inputs'], logfile)
         result = obj.add_port_to_host(taskinfo['inputs'], logfile)
         obj.release_pure_handle()
         return parseTaskResult(result)
@@ -111,8 +110,6 @@ class FAAddISCSIPortToHost:
                 loginfo("target is null")
         new_list = list(set(wwn_list))
         for unique_wwn in new_list:
-            # port_list.append(
-                # {"id": str(unique_wwn), "selected": "0", "label": str(unique_wwn)})
             port_list.append(str(unique_wwn))
         obj.release_pure_handle()
         res.setResult(port_list, PTK_OKAY, "Success")
@@ -146,7 +143,8 @@ class FAAddISCSIPortToHost:
         iqn_prefix = getGlobalArg(inputs, 'IQN-Prefix')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsm_get_associated_sp_cnt(keys) #self.ucsmbladeservers(keys)
+        res = self.ucsm_get_associated_sp_cnt(
+            keys)  # self.ucsmbladeservers(keys)
         blade_list = res.getResult()
         val = ''
         blade_len = 0
@@ -158,11 +156,12 @@ class FAAddISCSIPortToHost:
         port_list = []
         mhosts = "{'hosts': {'ismapped': '0', 'value':'"
         mports = "'ports': {'ismapped': '0', 'value':'"
-        for pre in range(1, blade_len+1):
-            host_prefix = "VM-Host-iSCSI-"+str(pre).zfill(2)
+        for pre in range(1, blade_len + 1):
+            host_prefix = "VM-Host-iSCSI-" + str(pre).zfill(2)
             port_list = []
-            port_list.append(str(iqn_prefix)+":ucs-host:"+str(pre))
-            mdata += mhosts + host_prefix + "'},"+mports+str(port_list[0])+"'}}|"
+            port_list.append(str(iqn_prefix) + ":ucs-host:" + str(pre))
+            mdata += mhosts + host_prefix + "'}," + \
+                mports + str(port_list[0]) + "'}}|"
         job_input_save(jobid, texecid, 'host_set', mdata[:-1])
         if res.getStatus() != PTK_OKAY:
             return res
@@ -198,16 +197,14 @@ class FAAddISCSIPortToHost:
                 sp_cnt.append(sp.name)
 
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-        print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res
-
-
 
     def ucsmbladeservers(self, keys):
         """
@@ -250,11 +247,11 @@ class FAAddISCSIPortToHost:
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Host-iSCSI-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
-
 
     def getPortApi(self, keys):
         res = result()
@@ -265,23 +262,23 @@ class FAAddISCSIPortToHost:
             blade_len = int(blade_list[0]['id'])
         mdata = []
 
-	jobid = str([arg['value'] for args in keys.values() for arg in args if arg['key'] == "jobid"][0])
-        if jobid == "" :
+        jobid = str([arg['value'] for args in keys.values()
+                     for arg in args if arg['key'] == "jobid"][0])
+        if jobid == "":
             res.setResult([], PTK_OKAY, "success")
             return res
 
-	iqn_prefix = get_global_arg_from_jid(jobid, 'IQN-Prefix')
+        iqn_prefix = get_global_arg_from_jid(jobid, 'IQN-Prefix')
 
-	if iqn_prefix == None:
+        if iqn_prefix == None:
             res.setResult([], PTK_OKAY, "success")
             return res
 
         for pre in range(1, blade_len + 1):
-		iqn = str(iqn_prefix)+":ucs-host:"+str(pre)
-		mdata.append({"id":str(iqn), "selected":"0", "label":str(iqn)})
+            iqn = str(iqn_prefix) + ":ucs-host:" + str(pre)
+            mdata.append({"id": str(iqn), "selected": "0", "label": str(iqn)})
         res.setResult(mdata, PTK_OKAY, "success")
         return res
-
 
     def getfilist(self, keys):
         res = result()

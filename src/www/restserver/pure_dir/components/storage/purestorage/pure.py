@@ -40,5 +40,3 @@ class PureHelper:
     def _release_pure_handler(self, handle):
         # handle.logout()
         handle.invalidate_cookie()
-
-

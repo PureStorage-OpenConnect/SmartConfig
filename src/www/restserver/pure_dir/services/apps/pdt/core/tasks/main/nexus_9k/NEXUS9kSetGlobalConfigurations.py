@@ -5,10 +5,10 @@ from pure_dir.components.network.nexus.nexus_tasks import *
 from pure_dir.components.common import *
 
 metadata = dict(
-        task_id="NEXUS9kSetGlobalConfigurations",
-        task_name="Set global configurations",
-        task_desc="Set global configurations in the Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS9kSetGlobalConfigurations",
+    task_name="Set global configurations",
+    task_desc="Set global configurations in the Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -20,13 +20,13 @@ class NEXUS9kSetGlobalConfigurations:
         res = result()
         loginfo("NEXUS Set Global Configurations")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusSetGlobalConfigurations(
-                        taskinfo['inputs'], logfile, "n9k")
+                    taskinfo['inputs'], logfile, "n9k")
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -44,12 +44,13 @@ class NEXUS9kSetGlobalConfigurations:
         res = result()
         loginfo("NEXUS Set Global Configurations rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusRemoveGlobalConfigurations(inputs, logfile, "n9k")
+                res = obj.nexusRemoveGlobalConfigurations(
+                    inputs, logfile, "n9k")
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")

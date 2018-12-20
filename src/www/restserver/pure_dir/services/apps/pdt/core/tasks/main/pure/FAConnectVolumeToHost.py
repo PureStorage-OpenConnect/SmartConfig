@@ -90,7 +90,7 @@ class FAConnectVolumeToHost:
         for pre in range(1, blade_len + 1):
             host_prefix = 'VM-Host-FC-' + str(pre).zfill(2)
             vol_prefix = 'VM-Vol-FC-' + str(pre).zfill(2)
-            mdata += mhosts + host_prefix + "'}, "+mvols+vol_prefix+"'}}|"
+            mdata += mhosts + host_prefix + "'}, " + mvols + vol_prefix + "'}}|"
 
         job_input_save(jobid, texecid, 'hvmap_set', mdata[:-1])
 

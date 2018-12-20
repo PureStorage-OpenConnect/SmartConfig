@@ -71,7 +71,7 @@ class UCSCreateServiceProfileTemplateForiSCSI:
                 {"id": uuid.name, "selected": selected, "label": uuid.name})
         ucsm_logout(handle)
         res.setResult(temp_list, PTK_OKAY, "success")
-	return res
+        return res
 
     def getlanconnectivity(self, keys):
         temp_list = []
@@ -319,7 +319,7 @@ class UCSCreateServiceProfileTemplateForiSCSIInputs:
     template_desc = Textbox(validation_criteria='',  hidden='False', isbasic='True', helptext='', dt_type="string", api="", static="False", static_values="", name="template_desc",
                             label="template description", svalue="Service Profile template", mandatory='1', mapval="0", order=3)
     type = Radiobutton(hidden='False', isbasic='True', helptext='', dt_type="string", api="", static="True", static_values="initial-template:0:Initial Template|updating-template:1:Updating Template",
-                   label="Type", name="type", svalue="updating-template", mandatory='1', mapval="0", order=4)
+                       label="Type", name="type", svalue="updating-template", mandatory='1', mapval="0", order=4)
     ident_pool_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getuuidpool()|[fabric_id:1:fabric_id.value]", static="False",
                                static_values="", name="ident_pool_name", label="Pool name", svalue="UUID_Pool", mandatory='1', mapval="0", order=5)
     local_disk_policy_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getlocaldiskpolicy()|[fabric_id:1:fabric_id.value]", static="False",

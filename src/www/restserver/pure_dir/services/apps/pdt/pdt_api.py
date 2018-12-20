@@ -82,21 +82,24 @@ def dhcpinfo():
     ret = discovery.dhcpinfo()
     return parseResult(ret)
 
+
 def figenvalidate(filist, stacktype):
     ret = discovery.figenvalidate(filist, stacktype)
     return parseResult(ret)
+
 
 def adddevice(data):
     ret = discovery.adddevice(data)
     return parseResult(ret)
 
 
-def importimage(uploadfile, image_type, image_sub_type='',image_os_sub_type=''):
+def importimage(uploadfile, image_type, image_sub_type='', image_os_sub_type=''):
     obj = Orchestration()
-    ret = obj.importimage(uploadfile,image_type,image_sub_type,image_os_sub_type)
+    ret = obj.importimage(uploadfile, image_type,
+                          image_sub_type, image_os_sub_type)
     return parseResult(ret)
 
-#def isobinding(isofile,kickstart):
+# def isobinding(isofile,kickstart):
 #    obj = Orchestration()
 #    ret = obj.isobinding(isofile,kickstart)
 #    return parseResult(ret)
@@ -141,13 +144,16 @@ def saveconfig(stacktype, data, update):
         ret = discovery.update_config(stacktype=stacktype, datas=data)
     return parseResult(ret)
 
+
 def clearconfig():
     ret = discovery.clearconfig()
     return parseResult(ret)
 
+
 def restore_config(stacktype, data):
     ret = config_json.restore_config(stacktype, data)
     return parseResult(ret)
+
 
 def reconfigure(hwtype, mac, force):
     ret = discovery.reconfigure(hwtype, mac, force)
@@ -794,12 +800,12 @@ def exportconfiguration(stacktype):
     ret = config_json.export_configuration(stacktype)
     return parseResult(ret)
 
+
 def importconfiguration(uploadfile):
     ret = config_json.import_configuration(uploadfile)
     return parseResult(ret)
 
+
 def jsonconfigdefaults(stacktype):
     ret = config_json.json_config_defaults(stacktype)
     return parseResult(ret)
-
-

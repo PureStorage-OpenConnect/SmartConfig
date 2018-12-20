@@ -193,12 +193,11 @@ class Orchestration:
     def deleteimage(self, imagename):
         return delete_image(imagename)
 
-    def importimage(self, uploadfile, image_type, image_sub_type='',image_os_sub_type=''):
-        return import_image(uploadfile,image_type, image_sub_type,image_os_sub_type)
+    def importimage(self, uploadfile, image_type, image_sub_type='', image_os_sub_type=''):
+        return import_image(uploadfile, image_type, image_sub_type, image_os_sub_type)
 
-    #def isobinding(self, isofile,kickstart):
+    # def isobinding(self, isofile,kickstart):
     #    return iso_binding(isofile,kickstart)
-
 
     def getglobals(self, stacktype, hidden):
         return get_globals_api(stacktype, hidden)

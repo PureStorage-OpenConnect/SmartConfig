@@ -13,8 +13,9 @@ metadata = dict(
     task_type="PURE"
 )
 
-#TODO: This class needs to be updated to allow configuring multiple nics
- 
+# TODO: This class needs to be updated to allow configuring multiple nics
+
+
 class FlashArrayConfigureNI:
 
     def __init__(self):
@@ -106,10 +107,10 @@ class FlashArrayConfigureNI:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
         intf_list = obj.get_fa_ports()
-	new_intf_list = []
-	for intf in intf_list:
-		new_intf_list.append('ct0.'+intf)
-		new_intf_list.append('ct1.'+intf)
+        new_intf_list = []
+        for intf in intf_list:
+            new_intf_list.append('ct0.' + intf)
+            new_intf_list.append('ct1.' + intf)
         obj.release_pure_handle()
         loginfo("get iscsi interface list going is :{}".format(new_intf_list))
         return new_intf_list
@@ -139,15 +140,15 @@ class FlashArrayConfigureNI:
         loginfo("enters into iscsi interface prepare function")
         res = result()
         pure_id = getGlobalArg(inputs, 'pure_id')
-	interfaces = self.get_fa_iscsi_intf(pure_id)
+        interfaces = self.get_fa_iscsi_intf(pure_id)
         loginfo("interfaces in prepare :{}".format(interfaces))
-	if texecid == 't300':
-	    job_input_save(jobid, texecid, 'name', interfaces[0])	
-	elif texecid == 't301':
-	    job_input_save(jobid, texecid, 'name', interfaces[1])
-	elif texecid == 't302':
+        if texecid == 't300':
+            job_input_save(jobid, texecid, 'name', interfaces[0])
+        elif texecid == 't301':
+            job_input_save(jobid, texecid, 'name', interfaces[1])
+        elif texecid == 't302':
             job_input_save(jobid, texecid, 'name', interfaces[2])
-	elif texecid == 't303':
+        elif texecid == 't303':
             job_input_save(jobid, texecid, 'name', interfaces[3])
 
         loginfo("final mdata in network interface going is :{}".format(interfaces))
@@ -214,14 +215,14 @@ class FlashArrayConfigureNI:
         return parseTaskResult(result)
 
     def get_iscsi_intf_list(self, keys):
-	res = result()
-	pureid = getArg(keys, 'pure_id')
-        if  pureid == None:
+        res = result()
+        pureid = getArg(keys, 'pure_id')
+        if pureid == None:
             res.setResult([], PTK_OKAY, "success")
             return res
-	res.setResult(self.get_iscsi_interfaces(pureid), PTK_OKAY, "success")
+        res.setResult(self.get_iscsi_interfaces(pureid), PTK_OKAY, "success")
         return res
-	
+
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
@@ -232,13 +233,13 @@ class FlashArrayConfigureNI:
 class FlashArrayConfigureNIInputs:
     pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
                        label="FlashArray", svalue="", mapval="", mandatory="0", static_values="", order=1)
-    #name = Textbox(validation_criteria='', hidden='False', isbasic='True', helptext='', dt_type="string", static="False", api="", name="name", label="Name",
+    # name = Textbox(validation_criteria='', hidden='False', isbasic='True', helptext='', dt_type="string", static="False", api="", name="name", label="Name",
     #               svalue="", static_values="", mandatory="0", mapval="", order=2, recommended="1")
     fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
                          label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
 
     name = Dropdown(hidden='False', isbasic='True', helptext='iSCSI interface name', dt_type="string", static="False", api="get_iscsi_intf_list()|[pure_id:1:pure_id.value]", name="name", label="Name",
-                   svalue="", static_values="", mandatory="0", mapval="", order=2, recommended="1")
+                    svalue="", static_values="", mandatory="0", mapval="", order=2, recommended="1")
     enabled = Checkbox(hidden='False', isbasic='True', helptext='Enable or Disable Interface', dt_type="boolean", static="True", api="", name="enabled", label="Enabled",
                        svalue="True", static_values="True@False:1:enabled", mandatory="0", mapval="", order=3, allow_multiple_values="0", recommended="1")
     address = Textbox(validation_criteria='ip',  hidden='False', isbasic='True', helptext='IP Address', dt_type="string", static="False", api="", name="address", label="Address",

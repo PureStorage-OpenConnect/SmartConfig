@@ -112,17 +112,17 @@ class Images:
     def deleteimage(self, file_name):
         img = os.listdir(image_dir)
         if file_name in img:
-             path = image_dir
-             os.remove(image_dir + file_name)
-             doc = parse(xml_file)
-             itemlist = doc.getElementsByTagName('image')
-             for node in itemlist:
-                 if node.attributes['name'].value == file_name:
-                     doc.documentElement.removeChild(node)
-                     o = open(xml_file, "w+")
-                     o.write(pretty_print(doc.toprettyxml(indent="")))
-                     o.close()
-                     return True
+            path = image_dir
+            os.remove(image_dir + file_name)
+            doc = parse(xml_file)
+            itemlist = doc.getElementsByTagName('image')
+            for node in itemlist:
+                if node.attributes['name'].value == file_name:
+                    doc.documentElement.removeChild(node)
+                    o = open(xml_file, "w+")
+                    o.write(pretty_print(doc.toprettyxml(indent="")))
+                    o.close()
+                    return True
         return False
 
 

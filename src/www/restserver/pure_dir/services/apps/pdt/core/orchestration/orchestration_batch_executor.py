@@ -51,7 +51,6 @@ def _get_workflow_list(htype):
                 'id': doc['workflow']['@id'],
                 'name': doc['workflow']['@name'],
                 'order': order,
-                # 'execstatus': get_exec_status(doc['workflow']['@id'])
             }
             wf_list.append(wf_entity)
         except IOError:
@@ -75,9 +74,9 @@ def flashstack_deploy(htype, wid):
         return res
 
     if get_config_mode() == "json":
-	json_config = 1
+        json_config = 1
     else:
-	json_config = 0
+        json_config = 0
 
     wf_list = res.getResult()
     if wid == '':
@@ -94,27 +93,26 @@ def flashstack_deploy(htype, wid):
         wf_list = wflow
 
     for wf in wf_list:
-	update_batch_job_status_on_init( htype, wf['id'],'EXECUTING')
+        update_batch_job_status_on_init(htype, wf['id'], 'EXECUTING')
         if wid == '':
             res = workflowprepare_helper(wf['id'])
         else:
             res = workflow_persistant_prepare_helper(wf['id'])
-	
+
         if res.getStatus() != PTK_OKAY:
-	    update_batch_job_status_on_init( htype, wf['id'],'FAILED')	
+            update_batch_job_status_on_init(htype, wf['id'], 'FAILED')
             res.setResult(None, PTK_INTERNALERROR, "failed")
             return res
         job_details = res.getResult()
-	
-	if json_config == 1:
-	    job_list = [job['job_id'] for job in job_details['subjobs']]
-	    for jb in job_list:
-	        update_config_inputs(htype, jb) 
+
+        if json_config == 1:
+            job_list = [job['job_id'] for job in job_details['subjobs']]
+            for jb in job_list:
+                update_config_inputs(htype, jb)
 
         update_batch_job_status(
             htype, wf['id'],  job_details['jobid'], 'EXECUTING')
         jobexecute_helper(job_details['jobid'])
-        #res = groupjobstatus_helper(job_details ['jobid'])
         res = group_job_status_api(job_details['jobid'])
         job_status = res.getResult()
         update_batch_job_status(

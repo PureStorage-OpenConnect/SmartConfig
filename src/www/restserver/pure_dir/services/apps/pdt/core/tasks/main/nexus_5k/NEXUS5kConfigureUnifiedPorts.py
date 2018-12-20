@@ -8,10 +8,10 @@ from pure_dir.services.utils.miscellaneous import *
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
 metadata = dict(
-        task_id="NEXUS5kConfigureUnifiedPorts",
-        task_name="Add NTP Distribution Interface",
-        task_desc="Add NTP Distribution Interface for Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS5kConfigureUnifiedPorts",
+    task_name="Add NTP Distribution Interface",
+    task_desc="Add NTP Distribution Interface for Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -23,10 +23,10 @@ class NEXUS5kConfigureUnifiedPorts:
         res = result()
         loginfo("NEXUS Configure Unified ports")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusConfigureUnifiedPorts(taskinfo['inputs'],
                                                      logfile, cred['ipaddress'], cred['username'], cred['password'])
@@ -47,10 +47,10 @@ class NEXUS5kConfigureUnifiedPorts:
         res = result()
         loginfo("NEXUS Configure Unified ports rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusUnconfigureUnifiedPorts(inputs,
                                                        logfile, cred['ipaddress'], cred['username'], cred['password'])

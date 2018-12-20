@@ -6,10 +6,10 @@ from pure_dir.components.network.nexus.nexus import *
 from pure_dir.components.common import *
 
 metadata = dict(
-        task_id="NEXUS5kConfigureiSCSIInterface",
-        task_name="Configure iSCSI Interface",
-        task_desc="Configure iSCSI Interface",
-        task_type="NEXUS"
+    task_id="NEXUS5kConfigureiSCSIInterface",
+    task_name="Configure iSCSI Interface",
+    task_desc="Configure iSCSI Interface",
+    task_type="NEXUS"
 )
 
 
@@ -21,13 +21,13 @@ class NEXUS5kConfigureiSCSIInterface:
         res = result()
         loginfo("NEXUS Configure iSCSI Interface")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusConfigureiSCSIInterface(
-                        taskinfo['inputs'], logfile, "n5k")
+                    taskinfo['inputs'], logfile, "n5k")
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -45,12 +45,13 @@ class NEXUS5kConfigureiSCSIInterface:
         res = result()
         loginfo("NEXUS Configure iSCSI Interface rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusUnconfigureiSCSIInterface(inputs, logfile, "n5k")
+                res = obj.nexusUnconfigureiSCSIInterface(
+                    inputs, logfile, "n5k")
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")

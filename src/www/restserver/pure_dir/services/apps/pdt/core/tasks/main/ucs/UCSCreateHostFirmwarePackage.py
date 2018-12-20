@@ -55,13 +55,12 @@ class UCSCreateHostFirmwarePackage:
         for rack_version in rack_version_list:
             #rack_val = rack_version['id']
             rack_val = ''  # Done because latest rack package is not uploaded
-	
-	blade_firmware = getGlobalArg(inputs, 'firmware')
+
+        blade_firmware = getGlobalArg(inputs, 'firmware')
         if blade_firmware:
             ver = blade_firmware[-12:].split('.')
             version = ver[0] + "." + ver[1] + "(" + ver[2] + ")" + ver[3]
             blade_val = version
-
 
         job_input_save(jobid, texecid, 'blade_pkg', blade_val)
         job_input_save(jobid, texecid, 'rack_pkg', rack_val)
@@ -100,9 +99,10 @@ class UCSCreateHostFirmwarePackage:
         for bundle in bundles:
             bundle_result.append(
                 {'id': bundle.version, "selected": "1", "label": bundle.version})
-	
-	bundle_result.extend(ucsbladeimages(version=True))
-	bundle_result = [dict(t) for t in {tuple(d.items()) for d in bundle_result}]
+
+        bundle_result.extend(ucsbladeimages(version=True))
+        bundle_result = [dict(t)
+                         for t in {tuple(d.items()) for d in bundle_result}]
 
         ucsm_logout(handle)
         res.setResult(bundle_result, PTK_OKAY, "success")
@@ -163,11 +163,11 @@ class UCSCreateHostFirmwarePackage:
         bundle_result = []
         for bundle in bundles:
             bundle_list += [bundle.version]
-	if bundle_list:
+        if bundle_list:
             bundle_list.sort(key=LooseVersion)
             bundle_pkg_version = bundle_list[-1]
             bundle_dict = {'id': bundle_pkg_version,
-                       'selected': '1', "label": "bundle_version"}
+                           'selected': '1', "label": "bundle_version"}
             bundle_result.append(bundle_dict)
         ucsm_logout(handle)
         res.setResult(bundle_result, PTK_OKAY, "success")
@@ -192,7 +192,7 @@ class UCSCreateHostFirmwarePackage:
                 if temp_list:
                     selected = "0"
                 temp_list.append(
-                    {"id": fm_version.version+"C", "selected": selected, "label": fm_version.version+"C"})
+                    {"id": fm_version.version + "C", "selected": selected, "label": fm_version.version + "C"})
         ucsm_logout(handle)
         res.setResult(temp_list, PTK_OKAY, "success")
         return res
@@ -217,7 +217,7 @@ class UCSCreateHostFirmwarePackage:
                 if temp_list:
                     selected = "0"
                 temp_list.append(
-                    {"id": fm_version.version+"B", "selected": selected, "label": fm_version.version+"B"})
+                    {"id": fm_version.version + "B", "selected": selected, "label": fm_version.version + "B"})
         ucsm_logout(handle)
         res.setResult(temp_list, PTK_OKAY, "success")
         return res
@@ -278,4 +278,3 @@ class UCSCreateHostFirmwarePackageInputs:
 
 class UCSCreateHostFirmwarePackageOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
-

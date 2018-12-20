@@ -116,5 +116,5 @@ class FACreateSharedVolumeInputs:
 
 
 class FACreateSharedVolumeOutputs:
-    name = Output(dt_type="string", name="name", tvalue="SUCCESS")	
+    name = Output(dt_type="string", name="name", tvalue="SUCCESS")
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")

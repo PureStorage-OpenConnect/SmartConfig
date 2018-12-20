@@ -49,6 +49,63 @@ class UCSCreateServiceProfileTemplate:
         print ucs_list, res
         return res
 
+    def prepare(self, jobid, texecid, inputs):
+        loginfo(
+            "preparing to save values for creating service profile template input params")
+        res = result()
+        # TODO for safer side. Please ensure map val set for desired fields
+        val = getGlobalArg(inputs, 'ucs_switch_a')
+        keys = {"keyvalues": [
+            {"key": "fabric_id", "ismapped": "3", "value": val}]}
+        res = self.getuuidpool(keys)
+        uuid_list = [uuid for uuid in res.getResult() if uuid.get('id')
+                     != 'default']
+        self.sp_template_save_inputs(
+            jobid, texecid,  "ident_pool_name", uuid_list)
+
+        san_conn_policy = self.getsanconnectivity(keys)
+        self.sp_template_save_inputs(
+            jobid, texecid, "san_conn_policy_name", san_conn_policy.getResult())
+
+        lan_conn_policy = self.getlanconnectivity(keys)
+        self.sp_template_save_inputs(
+            jobid, texecid, "lan_conn_policy_name", lan_conn_policy.getResult())
+
+        boot_policy = self.getbootpolicy(keys)
+        boot_pol_list = [boot for boot in boot_policy.getResult() if boot.get(
+            'id') not in ['utility', 'diag', 'default']]
+        self.sp_template_save_inputs(
+            jobid, texecid, "boot_policy_name", boot_pol_list)
+
+        power_policy = self.getpowerpolicy(keys)
+        power_pol_list = [power_pol for power_pol in power_policy.getResult(
+        ) if power_pol.get('id') != 'default']
+        self.sp_template_save_inputs(
+            jobid, texecid, "power_policy_name", power_pol_list)
+
+        local_disk_policy = self.getlocaldiskpolicy(keys)
+        localdisk_pol_list = [localdisk_pol for localdisk_pol in local_disk_policy.getResult(
+        ) if localdisk_pol.get('id') != 'default']
+        self.sp_template_save_inputs(
+            jobid, texecid, "local_disk_policy_name", localdisk_pol_list)
+
+        bios_policy = self.getbiospolicy(keys)
+        bios_pol_list = [bios_pol for bios_pol in bios_policy.getResult(
+        ) if bios_pol.get('id') not in ['SRIOV', 'usNIC']]
+        self.sp_template_save_inputs(
+            jobid, texecid, "biospolicy", bios_pol_list)
+
+        res.setResult(None, PTK_OKAY, "success")
+        return res
+
+    def sp_template_save_inputs(self, jobid, texecid, input_field_name, input_list):
+        field_val_from_xml = get_field_value_from_jobid(
+            jobid, "UCSCreateServiceProfileTemplate", input_field_name)
+        for input_val in input_list:
+            input_value = input_val['id']
+            if field_val_from_xml != input_value:
+                job_input_save(jobid, texecid, input_field_name, input_value)
+
     def getuuidpool(self, keys):
         loginfo("get uuid pool")
         temp_list = []
@@ -321,7 +378,7 @@ class UCSCreateServiceProfileTemplateInputs:
     template_desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='', dt_type="string", api="", static="False", static_values="", name="template_desc",
                             label="Description", svalue="Service Profile template", mandatory='1', mapval="0", order=3)
     type = Radiobutton(hidden='False', isbasic='True', helptext='Template type', dt_type="string", api="", static="True", static_values="initial-template:0:Initial Template|updating-template:1:Updating Template",
-                   label="Type", name="type", svalue="updating-template", mandatory='1', mapval="0", order=4)
+                       label="Type", name="type", svalue="updating-template", mandatory='1', mapval="0", order=4)
     ident_pool_name = Dropdown(hidden='False', isbasic='True', helptext='UUID Pool', dt_type="string", api="getuuidpool()|[fabric_id:1:fabric_id.value]", static="False",
                                static_values="", name="ident_pool_name", label="UUID Assignment", svalue="UUID_Pool", mandatory='1', mapval="0", order=5)
     lan_conn_policy_name = Dropdown(hidden='False', isbasic='True', helptext='LAN Connectivity', dt_type="string", api="getlanconnectivity()|[fabric_id:1:fabric_id.value]", static="False",

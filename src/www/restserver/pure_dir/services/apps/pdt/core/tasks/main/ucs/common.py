@@ -1,12 +1,17 @@
 from pure_dir.components.compute.ucs.ucs_tasks import *
 from pure_dir.infra.logging.logmanager import *
 from pure_dir.components.common import *
-import ucsmsdk
 from ucsmsdk.ucshandle import UcsHandle
 from pure_dir.infra.apiresults import *
 
 
 def get_ucs_handle(mac):
+    """
+    Get UCS tasks handler
+
+    :param mac: UCSM FI mac address
+    :return UCS task handle
+    """
     # gets ucs tasks handler
     res = result()
     cred = get_device_credentials(
@@ -31,6 +36,13 @@ def get_ucs_handle(mac):
 
 
 def get_ucs_login(mac):
+    """
+    Get UCS login handle
+
+    :param mac: UCSM FI mac address
+    :return UCS login status
+    """
+
     res = result()
     cred = get_device_credentials(
         key="mac", value=mac)
@@ -58,6 +70,13 @@ def get_ucs_login(mac):
 
 
 def ucsm_logout(handle):
+    """
+    Logout of UCSM
+
+    :param handle: UCS handle
+    :return UCS logout status
+    """
+
     ret = result()
     try:
         handle.logout()

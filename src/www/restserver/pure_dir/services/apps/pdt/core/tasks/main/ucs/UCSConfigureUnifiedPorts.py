@@ -5,7 +5,6 @@ from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from xml.dom.minidom import *
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
-from ucsmsdk.ucshandle import UcsHandle
 import os
 import json
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
@@ -81,16 +80,17 @@ class UCSConfigureUnifiedPorts:
 
         :return: Returns the list of interfaces
         """
-	res = result()
+        res = result()
         intf_list = []
         details = {}
-        slot_info = {"min_range":str(1),"max_range":str(16),"min_fixed":True, "max_fixed":False,"min_interval":"5"}
+        slot_info = {"min_range": str(1), "max_range": str(
+            16), "min_fixed": True, "max_fixed": False, "min_interval": "5"}
         details['label'] = ""
         details['id'] = ""
-        details['selected'] = str(1) + "-" +str(6)
+        details['selected'] = str(1) + "-" + str(6)
         details['extrafields'] = json.dumps(slot_info)
         intf_list.append(details)
-	res.setResult(intf_list, PTK_OKAY, "success")
+        res.setResult(intf_list, PTK_OKAY, "success")
         return res
 
 
@@ -98,11 +98,10 @@ class UCSConfigureUnifiedPortsInputs:
     fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
                          label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
     ucs_fabric_id = Radiobutton(hidden='', isbasic='True', helptext='Primary or Subordinate FI', dt_type="string", static="True", api="", name="ucs_fabric_id", label="Fabric ID",
-                             static_values="A:1:Fabric Interconnect A(primary)|B:0:Fabric Interconnect B(subordinate)", svalue="", mapval="", mandatory="1", order=2)
+                                static_values="A:1:Fabric Interconnect A(primary)|B:0:Fabric Interconnect B(subordinate)", svalue="", mapval="", mandatory="1", order=2)
     no_of_ports = Rangepicker(hidden='', isbasic='True', helptext='Enter the respective ports', dt_type="string",
-                         static="False", api="get_ucs_ports()", name="no_of_ports", label="FC Ports",
-                         static_values="", svalue="", mapval="", mandatory="1", order=3, recommended="1", min_range=0, max_range=0, max_fixed=False, min_interval=5)
-
+                              static="False", api="get_ucs_ports()", name="no_of_ports", label="FC Ports",
+                              static_values="", svalue="", mapval="", mandatory="1", order=3, recommended="1", min_range=0, max_range=0, max_fixed=False, min_interval=5)
 
 
 class UCSConfigureUnifiedPortsOutputs:

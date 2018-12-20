@@ -53,6 +53,7 @@ def system_info():
     res.setResult(sysinfo, PTK_OKAY, "Success")
     return res
 
+
 def deployment_settings(data):
     res = result()
     status, details = get_xml_element(settings, 'current_step')
@@ -64,6 +65,7 @@ def deployment_settings(data):
             res.setResult(False, PTK_INTERNALERROR, "Failed to save settings")
     res.setResult(True, PTK_OKAY, "Success")
     return res
+
 
 def networkinfo():
     res = result()
@@ -101,7 +103,6 @@ def pdtreset():
         "rm -rf /mnt/system/pure_dir/pdt/rollback/*.xml")
     os.system(
         "rm -rf /mnt/system/pure_dir/pdt/rollback/status/*.xml")
-
 
     # Clearing out global values
     reset_global_config()

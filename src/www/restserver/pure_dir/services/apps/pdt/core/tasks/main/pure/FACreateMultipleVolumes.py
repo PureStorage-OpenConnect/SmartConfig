@@ -118,7 +118,8 @@ class FACreateMultipleVolumes:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsm_get_associated_sp_cnt(keys) #self.ucsmbladeservers(keys)
+        res = self.ucsm_get_associated_sp_cnt(
+            keys)  # self.ucsmbladeservers(keys)
         blade_list = res.getResult()
         val = ''
 
@@ -161,11 +162,11 @@ class FACreateMultipleVolumes:
                 sp_cnt.append(sp.name)
 
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-        print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res

@@ -20,7 +20,8 @@ def get_logs_api(jobid):
     if os.path.exists(get_log_file_path(jobid)) == False:
         logs_dict = {'logs': " "}
 
-        obj.setResult(logs_dict, PTK_NOTEXIST, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
+        obj.setResult(logs_dict, PTK_NOTEXIST, _(
+            "PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
         return obj
     with file(get_log_file_path(jobid)) as f:
         logs = f.read()

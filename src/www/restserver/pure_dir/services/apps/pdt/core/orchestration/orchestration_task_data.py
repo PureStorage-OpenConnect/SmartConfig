@@ -46,10 +46,10 @@ def job_tasks_api(id, ttype=''):
             with open(get_workflow_file(id)) as td:
                 doc = xmltodict.parse(td.read())
         else:
-            with open("/tmp/"+id+".xml") as td:
+            with open("/tmp/" + id + ".xml") as td:
                 doc = xmltodict.parse(td.read())
     except IOError:
-	loginfo("Job does not exist")
+        loginfo("Job does not exist")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
     for task in getAsList(doc['workflow']['tasks']['task']):
@@ -80,7 +80,7 @@ def job_tasks_api(id, ttype=''):
 def ipvalidation(ip):
     try:
         if len(ip.split('.')) != 4:
-	    return False, "Enter Valid IP Address"
+            return False, "Enter Valid IP Address"
         socket.inet_aton(ip)
         return True, ""
     except socket.error:
@@ -122,21 +122,24 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                  ("field", "input_obj", argname))
                             tvalue, mapval = form_value(input_args, argname)
                             if field.ip_type == 'text-box' and mapval == "0" and field.validation_criteria == "function":
-                                exec("%s = %s" % ("cl_obj", tid + "." + tid + "()"))
+                                exec("%s = %s" %
+                                     ("cl_obj", tid + "." + tid + "()"))
                                 isvalid = cl_obj.validate(tvalue)
                                 if isvalid[0]:
-                                   inp.setAttribute('value', str(tvalue))
-                                   inp.setAttribute('mapval', mapval)
+                                    inp.setAttribute('value', str(tvalue))
+                                    inp.setAttribute('mapval', mapval)
                                 else:
-                                   err.append({"field": argname, "msg": isvalid[1], "order": order})
+                                    err.append(
+                                        {"field": argname, "msg": isvalid[1], "order": order})
                             elif field.ip_type == 'text-box' and mapval == "0":
                                 isvalid = validation(
                                     field.validation_criteria, tvalue)
                                 if isvalid[0]:
-                                   inp.setAttribute('value', str(tvalue))
-                                   inp.setAttribute('mapval', mapval)
+                                    inp.setAttribute('value', str(tvalue))
+                                    inp.setAttribute('mapval', mapval)
                                 else:
-                                   err.append({"field": argname, "msg": isvalid[1], "order": order})
+                                    err.append(
+                                        {"field": argname, "msg": isvalid[1], "order": order})
                             elif field.ip_type == 'group' and mapval == "0" and field.validation_criteria != "function":
                                 val_dict = tvalue.split("|")
                                 for val in val_dict:
@@ -147,17 +150,18 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                         ky = ast.literal_eval(val)[key]
                                         if ky['ismapped'] == "0" and field.ip_type == "text-box":
                                             isvalid = validation(
-                                               field.validation_criteria, ky['value'])
+                                                field.validation_criteria, ky['value'])
                                             if not isvalid[0]:
                                                 err.append(
-                                                   {"field": key, "msg": isvalid[1], "order": order})
-					elif ky['value'] == "":
-					     if 'validation_criteria' in dir(field) and field.validation_criteria == "None":
-						pass
-					     else:
-					        err.append({"field": key, "msg": "Cannot be empty", "order": order})
+                                                    {"field": key, "msg": isvalid[1], "order": order})
+                                        elif ky['value'] == "":
+                                            if 'validation_criteria' in dir(field) and field.validation_criteria == "None":
+                                                pass
+                                            else:
+                                                err.append(
+                                                    {"field": key, "msg": "Cannot be empty", "order": order})
 
-                                if len(err)==0:
+                                if len(err) == 0:
                                     inp.setAttribute('value', str(tvalue))
                                     inp.setAttribute('mapval', str(mapval))
                             elif field.ip_type == 'group' and mapval == "0" and field.validation_criteria == "function":
@@ -173,18 +177,19 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                             {"field": isvalid[1], "msg": isvalid[2], "order": order})
                                 if len(err) == 0:
                                     inp.setAttribute('value', tvalue)
-                                    inp.setAttribute('mapval', mapval)  
+                                    inp.setAttribute('mapval', mapval)
 
                             elif tvalue == "":
-				if 'validation_criteria' in dir(field) and field.validation_criteria == "None":
-				    inp.setAttribute('value', tvalue)
-				    inp.setAttribute('mapval', mapval)
-				else:
-				    err.append({"field": argname, "msg": "Cannot be empty", "order": order})
- 
+                                if 'validation_criteria' in dir(field) and field.validation_criteria == "None":
+                                    inp.setAttribute('value', tvalue)
+                                    inp.setAttribute('mapval', mapval)
+                                else:
+                                    err.append(
+                                        {"field": argname, "msg": "Cannot be empty", "order": order})
+
                             else:
                                 inp.setAttribute('value', tvalue)
-                                inp.setAttribute('mapval', mapval)  
+                                inp.setAttribute('mapval', mapval)
 
             else:
                 args = doc.createElement("args")
@@ -253,14 +258,14 @@ def validation(validation_criteria, value):
     if validation_criteria:
         val = validation_criteria.split("|")
         if val[0] == "ip":
-	    ip = value.split('/')
-	    if len(ip) > 1:
-		if int(ip[1]) >= 0 and int(ip[1]) < 32:
-		    isvalid = ipvalidation(ip[0])
-		    if isvalid[0]:
-			return True, ""
-	        return False, "Provide valid route"
-	    else:
+            ip = value.split('/')
+            if len(ip) > 1:
+                if int(ip[1]) >= 0 and int(ip[1]) < 32:
+                    isvalid = ipvalidation(ip[0])
+                    if isvalid[0]:
+                        return True, ""
+                return False, "Provide valid route"
+            else:
                 isvalid = ipvalidation(value)
                 return isvalid
         elif val[0] == "int":
@@ -273,7 +278,7 @@ def validation(validation_criteria, value):
         elif val[0] == "str":
             if int(val[1].split(":")[1]) <= len(value) <= int(val[2].split(":")[1]):
                 return True, ""
-            return False, "Valid Length is " + val[1].split(":")[1] + " - "+val[2].split(":")[1]
+            return False, "Valid Length is " + val[1].split(":")[1] + " - " + val[2].split(":")[1]
         elif val[0] == "ip-range":
             if '-' in value:
                 if int(value.split("-")[0]) < int(value.split("-")[1]):
@@ -322,7 +327,7 @@ def job_task_mandatory_input_save_api(id, input_list, ttype=''):
     input_args = eval(str(input_list))
 
     if os.path.exists(get_job_file(id)) == False:
-	loginfo("No such job")
+        loginfo("No such job")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
 
     doc = parse(get_job_file(id))
@@ -355,7 +360,7 @@ def job_task_inputs_api(execid, id, ttype=''):
 
     path = get_file_location(execid=execid, ttype=ttype, id=id)
     if not path:
-	loginfo("No such Instance")
+        loginfo("No such Instance")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
 
@@ -458,7 +463,7 @@ def workflow_inputs_api(wid, stacktype):
 
     path = get_workflow_file(wid, stacktype)
     if not os.path.exists(path):
-	loginfo("No such Instance")
+        loginfo("No such Instance")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
 
@@ -467,7 +472,7 @@ def workflow_inputs_api(wid, stacktype):
         wf_path = get_workflow_file(wf.getAttribute('id'), stacktype)
 
         if not os.path.exists(wf_path):
-	    loginfo("No such Instance")
+            loginfo("No such Instance")
             obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
             return obj
 
@@ -502,7 +507,6 @@ def workflow_inputs_api(wid, stacktype):
                         ) == 'true' or field.add.lower == '1' else False
                         wftaskip['group_fields'] = group_members
                     wftaskip['execid'] = task['@texecid']
-                    #wftaskip['name'] = task['@texecid'] + "_" + field.name
                     wftaskip['desc'] = task['@desc']
                     wftaskip['order'] = field.order
                     tmplist.append(wftaskip)
@@ -589,8 +593,9 @@ def job_task_outputs_api(texecid, jid):
             tdoc = xmltodict.parse(td.read())
 
     except EnvironmentError:
-	loginfo("No such Job")
-        obj.setResult(wftaskip_list, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
+        loginfo("No such Job")
+        obj.setResult(wftaskip_list, PTK_NOTEXIST,
+                      _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
 
     for task in tdoc['workflow']['tasks']['task']:
         if task['@texecid'] == texecid:
@@ -603,7 +608,7 @@ def job_task_outputs_api(texecid, jid):
                     'argtype': oput['@dt_type']}
                 wftask_oputs.append(wftask_oput_entity)
     if found == 0:
-	loginfo("No such task")
+        loginfo("No such task")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
 
@@ -655,10 +660,10 @@ def task_suggested_inputs_api(id, execid, ttype='', field=''):
         elif ttype == 'workflow':
             fd = open(get_workflow_file(id), 'r')
         else:
-            fd = open("/tmp/"+id+".xml", 'r')
+            fd = open("/tmp/" + id + ".xml", 'r')
 
     except IOError:
-	loginfo("unable to read job file")
+        loginfo("unable to read job file")
         obj.setResult(
             task_status_list,
             PTK_NOTEXIST,
@@ -696,7 +701,7 @@ def task_input_value_api(jid, taskid):
         fd = open(get_job_file(jid), 'r')
 
     except IOError:
-	loginfo("unable to read log file")
+        loginfo("unable to read log file")
         obj.setResult(
             [],
             PTK_NOTEXIST,
@@ -712,4 +717,3 @@ def task_input_value_api(jid, taskid):
                     inputs_list.append(j['@value'])
                     obj.setResult(j['@value'], PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
-

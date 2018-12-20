@@ -560,8 +560,8 @@ class TurnkeyConsole:
                 errors.append("No netmask provided")
             elif not ipaddr.is_legal_ip(netmask):
                 errors.append("Invalid netmask: %s" % netmask)
-	    
-	    """if nameservers == []:
+
+            """if nameservers == []:
 		return ["Nameserver "]
             for nameserver in nameservers:
                 if nameserver and not ipaddr.is_legal_ip(nameserver):
@@ -581,14 +581,14 @@ class TurnkeyConsole:
                         return ["Gateway (%s) not in IP range (%s)" % (gateway,
                                                                        iprange)]
 
-	    """for nameserver in nameservers:
+            """for nameserver in nameservers:
 		if gateway == nameserver:
 			return ["Gateway and DNS should not be same"]"""
             return []
 
         addr, netmask, gateway, nameservers = ifutil.get_ipconf(self.ifname)
         input = [addr, netmask, gateway]
-        #input.extend(nameservers)
+        # input.extend(nameservers)
 
         # include minimum 2 nameserver fields and 1 blank one
         if len(input) < 2:

@@ -26,7 +26,7 @@ def job_validate(jobid, execid=''):
     error_info = []
     obj = result()
     if os.path.exists(get_job_file(jobid)) == False:
-	loginfo("No such Job found")
+        loginfo("No such Job found")
         obj.setResult(0, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
     doc = parse(get_job_file(jobid))
@@ -43,7 +43,7 @@ def job_mandatory_validate_api(jobid):
     obj = result()
     error_info = []
     if os.path.exists(get_job_file(jobid)) == False:
-	loginfo("No such Job found")
+        loginfo("No such Job found")
         obj.setResult(0, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
     doc = parse(get_job_file(jobid))
@@ -51,7 +51,7 @@ def job_mandatory_validate_api(jobid):
     for wf in wflist:
         err_info = []
         if os.path.exists(get_job_file(wf.getAttribute('jid'))) == False:
-	    loginfo("No such Job found")
+            loginfo("No such Job found")
             obj.setResult(0, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
             return obj
         doc = parse(get_job_file(wf.getAttribute('jid')))

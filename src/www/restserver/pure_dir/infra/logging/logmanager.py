@@ -18,6 +18,7 @@ g_log_format = '[%(asctime)s] (%(processName)-10s) %(module)s %(funcName)s [%(le
 logging.DEPLOY = 21  # INFO is 20. So having in that range
 logging.addLevelName(logging.DEPLOY, 'DEPLOY')
 
+
 def loginfo(message):
     releasehandler()
     logging.basicConfig(level=logging.INFO, filename=g_log_dir +

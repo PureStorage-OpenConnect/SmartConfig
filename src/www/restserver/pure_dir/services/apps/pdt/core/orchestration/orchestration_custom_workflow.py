@@ -41,13 +41,13 @@ def create_workflow_api():
     """
     res = result()
     rm_no = str(random.randrange(1000))
-    filename = rm_no+".xml"
+    filename = rm_no + ".xml"
     doc = Document()
     roottag = doc.createElement("workflow")
     tasks = doc.createElement("tasks")
     roottag.appendChild(tasks)
     doc.appendChild(roottag)
-    fd = open("/tmp/"+filename, 'w')
+    fd = open("/tmp/" + filename, 'w')
     fd.write(pretty_print(doc.toprettyxml(indent="")))
     fd.close()
     e = {
@@ -64,26 +64,27 @@ def add_task_api(data):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(data['wid'])+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(data['wid']) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR, _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(data['wid'])+".xml")
+    doc = parse("/tmp/" + str(data['wid']) + ".xml")
     if len(doc.getElementsByTagName("task")) == 0:
         execid = "100"
     else:
         val = getlasttask(data['wid'])
-        execid = int(val[1:])+1
+        execid = int(val[1:]) + 1
     tsk = doc.getElementsByTagName("tasks")
     newtask = doc.createElement("task")
     newtask.setAttribute('id', data['taskid'])
-    newtask.setAttribute('texecid', "t"+str(execid))
+    newtask.setAttribute('texecid', "t" + str(execid))
     newtask.setAttribute('name', data['taskid'])
     tsk[0].appendChild(newtask)
-    fd = open("/tmp/"+str(data['wid'])+".xml", 'w')
+    fd = open("/tmp/" + str(data['wid']) + ".xml", 'w')
     fd.write(pretty_print(doc.toprettyxml(indent="")))
     fd.close()
-    obj = {"execid": "t"+str(execid)}
+    obj = {"execid": "t" + str(execid)}
     res.setResult(obj, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
@@ -96,11 +97,12 @@ def delete_task_api(execid, wid):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(wid)+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(wid) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR, _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(wid)+".xml")
+    doc = parse("/tmp/" + str(wid) + ".xml")
     tsk_ls = doc.getElementsByTagName("task")
     for tsk in tsk_ls:
         if tsk.getAttribute("texecid") == execid:
@@ -110,7 +112,7 @@ def delete_task_api(execid, wid):
             tsk.setAttribute("OnSuccess", "")
         if tsk.getAttribute("Onfailure") == execid:
             tsk.setAttribute("Onfailure", "")
-        fd = open("/tmp/"+str(wid)+".xml", 'w')
+        fd = open("/tmp/" + str(wid) + ".xml", 'w')
         fd.write(pretty_print(doc.toprettyxml(indent="")))
         fd.close()
     res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -124,16 +126,17 @@ def delete_all_task_api(wid):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(wid)+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(wid) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR, _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(wid)+".xml")
+    doc = parse("/tmp/" + str(wid) + ".xml")
     tsk_ls = doc.getElementsByTagName("task")
     for tsk in tsk_ls:
         parent = tsk.parentNode
         parent.removeChild(tsk)
-        fd = open("/tmp/"+str(wid)+".xml", 'w')
+        fd = open("/tmp/" + str(wid) + ".xml", 'w')
         fd.write(pretty_print(doc.toprettyxml(indent="")))
         fd.close()
     res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -146,7 +149,7 @@ def getlasttask(wid):
     :param wid: 
 
     """
-    doc = parse("/tmp/"+str(wid)+".xml")
+    doc = parse("/tmp/" + str(wid) + ".xml")
     tsk = doc.getElementsByTagName("task")
     return tsk[-1].getAttribute("texecid")
 
@@ -158,23 +161,25 @@ def create_connection_api(data):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(data['wid'])+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(data['wid']) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR, _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(data['wid'])+".xml")
+    doc = parse("/tmp/" + str(data['wid']) + ".xml")
     tsk_ls = doc.getElementsByTagName("task")
     for tsk in tsk_ls:
         if tsk.getAttribute("texecid") == data['fmexecid']:
             tsk.setAttribute(data['ttype'], data['toexecid'])
-            fd = open("/tmp/"+str(data['wid'])+".xml", 'w')
+            fd = open("/tmp/" + str(data['wid']) + ".xml", 'w')
             fd.write(pretty_print(doc.toprettyxml(indent="")))
             fd.close()
             res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
     loginfo("Execution ID not Available")
-    res.setResult(False, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    res.setResult(False, PTK_INTERNALERROR, _(
+        "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
 
     return res
 
@@ -188,23 +193,25 @@ def delete_connection_api(wid, execid, ttype):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(wid)+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR,  _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(wid) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR,  _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(wid)+".xml")
+    doc = parse("/tmp/" + str(wid) + ".xml")
     tsk_ls = doc.getElementsByTagName("task")
     for tsk in tsk_ls:
         if tsk.getAttribute("texecid") == execid:
             tsk.setAttribute(ttype, "")
-            fd = open("/tmp/"+str(wid)+".xml", 'w')
+            fd = open("/tmp/" + str(wid) + ".xml", 'w')
             fd.write(pretty_print(doc.toprettyxml(indent="")))
             fd.close()
             res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
     loginfo("Execution ID not Available")
-    res.setResult(False, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    res.setResult(False, PTK_INTERNALERROR, _(
+        "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
     return res
 
 
@@ -215,16 +222,17 @@ def delete_all_connection_api(wid):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(wid)+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR,  _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(wid) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR,  _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(wid)+".xml")
+    doc = parse("/tmp/" + str(wid) + ".xml")
     tsk_ls = doc.getElementsByTagName("task")
     for tsk in tsk_ls:
         tsk.setAttribute("OnSuccess", "")
         tsk.setAttribute("Onfailure", "")
-        fd = open("/tmp/"+str(wid)+".xml", 'w')
+        fd = open("/tmp/" + str(wid) + ".xml", 'w')
         fd.write(pretty_print(doc.toprettyxml(indent="")))
         fd.close()
     res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -238,11 +246,12 @@ def save_workflow_api(self, data):
 
     """
     res = result()
-    if os.path.exists("/tmp/"+str(data['wid'])+".xml") == False:
-	loginfo("File Not Found")
-        res.setResult({}, PTK_INTERNALERROR,  _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+    if os.path.exists("/tmp/" + str(data['wid']) + ".xml") == False:
+        loginfo("File Not Found")
+        res.setResult({}, PTK_INTERNALERROR,  _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
-    doc = parse("/tmp/"+str(data['wid'])+".xml")
+    doc = parse("/tmp/" + str(data['wid']) + ".xml")
     wkf_ls = doc.getElementsByTagName("workflow")
     for wfk in wkf_ls:
         wfk.setAttribute('name', data['name'])
@@ -251,7 +260,7 @@ def save_workflow_api(self, data):
         wfk.setAttribute('isdeletable', "1")
         wfk.setAttribute('type', "Custom")
     fd = open("/mnt/system/pure_dir/pdt/workflows/wf-" +
-              data['name'].replace(" ", "")+".xml", 'w')
+              data['name'].replace(" ", "") + ".xml", 'w')
     fd.write(pretty_print(doc.toprettyxml(indent="")))
     fd.close()
     res.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))

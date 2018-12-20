@@ -5,10 +5,10 @@ from pure_dir.components.network.nexus.nexus_tasks import *
 from pure_dir.components.common import *
 
 metadata = dict(
-        task_id="NEXUS9kAddIndividualPortDescription",
-        task_name="Add Individual Port Description",
-        task_desc="Add Individual Port Description for Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS9kAddIndividualPortDescription",
+    task_name="Add Individual Port Description",
+    task_desc="Add Individual Port Description for Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -20,13 +20,13 @@ class NEXUS9kAddIndividualPortDescription:
         res = result()
         loginfo("NEXUS Add Individual Port Description")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusAddIndividualPortDescription(
-                        taskinfo['inputs'], logfile)
+                    taskinfo['inputs'], logfile)
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -44,10 +44,10 @@ class NEXUS9kAddIndividualPortDescription:
         res = result()
         loginfo("NEXUS Add Individual Port Description rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusRemoveIndividualPortDescription(inputs, logfile)
             else:

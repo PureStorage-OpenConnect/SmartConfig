@@ -43,7 +43,6 @@ class FAAddFCPortToHost:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
 
-        #result = obj.create_host_map_ports(inputs['inputs'], logfile)
         result = obj.add_port_to_host(taskinfo['inputs'], logfile)
         obj.release_pure_handle()
         return parseTaskResult(result)
@@ -104,7 +103,7 @@ class FAAddFCPortToHost:
 
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
-        result_data = obj.get_ports(blade_cnt,fc_ports=True)
+        result_data = obj.get_ports(blade_cnt, fc_ports=True)
         for portDict in result_data.getResult():
             if portDict['target'] is not None:
                 wwn_list.append(portDict['wwn'])
@@ -148,7 +147,8 @@ class FAAddFCPortToHost:
         pure_id = getGlobalArg(inputs, 'pure_id')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsm_get_associated_sp_cnt(keys) #self.ucsmbladeservers(keys)
+        res = self.ucsm_get_associated_sp_cnt(
+            keys)  # self.ucsmbladeservers(keys)
         blade_list = res.getResult()
         val = ''
         blade_len = 0
@@ -176,15 +176,16 @@ class FAAddFCPortToHost:
         port_list = []
         mhosts = "{'hosts': {'ismapped': '0', 'value':'"
         mports = "'ports': {'ismapped': '0', 'value':'"
-        for pre in range(1, blade_len+1):
-            host_prefix = "VM-Host-FC-"+str(pre).zfill(2)
+        for pre in range(1, blade_len + 1):
+            host_prefix = "VM-Host-FC-" + str(pre).zfill(2)
             port_list = []
-            if k < len(ports)-1:
+            if k < len(ports) - 1:
                 port_list.append(ports[k])
-                k = k+1
+                k = k + 1
                 port_list.append(ports[k])
-                k = k+1
-            mdata += mhosts + host_prefix + "'},"+mports+str(port_list[0]+","+port_list[1])+"'}}|"
+                k = k + 1
+            mdata += mhosts + host_prefix + "'}," + mports + \
+                str(port_list[0] + "," + port_list[1]) + "'}}|"
         loginfo("mdata going is : {}".format(mdata[:-1]))
         job_input_save(jobid, texecid, 'host_set', mdata[:-1])
         if res.getStatus() != PTK_OKAY:
@@ -221,16 +222,14 @@ class FAAddFCPortToHost:
                 sp_cnt.append(sp.name)
 
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-        print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res
-
-
 
     def ucsmbladeservers(self, keys):
         """
@@ -263,35 +262,35 @@ class FAAddFCPortToHost:
         res.setResult(servers_list, PTK_OKAY, "success")
         return res
 
-
     def getHostApi(self, keys):
         res = result()
         res = self.ucsm_get_associated_sp_cnt(keys)
         blade_list = res.getResult()
 
-	'''jobid = str([arg['value'] for args in keys.values() for arg in args if arg['key'] == "jobid"][0])
+        '''jobid = str([arg['value'] for args in keys.values() for arg in args if arg['key'] == "jobid"][0])
         if jobid == "":
             res.setResult([], PTK_OKAY, "success")
             return res
 
         hostname = get_field_value_from_jobid(jobid, 'FACreateMultipleHosts', 'name')'''
 
-	blade_len = 0
+        blade_len = 0
         if len(blade_list) > 0:
             blade_len = int(blade_list[0]['id'])
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Host-FC-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
 
-
-    def getPortApi(self, keys ):
+    def getPortApi(self, keys):
         res = result()
         pure_id = getArg(keys, 'pure_id')
-        res = self.ucsm_get_associated_sp_cnt(keys) #self.ucsmbladeservers(keys)
+        res = self.ucsm_get_associated_sp_cnt(
+            keys)  # self.ucsmbladeservers(keys)
         blade_list = res.getResult()
 
         blade_len = 0
@@ -317,15 +316,16 @@ class FAAddFCPortToHost:
         mdata = []
         k = 0
         port_list = []
-        for pre in range(1, blade_len+1):
+        for pre in range(1, blade_len + 1):
             port_list = []
-            if k < len(ports)-1:
+            if k < len(ports) - 1:
                 port_list.append(ports[k])
-                k = k+1
+                k = k + 1
                 port_list.append(ports[k])
-                k = k+1
-            mdata.append({"id":str(port_list[0]+","+port_list[1]), "selected":"0", "label":str(port_list[0]+","+port_list[1])})
-	print "port list goin in advanced ",mdata
+                k = k + 1
+            mdata.append({"id": str(port_list[0] + "," + port_list[1]),
+                          "selected": "0", "label": str(port_list[0] + "," + port_list[1])})
+        print "port list goin in advanced ", mdata
         res.setResult(mdata, PTK_OKAY, "success")
         return res
 

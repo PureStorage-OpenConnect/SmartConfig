@@ -20,10 +20,23 @@ from pure_dir.infra.logging.logmanager import *
 
 class MDS:
     def __init__(self, ipaddr, uname, passwd):
+        """
+        Constructor - MDS Handler
+
+        :param ipaddress: Switch ip 
+        :param username : Switch username
+        :param password : Switch password
+        :param port     : Switch port
+        """
         self.handle = Device(ip=ipaddr, username=uname,
                              password=passwd, port='8080')
 
     def mds_switch_info(self):
+        """
+        Gets the MDS switch details
+
+        :return: Returns the name, mac address and model
+        """
         switch = {}
         switch['name'] = self.get_switchname()
         switch['mac_addr'] = self.get_mac_address()
@@ -36,30 +49,12 @@ class MDS:
             loginfo("Failed to retrieve mds switch details fully")
             return switch
 
-    def get_feature_list(self):
-        feature_list = []
-        try:
-            sys_op = self.handle.show('show feature', fmat='json')
-            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
-            if cli_error:
-                raise cli_error
-            else:
-                op_dict = json.loads(sys_op[1])
-                flist = op_dict['ins_api']['outputs']['output']['body']['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
-                for feature in flist:
-                    feature_list.append(feature['cfcFeatureCtrlName2'])
-                return feature_list
-
-        except error.CLIError as e:
-            loginfo("CLI Error: " + str(e.err))
-            loginfo("Error msg: " + str(e.msg))
-            return feature_list
-
-        except urllib2.URLError as e:
-            loginfo("Error msg: " + str(e.reason))
-            return feature_list
-
     def get_switchname(self):
+        """
+        Gets the MDS switch name
+
+        :return: Returns the switch name
+        """
         try:
             sys_op = self.handle.config('show switchname', fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
@@ -80,6 +75,11 @@ class MDS:
             return None
 
     def get_mac_address(self):
+        """
+        Gets the MDS switch mac address
+
+        :return: Returns the mac address
+        """
         try:
             sys_op = self.handle.show('show interface mgmt0', fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
@@ -101,6 +101,11 @@ class MDS:
             return None
 
     def get_model_and_serial(self):
+        """
+        Gets the MDS switch model and serial number
+
+        :return: Returns the model, serial number
+        """
         try:
             sys_op = self.handle.show('show inventory chassis', fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
@@ -122,7 +127,89 @@ class MDS:
             loginfo("Error msg: " + str(e.reason))
             return None
 
+    def get_mds_version(self):
+        """
+        Gets the firmware version for the MDS switch
+
+        :return: Returns the version
+        """
+        try:
+            sys_op = self.handle.show('show version', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                version_details = op_dict['ins_api']['outputs']['output']['body']
+                return version_details['rr_sys_ver']
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def get_interface_list(self):
+        """
+        Gets the list of interfaces in MDS switch
+
+        :return: Returns the interface list
+        """
+        obj = result()
+        fc_list = self.get_fc_list().getResult()
+        pc_list = self.get_portchannel_list().getResult()
+        obj.setResult(fc_list + pc_list, PTK_OKAY, "Success")
+        return obj
+
+    def get_interface_details(self, iface_id):
+        """
+        Gets the interface details in MDS switch
+
+        :param iface_id: Interface id
+
+        :return: Returns the interface list
+        """
+        obj = result()
+        iface_details = {}
+        try:
+            iface_op = self.handle.show(
+                'show interface %s' % iface_id, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(iface_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(iface_op[1])
+                iface_details['pwwn'] = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']['port_wwn']
+                if 'port_mode' in op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']:
+                    iface_details['descr'] = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']['port_mode']
+                else:
+                    iface_details['descr'] = ""
+                obj.setResult(iface_details, PTK_OKAY, "Success")
+                return obj
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            obj.setResult(iface_details, PTK_CLIERROR, str(e.err))
+            return obj
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            obj.setResult(iface_list, PTK_NOTEXIST,
+                          "Could not connect to switch")
+            return obj
+
     def get_fc_list(self, pc_bind=""):
+        """
+        Gets the list of FC interfaces in MDS switch
+
+        :param pc_bind: If True it returns the FC interfaces which are binded to port-channel
+
+        :return: Returns the interface list
+        """
         obj = result()
         iface_list = []
         try:
@@ -187,6 +274,11 @@ class MDS:
             return obj
 
     def get_portchannel_list(self):
+        """
+        Gets the list of port-channels in MDS switch
+
+        :return: Returns the port-channel list
+        """
         obj = result()
         iface_list = []
         try:
@@ -236,6 +328,13 @@ class MDS:
             return obj
 
     def configure_fcports(self, port_dict):
+        """
+        Configures the FC ports in MDS switch
+
+        :param ports_dict: List of Dictionary(Port id, Port description)
+
+        :return: Returns the port configuration status
+        """
         obj = result()
         for key, value in port_dict.items():
             commands = ['interface fc %s' % key, 'switchport description %s' % value,
@@ -267,6 +366,14 @@ class MDS:
         return obj
 
     def configure_fcport(self, fc_id, descr=""):
+        """
+        Configures the FC port in MDS switch
+
+        :param fc_id: FC port id
+        :param descr: FC port description
+
+        :return: Returns the port configuration status
+        """
         obj = result()
         if descr == "":
             commands = ['interface %s' % fc_id,
@@ -300,45 +407,12 @@ class MDS:
                       "FC port %s configured" % fc_id)
         return obj
 
-    def get_interface_list(self):
-        obj = result()
-        fc_list = self.get_fc_list().getResult()
-        pc_list = self.get_portchannel_list().getResult()
-        obj.setResult(fc_list + pc_list, PTK_OKAY, "Success")
-        return obj
-
-    def get_interface_details(self, iface_id):
-        obj = result()
-        iface_details = {}
-        try:
-            iface_op = self.handle.show(
-                'show interface %s' % iface_id, fmat='json')
-            cli_error = self.handle.cli_error_check(json.loads(iface_op[1]))
-            if cli_error:
-                raise cli_error
-            else:
-                op_dict = json.loads(iface_op[1])
-                iface_details['pwwn'] = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']['port_wwn']
-                if 'port_mode' in op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']:
-                    iface_details['descr'] = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']['port_mode']
-                else:
-                    iface_details['descr'] = ""
-                obj.setResult(iface_details, PTK_OKAY, "Success")
-                return obj
-
-        except error.CLIError as e:
-            loginfo("CLI Error: " + str(e.err))
-            loginfo("Error msg: " + str(e.msg))
-            obj.setResult(iface_details, PTK_CLIERROR, str(e.err))
-            return obj
-
-        except urllib2.URLError as e:
-            loginfo("Error msg: " + str(e.reason))
-            obj.setResult(iface_list, PTK_NOTEXIST,
-                          "Could not connect to switch")
-            return obj
-
     def get_vsan_list(self):
+        """
+        Gets the list of VSANs in MDS switch
+
+        :return: Returns the VSAN list
+        """
         obj = result()
         try:
             vsan_list = []
@@ -368,6 +442,11 @@ class MDS:
             return obj
 
     def get_device_aliases(self):
+        """
+        Gets the list of device aliases in MDS switch
+
+        :return: Returns the device-alias list
+        """
         obj = result()
         try:
             devalias_list = []
@@ -401,6 +480,11 @@ class MDS:
             return obj
 
     def get_flogi_sessions(self):
+        """
+        Gets the list of FLOGI sessions in MDS switch
+
+        :return: Returns the FLOGI list
+        """
         obj = result()
         flogi_sessions = []
         try:
@@ -435,7 +519,42 @@ class MDS:
         obj.setResult(flogi_sessions, PTK_OKAY, "Success")
         return obj
 
+    def get_feature_list(self):
+        """
+        Gets the list of features available in MDS switch
+
+        :return: Returns the feature list
+        """
+        feature_list = []
+        try:
+            sys_op = self.handle.show('show feature', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                flist = op_dict['ins_api']['outputs']['output']['body']['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
+                for feature in flist:
+                    feature_list.append(feature['cfcFeatureCtrlName2'])
+                return feature_list
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return feature_list
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return feature_list
+
     def enable_features(self, feature_list):
+        """
+        Enables features in MDS switch
+
+        :param feature_list: List of features
+
+        :return: Returns the status
+        """
         obj = result()
         for fname in feature_list:
             try:
@@ -463,6 +582,13 @@ class MDS:
         return obj
 
     def disable_features(self, feature_list):
+        """
+        Disables features in MDS switch
+
+        :param feature_list: List of features
+
+        :return: Returns the status
+        """
         obj = result()
         for fname in feature_list:
             try:
@@ -491,6 +617,14 @@ class MDS:
         return obj
 
     def create_portchannel(self, pc_id, descr=""):
+        """
+        Creates port-channel in MDS switch
+
+        :param pc_id: Port-Channel id
+        :param descr: Port-Channel description
+
+        :return: Returns the status
+        """
         obj = result()
         if descr == "":
             commands = ['interface port-channel %s' % pc_id,
@@ -524,6 +658,13 @@ class MDS:
             return obj
 
     def delete_portchannel(self, pc_id):
+        """
+        Deletes port-channel in MDS switch
+
+        :param pc_id: Port-Channel id
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['no interface port-channel %s' % pc_id]
         cmds_to_string = ' ; '.join(commands)
@@ -552,6 +693,14 @@ class MDS:
             return obj
 
     def configure_portchannel(self, pc_id, interface_list):
+        """
+        Configures port-channel in MDS switch
+
+        :param pc_id         : Port-Channel id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['interface %s' %
@@ -588,6 +737,14 @@ class MDS:
         return obj
 
     def unconfigure_portchannel(self, pc_id, interface_list):
+        """
+        Unbinds the interfaces from the port-channel in MDS switch
+
+        :param pc_id         : Port-Channel id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['interface %s' %
@@ -620,6 +777,13 @@ class MDS:
         return obj
 
     def create_vsan(self, vsan_id):
+        """
+        Creates VSAN in MDS switch
+
+        :param vsan_id: VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['vsan database', 'vsan %s' % vsan_id,
                     'exit', 'zone smart-zoning enable vsan %s' % vsan_id]
@@ -648,6 +812,13 @@ class MDS:
             return obj
 
     def delete_vsan(self, vsan_id):
+        """
+        Deletes VSAN in MDS switch
+
+        :param vsan_id: VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['vsan database', 'no vsan %s' % vsan_id, 'exit']
         cmds_to_string = ' ; '.join(commands)
@@ -675,6 +846,14 @@ class MDS:
             return obj
 
     def configure_vsan(self, vsan_id, interface_list):
+        """
+        Configures VSAN by adding the interfaces to VSAN in MDS switch
+
+        :param vsan_id       : VSAN id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['vsan database', 'vsan %s interface %s' %
@@ -713,6 +892,14 @@ class MDS:
         return obj
 
     def unconfigure_vsan(self, vsan_id, interface_list):
+        """
+        Unconfigures VSAN by removing the interfaces from VSAN in MDS switch
+
+        :param vsan_id       : VSAN id
+        :param interface_list: Interfaces to be added to port-channel
+
+        :return: Returns the status
+        """
         obj = result()
         for iface in interface_list:
             commands = ['vsan database', 'no vsan %s interface %s' %
@@ -746,6 +933,13 @@ class MDS:
         return obj
 
     def create_device_aliases(self, flogi_list):
+        """
+        Creates device aliases for pwwn in MDS switch
+
+        :param flogi_list: List of FLOGI
+
+        :return: Returns the status
+        """
         obj = result()
         for flogi in flogi_list:
             obj = self.create_alias(flogi['alias'], flogi['pwwn'])
@@ -762,6 +956,13 @@ class MDS:
         return obj
 
     def delete_device_aliases(self, alias_list):
+        """
+        Deletes device aliases in MDS switch
+
+        :param alias_list: List of device aliases
+
+        :return: Returns the status
+        """
         obj = result()
         for alias in alias_list:
             obj = self.delete_alias(alias)
@@ -777,6 +978,14 @@ class MDS:
         return obj
 
     def create_alias(self, name, pwwn):
+        """
+        Creates device aliase for a pwwn in MDS switch
+
+        :param name: Alias name
+        :param pwwn: Port WWN
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['device-alias database', 'device-alias name %s pwwn %s' % (name, pwwn),
                     'exit', 'device-alias commit']
@@ -806,6 +1015,13 @@ class MDS:
             return obj
 
     def delete_alias(self, name):
+        """
+        Deletes device aliase for a pwwn in MDS switch
+
+        :param name: Alias name
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['device-alias database', 'no device-alias name %s' % name,
                     'exit', 'device-alias commit']
@@ -835,6 +1051,14 @@ class MDS:
             return obj
 
     def rename_alias(self, old_name, new_name):
+        """
+        Renames a device alias in MDS switch
+
+        :param old_name: Old alias name
+        :param new_name: New alias name
+
+        :return: Returns the status
+        """
         obj = result()
         commands = ['device-alias database', 'device-alias rename %s %s' % (old_name, new_name),
                     'exit', 'device-alias commit']
@@ -864,6 +1088,11 @@ class MDS:
             return obj
 
     def get_zone_list(self):
+        """
+        Gets the zone list in MDS switch
+
+        :return: Returns the zone list
+        """
         obj = result()
         try:
             zone_list = []
@@ -896,6 +1125,13 @@ class MDS:
             return obj
 
     def get_vsan_zones(self, vsan_id):
+        """
+        Gets the zone list for a particular VSAN in MDS switch
+
+        :param vsan_id: VSAN id
+
+        :return: Returns the zone list
+        """
         # CLI: self.handle.show('show zone vsan %s' % vsan_id, fmat='json')
         vsan_zones = []
         zone_list = get_zone_list()
@@ -909,6 +1145,14 @@ class MDS:
         return vsan_zones
 
     def create_zone(self, name, vsan_id):
+        """
+        Creates a VSAN zone in MDS switch
+
+        :param name   : Name of the zone
+        :param vsan_id: VSAN id
+
+        :return: Returns the zone creation status
+        """
         obj = result()
         commands = ['zone name %s vsan %s' % (name, vsan_id), 'exit']
         cmds_to_string = ' ; '.join(commands)
@@ -935,6 +1179,15 @@ class MDS:
             return obj
 
     def add_to_zone(self, zone_name, members, vsan_id=''):
+        """
+        Configure a VSAN zone in MDS switch by adding ports' pwwn to the zone
+
+        :param zone_name: Name of the zone
+        :param members  : List of zone pwwn/device-aliases
+        :param vsan_id  : VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
         if vsan_id == '':
             vsan_id = get_vsanid_for_zone(zone_name)
@@ -974,6 +1227,14 @@ class MDS:
         return obj
 
     def delete_zone(self, name, vsan_id=""):
+        """
+        Deletes a VSAN zone in MDS switch
+
+        :param name   : Name of the zone
+        :param vsan_id: VSAN id
+
+        :return: Returns the zone deletion status
+        """
         obj = result()
         if vsan_id == "":
             vsan_id = get_vsanid_for_zone(name)
@@ -1006,6 +1267,13 @@ class MDS:
             return obj
 
     def get_vsanid_for_zone(self, name):
+        """
+        Gets a VSAN id for a zone in MDS switch
+
+        :param name: Name of the zone
+
+        :return: Returns the VSAN id
+        """
         zone_list = get_zone_list()
         for zone in zone_list:
             if zone['name'] == name:
@@ -1014,6 +1282,11 @@ class MDS:
         return -1
 
     def get_zoneset_list(self):
+        """
+        Gets the zoneset list in MDS switch
+
+        :return: Returns the zoneset list
+        """
         obj = result()
         try:
             zoneset_list = []
@@ -1046,6 +1319,13 @@ class MDS:
             return obj
 
     def get_vsan_zonesets(self, vsan_id):
+        """
+        Gets the zoneset list for a particular VSAN in MDS switch
+
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset list
+        """
         # CLI: self.handle.show('show zoneset vsan %s' % vsan_id, fmat='json')
         vsan_zonesets = []
         zoneset_list = get_zoneset_list()
@@ -1058,6 +1338,14 @@ class MDS:
         return vsan_zonesets
 
     def create_zoneset(self, name, vsan_id):
+        """
+        Creates a VSAN zoneset in MDS switch
+
+        :param name   : Name of the zoneset
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset creation status
+        """
         obj = result()
         commands = ['zoneset name %s vsan %s' % (name, vsan_id), 'exit']
         cmds_to_string = ' ; '.join(commands)
@@ -1084,6 +1372,15 @@ class MDS:
             return obj
 
     def add_to_zoneset(self, zoneset_name, members, vsan_id=''):
+        """
+        Configure a VSAN zoneset in MDS switch by adding zones to the zoneset
+
+        :param zoneset_name: Name of the zoneset
+        :param members     : List of zones
+        :param vsan_id     : VSAN id
+
+        :return: Returns the status
+        """
         obj = result()
 
         if vsan_id == '':
@@ -1125,6 +1422,14 @@ class MDS:
         return obj
 
     def delete_zoneset(self, name, vsan_id=""):
+        """
+        Deletes a VSAN zoneset in MDS switch
+
+        :param name   : Name of the zoneset
+        :param vsan_id: VSAN id
+
+        :return: Returns the zoneset creation status
+        """
         obj = result()
         if vsan_id == "":
             vsan_id = get_vsanid_for_zoneset(name)
@@ -1158,6 +1463,14 @@ class MDS:
             return obj
 
     def activate_zoneset(self, zoneset_name, vsan_id=''):
+        """
+        Activate a VSAN zoneset in MDS switch
+
+        :param zoneset_name: Name of the zoneset
+        :param vsan_id     : VSAN id
+
+        :return: Returns the zoneset activation status
+        """
         obj = result()
 
         if vsan_id == '':
@@ -1196,6 +1509,14 @@ class MDS:
             return obj
 
     def deactivate_zoneset(self, zoneset_name, vsan_id=''):
+        """
+        Deactivate a VSAN zoneset in MDS switch
+
+        :param zoneset_name: Name of the zoneset
+        :param vsan_id     : VSAN id
+
+        :return: Returns the zoneset deactivation status
+        """
         obj = result()
 
         if vsan_id == '':
@@ -1234,6 +1555,13 @@ class MDS:
             return obj
 
     def get_vsanid_for_zoneset(self, name):
+        """
+        Gets a VSAN id for a zoneset in MDS switch
+
+        :param name: Name of the zoneset
+
+        :return: Returns the VSAN id
+        """
         zoneset_list = get_zoneset_list()
         for zoneset in zoneset_list:
             if zoneset['name'] == name:
@@ -1241,27 +1569,12 @@ class MDS:
         loginfo("MDS: Zoneset %s not present" % name)
         return -1
 
-    def get_mds_version(self):
-        try:
-            sys_op = self.handle.show('show version', fmat='json')
-            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
-            if cli_error:
-                raise cli_error
-            else:
-                op_dict = json.loads(sys_op[1])
-                version_details = op_dict['ins_api']['outputs']['output']['body']
-                return version_details['rr_sys_ver']
-
-        except error.CLIError as e:
-            loginfo("CLI Error: " + str(e.err))
-            loginfo("Error msg: " + str(e.msg))
-            return None
-
-        except urllib2.URLError as e:
-            loginfo("Error msg: " + str(e.reason))
-            return None
-
     def enable_nxapi(self):
+        """
+        Enable nxapi feature in MDS switch
+
+        :return: Returns the status
+        """
         try:
             loginfo("Enabling nxapi feature for mds switch")
             conf_op = self.switch.config(
@@ -1307,4 +1620,3 @@ class MDS:
             loginfo("Failed to set MDS password")
             loginfo("Error msg: " + str(e.reason))
             return False
-

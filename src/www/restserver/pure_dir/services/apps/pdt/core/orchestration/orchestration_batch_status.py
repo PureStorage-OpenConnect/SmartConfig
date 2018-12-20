@@ -58,7 +58,6 @@ def prepare_batch_status_file(hwtype, wflist):
     doc = Document()
     res = result()
     root = doc.createElement("Batchstatus")
-    #root.setAttribute("ostatus", "EXECUTING")
     root.setAttribute("time", strftime("%Y-%m-%d %H:%M:%S", gmtime()))
     doc.appendChild(root)
     tasks_node = doc.createElement("workflows")
@@ -86,7 +85,7 @@ def prepare_batch_status_file(hwtype, wflist):
     return res
 
 
-def update_batch_job_status(hwtype, wid, jobid, status ):
+def update_batch_job_status(hwtype, wid, jobid, status):
     """
 
     :param hwtype: Hardware type  
@@ -105,8 +104,9 @@ def update_batch_job_status(hwtype, wid, jobid, status ):
                 if jobid == None:
                     jobid = batch.getAttribute('jid')
                 with open(get_log_file_path(jobid), 'r') as infile, open(get_log_file_path(hwtype), 'a') as outfile:
-                    static_content = "<a name=log_"+jobid+"></a> \n <h5>"+batch.getAttribute('name')+":</h5> \n"
-                    outfile.write(static_content+infile.read())
+                    static_content = "<a name=log_" + jobid + "></a> \n <h5>" + \
+                        batch.getAttribute('name') + ":</h5> \n"
+                    outfile.write(static_content + infile.read())
                 if status == 'READY':
                     f = open(get_log_file_path(jobid), 'r+')
                     f.truncate(0)
@@ -127,7 +127,7 @@ def update_batch_job_status(hwtype, wid, jobid, status ):
     return res
 
 
-def update_batch_job_status_on_init(hwtype, wid, status ):
+def update_batch_job_status_on_init(hwtype, wid, status):
     """
 
     :param hwtype: Hardware type  
@@ -155,4 +155,3 @@ def update_batch_job_status_on_init(hwtype, wid, status ):
         return re
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
-

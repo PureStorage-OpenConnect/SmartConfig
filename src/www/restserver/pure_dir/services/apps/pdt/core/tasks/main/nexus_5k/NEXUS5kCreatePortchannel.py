@@ -5,10 +5,10 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
 
 metadata = dict(
-        task_id="NEXUS5kCreatePortchannel",
-        task_name="Create PortChannel",
-        task_desc="Create Port Channel in the NEXUS switch",
-        task_type="NEXUS"
+    task_id="NEXUS5kCreatePortchannel",
+    task_name="Create PortChannel",
+    task_desc="Create Port Channel in the NEXUS switch",
+    task_type="NEXUS"
 )
 
 
@@ -20,7 +20,7 @@ class NEXUS5kCreatePortchannel:
         res = result()
         loginfo("Creating port channel for NEXUS")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(cred['ipaddress'],
                              cred['username'], cred['password'])
@@ -41,7 +41,7 @@ class NEXUS5kCreatePortchannel:
         res = result()
         loginfo("Rollback - CreatePortChannel for NEXUS")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(cred['ipaddress'],
                              cred['username'], cred['password'])
@@ -78,4 +78,4 @@ class NEXUS5kCreatePortchannelInputs:
 class NEXUS5kCreatePortchannelOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
     portchannel_id = Output(
-            dt_type="string", name="portchannel_id", tvalue="1")
+        dt_type="string", name="portchannel_id", tvalue="1")

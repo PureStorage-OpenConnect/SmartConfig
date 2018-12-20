@@ -80,7 +80,7 @@ class UCSCreateFCPortChannels:
 
     def getvsan(self, keys):
         temp_list = []
-	ret = result()
+        ret = result()
         fabricid = getArg(keys, 'fabric_id')
         if fabricid == None:
             ret.setResult(temp_list, PTK_OKAY, "success")
@@ -133,7 +133,7 @@ class UCSCreateFCPortChannelsInputs:
     admin_speed = Dropdown(hidden='False', isbasic='True', helptext='Port channel admin Speed', dt_type="string",  static="True",  static_values="auto:1:Auto|1gbps:0:1 Gbps|2gbps:0:2 Gbps|4gbps:0:4Gbps|8gbps:0:8 Gbps|16gbps:0:16 Gbps",
                            api="", name="admin_speed", label="Port Channel Admin Speed", svalue="", mandatory='1', mapval="0", order=6)
     vsan_name = Dropdown(hidden='False', isbasic='True', helptext='VSAN Name', dt_type="string",  api="getvsan()|[fabric_id:1:fabric_id.value|ucs_fabric_id:1:ucs_fabric_id.value]",
-                        static="False", mapval="1", static_values="None", name="vsan_name", label="VSAN",  svalue="", mandatory='1', order=7)
+                         static="False", mapval="1", static_values="None", name="vsan_name", label="VSAN",  svalue="", mandatory='1', order=7)
 
 
 class UCSCreateFCPortChannelsOutputs:

@@ -25,4 +25,3 @@ class Test_FACreateMultipleHosts:
             "id": "B", "selected": "0", "label": "TestArray2"}]
         res.setResult(val, PTK_OKAY, "success")
         return res
-

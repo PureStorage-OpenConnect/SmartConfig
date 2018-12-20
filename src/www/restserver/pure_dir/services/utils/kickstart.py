@@ -22,14 +22,14 @@ class kickstart:
                 mount_path = "/mnt/system/uploads/" + isofilename[:-4]
                 shutil.copytree(src, mount_path)
                 shutil.copy2("/mnt/system/uploads/" +
-                            uploadfile.filename, mount_path)
+                             uploadfile.filename, mount_path)
                 os.system("umount %s" % src)
                 pattern = "kernelopt"
                 print "******************", mount_path
                 with open(mount_path + '/boot.cfg', 'r') as infile, open(mount_path + '/boot1.cfg', 'w') as outfile:
                     for line in infile:
                         if pattern in line:
-                            line = "kernelopt=ks=cdrom:/"+uploadfile.filename.upper() + "\n"
+                            line = "kernelopt=ks=cdrom:/" + uploadfile.filename.upper() + "\n"
                             outfile.write(line)
                         else:
                             outfile.write(line)

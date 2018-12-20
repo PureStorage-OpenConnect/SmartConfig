@@ -69,7 +69,6 @@ class FAGetISCSIPortNumber:
         res.setResult(None, PTK_OKAY, "success")
         return res
 
-
     def purelist(self, keys):
         """
         :param keys: task input describing array type e.g. PURE
@@ -111,11 +110,10 @@ class FAGetISCSIPortNumber:
         intf_list = obj.get_fa_ports()
         new_intf_list = []
         for intf in intf_list:
-                new_intf_list.append('ct0.'+intf)
-                new_intf_list.append('ct1.'+intf)
+            new_intf_list.append('ct0.' + intf)
+            new_intf_list.append('ct1.' + intf)
         obj.release_pure_handle()
         return new_intf_list
-
 
     def get_iscsi_controller_list(self, keys):
         """
@@ -146,7 +144,7 @@ class FAGetISCSIPortNumber:
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
 
-        result_data = obj.get_iscsi_controller_list()
+        result_data = obj.get_iscsi_port_list()
         for contDict in result_data.getResult():
             cont_list.append(
                 {"id": contDict['name'], "selected": "0", "label": contDict['name']})

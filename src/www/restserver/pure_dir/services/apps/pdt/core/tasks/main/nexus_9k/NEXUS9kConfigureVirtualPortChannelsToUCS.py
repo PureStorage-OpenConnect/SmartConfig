@@ -6,10 +6,10 @@ from pure_dir.components.network.nexus.nexus import *
 from pure_dir.components.common import *
 
 metadata = dict(
-        task_id="NEXUS9kConfigureVirtualPortChannelsToUCS",
-        task_name="Configure Virtual Port Channels To UCS",
-        task_desc="Configure Virtual Port Channels To UCS for Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS9kConfigureVirtualPortChannelsToUCS",
+    task_name="Configure Virtual Port Channels To UCS",
+    task_desc="Configure Virtual Port Channels To UCS for Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -21,13 +21,13 @@ class NEXUS9kConfigureVirtualPortChannelsToUCS:
         res = result()
         loginfo("NEXUS Configure Virtual Port Channels To UCS")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusConfigureVirtualPortChannelsToUCS(
-                        taskinfo['inputs'], logfile, "n9k")
+                    taskinfo['inputs'], logfile, "n9k")
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -45,12 +45,13 @@ class NEXUS9kConfigureVirtualPortChannelsToUCS:
         res = result()
         loginfo("NEXUS Configure Virtual Port Channels To UCS rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusUnconfigureVirtualPortChannelsToUCS(inputs, logfile, "n9k")
+                res = obj.nexusUnconfigureVirtualPortChannelsToUCS(
+                    inputs, logfile, "n9k")
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -121,13 +122,13 @@ class NEXUS9kConfigureVirtualPortChannelsToUCSInputs:
                              static_values="", label="Native VLAN id", svalue="2", mapval="", mandatory="1", order=4,
                              recommended="1")
     vlan = Textbox(validation_criteria='int|min:1|max:3967', hidden='', isbasic='True',
-                            helptext="Allowed virtual LAN id's", dt_type="string", static="False", api="",
-                            name="vlan", static_values="",
-                            label="Allowed VLAN id's", svalue="115,200-203", mapval="", mandatory="1", order=5,
-                            recommended="1", group_member="1")
+                   helptext="Allowed virtual LAN id's", dt_type="string", static="False", api="",
+                   name="vlan", static_values="",
+                   label="Allowed VLAN id's", svalue="115,200-203", mapval="", mandatory="1", order=5,
+                   recommended="1", group_member="1")
     allowed_vlans_set = Group(validation_criteria='', hidden='', isbasic='True', helptext="Allowed virtual LAN id's",
-                     dt_type="string", static="False", api="", name="allowed_vlans_set", label="Allowed VLAN id's", static_values="",
-                     svalue="", mapval="", mandatory="1", members=["vlan"], add="True", order=5, recommended="1")
+                              dt_type="string", static="False", api="", name="allowed_vlans_set", label="Allowed VLAN id's", static_values="",
+                              svalue="", mapval="", mandatory="1", members=["vlan"], add="True", order=5, recommended="1")
     mtu_value = Textbox(validation_criteria='int|min:1500|max:9216', hidden='', isbasic='',
                         helptext='Maximum transfer unit', dt_type="string", static="False", api="", name="mtu_value",
                         static_values="",
@@ -146,10 +147,10 @@ class NEXUS9kConfigureVirtualPortChannelsToUCSOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
     slot_chassis = Output(dt_type="string", name="slot_chassis", tvalue="1/51")
     port_channel_number = Output(
-            dt_type="string", name="port_channel_number", tvalue="151")
+        dt_type="string", name="port_channel_number", tvalue="151")
     native_vlan_id = Output(
-            dt_type="string", name="native_vlan_id", tvalue="2")
+        dt_type="string", name="native_vlan_id", tvalue="2")
     mtu_value = Output(dt_type="string", name="mtu_value", tvalue="9216")
     counter_value = Output(dt_type="string", name="counter_value", tvalue="3")
     interval_delay = Output(
-            dt_type="string", name="interval_delay", tvalue="60")
+        dt_type="string", name="interval_delay", tvalue="60")

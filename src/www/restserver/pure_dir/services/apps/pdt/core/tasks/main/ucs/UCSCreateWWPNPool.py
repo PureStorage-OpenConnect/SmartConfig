@@ -49,13 +49,13 @@ class UCSCreateWWPNPool:
         return res
 
     def validate(self, item):
-	if ":" in item:
-	    first_octet = item.split(":")
-	    if first_octet[0] != "20":
-	        return False, "WWPN Prefix must start with 20"
-	else:
-	    return False, "Invalid WWPN Prefix"
-	return True , ""
+        if ":" in item:
+            first_octet = item.split(":")
+            if first_octet[0] != "20":
+                return False, "WWPN Prefix must start with 20"
+        else:
+            return False, "Invalid WWPN Prefix"
+        return True, ""
 
 
 class UCSCreateWWPNPoolInputs:

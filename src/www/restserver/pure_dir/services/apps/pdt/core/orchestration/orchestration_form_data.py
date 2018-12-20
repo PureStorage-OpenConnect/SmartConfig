@@ -31,6 +31,12 @@ class OrchestrationForm:
         pass
 
     def _check_if_simulated(self, doc, texecid):
+        """
+        Returns True if the job is simulated
+
+        :param doc: XML document object
+        :param texecid: Task execution ID 
+        """
         if '@simulate' in doc['workflow'].keys(
         ) and doc['workflow']['@simulate'] == "1":
             return True
@@ -45,6 +51,12 @@ class OrchestrationForm:
         return False
 
     def _get_class_from_texecid(self, doc, texecid):
+        """
+        Returns class ID/ task ID from task execution ID
+
+        :param doc: XML document object
+        :param texecid: Task execution ID 
+        """
         for task in doc['workflow']['tasks']['task']:
             if type(task) is unicode:
                 return doc['workflow']['tasks']['task']['@id']
@@ -53,6 +65,14 @@ class OrchestrationForm:
         return None
 
     def _get_field_value_from_texecid(self, doc, texecid, field_name):
+        """
+        Returns value of a field from task execution ID
+
+        :param doc: XML document object
+        :param texecid: Task execution ID
+        :param field_name: field name 
+        """
+
         for task in doc['workflow']['tasks']['task']:
             if task['@texecid'] == texecid:
                 for arg in task['args']['arg']:
@@ -62,11 +82,27 @@ class OrchestrationForm:
         return None
 
     def _get_hw_type(self, doc):
+        """
+        Returns hardware type from Job document
+
+        :param doc: XML document object
+        :param texecid: Task execution ID
+        :param field_name: field name 
+        """
+
         if '@htype' in doc['workflow'].keys():
             return doc['workflow']['@htype']
         return None
 
     def _get_group_value_from_texecid(self, doc, texecid, group_name):
+        """
+        Returns value for a group of fields from Job document
+
+        :param doc: XML document object
+        :param texecid: Task execution ID
+        :param field_name: field name 
+        """
+
         for task in doc['workflow']['tasks']['task']:
             if task['@texecid'] == texecid:
                 for arg in task['args']['arg']:
@@ -75,6 +111,14 @@ class OrchestrationForm:
         return None
 
     def _get_group_member_values(self, doc, group_value, member_name):
+        """
+        Returns value for a group member from Job document
+
+        :param doc: XML document object
+        :param texecid: Task execution ID
+        :param field_name: field name 
+        """
+
         grp_mbr_vals = []
         for grp in group_value:
             if member_name in grp.keys():
@@ -82,17 +126,25 @@ class OrchestrationForm:
         return grp_mbr_vals
 
     def get_options_api(self, jobid, texecid, operation, keys, isGroup=False, ttype=''):
-        ''' Method re routes the call to the specific class to get
-        form data from operation method specified'''
+        """
+        Returns the option values to be filled in listbox, dropbox, radio button etc.
+        Method invokes the helper method in specfic task to get the values
+
+        :param jobid: Job ID
+        :param operation: Method to be executed
+        :param keys: key values passed from UI, based on the values in TaskInputs API
+        :param isGroup: represents if this is a group field
+        """
         ret = result()
 
-        keys['keyvalues'].append({'value':jobid,'key':'jobid'})
-        keys['keyvalues'].append({'value':texecid,'key':'texecid'})
+        keys['keyvalues'].append({'value': jobid, 'key': 'jobid'})
+        keys['keyvalues'].append({'value': texecid, 'key': 'texecid'})
 
         path = get_file_location(execid=texecid, ttype=ttype, id=jobid)
         if not path:
-	    loginfo("No such instance")
-            ret.setResult(None, PTK_NOTEXIST,  _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+            loginfo("No such instance")
+            ret.setResult(None, PTK_NOTEXIST,  _(
+                "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
             return ret
 
         with open(path) as td:
@@ -110,9 +162,9 @@ class OrchestrationForm:
                 exec("%s = %s" % ("obj", realm + "." + realm + "()"))
 
         except Exception as e:
-            #raise NotImplementedError("Class `{}` does not implemented `".format(realm))
-	    loginfo(str(e))
-            ret.setResult(None, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+            loginfo(str(e))
+            ret.setResult(None, PTK_INTERNALERROR, _(
+                "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
             return ret
 
         try:
@@ -130,11 +182,20 @@ class OrchestrationForm:
             return method(keys)
         except Exception as e:
             ret = result()
-	    loginfo("exception" + str(e))
-            ret.setResult([], PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+            loginfo("exception" + str(e))
+            ret.setResult([], PTK_INTERNALERROR, _(
+                "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
             return ret
 
     def get_group_member_values_api(self, jobid, texecid, group_id, member_name):
+        """
+        Returns list of group member values
+
+        :param jobid: Job ID
+        :param texecid: task execution ID
+        :param group_id: Group ID
+        :param member_name: field member name
+        """
         ret = result()
         grp_member_values = []
 
@@ -142,8 +203,9 @@ class OrchestrationForm:
             with open(get_job_file(jobid)) as td:
                 doc = xmltodict.parse(td.read())
         except IOError:
-	    loginfo("Job does not exist")	
-            ret.setResult(None, PTK_NOTEXIST, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
+            loginfo("Job does not exist")
+            ret.setResult(None, PTK_NOTEXIST, _(
+                "PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
             return ret
 
         grp_value = self._get_group_value_from_texecid(doc, texecid, group_id)
@@ -155,6 +217,14 @@ class OrchestrationForm:
         return ret
 
     def get_field_value_api(self, jobid, texecid, field_name):
+        """
+        Returns value for specified field
+
+        :param jobid: Job ID
+        :param texecid: task execution ID
+        :param field_name: Field Name
+        """
+
         ret = result()
         field_values = []
 
@@ -162,8 +232,9 @@ class OrchestrationForm:
             with open(get_job_file(jobid)) as td:
                 doc = xmltodict.parse(td.read())
         except IOError:
-	    loginfo("Job does not exist")	
-            ret.setResult(None, PTK_NOTEXIST, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
+            loginfo("Job does not exist")
+            ret.setResult(None, PTK_NOTEXIST, _(
+                "PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
             return ret
 
         fvalue = self._get_field_value_from_texecid(doc, texecid, field_name)

@@ -22,9 +22,9 @@ def md5sum(fname):
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
             hashed_version = hash_md5.hexdigest()
-    file_version = fname[fname.rindex('/')+1:]
-    if os.path.exists(g_base_dir+'file_version.xml') == True:
-        doc = parse(g_base_dir+'file_version.xml')
+    file_version = fname[fname.rindex('/') + 1:]
+    if os.path.exists(g_base_dir + 'file_version.xml') == True:
+        doc = parse(g_base_dir + 'file_version.xml')
         versions = doc.getElementsByTagName("version")
         for version in versions:
             if version.getAttribute('name') == hashed_version:
@@ -33,7 +33,7 @@ def md5sum(fname):
     return file_version
 
 
-def import_image(uploadfile, image_type, image_sub_type,image_os_sub_type):
+def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
     """
      Import an iso, save to iso store
     :param uploadfile: Uploaded file 
@@ -53,14 +53,14 @@ def import_image(uploadfile, image_type, image_sub_type,image_os_sub_type):
         res.setResult(True, PTK_NOTEXIST, "Invalid File")
         return res
     ext = os.path.splitext(uploadfile.filename)[1]
-    filepath = g_upload_path+"%s" % uploadfile.filename
+    filepath = g_upload_path + "%s" % uploadfile.filename
     uploadfile.save(filepath)
     if image_sub_type:
         filetype = image_sub_type
     else:
         filetype = image_type
     version = md5sum(filepath)
-    if not os.path.exists(g_base_dir+'images.xml'):
+    if not os.path.exists(g_base_dir + 'images.xml'):
         doc = Document()
         roottag = doc.createElement("images")
         newimage = doc.createElement("image")
@@ -70,7 +70,7 @@ def import_image(uploadfile, image_type, image_sub_type,image_os_sub_type):
         roottag.appendChild(newimage)
         doc.appendChild(roottag)
     else:
-        doc = parse(g_base_dir+'images.xml')
+        doc = parse(g_base_dir + 'images.xml')
         # Check if images already exists
 
         for image in doc.getElementsByTagName('image'):
@@ -83,7 +83,7 @@ def import_image(uploadfile, image_type, image_sub_type,image_os_sub_type):
         newimage.setAttribute('type', filetype)
         newimage.setAttribute('version', version)
         doc.childNodes[0].appendChild(newimage)
-    fd = open(g_base_dir+'images.xml', 'w')
+    fd = open(g_base_dir + 'images.xml', 'w')
     fd.write(pretty_print(doc.toprettyxml(indent="")))
     fd.close()
    # if ext == '.cfg':
@@ -133,6 +133,7 @@ def images_validate(uploadfile, imagetype):
     else:
         return False
 
+
 def list_images(imagetype=''):
     """
     List iso store images
@@ -145,37 +146,39 @@ def list_images(imagetype=''):
     res.setResult(images, PTK_OKAY, "Success")
     return res
 
+
 def iso_binding(isofile, kickstart):
-        isofilepath = g_upload_path +"/"+isofile
-	if kickstart == "":
-	    os.system("cp %s %s" % (isofilepath, g_upload_path+"/"+"bundle"))
-	    return True
-        kickstartfilepath = g_upload_path+"/"+kickstart
-        src = "/tmp/iso" + str(random.randrange(1000))
-        os.makedirs(src)
-        os.system("mount -o rw,loop %s %s " % (isofilepath, src))
-        mount_path = "/mnt/system/uploads/" + isofile[:-4]
-        shutil.copytree(src, mount_path)
-        shutil.copy2(kickstartfilepath, mount_path)
-        os.system("umount %s" % src)
-        pattern = "kernelopt"
-        with open(mount_path + '/boot.cfg', 'r') as infile, open(mount_path + '/boot1.cfg', 'w') as outfile:
-            for line in infile:
-                if pattern in line:
-                    line = "kernelopt=ks=cdrom:/"+kickstart.upper() + "\n"
-                    outfile.write(line)
-                else:
-                    outfile.write(line)
-        os.remove(mount_path + '/boot.cfg')
-        os.rename(mount_path + '/boot1.cfg', mount_path + '/boot.cfg')
-        if os.path.exists(g_upload_path+"/"+"bundle"):
-            shutil.rmtree(g_upload_path+"/"+"bundle")
-        os.makedirs(g_upload_path+"/"+"bundle")
-        bundle = g_upload_path+"/"+"bundle/"+isofile   
-        os.system(
-            "genisoimage -relaxed-filenames -J -R -o %s -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table %s" % (bundle, mount_path))
-        shutil.rmtree(mount_path)
+    isofilepath = g_upload_path + "/" + isofile
+    if kickstart == "":
+        os.system("cp %s %s" % (isofilepath, g_upload_path + "/" + "bundle"))
         return True
+    kickstartfilepath = g_upload_path + "/" + kickstart
+    src = "/tmp/iso" + str(random.randrange(1000))
+    os.makedirs(src)
+    os.system("mount -o rw,loop %s %s " % (isofilepath, src))
+    mount_path = "/mnt/system/uploads/" + isofile[:-4]
+    shutil.copytree(src, mount_path)
+    shutil.copy2(kickstartfilepath, mount_path)
+    os.system("umount %s" % src)
+    pattern = "kernelopt"
+    with open(mount_path + '/boot.cfg', 'r') as infile, open(mount_path + '/boot1.cfg', 'w') as outfile:
+        for line in infile:
+            if pattern in line:
+                line = "kernelopt=ks=cdrom:/" + kickstart.upper() + "\n"
+                outfile.write(line)
+            else:
+                outfile.write(line)
+    os.remove(mount_path + '/boot.cfg')
+    os.rename(mount_path + '/boot1.cfg', mount_path + '/boot.cfg')
+    if os.path.exists(g_upload_path + "/" + "bundle"):
+        shutil.rmtree(g_upload_path + "/" + "bundle")
+    os.makedirs(g_upload_path + "/" + "bundle")
+    bundle = g_upload_path + "/" + "bundle/" + isofile
+    os.system(
+        "genisoimage -relaxed-filenames -J -R -o %s -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table %s" % (bundle, mount_path))
+    shutil.rmtree(mount_path)
+    return True
+
 
 def delete_image(imagename):
     """
@@ -193,4 +196,4 @@ def delete_image(imagename):
         res.setResult(False, PTK_INTERNALERROR, "File is not found")
         return res
 
-#iso_binding("VMware-VMvisor-Installer-6.0.0.update01-3029758.x86_6411.iso","")
+# iso_binding("VMware-VMvisor-Installer-6.0.0.update01-3029758.x86_6411.iso","")

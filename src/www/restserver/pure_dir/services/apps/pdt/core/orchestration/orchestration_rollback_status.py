@@ -96,7 +96,7 @@ def rollback_batch_status_helper_api(jid):
                 continue
             jid_list.append(wf['@jid'])
     except Exception as e:
-        loginfo( "Exception" + str(e))
+        loginfo("Exception" + str(e))
         obj.setResult(None, PTK_FAILED, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
         return obj
 
@@ -116,13 +116,13 @@ def rollback_status_helper(jid_list):
     for jid in jid_list:
         statuslist = []
         try:
-            loginfo( "opening rollback status file" + \
-                get_rollback_status_file(jid))
+            loginfo("opening rollback status file" +
+                    get_rollback_status_file(jid))
             fd = open(get_rollback_status_file(jid), 'r')
             doc = xmltodict.parse(fd.read())
         except IOError:
             res['rbstatus'] = statuslist
-	    loginfo("Job status does not exist")
+            loginfo("Job status does not exist")
             obj.setResult(res, PTK_OKAY, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
             return obj
         if doc['rollbackstatus']['tasks'] == None:
@@ -130,7 +130,7 @@ def rollback_status_helper(jid_list):
             continue
         for task in doc['rollbackstatus']['tasks']['task']:
             status_entity = {
-                'execid': task['@jid']+"_"+task['@texecid'],
+                'execid': task['@jid'] + "_" + task['@texecid'],
                 'status': task['@status'],
                 'order': task['@order'],
             }
@@ -140,7 +140,7 @@ def rollback_status_helper(jid_list):
         tmp_status_list.append(tmp_status)
 
     res['rbstatus'] = tmp_status_list
-    #print res
+    # print res
     obj.setResult(res, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
 
@@ -176,4 +176,3 @@ def update_rollback_task_status(jid, sub_jid, texecid, status):
         return re
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
-

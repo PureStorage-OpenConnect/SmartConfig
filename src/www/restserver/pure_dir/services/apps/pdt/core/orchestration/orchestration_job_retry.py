@@ -2,7 +2,7 @@
     Orchestration_job_retry
     ~~~~~~~~~~~~~~~~~~~~~~~
 
-    Reattempt failed workflow
+    Retry failed workflow
 
 """
 
@@ -21,30 +21,29 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_rollback im
 def group_job_retry(doc, jid):
     """
     Retry a group job
-    :param doc: 
-    :param jid: 
+
+    :param doc: XML document object 
+    :param jid: Job ID
 
     """
     res = result()
     failed_job = get_group_workflow_failed_job(jid)
     if failed_job == None:
         loginfo("No Failed Job Found in group job id=" + jid)
-        res.setResult(None, PTK_INTERNALERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+        res.setResult(None, PTK_INTERNALERROR, _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
 
-    #shelf_record = shelve.open(get_shelf_file(jid), flag="c")
-    #master_record = shelf_record
     update_workflow_status(jid, failed_job['jid'], TASK_STATUS_EXECUTING)
     ret = trigger_job_from_dump(jid, failed_job['jid'])
     if ret < 0:
         update_workflow_status(jid, failed_job['jid'], TASK_STATUS_FAILED)
         loginfo("Job Failed again" + failed_job['jid'])
-        #shelf_record.close()
         res.setResult(None, PTK_FAILED, "Job Failed again")
         return res
 
     update_workflow_status(jid, failed_job['jid'], TASK_STATUS_COMPLETED)
-    # Finished executing failed Job, Now challenge is to retrigger
+    # Finished executing failed Job, now  retrigger the rest
     wfs = getAsList(doc['workflow']['wfs']['wf'])
     wf = None
     for tmp_wf in wfs:
@@ -62,24 +61,19 @@ def group_job_retry(doc, jid):
     seqno = 0
 
     dump_shelf = shelve.open(get_job_dump_file(failed_job['jid']), flag="c")
-    #seqno = int(dump_shelf['seqno'])
     logfile = get_log_file(jid)
-
 
     master_record = shelve.open(get_shelf_file(jid), flag="w", writeback=True)
 
-    seqno =  get_job_seq_no(failed_job['jid'], master_record) 
+    seqno = get_job_seq_no(failed_job['jid'], master_record)
     if seqno < -1:
-	loginfo( "something went wrong")
-    #loginfo("oldseqno" + str(dump_shelf['seqno']) + "newseqno" + str(seqno) )	
-    #master_record = {}
-    #master_record = shelf_record
+        loginfo("something went wrong")
     error = 0
     while True:
         update_workflow_status(jid, wf['@jid'], TASK_STATUS_EXECUTING)
         seqno = seqno + 1
         ret = jobexecute(wf['@jid'], seqno, master_record['job'], logfile)
-	error = ret
+        error = ret
         if ret == 0:
             update_workflow_status(jid, wf['@jid'], TASK_STATUS_COMPLETED)
         else:
@@ -94,15 +88,17 @@ def group_job_retry(doc, jid):
     master_record.close()
 
     if error == -1:
-	update_overall_status(jid, TASK_STATUS_FAILED)
-	res.setResult(None, PTK_FAILED, _("PDT_FAILED_MSG"))
+        update_overall_status(jid, TASK_STATUS_FAILED)
+        res.setResult(None, PTK_FAILED, _("PDT_FAILED_MSG"))
     else:
-    	res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
+
 
 def _getNextWf(doc, wf, ret):
     """
     Get Next workflow to be executed
+
     :param doc: workflow doc object
     :param wf:  current workflow
     :param ret: status of current workflow
@@ -120,6 +116,13 @@ def _getNextWf(doc, wf, ret):
 
 
 def group_job_retry_precheck_helper(jobid):
+    """
+    Ensures the pre requsites for group job retry is met before actual trigger
+
+    :param jobid: Job ID
+
+    """
+
     res = result()
     err_msg = "Something went wrong. Unable to retry"
     if os.path.exists(get_job_file(jobid)) == False:
@@ -145,6 +148,13 @@ def group_job_retry_precheck_helper(jobid):
 
 
 def job_retry_precheck(jobid):
+    """
+    Ensures the pre requsites for job retry is met before actual trigger
+
+    :param jobid: Job ID
+
+    """
+
     res = result()
     err_msg = _("PDT_UNABLE_TO_RETRY_ERR_MSG")
     if not any(d['value'] == jobid for d in g_flash_stack_types):
@@ -186,9 +196,17 @@ def job_retry_precheck(jobid):
 
 
 def job_retry_api(stacktype, jobid):
+    """
+    Triggers a job retry, can specify either or parameter and not both
+
+    :param stacktype: FlashStack type
+    :param jobid: Job ID
+
+    """
+
     obj = result()
     if stacktype != None and jobid != None:
-	loginfo("can't specify both jobid and stacktype")
+        loginfo("can't specify both jobid and stacktype")
         obj.setResult(None, PTK_FAILED,
                       _("PDT_INVALID_INPUT_ERR_MSG"))
         return obj
@@ -205,6 +223,13 @@ def job_retry_api(stacktype, jobid):
 
 
 def job_retry_helper(jobid):
+    """
+    Triggers a job retry.
+
+    :param jobid: Job ID or stacktype
+
+    """
+
     loginfo("Attempting Job resume for jid:" + jobid)
     if not any(d['value'] == jobid for d in g_flash_stack_types):
         # Not a batch resume, continue with jobid
@@ -227,6 +252,13 @@ def job_retry_helper(jobid):
 
 
 def job_retry_batch(jobid):
+    """
+    Triggers a batch job retry.
+
+    :param jobid: stacktype
+
+    """
+
     res = result()
     loginfo("Job resume for Batch Job" + jobid)
     if os.path.exists(get_batch_status_file(jobid)) == False:
@@ -314,10 +346,7 @@ def trigger_job_from_dump(pjid, jid):
     shelf = shelve.open(get_job_dump_file(jid), flag="c")
     cur_task = shelf['cur_task']
 
-    #record = {}
     record = shelve.open(get_shelf_file(pjid), flag="c",  writeback=True)
-    #record = shelf_record
-
 
     loginfo("Retrying :" + cur_task['@name'])
     seq_no = get_job_seq_no(jid, record)

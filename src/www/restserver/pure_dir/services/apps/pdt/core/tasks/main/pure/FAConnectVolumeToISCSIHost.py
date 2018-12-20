@@ -113,7 +113,7 @@ class FAConnectVolumeToISCSIHost:
         for pre in range(1, blade_len + 1):
             host_prefix = 'VM-Host-iSCSI-' + str(pre).zfill(2)
             vol_prefix = 'VM-Vol-iSCSI-' + str(pre).zfill(2)
-            mdata += mhosts + host_prefix + "'}, "+mvols+vol_prefix+"'}}|"
+            mdata += mhosts + host_prefix + "'}, " + mvols + vol_prefix + "'}}|"
 
         loginfo(
             "host and vol list for connect going is :{}".format(mdata[:-1]))
@@ -153,15 +153,14 @@ class FAConnectVolumeToISCSIHost:
                 sp_cnt.append(sp.name)
 
         server_dict = {
-                'id': str(len(sp_cnt)),
-                "selected": "1",
-                "label": str(len(sp_cnt))}
+            'id': str(len(sp_cnt)),
+            "selected": "1",
+            "label": str(len(sp_cnt))}
         servers_list.append(server_dict)
-        print "server list from ucs" , servers_list
+        print "server list from ucs", servers_list
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, "success")
         return res
-
 
     def ucsmbladeservers(self, keys):
         """
@@ -205,7 +204,8 @@ class FAConnectVolumeToISCSIHost:
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Host-iSCSI-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
@@ -220,18 +220,17 @@ class FAConnectVolumeToISCSIHost:
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Vol-iSCSI-' + str(pre).zfill(2)
-            mdata.append({"id":str(host), "selected":"0", "label":str(host)})
+            mdata.append(
+                {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, "success")
         return res
-
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, "success")
         return res
-
 
 
 class FAConnectVolumeToISCSIHostInputs:

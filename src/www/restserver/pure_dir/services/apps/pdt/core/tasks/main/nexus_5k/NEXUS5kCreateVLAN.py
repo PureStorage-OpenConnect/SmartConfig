@@ -5,10 +5,10 @@ from pure_dir.components.network.nexus.nexus_tasks import *
 from pure_dir.components.common import *
 
 metadata = dict(
-        task_id="NEXUS5kCreateVLAN",
-        task_name="Create VLAN",
-        task_desc="Create VLAN in the Nexus switch",
-        task_type="NEXUS"
+    task_id="NEXUS5kCreateVLAN",
+    task_name="Create VLAN",
+    task_desc="Create VLAN in the Nexus switch",
+    task_type="NEXUS"
 )
 
 
@@ -20,10 +20,10 @@ class NEXUS5kCreateVLAN:
         res = result()
         loginfo("NEXUS Create VLAN")
         cred = get_device_credentials(
-                key="mac", value=taskinfo['inputs']['nexus_id'])
+            key="mac", value=taskinfo['inputs']['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusCreateVLAN(taskinfo['inputs'], logfile)
             else:
@@ -43,10 +43,10 @@ class NEXUS5kCreateVLAN:
         res = result()
         loginfo("NEXUS Create VLAN rollback")
         cred = get_device_credentials(
-                key="mac", value=inputs['nexus_id'])
+            key="mac", value=inputs['nexus_id'])
         if cred:
             obj = NEXUSTasks(
-                    ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusDeleteVLAN(inputs, logfile)
             else:

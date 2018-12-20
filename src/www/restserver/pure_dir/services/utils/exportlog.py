@@ -21,8 +21,8 @@ def zip(src, dst):
 def exportlog_helper():
     res = result()
     dw_path = get_download_path()
-    os.mkdir(g_base_dir+"logs/")
-    dest = g_base_dir+"logs/"
+    os.mkdir(g_base_dir + "logs/")
+    dest = g_base_dir + "logs/"
     error_log = get_error_log()
     if os.path.exists(error_log):
         shutil.copy2(error_log, dest)
@@ -32,7 +32,7 @@ def exportlog_helper():
     pure_log = get_pure_log()
     if os.path.exists(pure_log):
         shutil.copy2(pure_log, dest)
-    zip(g_base_dir+"logs/", dw_path+"logs")
-    shutil.rmtree(g_base_dir+"logs/")
+    zip(g_base_dir + "logs/", dw_path + "logs")
+    shutil.rmtree(g_base_dir + "logs/")
     res.setResult("logs.zip", PTK_OKAY, "Success")
     return res

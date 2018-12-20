@@ -120,8 +120,8 @@ class FAHostPortIdentification:
         mdata = ""
         k = 0
         port_list = []
-        for pre in range(1, blade_len+1):
-            mport += str(iqn_prefix)+":ucs-host:"+str(pre)+"|"
+        for pre in range(1, blade_len + 1):
+            mport += str(iqn_prefix) + ":ucs-host:" + str(pre) + "|"
         loginfo("port list in host port identification is ".format(mport))
         job_input_save(jobid, texecid, 'ports', mport[:-1])
         if res.getStatus() != PTK_OKAY:

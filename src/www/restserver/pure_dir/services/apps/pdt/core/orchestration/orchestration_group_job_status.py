@@ -20,6 +20,12 @@ def pretty_print(data): return '\n'.join([line for line in parseString(
 
 
 def group_job_status_api(jobid):
+    """
+    Returns status for each individual jobs in a group Job
+
+    :param jobid: Group Job ID
+    """
+
     obj = result()
     res = {}
     statuslist = []
@@ -29,7 +35,7 @@ def group_job_status_api(jobid):
     except IOError:
         res['overallstatus'] = ""
         res['taskstatus'] = statuslist
-	loginfo("Job status does not exist")
+        loginfo("Job status does not exist")
         obj.setResult(res, PTK_OKAY, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
         return obj
 
@@ -46,12 +52,20 @@ def group_job_status_api(jobid):
     obj.setResult(res, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
 
+
 def clear_group_job_status(p_jobid):
+    """
+    Reset the group job status to READY state
+
+    :param p_jobid: Group Job ID
+    """
+
     doc = parse(get_job_group_status_file(p_jobid))
     res = result()
-    doc.getElementsByTagName('Workflowstatus')[0].setAttribute("ostatus", "READY")
+    doc.getElementsByTagName('Workflowstatus')[
+        0].setAttribute("ostatus", "READY")
     for task in doc.getElementsByTagName('workflow'):
-            task.setAttribute("status", "READY")
+        task.setAttribute("status", "READY")
 
     try:
         o = open(get_job_group_status_file(p_jobid), "w")
@@ -60,15 +74,21 @@ def clear_group_job_status(p_jobid):
         doc.unlink()
     except Exception as e:
         loginfo(" exception " + str(e))
-        res.setResult(None, PTK_FILEACCESSERROR,  _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+        res.setResult(None, PTK_FILEACCESSERROR,  _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
 
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
-#clear_group_job_status('643d95ab-ffb0-4f61-9df7-9bbef81ebeba')
 
 def prepare_workflow_status_file(wid, jobid, wflist):
+    """
+    Create group job status file and set to READY state for all jobs
+
+    :param p_jobid: Group Job ID
+    """
+
     doc = Document()
     res = result()
     root = doc.createElement("Workflowstatus")
@@ -94,8 +114,9 @@ def prepare_workflow_status_file(wid, jobid, wflist):
         o.close()
         doc.unlink()
     except Exception as e:
-	loginfo(" exception " + str(e))
-        res.setResult(None, PTK_FILEACCESSERROR,  _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+        loginfo(" exception " + str(e))
+        res.setResult(None, PTK_FILEACCESSERROR,  _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
 
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -103,6 +124,14 @@ def prepare_workflow_status_file(wid, jobid, wflist):
 
 
 def update_group_job_status(p_jobid, jobid, status):
+    """
+    Set the group job status file
+
+    :param p_jobid: Group Job ID
+    :param   jobid: Job ID
+    :param  status: Status to be set
+    """
+
     doc = parse(get_job_group_status_file(p_jobid))
     res = result()
     found = 0
@@ -122,14 +151,22 @@ def update_group_job_status(p_jobid, jobid, status):
         doc.unlink()
 
     except Exception as e:
-	loginfo(" exception " + str(e))
-        res.setResult(None, PTK_FILEACCESSERROR, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
-        return re
+        loginfo(" exception " + str(e))
+        res.setResult(None, PTK_FILEACCESSERROR, _(
+            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
+        return res
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
 
 def update_overall_group_job_status(jobid, status):
+    """
+    Set overall status for group job
+
+    :param   jobid: Job ID
+    :param  status: Status to be set
+    """
+
     doc = parse(get_job_group_status_file(jobid))
     res = result()
     root = doc.getElementsByTagName('Workflowstatus')

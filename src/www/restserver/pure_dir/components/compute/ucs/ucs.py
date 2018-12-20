@@ -14,8 +14,6 @@ from ucsmsdk.mometa.fabric.FabricFcoeSanEp import FabricFcoeSanEp
 from ucsmsdk.mometa.fabric.FabricFcoeEstcEp import FabricFcoeEstcEp
 from ucsmsdk.mometa.fabric.FabricEthEstcEp import FabricEthEstcEp
 from pure_dir.services.utils.miscellaneous import *
-# from pure_dir.services.apps.pdt.core.discovery import *
-# from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import *
 from pure_dir.infra.apiresults import *
 from pure_dir.infra.logging.logmanager import *
 from pure_dir.services.utils.miscellaneous import *
@@ -41,6 +39,10 @@ class UCSManager:
         pass
 
     def _dhcpdiscovery(self):
+        """
+        DHCP Discovery of Fabric Interconnect
+        :return: Returns the mac address,ip address and hostname of FI
+        """
         discovery_list = []
         res = result()
         if os.path.exists(self.dhcp_lease_file) is False:
@@ -65,6 +67,11 @@ class UCSManager:
         return res
 
     def ucsmlist(self):
+        """
+        Get the UCS FI details
+        :return: Returns the name and mac address of FI 
+        """
+
         res = result()
         ucsm_list = []
         if os.path.exists(static_discovery_store) is True:
@@ -81,6 +88,13 @@ class UCSManager:
         return res
 
     def _is_ucsm(self, ip, dev_type, dev_status):
+        """
+        Check for UCSM discovery
+        :param ip: IP Address
+        :param dev_type: Device Type
+        :param dev_status: Device Status
+        """
+
         url = "https://" + ip + "/cgi-bin/initial_setup_new.cgi"
         try:
             r = requests.get(url, timeout=5, verify=False)
@@ -120,6 +134,14 @@ class UCSManager:
                                status_forcelist=(500, 502, 504),
                                session=None,
                                ):
+        """
+        Create a requests session that handles errors by retrying
+        :param retries: Number of retries to attempt
+        :param backoff_factor: backoff factor
+        :param status_forcelist: status codes that must be retried
+        :param session: Existing request session to configure
+        :return: session
+        """
         session = session or requests.Session()
         retry = Retry(
             total=retries,
@@ -130,10 +152,13 @@ class UCSManager:
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
-        #    session.mount('https://', adapter)
         return session
 
     def is_ucsm_up(self, ip):
+        """
+        Verify whether UCS go down for reboot after Unified ports configuration
+        :param ip: UCSM FI IP Address
+        """
         url = "http://" + ip
         for attempts in range(100):
             try:
@@ -152,6 +177,10 @@ class UCSManager:
                 break
 
     def verify_ucsm_accessible(self, ip):
+        """
+        Verify if UCSM is accessible
+        :param ip: UCSM FI IP Address
+        """
         t0 = time.time()
         try:
             self.requests_retry_session().get(
@@ -165,9 +194,13 @@ class UCSManager:
             loginfo("UCS is up")
         finally:
             t1 = time.time()
-            loginfo('Took'+ str (t1 - t0) + 'seconds')
+            loginfo('Took' + str(t1 - t0) + 'seconds')
 
     def ucsmdiscovery(self):
+        """
+        DHCP discovery for UCS Manager
+        :return: IP address, mac address, device model
+        """
         disc_list = []
         res = result()
         dhcp_client_list = parseResult(self._dhcpdiscovery())
@@ -192,6 +225,12 @@ class UCSManager:
         return res
 
     def ucsmlogin(self, ipaddress, username, password):
+        """
+        Login to UCSM 
+        :param ipaddress: FI IP Address
+        :username: FI username
+        :password: FI password
+        """
         res = result()
         handle = self._ucsm_handler(ipaddress, username, password)
         if handle is not None:
@@ -953,10 +992,11 @@ class UCSManager:
             sp_list = handle.query_classid("LsServer")
             for sp in sp_list:
                 if sp.type != "updating-template" and sp.dn != '' and sp.pn_dn != '':
-		    mo = handle.query_dn(sp.dn)
-		    vnic_data = handle.query_children(in_mo=mo, class_id='VnicFc')
-		    for fc_vnic in vnic_data:
-                       wwpn_list.append(fc_vnic.addr)
+                    mo = handle.query_dn(sp.dn)
+                    vnic_data = handle.query_children(
+                        in_mo=mo, class_id='VnicFc')
+                    for fc_vnic in vnic_data:
+                        wwpn_list.append(fc_vnic.addr)
             res.setResult(wwpn_list, PTK_OKAY, "success")
         else:
             res.setResult(
@@ -1264,7 +1304,7 @@ class UCSManager:
                                        'sec_switch_vendor': 'Vendor of subordiate FI',
                                        'sec_orig_ip': 'DHCP IP of subordiate FI',
                                        'sec_cluster': 'Cluster mode for subordiate FI',
-                                       'sec_id': 'ID for subordinate FI', 'esxi_file': 'Remote ESX file', 'dns':'DNS IP'}, config)
+                                       'sec_id': 'ID for subordinate FI', 'esxi_file': 'Remote ESX file', 'dns': 'DNS IP'}, config)
             if len(ret) > 0:
                 res.setResult(ret, PTK_INTERNALERROR,
                               "Please fill all mandatory fields")
@@ -1286,19 +1326,19 @@ class UCSManager:
                         res.setResult(ret, PTK_INTERNALERROR,
                                       "Select any image")
                         return res
-		    if "FI-62" in config['pri_switch_vendor'] and config['infra_image'] != "":
-			if "ucs-k9" not in config['infra_image']:
+                    if "FI-62" in config['pri_switch_vendor'] and config['infra_image'] != "":
+                        if "ucs-k9" not in config['infra_image']:
                             ret.append({'field': 'infra_image',
-                                    'msg': 'Select an Image supported for Gen2 FI'})
+                                        'msg': 'Select an Image supported for Gen2 FI'})
                             res.setResult(ret, PTK_INTERNALERROR,
-                                      "Select correct image")
+                                          "Select correct image")
                             return res
-		    if "FI-63" in config['pri_switch_vendor'] and config['infra_image'] != "":
-			if "ucs-6300" not in config['infra_image']:
+                    if "FI-63" in config['pri_switch_vendor'] and config['infra_image'] != "":
+                        if "ucs-6300" not in config['infra_image']:
                             ret.append({'field': 'infra_image',
-                                    'msg': 'Select an Image supported for Gen3 FI'})
+                                        'msg': 'Select an Image supported for Gen3 FI'})
                             res.setResult(ret, PTK_INTERNALERROR,
-                                      "Select correct image")
+                                          "Select correct image")
                             return res
 
                 ip_list = {'pri_ip': config['pri_ip'], 'sec_ip': config['sec_ip'], 'virtual_ip': config['virtual_ip'],

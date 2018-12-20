@@ -68,8 +68,8 @@ class FACreateHostGroup:
         if len(blade_list) > 0:
             blade_len = len(blade_list)
         prefix = ""
-        for i in range(1, blade_len+1):
-            prefix += "VM-Host-FC-"+str(i).zfill(2)+"|"
+        for i in range(1, blade_len + 1):
+            prefix += "VM-Host-FC-" + str(i).zfill(2) + "|"
 
         job_input_save(jobid, texecid, 'name', prefix)
 
