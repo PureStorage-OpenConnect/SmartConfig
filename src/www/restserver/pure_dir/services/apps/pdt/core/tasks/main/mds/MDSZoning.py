@@ -1,9 +1,8 @@
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.storage.mds.mds_tasks import *
-from pure_dir.components.storage.mds.mds import *
 from pure_dir.components.compute.ucs.ucs import UCSManager
-from pure_dir.components.common import *
-from pure_dir.services.utils.miscellaneous import *
+from pure_dir.components.common import get_device_credentials, get_device_list
+from pure_dir.services.utils.miscellaneous import get_oui, oui_pure 
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 import time
@@ -50,12 +49,14 @@ class MDSZoning:
         zone_list = []
         for flogi in flogi_sess_list:
             if flogi['pwwn'].lower() in ucsm_sp_pwwn_list:
-                # Alias for blade servers. UCSM itself accepts WWN even without OUI - 00:25:B5 eventhough it is recommended
+                # Alias for blade servers. UCSM itself accepts WWN even without OUI -
+                # 00:25:B5 eventhough it is recommended
                 alias_name = bs_alias_template % (
                     str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
                 zone_list.append(alias_name.encode('utf-8'))
             elif get_oui(flogi['pwwn']) == oui_pure:
-                # Alias for flash array ports. FlashArray ports' WWN comes with OUI from vendor itself.
+                # Alias for flash array ports. FlashArray ports' WWN comes with OUI from
+                # vendor itself.
                 alias_name = fa_alias_template % (
                     flogi['pwwn'][-2], flogi['pwwn'][-1], switch_tag.upper())
             else:
@@ -96,7 +97,7 @@ class MDSZoning:
         zoneset_dict['zoneset_members'] = {"ismapped": "2", "value": zone_list}
         job_input_save(jobid, texecid, 'zoneset', str(zoneset_dict))
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def execute(self, taskinfo, logfile):
@@ -129,29 +130,31 @@ class MDSZoning:
                         else:
                             loginfo("MDSZoning task executed successfully")
                             customlogs(
-                                "MDSZoning task executed successfully", logfile)
+                                "MDS Zoning executed successfully", logfile)
                             # Waiting for FlashArray to discover host pwwn
                             time.sleep(30)
                             res.setResult(
-                                parseResult(res)['data'], PTK_OKAY, "MDSZoning task executed successfully")
+                                parseResult(res)['data'],
+                                PTK_OKAY,
+                                _("PDT_SUCCESS_MSG"))
                     else:
                         loginfo("Failed to create zones")
                         obj.delete_device_aliases(
                             self.get_alias(taskinfo['inputs']), logfile)
                         res.setResult(False, PTK_INTERNALERROR,
-                                      "Zone Creation failed")
+                                      _("PDT_FAILED_MSG"))
                 else:
                     loginfo("Failed to create device aliases for the interfaces")
                     res.setResult(False, PTK_INTERNALERROR,
-                                  "Device Alias Creation failed")
+                                  _("PDT_FAILED_MSG"))
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                               _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
@@ -187,32 +190,34 @@ class MDSZoning:
                         else:
                             loginfo("MDSZoning rollback done")
                             customlogs(
-                                "MDSZoning rollback executed successfully", logfile)
+                                "MDS Zoning rollback executed successfully", logfile)
                             res.setResult(
-                                parseResult(res)['data'], PTK_OKAY, "MDSZoning task rollback executed successfully")
+                                parseResult(res)['data'],
+                                PTK_OKAY,
+                                _("PDT_SUCCESS_MSG"))
                     else:
                         loginfo("Failed to delete zones")
                         res.setResult(False, PTK_INTERNALERROR,
-                                      "Zone deletion failed")
+                                      _("PDT_FAILED_MSG"))
                 else:
                     loginfo("Failed to delete zonesets")
                     res.setResult(False, PTK_INTERNALERROR,
-                                  "Zoneset deletion failed")
+                                  _("PDT_FAILED_MSG"))
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
     def get_mds_list(self, keys):
         res = result()
         mds_list = get_device_list(device_type="MDS")
-        res.setResult(mds_list, PTK_OKAY, "success")
+        res.setResult(mds_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_flogi_sessions(self, keys):
@@ -226,7 +231,7 @@ class MDSZoning:
                     if arg['value']:
                         mac_addr = arg['value']
                     else:
-                        res.setResult(flogi_sess_list, PTK_OKAY, "success")
+                        res.setResult(flogi_sess_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
                 if arg['key'] == "group":
                     if arg['value'] and arg['value'] == "1":
@@ -253,9 +258,9 @@ class MDSZoning:
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(flogi_sess_list, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
-        res.setResult(flogi_sess_list, PTK_OKAY, "success")
+        res.setResult(flogi_sess_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_vsan_list(self, keys):
@@ -284,18 +289,18 @@ class MDSZoning:
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(vsan_list, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(vsan_list, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
-        res.setResult(vsan_list, PTK_OKAY, "success")
+        res.setResult(vsan_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_ucsm_sp_pwwn(self, fi_mac_addr):
         pwwn_list = []
-        if fi_mac_addr == None:
+        if fi_mac_addr is None:
             return pwwn_list
         cred = get_device_credentials(key="mac", value=fi_mac_addr)
         if cred:
@@ -349,34 +354,198 @@ class MDSZoning:
 
 
 class MDSZoningInputs:
-    mds_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", static_values="", api="get_mds_list()",
-                      name="mds_id", label="MDS switch", svalue="", mapval="", mandatory="1", order="1")
+    mds_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="get_mds_list()",
+        name="mds_id",
+        label="MDS switch",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order="1")
 
-    iface_id = Label(hidden='0', isbasic='True', helptext='', dt_type="string", static="False", api="", name="iface_id", static_values="",
-                     label="Interface", svalue="", mapval="", mandatory="1", group_member="1")
-    pwwn = Label(hidden='0', isbasic='True', helptext='', dt_type="string", static="False", api="", name="pwwn", static_values="",
-                 label="PWWN", svalue="", mapval="", mandatory="1", group_member="1")
-    alias_name = Textbox(validation_criteria='str|min:1|max:64', hidden='0', isbasic='True', helptext='', dt_type="string", static="False", api="", name="alias_name",
-                         static_values="", label="Alias", svalue="", mapval="", mandatory="1", group_member="1")
-    flogi_list = Group(validation_criteria='', hidden='0', isbasic='True', helptext='Fabric login sessions', dt_type="string", static="False", api="get_flogi_sessions()|[mds_id:1:mds_id.value]", name="flogi_list", label="FLOGI List",
-                       static_values="", svalue="{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT0FC0-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:03'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/1'}}|{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT0FC2-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:13'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/2'}}|{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT1FC0-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:00'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/3'}}|{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT1FC2-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:10'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/4'}}|{'alias_name': {'ismapped': '0', 'value': 'VM-Host-FC-02-A'}, 'pwwn': {'ismapped': '0', 'value': '20:00:00:25:b5:01:0a:01'}, 'iface_id': {'ismapped': '0', 'value': 'port-channel1'}}|{'alias_name': {'ismapped': '0', 'value': 'VM-Host-FC-01-A'}, 'pwwn': {'ismapped': '0', 'value': '20:00:00:25:b5:01:0a:00'}, 'iface_id': {'ismapped': '0', 'value': 'port-channel1'}}", mapval="", mandatory="1", members=["iface_id", "pwwn", "alias_name"], add="True", order="2")
+    iface_id = Label(
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="",
+        name="iface_id",
+        static_values="",
+        label="Interface",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        group_member="1")
+    pwwn = Label(
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="",
+        name="pwwn",
+        static_values="",
+        label="PWWN",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        group_member="1")
+    alias_name = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="",
+        name="alias_name",
+        static_values="",
+        label="Alias",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        group_member="1")
+    flogi_list = Group(
+        validation_criteria='',
+        hidden='0',
+        isbasic='True',
+        helptext='Fabric login sessions',
+        dt_type="string",
+        static="False",
+        api="get_flogi_sessions()|[mds_id:1:mds_id.value]",
+        name="flogi_list",
+        label="FLOGI List",
+        static_values="",
+        svalue="{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT0FC0-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:03'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/1'}}|{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT0FC2-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:13'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/2'}}|{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT1FC0-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:00'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/3'}}|{'alias_name': {'ismapped': '0', 'value': 'FlashArray-CT1FC2-fabricA'}, 'pwwn': {'ismapped': '0', 'value': '52:4a:93:7c:da:be:5c:10'}, 'iface_id': {'ismapped': '0', 'value': 'fc1/4'}}|{'alias_name': {'ismapped': '0', 'value': 'VM-Host-FC-02-A'}, 'pwwn': {'ismapped': '0', 'value': '20:00:00:25:b5:01:0a:01'}, 'iface_id': {'ismapped': '0', 'value': 'port-channel1'}}|{'alias_name': {'ismapped': '0', 'value': 'VM-Host-FC-01-A'}, 'pwwn': {'ismapped': '0', 'value': '20:00:00:25:b5:01:0a:00'}, 'iface_id': {'ismapped': '0', 'value': 'port-channel1'}}",
+        mapval="",
+        mandatory="1",
+        members=[
+            "iface_id",
+            "pwwn",
+            "alias_name"],
+        add="True",
+        order="2")
 
-    vsan_id = Dropdown(hidden='0', isbasic='True', helptext='VSAN ID', dt_type="string", static="False", api="get_vsan_list()|[mds_id:1:mds_id.value]",
-                       name="vsan_id", static_values="", label="VSAN", svalue="101", mapval="", mandatory="1", order="3", recommended="1")
+    vsan_id = Dropdown(
+        hidden='0',
+        isbasic='True',
+        helptext='VSAN ID',
+        dt_type="string",
+        static="False",
+        api="get_vsan_list()|[mds_id:1:mds_id.value]",
+        name="vsan_id",
+        static_values="",
+        label="VSAN",
+        svalue="101",
+        mapval="",
+        mandatory="1",
+        order="3",
+        recommended="1")
 
-    zone_name = Textbox(validation_criteria='str|min:1|max:64', hidden='0', isbasic='True', helptext='', dt_type="string", static="False", api="", name="zone_name", static_values="",
-                        label="Zone Name", svalue="", mapval="", mandatory="1", group_member="1")
-    zone_members = Multiselectdropdown(hidden='0', isbasic='True', helptext='', dt_type="string", static="True", api="", name="zone_members",
-                                       static_values="field:0:alias_name", label="Zone Members", svalue="", mapval="2", mandatory="1", group_member="1")
-    zones = Group(validation_criteria='', hidden='0', isbasic='True', helptext='Create Zones and add members to the Zone', dt_type="string", static="False", api="", name="zones", label="Create Zones", static_values="",
-                  svalue="{'zone_name': {'ismapped': '0', 'value': 'VM-Host-FC-02-A'}, 'zone_members': {'ismapped': '0', 'value': ['FlashArray-CT0FC0-fabricA', 'FlashArray-CT0FC2-fabricA', 'FlashArray-CT1FC0-fabricA', 'FlashArray-CT1FC2-fabricA', 'VM-Host-FC-02-A']}}|{'zone_name': {'ismapped': '0', 'value': 'VM-Host-FC-01-A'}, 'zone_members': {'ismapped': '0', 'value': ['FlashArray-CT0FC0-fabricA', 'FlashArray-CT0FC2-fabricA', 'FlashArray-CT1FC0-fabricA', 'FlashArray-CT1FC2-fabricA', 'VM-Host-FC-01-A']}}", mapval="", mandatory="1", members=["zone_name", "zone_members"], add="True", order="4")
+    zone_name = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="",
+        name="zone_name",
+        static_values="",
+        label="Zone Name",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        group_member="1")
+    zone_members = Multiselectdropdown(
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="True",
+        api="",
+        name="zone_members",
+        static_values="field:0:alias_name",
+        label="Zone Members",
+        svalue="",
+        mapval="2",
+        mandatory="1",
+        group_member="1")
+    zones = Group(
+        validation_criteria='',
+        hidden='0',
+        isbasic='True',
+        helptext='Create Zones and add members to the Zone',
+        dt_type="string",
+        static="False",
+        api="",
+        name="zones",
+        label="Create Zones",
+        static_values="",
+        svalue="{'zone_name': {'ismapped': '0', 'value': 'VM-Host-FC-02-A'}, 'zone_members': {'ismapped': '0', 'value': ['FlashArray-CT0FC0-fabricA', 'FlashArray-CT0FC2-fabricA', 'FlashArray-CT1FC0-fabricA', 'FlashArray-CT1FC2-fabricA', 'VM-Host-FC-02-A']}}|{'zone_name': {'ismapped': '0', 'value': 'VM-Host-FC-01-A'}, 'zone_members': {'ismapped': '0', 'value': ['FlashArray-CT0FC0-fabricA', 'FlashArray-CT0FC2-fabricA', 'FlashArray-CT1FC0-fabricA', 'FlashArray-CT1FC2-fabricA', 'VM-Host-FC-01-A']}}",
+        mapval="",
+        mandatory="1",
+        members=[
+            "zone_name",
+            "zone_members"],
+        add="True",
+        order="4")
 
-    zoneset_name = Textbox(validation_criteria='str|min:1|max:64', hidden='0', isbasic='True', helptext='', dt_type="string", static="False", api="", name="zoneset_name", static_values="",
-                           label="Zoneset Name", svalue="", mapval="", mandatory="1", group_member="1")
-    zoneset_members = Multiselectdropdown(hidden='0', isbasic='True', helptext='', dt_type="string", static="True", api="", name="zoneset_members",
-                                          static_values="field:0:zone_name", label="Zoneset Members", svalue="", mapval="2", mandatory="1", group_member="1")
-    zoneset = Group(validation_criteria='', hidden='0', isbasic='True', helptext='Create Zoneset and add Zones to the Zoneset', dt_type="string", static="False", api="", name="zoneset", label="Create Zonesets", static_values="",
-                    svalue="{'zoneset_name': {'ismapped': '0', 'value': 'flashstack-zoneset-vsan-101'}, 'zoneset_members': {'ismapped': '0', 'value': ['VM-Host-FC-01-A', 'VM-Host-FC-02-A']}}", mapval="", mandatory="1", members=["zoneset_name", "zoneset_members"], add="True", order="5")
+    zoneset_name = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="",
+        name="zoneset_name",
+        static_values="",
+        label="Zoneset Name",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        group_member="1")
+    zoneset_members = Multiselectdropdown(
+        hidden='0',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="True",
+        api="",
+        name="zoneset_members",
+        static_values="field:0:zone_name",
+        label="Zoneset Members",
+        svalue="",
+        mapval="2",
+        mandatory="1",
+        group_member="1")
+    zoneset = Group(
+        validation_criteria='',
+        hidden='0',
+        isbasic='True',
+        helptext='Create Zoneset and add Zones to the Zoneset',
+        dt_type="string",
+        static="False",
+        api="",
+        name="zoneset",
+        label="Create Zonesets",
+        static_values="",
+        svalue="{'zoneset_name': {'ismapped': '0', 'value': 'flashstack-zoneset-vsan-101'}, 'zoneset_members': {'ismapped': '0', 'value': ['VM-Host-FC-01-A', 'VM-Host-FC-02-A']}}",
+        mapval="",
+        mandatory="1",
+        members=[
+            "zoneset_name",
+            "zoneset_members"],
+        add="True",
+        order="5")
 
 
 class MDSZoningOutputs:

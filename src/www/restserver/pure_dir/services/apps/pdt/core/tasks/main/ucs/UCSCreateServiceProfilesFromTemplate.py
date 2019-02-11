@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -46,7 +46,7 @@ class UCSCreateServiceProfilesFromTemplate:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         print ucs_list, res
         return res
 
@@ -54,8 +54,8 @@ class UCSCreateServiceProfilesFromTemplate:
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -72,7 +72,7 @@ class UCSCreateServiceProfilesFromTemplate:
                 temp_list.append(
                     {"id": w.name, "selected": selected, "label": w.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def prepare(self, jobid, texecid, inputs):
@@ -80,7 +80,7 @@ class UCSCreateServiceProfilesFromTemplate:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsmbladeservers(keys)
+        res = self.ucsmservers(keys)
         device_list = res.getResult()
         val = ''
 
@@ -91,16 +91,16 @@ class UCSCreateServiceProfilesFromTemplate:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-    def ucsmbladeservers(self, keys):
+    def ucsmservers(self, keys):
         servers_list = []
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -109,30 +109,104 @@ class UCSCreateServiceProfilesFromTemplate:
 
         handle = res.getResult()
         blades = handle.query_classid("ComputeBlade")
-        blade_server_cnt = 1
+        server_cnt = 1
         for blade in blades:
             server_dict = {
-                'id': str(blade_server_cnt),
+                'id': str(server_cnt),
                 "selected": "1",
-                "label": str(blade_server_cnt)}
-            blade_server_cnt += 1
+                "label": str(server_cnt)}
+            server_cnt += 1
             servers_list.append(server_dict)
+	
+	#TODO Can do a proper switch based on server type
+	rack_servers = handle.query_classid("ComputeRackUnit")
+        for rack_server in rack_servers:
+            server_dict = {
+                'id': str(server_cnt),
+                "selected": "1",
+                "label": str(server_cnt)}
+            server_cnt += 1
+            servers_list.append(server_dict)
+
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateServiceProfilesFromTemplateInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    profile_prefix = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='', dt_type="string", api="None", static="False", static_values="", label="Service Profile Prefix",
-                             name="profile_prefix", svalue="VM-Host-Infra-0", mandatory='1', mapval="", order=2, recommended="1")
-    suffix_starting_number = Textbox(validation_criteria='int|min:1|max:1000',  hidden='False', isbasic='True', helptext='Service Profile name suffix', dt_type="string", api="None", static="False", static_values="",
-                                     name="suffix_starting_number", label="Name Suffix Starting Number", svalue="1", mandatory='1', mapval="", order=3)
-    instances = Dropdown(hidden='False', isbasic='True', helptext='Number of service profile instances', dt_type="string", static="False", api="ucsmbladeservers()|[fabric_id:1:fabric_id.value]", static_values="",
-                         name="instances", label="Number of Instances", svalue="2", mandatory='1', mapval="", order=4)
-    template_name = Dropdown(hidden='False', isbasic='True', helptext='Template name', dt_type="list", static="False", api="gettemplate()|[fabric_id:1:fabric_id.value]", static_values="", name="template_name",
-                             label="Template Name", mapval="1", svalue="__t201.UCSCreateServiceProfileTemplate.serviceprofilename", mandatory='1', order=5)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    profile_prefix = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="None",
+        static="False",
+        static_values="",
+        label="Service Profile Prefix",
+        name="profile_prefix",
+        svalue="VM-Host-Infra-0",
+        mandatory='1',
+        mapval="",
+        order=2,
+        recommended="1")
+    suffix_starting_number = Textbox(
+        validation_criteria='int|min:1|max:1000',
+        hidden='False',
+        isbasic='True',
+        helptext='Service Profile name suffix',
+        dt_type="string",
+        api="None",
+        static="False",
+        static_values="",
+        name="suffix_starting_number",
+        label="Name Suffix Starting Number",
+        svalue="1",
+        mandatory='1',
+        mapval="",
+        order=3)
+    instances = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Number of service profile instances',
+        dt_type="string",
+        static="False",
+        api="ucsmservers()|[fabric_id:1:fabric_id.value]",
+        static_values="",
+        name="instances",
+        label="Number of Instances",
+        svalue="2",
+        mandatory='1',
+        mapval="",
+        order=4)
+    template_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Template name',
+        dt_type="list",
+        static="False",
+        api="gettemplate()|[fabric_id:1:fabric_id.value]",
+        static_values="",
+        name="template_name",
+        label="Template Name",
+        mapval="1",
+        svalue="__t201.UCSCreateServiceProfileTemplate.serviceprofilename",
+        mandatory='1',
+        order=5)
 
 
 class UCSCreateServiceProfilesFromTemplateOutputs:

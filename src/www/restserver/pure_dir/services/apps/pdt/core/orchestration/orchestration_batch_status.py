@@ -5,23 +5,19 @@
     Implements workflow execution logic
 
 """
-from pure_dir.infra.logging.logmanager import *
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_batch_status_file, get_log_file_path
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import JOB_STATUS_COMPLETED
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import *
 from time import gmtime, strftime
-from xml.dom.minidom import *
-import xmltodict
+from xml.dom.minidom import parse, Document
 import os
-from xml.dom.minidom import *
 
 
 def batch_status_api(stacktype):
     """
     Returns current execution status for the batch job
-    :param stacktype: flashstack type 
+    :param stacktype: flashstack type
 
     """
     wf_list = []
@@ -32,7 +28,7 @@ def batch_status_api(stacktype):
     doc = parse(get_batch_status_file(stacktype))
     batches = doc.getElementsByTagName('workflow')
     for batch in batches:
-        if batch.hasAttribute('jid') == True:
+        if batch.hasAttribute('jid'):
             jobid = batch.getAttribute('jid')
         else:
             jobid = 'None'
@@ -51,8 +47,8 @@ def batch_status_api(stacktype):
 def prepare_batch_status_file(hwtype, wflist):
     """
     Prepares  initial status file for Batch Job
-    :param hwtype: Hardware type 
-    :param wflist: Workflow list 
+    :param hwtype: Hardware type
+    :param wflist: Workflow list
 
     """
     doc = Document()
@@ -88,10 +84,10 @@ def prepare_batch_status_file(hwtype, wflist):
 def update_batch_job_status(hwtype, wid, jobid, status):
     """
 
-    :param hwtype: Hardware type  
+    :param hwtype: Hardware type
     :param wid: Workflow id
     :param jobid: Job id, Job id will be recovered from batch status file incase of a rollback
-    :param status: Job status 
+    :param status: Job status
 
     """
     doc = parse(get_batch_status_file(hwtype))
@@ -101,7 +97,7 @@ def update_batch_job_status(hwtype, wid, jobid, status):
     for batch in batches:
         if batch.getAttribute('id') == wid:
             if status == 'FAILED' or status == 'COMPLETED' or status == 'READY':
-                if jobid == None:
+                if jobid is None:
                     jobid = batch.getAttribute('jid')
                 with open(get_log_file_path(jobid), 'r') as infile, open(get_log_file_path(hwtype), 'a') as outfile:
                     static_content = "<a name=log_" + jobid + "></a> \n <h5>" + \
@@ -111,7 +107,7 @@ def update_batch_job_status(hwtype, wid, jobid, status):
                     f = open(get_log_file_path(jobid), 'r+')
                     f.truncate(0)
             batch.setAttribute("status", status)
-            if jobid != None:
+            if jobid is not None:
                 batch.setAttribute("jid", jobid)
 
     try:
@@ -130,10 +126,10 @@ def update_batch_job_status(hwtype, wid, jobid, status):
 def update_batch_job_status_on_init(hwtype, wid, status):
     """
 
-    :param hwtype: Hardware type  
+    :param hwtype: Hardware type
     :param wid: Workflow id
     :param jobid: Job id, Job id will be recovered from batch status file incase of a rollback
-    :param status: Job status 
+    :param status: Job status
 
     """
     doc = parse(get_batch_status_file(hwtype))

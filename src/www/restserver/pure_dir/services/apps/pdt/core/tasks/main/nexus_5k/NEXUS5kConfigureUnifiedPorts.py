@@ -1,9 +1,10 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
-from pure_dir.components.network.nexus.nexus_tasks import *
-from pure_dir.components.common import *
-from pure_dir.services.utils.miscellaneous import *
+from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
+from pure_dir.components.network.nexus.nexus import Nexus
+from pure_dir.components.common import get_device_credentials, get_device_list
+from pure_dir.infra.apiresults import *
 
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
@@ -28,18 +29,22 @@ class NEXUS5kConfigureUnifiedPorts:
             obj = NEXUSTasks(
                 ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusConfigureUnifiedPorts(taskinfo['inputs'],
-                                                     logfile, cred['ipaddress'], cred['username'], cred['password'])
+                res = obj.nexusConfigureUnifiedPorts(
+                    taskinfo['inputs'],
+                    logfile,
+                    cred['ipaddress'],
+                    cred['username'],
+                    cred['password'])
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Connection to NEXUS failed")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Failed to get NEXUS switch credentials")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
@@ -52,25 +57,25 @@ class NEXUS5kConfigureUnifiedPorts:
             obj = NEXUSTasks(
                 ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusUnconfigureUnifiedPorts(inputs,
-                                                       logfile, cred['ipaddress'], cred['username'], cred['password'])
+                res = obj.nexusUnconfigureUnifiedPorts(
+                    inputs, logfile, cred['ipaddress'], cred['username'], cred['password'])
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Connection to NEXUS failed")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Failed to get NEXUS switch credentials")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
     def getnexuslist(self, keys):
         res = result()
         nexus_list = get_device_list(device_type="Nexus 5k")
-        res.setResult(nexus_list, PTK_OKAY, "success")
+        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_slot_list(self, keys):
@@ -84,7 +89,7 @@ class NEXUS5kConfigureUnifiedPorts:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(slot_list, PTK_OKAY, "success")
+                        res.setResult(slot_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         cred = get_device_credentials(key="mac", value=mac_addr)
@@ -101,7 +106,7 @@ class NEXUS5kConfigureUnifiedPorts:
             res.setResult(slot_list, PTK_INTERNALERROR,
                           "Unable to get the device credentials of the Nexus")
 
-        res.setResult(slot_list, PTK_OKAY, "success")
+        res.setResult(slot_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_interfaces_in_slot(self, keys):
@@ -109,13 +114,13 @@ class NEXUS5kConfigureUnifiedPorts:
         intf_list = []
 
         nexus_id = getArg(keys, 'nexus_id')
-        if nexus_id == None:
-            res.setResult(intf_list, PTK_OKAY, "success")
+        if nexus_id is None:
+            res.setResult(intf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         slot = getArg(keys, 'slot')
-        if slot == None:
-            res.setResult(intf_list, PTK_OKAY, "success")
+        if slot is None:
+            res.setResult(intf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(key="mac", value=nexus_id)
@@ -132,26 +137,74 @@ class NEXUS5kConfigureUnifiedPorts:
             res.setResult(intf_list, PTK_INTERNALERROR,
                           "Unable to get the device credentials of the Nexus")
 
-        res.setResult(intf_list, PTK_OKAY, "success")
+        res.setResult(intf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class NEXUS5kConfigureUnifiedPortsInputs:
-    nexus_id = Dropdown(hidden='True', isbasic='', helptext='', dt_type="string", static="False", static_values="",
-                        api="getnexuslist()",
-                        name="nexus_id", label="Nexus switch", svalue="", mapval="", mandatory="1", order=1)
-    slot = Dropdown(hidden='', isbasic='True', helptext='Slot', dt_type="string",
-                    static="False", api="get_slot_list()|[nexus_id:1:nexus_id.value]", name="slot", label="Slot",
-                    static_values="", svalue="", mapval="", mandatory="1", order=2, recommended="1")
-    ports = Rangepicker(hidden='', isbasic='True', helptext='Enter the respective ports', dt_type="string",
-                        static="False", api="get_interfaces_in_slot()|[nexus_id:1:nexus_id.value|slot:1:slot.value]",
-                        name="ports", label="Ports",
-                        static_values="", svalue="", mapval="", mandatory="1", order=3, recommended="1", min_range=0,
-                        max_range=0, max_fixed=True, min_interval=8)
-    port_type = Dropdown(hidden='', isbasic='True', helptext='Port type', dt_type="string", static="True", api="",
-                         name="port_type", label="Type",
-                         static_values="fc:1:FC|Eth:0:Eth", svalue="", mapval="", mandatory="1", order=4,
-                         recommended="1")
+    nexus_id = Dropdown(
+        hidden='True',
+        isbasic='',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="getnexuslist()",
+        name="nexus_id",
+        label="Nexus switch",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    slot = Dropdown(
+        hidden='',
+        isbasic='True',
+        helptext='Slot',
+        dt_type="string",
+        static="False",
+        api="get_slot_list()|[nexus_id:1:nexus_id.value]",
+        name="slot",
+        label="Slot",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=2,
+        recommended="1")
+    ports = Rangepicker(
+        hidden='',
+        isbasic='True',
+        helptext='Enter the respective ports',
+        dt_type="string",
+        static="False",
+        api="get_interfaces_in_slot()|[nexus_id:1:nexus_id.value|slot:1:slot.value]",
+        name="ports",
+        label="Ports",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=3,
+        recommended="1",
+        min_range=0,
+        max_range=0,
+        max_fixed=True,
+        min_interval=8)
+    port_type = Dropdown(
+        hidden='',
+        isbasic='True',
+        helptext='Port type',
+        dt_type="string",
+        static="True",
+        api="",
+        name="port_type",
+        label="Type",
+        static_values="fc:1:FC|Eth:0:Eth",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=4,
+        recommended="1")
 
 
 class NEXUS5kConfigureUnifiedPortsOutputs:

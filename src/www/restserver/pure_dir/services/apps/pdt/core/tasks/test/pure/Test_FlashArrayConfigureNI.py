@@ -21,7 +21,6 @@ class Test_FlashArrayConfigureNI:
 
     def get_iscsi_intf_list(self, keys):
         res = result()
-        intf_list = []
         res.setResult(
             [{'label': 'eth0', 'id': 'eth0', 'selected': '1'}], PTK_OKAY, "success")
         return res

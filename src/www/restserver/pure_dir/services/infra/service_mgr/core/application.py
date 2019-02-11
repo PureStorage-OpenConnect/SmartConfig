@@ -37,7 +37,7 @@ def _is_init():
         isInit = doc.getElementsByTagName("APP")[0].getAttribute("INIT")
         app = doc.getElementsByTagName("APP")[0].getAttribute("NAME")
         return isInit, app
-    except:
+    except BaseException:
         loginfo("Setup sequence has to be completed")
         return "0", ""
 
@@ -59,7 +59,7 @@ def _write_init(app_name):
         doc.unlink()
         return 0
 
-    except:
+    except BaseException:
         loginfo("Failed to initialize the application")
         return -1
 
@@ -76,7 +76,7 @@ def _remove_init():
         doc.unlink()
         return 0
 
-    except:
+    except BaseException:
         loginfo("Failed to uninitialize the application")
         return -1
 
@@ -92,7 +92,7 @@ def _enable_services(services):
         if not error:
             status, details = get_xml_element(
                 file_name=services_xml, attribute_key="name", attribute_value=service)
-            if status == True:
+            if status:
                 port_listen_cmd = "sed -i '/^#Listen.*:%s/s/^#//' %s" % (
                     details[0]['port'], tmp_httpd_conf)
                 (error, output) = execute_local_command(port_listen_cmd)
@@ -121,7 +121,7 @@ def _disable_services(services):
         if not error:
             status, details = get_xml_element(
                 file_name=services_xml, attribute_key="name", attribute_value=service)
-            if status == True:
+            if status:
                 port_listen_cmd = "sed -i '/^Listen.*:%s/s/^/#/' %s" % (
                     details[0]['port'], tmp_httpd_conf)
                 (error, output) = execute_local_command(port_listen_cmd)
@@ -148,7 +148,7 @@ def application_init(name):
     status, details = get_xml_element(
         file_name=applications_xml, attribute_key="name", attribute_value=name)
 
-    if status == True:
+    if status:
         init, app = _is_init()
         if init == "1":
             if app in services:
@@ -181,7 +181,10 @@ def application_init(name):
                 else:
                     loginfo("Unable to enable the application service '%s'" % name)
                     res.setResult(
-                        False, PTK_INTERNALERROR, "Failed to enable the application service '%s'" % name)
+                        False,
+                        PTK_INTERNALERROR,
+                        "Failed to enable the application service '%s'" %
+                        name)
                     return res
             else:
                 loginfo("Unable to enable the dependency services in '%s'" % str(
@@ -235,7 +238,7 @@ def application_uninit(name):
     status, details = get_xml_element(
         file_name=applications_xml, attribute_key="name", attribute_value=name)
 
-    if status == True:
+    if status:
         init, app = _is_init()
         if init == "1" and app in services:
             if app == name:
@@ -255,13 +258,19 @@ def application_uninit(name):
                             loginfo("Unable to disable the dependency services in '%s'" % str(
                                 deps_list))
                             res.setResult(
-                                False, PTK_INTERNALERROR, "Failed to disable the dependency services in '%s'" % str(deps_list))
+                                False,
+                                PTK_INTERNALERROR,
+                                "Failed to disable the dependency services in '%s'" %
+                                str(deps_list))
                             return res
                     else:
                         loginfo(
                             "Unable to disable the application service '%s'" % name)
                         res.setResult(
-                            False, PTK_INTERNALERROR, "Failed to disable the application service '%s'" % name)
+                            False,
+                            PTK_INTERNALERROR,
+                            "Failed to disable the application service '%s'" %
+                            name)
                         return res
                 else:
                     loginfo("Unable to make the changes to apache conf")
@@ -284,11 +293,15 @@ def application_uninit(name):
                         return res
                     else:
                         res.setResult(
-                            False, PTK_INTERNALERROR, "Failed to stop the application. Apache error.")
+                            False,
+                            PTK_INTERNALERROR,
+                            "Failed to stop the application. Apache error.")
                         return res
                 else:
                     res.setResult(
-                        False, PTK_INTERNALERROR, "Failed to stop the application. Configuration copy error.")
+                        False,
+                        PTK_INTERNALERROR,
+                        "Failed to stop the application. Configuration copy error.")
                     return res
             else:
                 res.setResult(False, PTK_NOTEXIST,

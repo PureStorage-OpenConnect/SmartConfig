@@ -6,11 +6,8 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from xml.dom.minidom import *
-import shelve
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_log_file_path
 import os
 
 
@@ -45,20 +42,3 @@ def deployment_logs(jobid):
     return obj
 
 
-def servicerequests():
-    obj = result()
-    shelfile = get_shelf_files_pattern()
-    srs = glob.glob(shelfile)
-    sr_list = []
-    for sr in srs:
-        loginfo(sr)
-        shelf = shelve.open(sr, flag='r')
-        sr_entity = {
-            'wid': workflow['@id'],
-            'name': workflow['@name'],
-            'desc': workflow['@desc']}
-        sr_list.append(sr_entity)
-        shelf.close()
-
-    obj.setResult(sr_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return obj

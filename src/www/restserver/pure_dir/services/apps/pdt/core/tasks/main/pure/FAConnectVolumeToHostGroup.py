@@ -3,8 +3,7 @@ from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 
 metadata = dict(
     task_id="FAConnectVolumeToHostGroup",
@@ -36,7 +35,7 @@ class FAConnectVolumeToHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -55,7 +54,7 @@ class FAConnectVolumeToHostGroup:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def rollback(self, inputs, outputs, logfile):
@@ -76,7 +75,7 @@ class FAConnectVolumeToHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -92,8 +91,8 @@ class FAConnectVolumeToHostGroup:
         res = result()
         data = result()
         pureid = getArg(keys, 'pure_id')
-        if pureid == None:
-            res.setResult(vol_list, PTK_OKAY, "success")
+        if pureid is None:
+            res.setResult(vol_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(
@@ -116,19 +115,58 @@ class FAConnectVolumeToHostGroup:
             vol_list.append(
                 {"id": volDict['name'], "selected": "0", "label": volDict['name']})
         obj.release_pure_handle()
-        data.setResult(vol_list, PTK_OKAY, "Success")
+        data.setResult(vol_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return data
 
 
 class FAConnectVolumeToHostGroupInputs:
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", mandatory="0", static_values="", order=1)
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        mandatory="0",
+        static_values="",
+        order=1)
 
-    hgname = Textbox(validation_criteria='str|min:1|max:64', hidden='False', isbasic='True', helptext='Host Group Name', dt_type="string", static="False", api="", name="hgname", label="Host Group Name",
-                     svalue="", static_values="", mandatory="0", mapval="", order=2, recommended="1")
+    hgname = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='False',
+        isbasic='True',
+        helptext='Host Group Name',
+        dt_type="string",
+        static="False",
+        api="",
+        name="hgname",
+        label="Host Group Name",
+        svalue="",
+        static_values="",
+        mandatory="0",
+        mapval="",
+        order=2,
+        recommended="1")
 
-    volumename = Dropdown(hidden='False', isbasic='True', helptext="Shared Volume's Name", dt_type="string", static="False", api="get_volume_list()|[pure_id:1:pure_id.value]", name="volumename", label="Volume Name",
-                          svalue="", static_values="", mandatory="0", mapval="", order=3, recommended="1")
+    volumename = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext="Shared Volume's Name",
+        dt_type="string",
+        static="False",
+        api="get_volume_list()|[pure_id:1:pure_id.value]",
+        name="volumename",
+        label="Volume Name",
+        svalue="",
+        static_values="",
+        mandatory="0",
+        mapval="",
+        order=3,
+        recommended="1")
 
 
 class FAConnectVolumeToHostGroupOutputs:

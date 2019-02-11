@@ -121,7 +121,7 @@ def authenticate(request):
     if request.authorization:
         loginfo("Basic Authentication")
         isValid = user_verify(request)
-        if isValid == True:
+        if isValid:
             loginfo("Authentication succeeded - Basic")
             return True
         else:
@@ -129,7 +129,7 @@ def authenticate(request):
             return False
     elif request.cookies:
         loginfo("Cookie Authentication")
-        if is_session_valid(request.cookies.get(cookie_name)) == True:
+        if is_session_valid(request.cookies.get(cookie_name)):
             loginfo("Cookie authentication succeeded")
             return True
         else:

@@ -1,9 +1,8 @@
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.storage.mds.mds_tasks import *
-from pure_dir.components.storage.mds.mds import *
-from pure_dir.components.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 
 metadata = dict(
     task_id="MDSCreateAndConfigureVSAN",
@@ -35,23 +34,25 @@ class MDSCreateAndConfigureVSAN:
                         loginfo("Failed to configure VSAN")
                         obj.delete_vsan(taskinfo['inputs'], logfile)
                         res.setResult(False, PTK_INTERNALERROR,
-                                      "VSAN Configuration failed")
+                                      _("PDT_FAILED_MSG"))
                     else:
                         loginfo("MDSCreateAndConfigureVSAN executed successfully")
                         res.setResult(
-                            parseResult(res)['data'], PTK_OKAY, "MDSCreateAndConfigureVSAN task executed successfully")
+                            parseResult(res)['data'],
+                            PTK_OKAY,
+                            _("PDT_SUCCESS_MSG"))
                 else:
                     loginfo("Failed to create VSAN")
                     res.setResult(False, PTK_INTERNALERROR,
-                                  "VSAN Creation failed")
+                                  _("PDT_FAILED_MSG"))
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
@@ -69,27 +70,29 @@ class MDSCreateAndConfigureVSAN:
                 if res.getStatus() != PTK_OKAY:
                     loginfo("Failed to delete VSAN")
                     res.setResult(False, PTK_INTERNALERROR,
-                                  "VSAN deletion failed")
+                                  _("PDT_FAILED_MSG"))
                 else:
                     loginfo(
                         "MDSCreateAndConfigureVSAN rollback executed successfully")
                     res.setResult(
-                        parseResult(res)['data'], PTK_OKAY, "MDSCreateAndConfigureVSAN rollback task executed successfully")
+                        parseResult(res)['data'],
+                        PTK_OKAY,
+                        "MDSCreateAndConfigureVSAN rollback task executed successfully")
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
     def get_mds_list(self, keys):
         res = result()
         mds_list = get_device_list(device_type="MDS")
-        res.setResult(mds_list, PTK_OKAY, "success")
+        res.setResult(mds_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_fc_list(self, keys):
@@ -104,7 +107,7 @@ class MDSCreateAndConfigureVSAN:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(fc_list, PTK_OKAY, "success")
+                        res.setResult(fc_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         cred = get_device_credentials(key="mac", value=mac_addr)
@@ -118,13 +121,13 @@ class MDSCreateAndConfigureVSAN:
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(fc_list, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(fc_list, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
-        res.setResult(fc_list, PTK_OKAY, "success")
+        res.setResult(fc_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_portchannel_list(self, keys):
@@ -153,25 +156,77 @@ class MDSCreateAndConfigureVSAN:
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(pc_list, PTK_INTERNALERROR,
-                              "Unable to login to the MDS")
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(pc_list, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_MDS_LOGIN_FAILURE"))
 
-        res.setResult(pc_list, PTK_OKAY, "success")
+        res.setResult(pc_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class MDSCreateAndConfigureVSANInputs:
-    mds_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", static_values="", api="get_mds_list()",
-                      name="mds_id", label="MDS switch", svalue="", mapval="", mandatory="1", order="1")
-    vsan_id = Textbox(validation_criteria='int|min:1|max:4094',  hidden='False', isbasic='True', helptext='VSAN ID', dt_type="string", static="False", api="", name="vsan_id",
-                      static_values="", label="VSAN", svalue="101", mapval="", mandatory="1", order="2", recommended="1")
-    fc_list = Multiselect(hidden='False', isbasic='True', helptext='Interfaces to be configured in VSAN', dt_type="string", static="False", api="get_fc_list()|[mds_id:1:mds_id.value]", name="fc_list", label="Interfaces", static_values="", svalue="fc1/1|fc1/2|fc1/3|fc1/4",
-                          mapval="", mandatory="1", order="3", recommended="1")
-    pc_list = Multiselect(hidden='False', isbasic='True', helptext='Port Channel to be configured in VSAN', dt_type="string", static="False", api="get_portchannel_list()|[mds_id:1:mds_id.value]", name="pc_list", static_values="1", label="Port-Channels", svalue="1",
-                          mapval="", mandatory="1", order="4", recommended="1")
+    mds_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="get_mds_list()",
+        name="mds_id",
+        label="MDS switch",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order="1")
+    vsan_id = Textbox(
+        validation_criteria='int|min:1|max:4094',
+        hidden='False',
+        isbasic='True',
+        helptext='VSAN ID',
+        dt_type="string",
+        static="False",
+        api="",
+        name="vsan_id",
+        static_values="",
+        label="VSAN",
+        svalue="101",
+        mapval="",
+        mandatory="1",
+        order="2",
+        recommended="1")
+    fc_list = Multiselect(
+        hidden='False',
+        isbasic='True',
+        helptext='Interfaces to be configured in VSAN',
+        dt_type="string",
+        static="False",
+        api="get_fc_list()|[mds_id:1:mds_id.value]",
+        name="fc_list",
+        label="Interfaces",
+        static_values="",
+        svalue="fc1/1|fc1/2|fc1/3|fc1/4",
+        mapval="",
+        mandatory="1",
+        order="3",
+        recommended="1")
+    pc_list = Multiselect(
+        hidden='False',
+        isbasic='True',
+        helptext='Port Channel to be configured in VSAN',
+        dt_type="string",
+        static="False",
+        api="get_portchannel_list()|[mds_id:1:mds_id.value]",
+        name="pc_list",
+        static_values="1",
+        label="Port-Channels",
+        svalue="1",
+        mapval="",
+        mandatory="1",
+        order="4",
+        recommended="1")
 
 
 class MDSCreateAndConfigureVSANOutputs:

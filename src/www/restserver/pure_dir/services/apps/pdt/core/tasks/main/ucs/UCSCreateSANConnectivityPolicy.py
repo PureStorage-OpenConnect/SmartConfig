@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -48,8 +48,8 @@ class UCSCreateSANConnectivityPolicy:
         temp_list = []
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
@@ -64,15 +64,15 @@ class UCSCreateSANConnectivityPolicy:
                 temp_list.append(
                     {"id": w.name, "selected": selected, "label": w.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getwwnn(self, keys):
         temp_list = []
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
@@ -87,25 +87,76 @@ class UCSCreateSANConnectivityPolicy:
                 temp_list.append(
                     {"id": w.name, "selected": selected, "label": w.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateSANConnectivityPolicyInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', api="getfilist()", dt_type="string", label="UCS Fabric Name", mandatory="1",
-                         mapval="0", name="fabric_id", static="False", svalue="", static_values="None", order=1)
-    san_conn_policy_name = Textbox(validation_criteria='str|min:1|max:16',  hidden='False', isbasic='True', helptext='SAN Connectivity policy', dt_type="string", api="", static="False", static_values="None",
-                                   name="san_conn_policy_name", label="Name", svalue="", mapval="0", mandatory='1', order=2, recommended="1")
-    san_conn_policy_desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Description', dt_type="string", api="", static="False", static_values="None",
-                                   name="san_conn_policy_desc", label="Description", svalue="", mapval="0", mandatory='1', order=3)
-    ident_pool_name = Dropdown(hidden='False', isbasic='True', helptext='WWNN Assignment', dt_type="string",  static="False", api="getwwnn()|[fabric_id:1:fabric_id.value]", mapval="1",
-                               static_values="None", name="ident_pool_name", label="WWNN Assignment", svalue="", mandatory='1', order=4)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        api="getfilist()",
+        dt_type="string",
+        label="UCS Fabric Name",
+        mandatory="1",
+        mapval="0",
+        name="fabric_id",
+        static="False",
+        svalue="",
+        static_values="None",
+        order=1)
+    san_conn_policy_name = Textbox(
+        validation_criteria='str|min:1|max:16',
+        hidden='False',
+        isbasic='True',
+        helptext='SAN Connectivity policy',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="None",
+        name="san_conn_policy_name",
+        label="Name",
+        svalue="",
+        mapval="0",
+        mandatory='1',
+        order=2,
+        recommended="1")
+    san_conn_policy_desc = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Description',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="None",
+        name="san_conn_policy_desc",
+        label="Description",
+        svalue="",
+        mapval="0",
+        mandatory='1',
+        order=3)
+    ident_pool_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='WWNN Assignment',
+        dt_type="string",
+        static="False",
+        api="getwwnn()|[fabric_id:1:fabric_id.value]",
+        mapval="1",
+        static_values="None",
+        name="ident_pool_name",
+        label="WWNN Assignment",
+        svalue="",
+        mandatory='1',
+        order=4)
 
 
 class UCSCreateSANConnectivityPolicyOutputs:

@@ -1,16 +1,21 @@
 var NEXUSForConfigure = [], MDSForConfigure = [], UCSForConfigure = [];
 $(document).ready(function() {
+	/**
+	  * @desc event registration for selecting/deselecting a device.
+	*/
 	$('body').delegate('.networkinfo.elementInfo', 'click', function(e) {
 		if($(this).hasClass('In-progress')) return false;
 		selectElement($(this));
 		return false;
 	});
-
 	$('body').delegate('.networkinfo.elementInfo .devices', 'click', function(e) {
 		e.stopPropagation();
 		selectElement($(this).closest('.networkinfo.elementInfo'));
 	});
 
+	/**
+	  * @desc event registration for opening the image library.
+	*/
 	$('body').delegate('.iso-library', 'click', function(e) {
 		e.stopPropagation();
 		var parent = '', subtypes = {'UCSM': ['ESXi', 'ESXi-kickstart', 'UCS-infra', 'UCS-blade'], 'MDS': ['MDS', 'MDS-kickstart'],'Nexus':['Nexus 5k','Nexus 9k','Nexus 5k-kickstart']};
@@ -75,6 +80,9 @@ $(document).ready(function() {
 		return false;
 	});
 
+	/**
+	  * @desc event registration for selecting image type & sub type.
+	*/
 	$('body').delegate('.iso_image', 'change', function(e) {
 		$('.sub_image').parent().addClass('hide');
 		$('.sub_hwtype .sub_image').prop('checked', false);
@@ -93,6 +101,9 @@ $(document).ready(function() {
 		updateUploadEvent(this.value);
 	});
 
+	/**
+	  * @desc event registration for importing the selected image to library.
+	*/
 	$('body').delegate('#importBtn', 'click', function(e) {
 		doImport('.modal-inset', '.import_iso', true, function(response) {
 			var attr = $('#list-images').attr('type');
@@ -100,15 +111,24 @@ $(document).ready(function() {
 		}, doNothing);
 	});
 
+	/**
+	  * @desc event registration for selecting/deselecting an image from the library.
+	*/
 	$('body').delegate('.images-list tr', 'click', function(e) {
 		$('.images-list tr').removeClass('selected');
 		$(this).addClass('selected');
 	});
 
+	/**
+	  * @desc event registration for opening a confirmation to delete an image.
+	*/
 	$('body').delegate('.delete-image', 'click', function(e) {
 		$('.modal-inset').append(popupConfirmation('image_delete_confirm', localization['delete-image-confirm']));
 	});
-	
+
+	/**
+	  * @desc event registration for deleting an image.
+	*/
 	$('body').delegate('.image_delete_confirm', 'click', function(e) {
 		var currentObj = $('.images-list tr.selected');
 		doAjaxRequest({url: 'DeleteImage', base_path: settings.base_path, data: {imagename: currentObj.attr('primaryid')}, success_notify: true, container: '.modal-inset'}, function(response) {
@@ -121,6 +141,9 @@ $(document).ready(function() {
 		}, doNothing);
 	});
 
+	/**
+	  * @desc event registration for enabling/disabling the DHCP settings.
+	*/
 	$('body').delegate('#enable-dhcp', 'change', function(e) {
 		$(this).attr("disabled", true);
 		setTimeout(function() {
@@ -139,6 +162,9 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc event registration for updating the DHCP settings.
+	*/
 	$('body').delegate('.dhcp-settings', 'click', function(e) {
 		e.stopPropagation();
 		openModel({title: localization['dhcp-settings'], body: loadDHCPSettingsForm(), buttons: {
@@ -147,6 +173,9 @@ $(document).ready(function() {
 		}});
 	});
 
+	/**
+	  * @desc event registration for adding a configured device to our components.
+	*/
 	$('body').delegate('.add-device', 'click', function(e) {
 		e.stopPropagation();
 		openModel({title: localization['add-device'], body: loadAddDeviceForm(), buttons: {
@@ -160,7 +189,10 @@ $(document).ready(function() {
 			}
 		}});
 	});
-	
+
+	/**
+	  * @desc event registration for deleting the configured devices from our components list.
+	*/
 	$('body').delegate('.delete-device, .delete-devices', 'click', function(e) {
 		e.stopPropagation();
 		var msg, data;
@@ -186,6 +218,9 @@ $(document).ready(function() {
 		}});
 	});
 
+	/**
+	  * @desc event registration for re-initializating the device which got failure during initialization/flashing.
+	*/
 	$('body').delegate('.re-validate', 'click', function(e) {
 		e.stopPropagation();
 		var elem = $(this).closest('tr'), str = '';
@@ -245,6 +280,7 @@ $(document).ready(function() {
 					}
 					str += loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+					loadFormTemplate({type: 'ipbox', id: 'ntp_server', label: localization['ntp-server'], readonly: true, maxlength: 3, holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
 					loadFormTemplate({type: 'ipbox', id: 'dns', label: localization['dns-ip'], maxlength: 3, holder: 'ucsm-primary dns nameserver col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadUCSMForm(1);
@@ -327,6 +363,7 @@ $(document).ready(function() {
 								$('.toggle-select.switchFabric_' + index).toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'A', off: 'B'}});
 							});
 							flag = true;
+							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
 							if(UCSForConfigure.length == 1) {
 								flag = false;
 								$('.toggle-select.fabricSwitch').addClass('disabled');
@@ -367,21 +404,29 @@ $(document).ready(function() {
 			});
 		}, doNothing);
 	});
-	
+
+	/**
+	  * @desc event registration for selecting/deselecting the stack types for deployment.
+	*/
 	$('body').delegate('.boxes .box:not(.disabled)', 'click', function(e) {
 		$('.boxes .box').removeClass('active');
 		$(this).addClass('active');
 	});
 
+	/**
+	  * @desc event registration for poping the notification while enabling the upgrade option.
+	*/
 	$('body').delegate('#ucs_upgrade', 'change', function(e) {
 		$('.ucsm-configure .ucs_upgrade').addClass('hide');
-		$('#infra_image, #blade_image').val('');
 		if($(this).is(':checked')) {
 			$('.ucsm-configure .ucs_upgrade').removeClass('hide');
 			showNotification(localization['ucsm-upgrade-msg'], 10000);
 		}
 	});
 
+	/**
+	  * @desc event registration for updating the form while changing the configuration type.
+	*/
 	$('body').delegate('[name="configuration-option"]', 'change', function(e) {
 		$('.fs-configurations').removeClass('hide');
 		$('.import-configurations').addClass('hide');
@@ -403,6 +448,9 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc event registration for mapping the hardwares with the existing configuration set.
+	*/
 	$('body').delegate('.nexus_mapping, .mds_mapping, .fabric_mapping', 'change', function(e) {
 		if($(this).val() != '') {
 			var type = 'mds', tmp;
@@ -424,6 +472,10 @@ $(document).ready(function() {
 	});
 });
 
+/**
+  * @desc this method is used to seleting/deseleting the devices from the discovered list.
+  * @param object $elem - the dom object of the selected device.
+*/
 function selectElement(elem) {
 	if(elem.hasClass('active')) {
 		elem.removeClass('active');
@@ -438,6 +490,9 @@ function selectElement(elem) {
 	checkRequiredHardwares();
 }
 
+/**
+  * @desc this method will enable DHCP settings based on the values filled on the settings form.
+*/
 function EnableDHCP() {
 	var slider = $('#dhcp_ranges').data("ionRangeSlider");
 	var dhcp_range = $('#dhcp_ranges').val().split(";");
@@ -465,6 +520,9 @@ function EnableDHCP() {
 	});
 }
 
+/**
+  * @desc this method will disable the DHCP settings.
+*/
 function disableDHCP(notify) {
 	doAjaxRequest({url: 'DHCPSettings', base_path: settings.base_path, success_notify: notify, container: '.content-container'}, function(response) {
 		systemInfo.dhcp_status = 'disabled';
@@ -474,6 +532,10 @@ function disableDHCP(notify) {
 	});
 }
 
+/**
+  * @desc this method is used to update the handler of image uploader.
+  * @param string $value - the type of the image to upload.
+*/
 function updateUploadEvent(value) {
 	$('.iso_file').addClass('hide');
 	$('#iso_file').val('');
@@ -487,6 +549,9 @@ function updateUploadEvent(value) {
 	$(".import_iso .file_format").html("(" + localization['allowed-format'] + ": <b>" + file_format.type + "</b>)");
 }
 
+/**
+  * @desc this method is used to select a image from the image library.
+*/
 function selectISO() {
 	var options = {
 		'MDS': 'mds_switch_system_image', 'MDS-kickstart': 'mds_switch_kickstart_image', 'Nexus 9k': 'nexus_switch_image', 'Nexus 5k': 'nexus5k_system_image', 'Nexus 5k-kickstart': 'nexus5k_kickstart_image', 'kickstart': 'mds_switch_kickstart_image', 'ESXi': 'esxi_remote_file', 'ESXi-kickstart': 'esxi_kickstart_file', 'UCS-infra': 'ucs_infra_image', 'UCS-blade': 'ucs_blade_image'};
@@ -499,6 +564,10 @@ function selectISO() {
 	closeModel();
 }
 
+/**
+  * @desc this method is used load the discovered devices with its availability & configurable status.
+  * @param string $container - the dom selector string in-which location to create the loading icon.
+*/
 function loadDiscovery(container) {
 	$.when(
 		loadFlashstackTypes()
@@ -612,6 +681,10 @@ function loadDiscovery(container) {
 	});
 }
 
+/**
+  * @desc this method is used to check the hardware requirements for the selected flashstack type and display the same on UI.
+  * @param string $container - the dom selector string in-which location to create the loading icon.
+*/
 function checkRequiredHardwares(container) {
         var str = '', color, display_name, flag, status, selected;
 	Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
@@ -665,6 +738,9 @@ function checkRequiredHardwares(container) {
         }
 }
 
+/**
+  * @desc method for validating & configuring UCSM devices. It will collect all UCSM configuration values from the form & make a request.
+*/
 function postUCSMForm() {
 	var data = {}, myToggle, type = 'cluster';
 	if(UCSForConfigure.length == 1) {
@@ -680,6 +756,7 @@ function postUCSMForm() {
 	data.ucs_upgrade = ($('#ucs_upgrade').is(':checked')) ? "Yes" : "No";
 	data.infra_image = $('#infra_image').val();
 	data.blade_image = $('#blade_image').val();
+	data.ntp_server = ($('#ntp_server_0').val() == '') ? '' : $('#ntp_server_0').val() + '.' + $('#ntp_server_1').val() + '.' + $('#ntp_server_2').val() + '.' + $('#ntp_server_3').val();
 	if(type == 'subordinate') {
 		data.pri_name = $('#systemName').val();
 		data.pri_ip = ($('#oobIP_0').val() == '') ? '' : $('#oobIP_0').val() + '.' + $('#oobIP_1').val() + '.' + $('#oobIP_2').val() + '.' + $('#oobIP_3').val();
@@ -739,6 +816,11 @@ function postUCSMForm() {
 	});
 }
 
+/**
+  * @desc method for validating & configuring MDS devices. It will collect all MDS configuration values from the form & make a request.
+  * @param integer $index - .
+  * @param boolean $isMDSPrimary - .
+*/
 function postMDSForm(index, isMDSPrimary) {
 	var data = {}, n = index;
 	data.tag = 'A';
@@ -778,6 +860,11 @@ function postMDSForm(index, isMDSPrimary) {
 	});
 }
 
+/**
+  * @desc method for validating & configuring NEXUS devices. It will collect all NEXUS configuration values from the form & make a request.
+  * @param integer $index - .
+  * @param boolean $isNexusPrimary - .
+*/
 function postNEXUSForm(index, isNexusPrimary) {
 	var data = {}, n = index, model = 'n9k';
 	data.tag = 'A';
@@ -822,6 +909,9 @@ function postNEXUSForm(index, isNexusPrimary) {
 	});
 }
 
+/**
+  * @desc 
+*/
 function validateConfiguration() {
 	$('.control-group').find('.task-input').removeClass('error');
 	$('.control-group').find('.help-block').hide().html('');
@@ -893,6 +983,10 @@ function validateConfiguration() {
 	});
 }
 
+/**
+  * @desc .
+  * @param object $obj - .
+*/
 function saveConfig(obj) {
 	var data = {}, mds = [], nexus = [];
 	data.ucsm = JSON.stringify($('.ucsm.ucsm-configure').data('config'));
@@ -935,6 +1029,10 @@ function saveConfig(obj) {
 	});
 }
 
+/**
+  * @desc .
+  * @param object $obj - .
+*/
 function reConfigure(obj) {
 	obj.force = 1;
 	doAjaxRequest({url: 'Reconfigure', base_path: settings.base_path, method: 'GET', query: obj, container: '.modal-inset'}, function(response) {
@@ -944,6 +1042,9 @@ function reConfigure(obj) {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+*/
 function triggerInitialization() {
 	doAjaxRequest({url: 'ConfigureDevices', base_path: settings.base_path, container: '.device-initialization'}, function(response) {
 		$('.basic-view, .ucsm.ucsm-configure').remove();
@@ -953,6 +1054,9 @@ function triggerInitialization() {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+*/
 function loadInitialSetupForm() {
 	clearTimeout(tout);
 	var loadDynamicValues = {}, data_str, obj = {'UCSM': [], 'MDS': []};
@@ -1113,6 +1217,10 @@ function loadInitialSetupForm() {
 	toggleSwitches();
 }
 
+/**
+  * @desc .
+  * @param object $response - .
+*/
 function loadImportedConfig(response) {
 	var dom, tmp;
 	$('.fs-configurations').removeClass('hide');
@@ -1139,6 +1247,9 @@ function loadImportedConfig(response) {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+*/
 function toggleSwitches() {
 	$('.toggle-select.fabricSwitch').on('click', function(e) {
 		e.stopPropagation();
@@ -1172,6 +1283,9 @@ function toggleSwitches() {
 	});
 }
 
+/**
+  * @desc .
+*/
 var counter = 0, formData = [];
 function loadGlobalConfigForm() {
 	var str = '<div class="row info-section col-lg-12 col-md-12 col-sm-12 col-xs-12">\
@@ -1185,6 +1299,9 @@ function loadGlobalConfigForm() {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+*/
 function loadGlobalFormFields() {
 	var container;
 	if(counter < formData.length) {
@@ -1215,6 +1332,9 @@ function loadGlobalFormFields() {
 	}
 }
 
+/**
+  * @desc .
+*/
 function updateGlobalConfig() {
 	var data = {};
 	var obj = getFormData('.initial-setup .global .control-group');
@@ -1230,6 +1350,9 @@ function updateGlobalConfig() {
 	});
 }
 
+/**
+  * @desc .
+*/
 function populateData() {
 	focusNextFormField('.task-input');
 	$.when(
@@ -1242,6 +1365,10 @@ function populateData() {
 	});
 }
 
+/**
+  * @desc .
+  * @param array $data - .
+*/
 function loadConfigValues(data) {
 	var dom, slider, tmp;
 	$('.fabric_mapping, .mds_mapping, .nexus_mapping').html('');
@@ -1322,6 +1449,10 @@ function loadConfigValues(data) {
 	});
 }
 
+/**
+  * @desc .
+  * @param object $data - .
+*/
 function populateDefaults(data) {
 	doAjaxRequest({url: 'ConfigDefaults', base_path: settings.base_path, method: 'POST', data: data, container: '#wizard'}, function(response) {
 		loadConfigValues(response.data);
@@ -1342,6 +1473,11 @@ function populateDefaults(data) {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+  * @param object $dom - .
+  * @param array $value - .
+*/
 function plotValuesByDom(dom, value) {
 	var tmp, j;
 	if(dom.find('.task-input').hasClass('ip')) {
@@ -1357,6 +1493,10 @@ function plotValuesByDom(dom, value) {
 	} else dom.find('.task-input').val(value);
 }
 
+/**
+  * @desc .
+  * @param integer $column - .
+*/
 function loadUCSMForm(column) {
 	$('.ucsm.ucsm-configure').remove();
 	var str = '<div class="row ucsm ucsm-configure">';
@@ -1408,6 +1548,13 @@ function loadUCSMForm(column) {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param object $options - .
+  * @param number $index - .
+  * @param boolean $isMDSPrimary - .
+  * @param string $width - .
+*/
 function loadMDSForm(options, index, isMDSPrimary, width) {
 	$('.mds.block.mds_' + index).remove();
 	var str = '<div class="' + width + ' nopadding block mds mds_' + index + '">';
@@ -1426,6 +1573,13 @@ function loadMDSForm(options, index, isMDSPrimary, width) {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param object $options - .
+  * @param number $index - .
+  * @param boolean $isNexusPrimary - .
+  * @param string $width - .
+*/
 function loadNEXUSForm(options, index, isNexusPrimary, width) {
 	var type = 'nexus_9k';
 	if(systemInfo.stacktype.indexOf('-n5k-') > 0) type = 'nexus_5k';
@@ -1446,6 +1600,9 @@ function loadNEXUSForm(options, index, isNexusPrimary, width) {
 	return str;
 }
 
+/**
+  * @desc .
+*/
 function populateNetworkInfo() {
 	doAjaxRequest({url: 'NetworkInfo', base_path: settings.base_path, container: '#wizard'}, function(response) {
 		plotValuesByDom($('.control-group.gateway'), response.data.gateway, 'gateway');
@@ -1453,6 +1610,9 @@ function populateNetworkInfo() {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+*/
 function loadDHCPSettingsForm() {
 	doAjaxRequest({url: 'DHCPInfo', base_path: settings.base_path, container: '.modal-inset'}, function(response) {
 		var str = '<div class="dhcp_settings">' +
@@ -1492,6 +1652,9 @@ function loadDHCPSettingsForm() {
 	});
 }
 
+/**
+  * @desc .
+*/
 function loadAddDeviceForm() {
 	var str = '<div class="add_device">';
 		str += loadFormTemplate({id: 'add_ip_address', label: localization['ip'], class: 'ipaddress', holder: 'ip ip_address', mandatory: true}) + 
@@ -1501,6 +1664,10 @@ function loadAddDeviceForm() {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param string $attr - .
+*/
 function loadISOLibraryForm(attr) {
 	var style = '', display = 'hide', fields = [], subtype = [], ossubtype = [];
 	if(attr == '') {
@@ -1562,6 +1729,12 @@ function loadISOLibraryForm(attr) {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param string $container - .
+  * @param string $type - .
+  * @param string $file - .
+*/
 function loadImages(container, type, file) {
 	return doAjaxRequest({url: 'ListImages', base_path: settings.base_path, container: container}, function(response) {
 		var action_icons = [], length = 0, str = '<div class="">';
@@ -1633,6 +1806,9 @@ function loadImages(container, type, file) {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+*/
 function loadFlashstackTypes() {
 	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path}, function(response) {
 		var str = '', enabled, stacktype = '';
@@ -1652,6 +1828,10 @@ function loadFlashstackTypes() {
 	}, doNothing);
 }
 
+/**
+  * @desc .
+  * @param string $container - .
+*/
 function loadDevices(container) {
 	clearTimeout(tout);
 	var notify = true;
@@ -1756,6 +1936,9 @@ function loadDevices(container) {
 	});
 }
 
+/**
+  * @desc .
+*/
 function loadDeviceStatus() {
 	clearTimeout(tout);
 	var icon, buttons, flag = false, callbackFlag = true, exec_status = false;

@@ -226,99 +226,9 @@ def mdsvalidateimages(data):
     return parseResult(ret)
 
 
-def ucsmlogin(ipaddress, username, password):
-    obj = UCSManager()
-    ret = obj.ucsmlogin(ipaddress, username, password)
-    return parseResult(ret)
-
-
-def ucsmchassisblades():
-    obj = UCSManager()
-    ret = obj.ucsmchassisblades()
-    return parseResult(ret)
-
-
-def ucsmservers():
-    obj = UCSManager()
-    ret = obj.ucsmservers()
-    return parseResult(ret)
-
-
-def ucsmrackunits():
-    obj = UCSManager()
-    ret = obj.ucsmrackunits()
-    return parseResult(ret)
-
-
-def ucsmrackunitinfo(serverid):
-    obj = UCSManager()
-    ret = obj.ucsmrackunitinfo(serverid)
-    return parseResult(ret)
-
-
-def ucsmfexs():
-    obj = UCSManager()
-    ret = obj.ucsmfexs()
-    return parseResult(ret)
-
-
 def ucsmfexinfo(fexid):
     obj = UCSManager()
     ret = obj.ucsmfexinfo(fexid)
-    return parseResult(ret)
-
-
-def ucsmfabricinterconnects():
-    obj = UCSManager()
-    ret = obj.ucsmfabricinterconnects()
-    return parseResult(ret)
-
-
-def ucsmfabricinterconnectinfo(fi_id):
-    obj = UCSManager()
-    ret = obj.ucsmfabricinterconnectinfo(fi_id)
-    return parseResult(ret)
-
-
-def ucsmfexinfo(fexid):
-    obj = UCSManager()
-    ret = obj.ucsmfexinfo(fexid)
-    return parseResult(ret)
-
-
-def ucsmchassis():
-    obj = UCSManager()
-    ret = obj.ucsmchassis()
-    return parseResult(ret)
-
-
-def ucsmchassisinfo(id):
-    obj = UCSManager()
-    ret = obj.ucsmchassisinfo(id)
-    return parseResult(ret)
-
-
-def ucsmethernetports(fid='', port_type=''):
-    obj = UCSManager()
-    ret = obj.ucsmethernetports(fid, port_type)
-    return parseResult(ret)
-
-
-def ucsmethernetportconfig(fid, plist, ptype):
-    obj = UCSManager()
-    ret = obj.ucsmethernetportconfig(fid, plist, ptype)
-    return parseResult(ret)
-
-
-def ucsmethernetportunconfig(fid, plist):
-    obj = UCSManager()
-    ret = obj.ucsmethernetportunconfig(fid, plist)
-    return parseResult(ret)
-
-
-def ucsmtopology(mac):
-    obj = UCSManager()
-    ret = obj.ucsmtopology(mac)
     return parseResult(ret)
 
 
@@ -326,31 +236,6 @@ def ucsmlist():
     obj = UCSManager()
     ret = obj.ucsmlist()
     return parseResult(ret)
-
-
-def ucsmserviceprofile():
-    obj = UCSManager()
-    ret = obj.ucsmserviceprofile()
-    return parseResult(ret)
-
-
-def ucsmserviceprofiletemp():
-    obj = UCSManager()
-    ret = obj.ucsmserviceprofiletemp()
-    return parseResult(ret)
-
-
-def ucsmchassisbladeinfo(chassisid):
-    obj = UCSManager()
-    ret = obj.ucsmchassisbladeinfo(chassisid)
-    return parseResult(ret)
-
-
-def getusmdetails():
-    obj = UCSManager()
-    ret = obj.getusmdetails()
-    return parseResult(ret)
-
 
 def ucsmficonfigure(mode, data):
     obj = UCSManager()
@@ -380,93 +265,6 @@ def ucsmsetip(
     return parseResult(ret)
 
 
-def ucsmdiscovery():
-    obj = UCSManager()
-    ret = obj.ucsmdiscovery()
-    return parseResult(ret)
-
-################ UCSHelper functions call ########################
-
-
-def listserviceprofile():
-    obj = UCSManager()
-    ret = obj.list_service_profiles()
-    return parseResult(ret)
-
-
-def listserviceprofiletemp():
-    obj = UCSManager()
-    ret = obj.list_service_profile_templates()
-    return parseResult(ret)
-
-
-def getfisuggestion(default):
-    obj = UCSManager()
-    ret = obj.getfisuggestion(default)
-    return parseResult(ret)
-
-################ UCSSafe functions call ##########################
-
-
-def ucsmscrubpolicy():
-    obj = UCSManager()
-    ret = obj.ucsmscrubpolicy()
-    return parseResult(ret)
-
-
-def ucsmuuidpools():
-    obj = UCSManager()
-    ret = obj.ucsmuuidpools()
-    return parseResult(ret)
-
-
-def ucsmlocaldiskpolicies():
-    obj = UCSManager()
-    ret = obj.ucsmlocaldiskpolicies()
-    return parseResult(ret)
-
-
-def ucsmlocalconnectivitypolicies():
-    obj = UCSManager()
-    ret = obj.ucsmlocalconnectivitypolicies()
-    return parseResult(ret)
-
-
-def ucsmsanconnectivitypolicies():
-    obj = UCSManager()
-    ret = obj.ucsmsanconnectivitypolicies()
-    return parseResult(ret)
-
-
-def ucsmvmediapolicies():
-    obj = UCSManager()
-    ret = obj.ucsmvmediapolicies()
-    return parseResult(ret)
-
-
-def ucsmbootpolicies():
-    obj = UCSManager()
-    ret = obj.ucsmbootpolicies()
-    return parseResult(ret)
-
-
-def ucsmserverpoolqualifications():
-    obj = UCSManager()
-    ret = obj.ucsmserverpoolqualifications()
-    return parseResult(ret)
-
-
-def ucsmpowercontrolpolicies():
-    obj = UCSManager()
-    ret = obj.ucsmpowercontrolpolicies()
-    return parseResult(ret)
-
-
-def ucsmtimezone():
-    obj = UCSManager()
-    ret = obj.ucsmtimezone()
-    return parseResult(ret)
-
 
 # Orchestration APIs
 
@@ -485,12 +283,6 @@ def tasks(htype=''):
 def workflowgroups(id, ttype=''):
     obj = Orchestration()
     ret = obj.workflowgroups(id, ttype)
-    return parseResult(ret)
-
-
-def deleteworkflow(wid):
-    obj = Orchestration()
-    ret = obj.deleteworkflow(wid)
     return parseResult(ret)
 
 
@@ -543,63 +335,9 @@ def workflowpersistantprepare(id):
     return parseResult(ret)
 
 
-def jobdiscard(jobid, force):
-    obj = Orchestration()
-    ret = obj.jobdiscard(jobid, force)
-    return parseResult(ret)
-
-
 def jobvalidate(jobid, execid=''):
     obj = Orchestration()
     ret = obj.jobvalidate(jobid, execid)
-    return parseResult(ret)
-
-
-def createworkflow():
-    obj = Orchestration()
-    ret = obj.createworkflow()
-    return parseResult(ret)
-
-
-def addtask(data):
-    obj = Orchestration()
-    ret = obj.addtask(data)
-    return parseResult(ret)
-
-
-def deletetask(execid, wid):
-    obj = Orchestration()
-    ret = obj.deletetask(execid, wid)
-    return parseResult(ret)
-
-
-def deletealltask(wid):
-    obj = Orchestration()
-    ret = obj.deletealltask(wid)
-    return parseResult(ret)
-
-
-def createconnection(data):
-    obj = Orchestration()
-    ret = obj.createconnection(data)
-    return parseResult(ret)
-
-
-def deleteconnection(wid, execid, ttype):
-    obj = Orchestration()
-    ret = obj.deleteconnection(wid, execid, ttype)
-    return parseResult(ret)
-
-
-def deleteallconnection(wid):
-    obj = Orchestration()
-    ret = obj.deleteallconnection(wid)
-    return parseResult(ret)
-
-
-def saveworkflow(data):
-    obj = Orchestration()
-    ret = obj.saveworkflow(data)
     return parseResult(ret)
 
 
@@ -657,12 +395,6 @@ def rollbackstatus(jobid):
     return parseResult(ret)
 
 
-def librarytaskinfo(tid):
-    obj = Orchestration()
-    ret = obj.taskinfo(tid)
-    return parseResult(ret)
-
-
 def jobtaskinputs(execid, id, ttype=''):
     obj = Orchestration()
     return parseResult(obj.jobtaskinputs(execid, id, ttype))
@@ -676,11 +408,6 @@ def jobtaskmandatoryinputs(id, ttype=''):
 def jobtaskoutputs(texecid, jobid):
     obj = Orchestration()
     return parseResult(obj.jobtaskoutputs(texecid, jobid))
-
-
-def librarytasks():
-    obj = Orchestration()
-    return parseResult(obj.librarytasks())
 
 
 def jobstatus(jobid):
@@ -704,10 +431,10 @@ def jobsaveas(jobid, data):
     return parseResult(ret)
 
 
-def checkprereq(wid):
+'''def checkprereq(wid):
     obj = Orchestration()
     ret = obj.checkprereq(wid)
-    return parseResult(ret)
+    return parseResult(ret)'''
 
 
 def logs(jobid):
@@ -729,8 +456,6 @@ def getglobaloptions(operation, ttype, keys):
     obj = Orchestration()
     ret = obj.getglobaloptions(operation, ttype, keys)
     return parseResult(ret)
-
-#getglobaloptions('getnexuslist', 'fi_nexus9k_mds_fc', '')
 
 
 def getgroupmembervalues(jobid, execid, groupid, membername):

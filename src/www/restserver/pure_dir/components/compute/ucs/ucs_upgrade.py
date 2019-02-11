@@ -310,8 +310,9 @@ def firmware_activate_blade(handle, version):
                                 ls_maint_ack.admin_state = 'trigger-immediate'
                                 handle.set_mo(ls_maint_ack)
                                 handle.commit()
-                                loginfo("Acknowledging blade '%s', service profile '%s' using hostfirmwarepack '%s'" % (
-                                    sp.pn_dn, sp.dn, sp.oper_host_fw_policy_name))
+                                loginfo(
+                                    "Acknowledging blade '%s', service profile '%s' using hostfirmwarepack '%s'" %
+                                    (sp.pn_dn, sp.dn, sp.oper_host_fw_policy_name))
                 host_firmware_packs.append(host_firmware_pack_dn)
         return True
 

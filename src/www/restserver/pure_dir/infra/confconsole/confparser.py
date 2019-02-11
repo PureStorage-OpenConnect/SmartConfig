@@ -45,13 +45,13 @@ def setConfValue(pathFile, confName, newValue, typeData):
 
     try:
         CURRENT_FILE = open(pathFile, 'r')
-    except IOError, reason:
+    except IOError as reason:
         print "cannot find config file: {0}\n{1}".format(pathFile, reason)
         sys.exit(-1)
 
     try:
         NEW_FILE = open(newConfFile, 'w')
-    except IOError, reason:
+    except IOError as reason:
         print "cannot create config file: {0}\n{1}".format(pathFile, reason)
         sys.exit(-1)
 
@@ -131,7 +131,7 @@ def getConfValue(pathFile, confName):
 
     try:
         FILE = open(pathFile).readlines()
-    except IOError, reason:
+    except IOError as reason:
         print "cannot locate configuration file: %s" % pathFile
         sys.exit(-1)
 
@@ -170,7 +170,7 @@ def confToDict(pathFile):
 
     try:
         FILE = open(pathFile, 'r+')
-    except IOError, reason:
+    except IOError as reason:
         print "cannot find configuration" \
             "file: {0}\n{1}".format(pathFile, reason)
         sys.exit(-1)
@@ -294,14 +294,14 @@ def writeDictToFile(pathFile, var):
 
     try:
         CURRENT_FILE = open(pathFile, 'r')
-    except IOError, reason:
+    except IOError as reason:
         print "cannot find configuration" \
             " file: {0}\n{1}".format(pathFile, reason)
         sys.exit(-1)
 
     try:
         NEW_FILE = open(newConfFile, 'w')
-    except IOError, reason:
+    except IOError as reason:
         print "cannot create new configuration" \
             "file: {0}\n{1}".format(pathFile, reason)
         sys.exit(-1)

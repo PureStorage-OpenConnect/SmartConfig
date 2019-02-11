@@ -2,7 +2,7 @@ from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -32,9 +32,10 @@ class FAGetFCPortNumber:
             key="mac", value=inputs['inputs']['pure_id'])
 
         if not cred:
+	    res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -47,7 +48,7 @@ class FAGetFCPortNumber:
     def rollback(self, inputs, outputs, logfile):
         loginfo("get pwwn rollback")
         res = result()
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def purelist(self, keys):
@@ -60,7 +61,7 @@ class FAGetFCPortNumber:
         res = result()
         pure_list = get_device_list(device_type="PURE")
         loginfo("pure_list : {}".format(pure_list))
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_fc_controller_list(self, keys):
@@ -75,8 +76,8 @@ class FAGetFCPortNumber:
         cont_list = []
         res = result()
         pureid = getArg(keys, 'pure_id')
-        if pureid == None:
-            res.setResult(cont_list, PTK_OKAY, "success")
+        if pureid is None:
+            res.setResult(cont_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(
@@ -97,15 +98,40 @@ class FAGetFCPortNumber:
                 {"id": contDict['name'], "selected": "0", "label": contDict['name']})
         obj.release_pure_handle()
         loginfo("get controller list going is :{}".format(cont_list))
-        res.setResult(cont_list, PTK_OKAY, "Success")
+        res.setResult(cont_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class FAGetFCPortNumberInputs:
-    pure_id = Dropdown(hidden='False', isbasic='True', helptext='Pure ID', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
-    name = Dropdown(hidden='False', isbasic='True', helptext='FC Controller Name', dt_type="list", api="get_fc_controller_list()|[pure_id:1:pure_id.value]", static="False",
-                    name="name", label="Controller name", svalue="", mandatory="0", static_values="", mapval="0", order=2, recommended="1")
+    pure_id = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Pure ID',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
+    name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='FC Controller Name',
+        dt_type="list",
+        api="get_fc_controller_list()|[pure_id:1:pure_id.value]",
+        static="False",
+        name="name",
+        label="Controller name",
+        svalue="",
+        mandatory="0",
+        static_values="",
+        mapval="0",
+        order=2,
+        recommended="1")
 
 
 class FAGetFCPortNumberOutputs:

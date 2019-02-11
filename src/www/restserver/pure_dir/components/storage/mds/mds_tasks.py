@@ -6,14 +6,10 @@
 # version         :1.0
 #####################################################################
 
-from pycsco.nxos.device import Device
-from pycsco.nxos import error
-from pycsco.nxos.utils import nxapi_lib as nxapi_fn
-import xmltodict
 import time
 
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.storage.mds.mds import *
 
 
@@ -22,7 +18,7 @@ class MDSTasks:
         """
         Constructor - MDS Handler
 
-        :param ipaddress: Switch ip 
+        :param ipaddress: Switch ip
         :param username : Switch username
         :param password : Switch password
         """
@@ -109,7 +105,7 @@ class MDSTasks:
             customlogs("Failed to create portchannel", logfile)
 
         else:
-            customlogs("Portchannel '%s' created successfully" %
+            customlogs("Port channel '%s' created successfully" %
                        input_dict['portchannel_id'], logfile)
             output_dict['status'] = "SUCCESS"
             output_dict['portchannel_id'] = input_dict['portchannel_id']
@@ -138,7 +134,7 @@ class MDSTasks:
             customlogs("Failed to delete portchannel", logfile)
 
         else:
-            customlogs("Portchannel '%s' deleted successfully" %
+            customlogs("Port channel '%s' deleted successfully" %
                        input_dict['portchannel_id'], logfile)
             output_dict['status'] = "SUCCESS"
             output_dict['portchannel_id'] = input_dict['portchannel_id']
@@ -170,7 +166,7 @@ class MDSTasks:
 
         else:
             op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
-            customlogs("Portchannel '%s' configured with interfaces %s" %
+            customlogs("Port channel '%s' configured with interfaces %s" %
                        (input_dict['portchannel_id'], str(op_fc_list)), logfile)
             output_dict['status'] = "SUCCESS"
 
@@ -201,7 +197,7 @@ class MDSTasks:
 
         else:
             op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
-            customlogs("Portchannel '%s' with interfaces %s removed" %
+            customlogs("Port channel '%s' with interfaces %s removed" %
                        (input_dict['portchannel_id'], str(op_fc_list)), logfile)
             output_dict['status'] = "SUCCESS"
 
@@ -463,8 +459,8 @@ class MDSTasks:
                 else:
                     op_zone_members = tuple(
                         [x.encode('utf-8') for x in zone_members])
-                    customlogs("Members %s added to the zone '%s' with VSAN '%s' successfully" % (str(op_zone_members),
-                                                                                                  zone_dict['zone_name']['value'], vsan_id), logfile)
+                    customlogs("Members %s added to the zone '%s' with VSAN '%s' successfully" % (
+                        str(op_zone_members), zone_dict['zone_name']['value'], vsan_id), logfile)
                     zone_list.append(zone_dict['zone_name']['value'])
 
         output_dict['status'] = 'SUCCESS'
@@ -536,7 +532,9 @@ class MDSTasks:
                            zoneset_dict['zoneset_name']['value'], logfile)
                 zoneset_members = zoneset_dict['zoneset_members']['value']
                 self.helper.add_to_zoneset(
-                    zoneset_dict['zoneset_name']['value'], zoneset_dict['zoneset_members']['value'], input_dict['vsan_id'])
+                    zoneset_dict['zoneset_name']['value'],
+                    zoneset_dict['zoneset_members']['value'],
+                    input_dict['vsan_id'])
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
                     customlogs(
@@ -546,8 +544,8 @@ class MDSTasks:
                 else:
                     op_zoneset_members = tuple(
                         [x.encode('utf-8') for x in zoneset_members])
-                    customlogs("Members %s added to the zoneset '%s' with vsan '%s' successfully" % (str(op_zoneset_members),
-                                                                                                     zoneset_dict['zoneset_name']['value'], vsan_id), logfile)
+                    customlogs("Members %s added to the zoneset '%s' with vsan '%s' successfully" % (
+                        str(op_zoneset_members), zoneset_dict['zoneset_name']['value'], vsan_id), logfile)
                     time.sleep(10)
                     res = self.helper.activate_zoneset(
                         zoneset_dict['zoneset_name']['value'], input_dict['vsan_id'])

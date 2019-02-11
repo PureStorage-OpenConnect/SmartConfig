@@ -1,30 +1,9 @@
+/**
+  * @desc Render the html page.
+*/
 function loadPageContent() {
 	clearTimeout(tout);
-	doAjaxRequest({url: 'EulaContent', base_path: settings.base_path, notify: false}, function(response) {
-		if(!response.data.isagree) {
-			var str = '<div class="agreement-container">\
-				<div class="agreement"></div>\
-				<div class="checkbox checkbox-primary widget-subtitle">\
-					<input id="terms_aggreement" class="styled" type="checkbox" value="1">\
-					<label for="terms_aggreement" class="nopadding r-height"> ' + localization['i_agree'] + '</label>\
-				</div>\
-				<span class="help-block"></span>\
-				<div class="center"><button type="button" class="agree-terms primary">' + localization['next'] + '</button></div>\
-			</div>';
-			openModel({title: localization['eula'], body: str, buttons: {}});
-			$('.closeModel, .form-footer').hide();
-			initScroller($('.agreement'));
-			$('.modal-inset').addClass('big');
-			var height = parseInt($('.modal-inset').height()) - 146;
-			$('.agreement').css('height', height + 'px').css('max-height', height + 'px');
-			$.ajax({
-				url: 'static/' + response.data.url,
-				success: function(data) {
-					$('.agreement .mCSB_container').append(nl2br(data, true) + '<div class="clear"></div>');
-				}
-			});
-		}
-	}, doNothing);
+	eulaContent();
 
 	doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
 		updateDeploymentSettings(response.data.deployment_settings);
@@ -50,6 +29,7 @@ function loadPageContent() {
 			stage = parseInt(systemInfo.current_step);
 		}
 
+		// Create wizard by binding the object with the html dom.
 		$('#wizard').smartWizard({
 			selected: parseInt(stage) - 1,
 			keyNavigation: false,
@@ -83,6 +63,41 @@ function loadPageContent() {
 	return false;
 }
 
+/**
+  * @desc Render the eula agreement popup.
+*/
+function eulaContent() {
+	doAjaxRequest({url: 'EulaContent', base_path: settings.base_path, notify: false}, function(response) {
+		if(!response.data.isagree) {
+			var str = '<div class="agreement-container">\
+				<div class="agreement"></div>\
+				<div class="checkbox checkbox-primary widget-subtitle">\
+					<input id="terms_aggreement" class="styled" type="checkbox" value="1">\
+					<label for="terms_aggreement" class="nopadding r-height"> ' + localization['i_agree'] + '</label>\
+				</div>\
+				<span class="help-block"></span>\
+				<div class="center"><button type="button" class="agree-terms primary">' + localization['next'] + '</button></div>\
+			</div>';
+			openModel({title: localization['eula'], body: str, buttons: {}});
+			$('.closeModel, .form-footer').hide();
+			initScroller($('.agreement'));
+			$('.modal-inset').addClass('big');
+			var height = parseInt($('.modal-inset').height()) - 146;
+			$('.agreement').css('height', height + 'px').css('max-height', height + 'px');
+			$.ajax({
+				url: 'static/' + response.data.url,
+				success: function(data) {
+					$('.agreement .mCSB_container').append(nl2br(data, true) + '<div class="clear"></div>');
+				}
+			});
+		}
+	}, doNothing);
+}
+
+/**
+  * @desc This method will give the HTML template string of the wizard.
+  * @return string $str - the html string
+*/
 function wizardTemplate() {
 	var str = '<div class="datacenter-wizard">\
 		<div class="form-3 sf-wizard clearfix sf-t1 sf-slide sf-s-0 sf-nomob">\
@@ -257,12 +272,21 @@ function wizardTemplate() {
 	return str;
 }
 
+/**
+  * @desc method to navigate the wizard to a specific step.
+  * @param number $step - the step number to move.
+*/
 function navigateStep(step) {
 	goTo = step; skipValidation = 1; skipStep = true;
 	$('#wizard').smartWizard('goToStep', step);
 	return false;
 }
 
+/**
+  * @desc set of commands to execute when a user leave from a step.
+  * @param dom object $obj - the dom object which contains the current step element.
+  * @param object $context - the object which contains the wizard navigation information.
+*/
 var skipStep = false;
 function leaveAStepCallback(obj, context) {
 	if(!skipStep) {
@@ -412,6 +436,10 @@ function leaveAStepCallback(obj, context) {
 	$('.sf-nav-step.sf-li-number.sf-nav-link.sf-active').addClass('sf-done');
 }
 
+/**
+  * @desc set of commands to execute when a user enter into a step.
+  * @param dom object $obj - the dom object which contains the current step element.
+*/
 function onShowCallback(obj) {
 	current_step = obj.attr('rel');
 	$('.buttonFinish').hide();
@@ -445,16 +473,23 @@ function onShowCallback(obj) {
 	if(skipStep) skipStep = false;
 }
 
+/**
+  * @desc method to execute on finish button.
+*/
 function onFinishCallback() {
 	if(validateAllSteps()) {
 		triggerExecute();
 	}
 }
 
+/**
+  * @desc this will validate the entire form before executing the finsh method
+  * @return boolean - validation status for entire wizard success or failure.
+*/
 function validateAllSteps() {
 	var isStepValid = true;
 	for(i = parseInt(stage)+1; i <= 5; i++) {
-		$('#wizard').smartWizard('setError',{stepnum:i,iserror:false});
+		$('#wizard').smartWizard('setError',{stepnum:i,iserror:false});		// Dispaly the validation failure message
 		if(validateStep(i) == false) {
 			isStepValid = false;
 			$('#wizard').smartWizard('setError',{stepnum:i,iserror:true});
@@ -462,12 +497,17 @@ function validateAllSteps() {
 	}
 	$('.swMain .msgBox .close').hide();
 	if(!isStepValid) {
-		showNotification(localization['single-row-validation'], 5000);
+		showNotification(localization['single-row-validation'], 5000);		// Dispaly the validation failure message in a notification popup
 		$('.swMain .msgBox .close').show();
 	}
 	return isStepValid;
 }
 
+/**
+  * @desc used to validate the given step of the wizard.
+  * @param number $step - step number to validate.
+  * @return boolean - validation status for the given step success or failure.
+*/
 function validateSteps(step) {
 	var isStepValid = true;
 	$('#wizard').smartWizard('setError',{stepnum:step, iserror:false});
@@ -483,11 +523,19 @@ function validateSteps(step) {
 	return isStepValid;
 }
 
+/**
+  * @desc used to byepass the validation.
+  * @param number $step - step number to validate.
+  * @return boolean - validation status of the given step success or failure.
+*/
 function validateStep(step) {
 	var isValid = true;
 	return isValid;
 }
 
+/**
+  * @desc it will save the step to the server and trigger the appropriate method based on the wizard movement.
+*/
 function triggerAPI() {
 	$('#wizard').smartWizard('hideMessage');
 	doAjaxRequest({url: 'DeploymentSettings', base_path: settings.base_path, method: 'POST', data: {current_step: current_step}, container: '.content-container'}, function(response) {

@@ -1,9 +1,11 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
-from pure_dir.components.network.nexus.nexus_tasks import *
-from pure_dir.components.network.nexus.nexus import *
-from pure_dir.components.common import *
+from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
+from pure_dir.components.network.nexus.nexus import Nexus
+from pure_dir.components.common import get_device_list, get_device_credentials
+from pure_dir.infra.apiresults import *
+
 
 metadata = dict(
     task_id="NEXUS9kConfigureVirtualPortChannelsToUCS",
@@ -32,12 +34,12 @@ class NEXUS9kConfigureVirtualPortChannelsToUCS:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Connection to NEXUS failed")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Failed to get NEXUS switch credentials")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
@@ -56,19 +58,19 @@ class NEXUS9kConfigureVirtualPortChannelsToUCS:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Connection to NEXUS failed")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Failed to get NEXUS switch credentials")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
     def getnexuslist(self, keys):
         res = result()
         nexus_list = get_device_list(device_type="Nexus 9k")
-        res.setResult(nexus_list, PTK_OKAY, "success")
+        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_intf_list(self, keys):
@@ -82,7 +84,7 @@ class NEXUS9kConfigureVirtualPortChannelsToUCS:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(intf_list, PTK_OKAY, "success")
+                        res.setResult(intf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         cred = get_device_credentials(key="mac", value=mac_addr)
@@ -93,54 +95,158 @@ class NEXUS9kConfigureVirtualPortChannelsToUCS:
             else:
                 loginfo("Unable to login to the Nexus")
                 res.setResult(intf_list, PTK_INTERNALERROR,
-                              "Unable to login to the Nexus")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the Nexus")
             res.setResult(intf_list, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the Nexus")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
-        res.setResult(intf_list, PTK_OKAY, "success")
+        res.setResult(intf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class NEXUS9kConfigureVirtualPortChannelsToUCSInputs:
-    nexus_id = Dropdown(hidden='True', isbasic='', helptext='', dt_type="string", static="False", static_values="",
-                        api="getnexuslist()",
-                        name="nexus_id", label="Nexus switch", svalue="", mapval="", mandatory="1", order=1)
-    slot_chassis = Multiselect(hidden='', isbasic='True', helptext='Select the interfaces to be configured',
-                               dt_type="string", static="False", api="get_intf_list()|[nexus_id:1:nexus_id.value]",
-                               name="slot_chassis", label="Interfaces", static_values="",
-                               svalue="Eth1/49", mapval="", mandatory="1", order=2, recommended="1")
-    port_channel_number = Textbox(validation_criteria='int|min:1|max:4096', hidden='', isbasic='True',
-                                  helptext='Port channel number to be configured', dt_type="string", static="False",
-                                  api="", name="port_channel_number",
-                                  static_values="", label="Port channel number (1-4096)", svalue="151", mapval="",
-                                  mandatory="1", order=3, recommended="1")
-    native_vlan_id = Textbox(validation_criteria='int|min:1|max:3967', hidden='', isbasic='True',
-                             helptext='Native virtual LAN id', dt_type="string", static="False", api="",
-                             name="native_vlan_id",
-                             static_values="", label="Native VLAN id", svalue="2", mapval="", mandatory="1", order=4,
-                             recommended="1")
-    vlan = Textbox(validation_criteria='int|min:1|max:3967', hidden='', isbasic='True',
-                   helptext="Allowed virtual LAN id's", dt_type="string", static="False", api="",
-                   name="vlan", static_values="",
-                   label="Allowed VLAN id's", svalue="115,200-203", mapval="", mandatory="1", order=5,
-                   recommended="1", group_member="1")
-    allowed_vlans_set = Group(validation_criteria='', hidden='', isbasic='True', helptext="Allowed virtual LAN id's",
-                              dt_type="string", static="False", api="", name="allowed_vlans_set", label="Allowed VLAN id's", static_values="",
-                              svalue="", mapval="", mandatory="1", members=["vlan"], add="True", order=5, recommended="1")
-    mtu_value = Textbox(validation_criteria='int|min:1500|max:9216', hidden='', isbasic='',
-                        helptext='Maximum transfer unit', dt_type="string", static="False", api="", name="mtu_value",
-                        static_values="",
-                        label="MTU value (1500-9216)", svalue="9216", mapval="", mandatory="1", order=6)
-    counter_value = Textbox(validation_criteria='int|min:1|max:3', hidden='', isbasic='', helptext='Counter value',
-                            dt_type="string", static="False", api="", name="counter_value",
-                            static_values="", label="Counter (1-3)", svalue="3", mapval="", mandatory="1",
-                            order=7)
-    interval_delay = Textbox(validation_criteria='int|min:5|max:300', hidden='', isbasic='', helptext='Delay interval',
-                             dt_type="string", static="False", api="", name="interval_delay",
-                             static_values="", label="Delay interval (5-300)", svalue="60", mapval="", mandatory="1",
-                             order=8)
+    nexus_id = Dropdown(
+        hidden='True',
+        isbasic='',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="getnexuslist()",
+        name="nexus_id",
+        label="Nexus switch",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    slot_chassis = Multiselect(
+        hidden='',
+        isbasic='True',
+        helptext='Select the interfaces to be configured',
+        dt_type="string",
+        static="False",
+        api="get_intf_list()|[nexus_id:1:nexus_id.value]",
+        name="slot_chassis",
+        label="Interfaces",
+        static_values="",
+        svalue="Eth1/49",
+        mapval="",
+        mandatory="1",
+        order=2,
+        recommended="1")
+    port_channel_number = Textbox(
+        validation_criteria='int|min:1|max:4096',
+        hidden='',
+        isbasic='True',
+        helptext='Port channel number to be configured',
+        dt_type="string",
+        static="False",
+        api="",
+        name="port_channel_number",
+        static_values="",
+        label="Port channel number (1-4096)",
+        svalue="151",
+        mapval="",
+        mandatory="1",
+        order=3,
+        recommended="1")
+    native_vlan_id = Textbox(
+        validation_criteria='int|min:1|max:3967',
+        hidden='',
+        isbasic='True',
+        helptext='Native virtual LAN id',
+        dt_type="string",
+        static="False",
+        api="",
+        name="native_vlan_id",
+        static_values="",
+        label="Native VLAN id",
+        svalue="2",
+        mapval="",
+        mandatory="1",
+        order=4,
+        recommended="1")
+    vlan = Textbox(
+        validation_criteria='int|min:1|max:3967',
+        hidden='',
+        isbasic='True',
+        helptext="Allowed virtual LAN id's",
+        dt_type="string",
+        static="False",
+        api="",
+        name="vlan",
+        static_values="",
+        label="Allowed VLAN id's",
+        svalue="115,200-203",
+        mapval="",
+        mandatory="1",
+        order=5,
+        recommended="1",
+        group_member="1")
+    allowed_vlans_set = Group(
+        validation_criteria='',
+        hidden='',
+        isbasic='True',
+        helptext="Allowed virtual LAN id's",
+        dt_type="string",
+        static="False",
+        api="",
+        name="allowed_vlans_set",
+        label="Allowed VLAN id's",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        members=["vlan"],
+        add="True",
+        order=5,
+        recommended="1")
+    mtu_value = Textbox(
+        validation_criteria='int|min:1500|max:9216',
+        hidden='',
+        isbasic='',
+        helptext='Maximum transfer unit',
+        dt_type="string",
+        static="False",
+        api="",
+        name="mtu_value",
+        static_values="",
+        label="MTU value (1500-9216)",
+        svalue="9216",
+        mapval="",
+        mandatory="1",
+        order=6)
+    counter_value = Textbox(
+        validation_criteria='int|min:1|max:3',
+        hidden='',
+        isbasic='',
+        helptext='Counter value',
+        dt_type="string",
+        static="False",
+        api="",
+        name="counter_value",
+        static_values="",
+        label="Counter (1-3)",
+        svalue="3",
+        mapval="",
+        mandatory="1",
+        order=7)
+    interval_delay = Textbox(
+        validation_criteria='int|min:5|max:300',
+        hidden='',
+        isbasic='',
+        helptext='Delay interval',
+        dt_type="string",
+        static="False",
+        api="",
+        name="interval_delay",
+        static_values="",
+        label="Delay interval (5-300)",
+        svalue="60",
+        mapval="",
+        mandatory="1",
+        order=8)
 
 
 class NEXUS9kConfigureVirtualPortChannelsToUCSOutputs:

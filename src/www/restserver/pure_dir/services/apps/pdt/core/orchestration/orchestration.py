@@ -7,26 +7,25 @@
 """
 
 import threading
-from xml.dom.minidom import *
-from pure_dir.services.utils.exportlog import *
-from pure_dir.services.utils.eula_setup import *
-from pure_dir.infra.logging.logmanager import *
+from time import sleep
+from pure_dir.services.utils.exportlog import exportlog_helper
+from pure_dir.services.utils.eula_setup import eula_content, eula_agreement
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_library import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_validator import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_miscellaneous import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_rollback import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_rollback_status import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_executor import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_retry import *
-from pure_dir.services.utils.images import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import job_status_helper_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status  import group_job_status_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import job_tasks_api, job_task_input_save_api, job_task_mandatory_input_save_api, job_task_inputs_api, task_input_value_api, job_task_outputs_api, task_suggested_inputs_api, job_task_mandatory_inputs_api, workflow_inputs_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import workflows_list_api, workflows_group_info_api, workflow_info_api, flash_stack_type_api, workflow_persistant_prepare_helper, job_save_as_api, export_workflow_api, import_workflow_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_library import tasks_list_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_validator import job_validate, job_mandatory_validate_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_miscellaneous import get_logs_api, deployment_logs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import jobexecute_helper
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_rollback import service_request_list_api, service_request_info_api, job_rollback_api, rollback_task_data_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_rollback_status import rollback_batch_status_helper_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import get_globals_api, set_globals_api, get_global_options
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_executor import flashstack_deploy
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import batch_status_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_retry import job_retry_api
+from pure_dir.services.utils.images import list_images, delete_image, import_image 
 
 
 class Orchestration:
@@ -48,8 +47,6 @@ class Orchestration:
     def flashstacktype(self):
         return flash_stack_type_api()
 
-    def deleteworkflow(self, wid):
-        return delete_workflow_api(wid)
 
     def jobtasks(self, id, ttype=''):
         return job_tasks_api(id, ttype)
@@ -61,18 +58,11 @@ class Orchestration:
     def workflowpersistantprepare(self, wname):
         return workflow_persistant_prepare_helper(wname)
 
-    def jobdiscard(self, jobid, force):
-        return job_discard_api(jobid, force)
-
     def jobtaskinputsave(self, id, execid, input_list, ttype=''):
         return job_task_input_save_api(id, execid, input_list, ttype)
 
     def jobtaskmandatoryinputsave(self, id, input_list, ttype=''):
         return job_task_mandatory_input_save_api(id, input_list, ttype)
-
-    def librarytaskinfo(self, tid):
-        # TODO Unimplemented
-        return library_task_information_api(tid)
 
     def jobtaskinputs(self, execid, id, ttype=''):
         return job_task_inputs_api(execid, id, ttype)
@@ -82,10 +72,6 @@ class Orchestration:
 
     def jobtaskoutputs(self, texecid, jid):
         return job_task_outputs_api(texecid, jid)
-
-    def librarytasks(self):
-        # TODO Umimplemented method
-        return library_task_list_api()
 
     def jobstatus(self, jid):
         return job_status_helper_api(jid)
@@ -102,36 +88,13 @@ class Orchestration:
     def deploymentlogs(self, jid):
         return deployment_logs(jid)
 
-    def checkprereq(self, wid):
-        return check_pre_req_api(wid)
+    #remove	
+    '''def checkprereq(self, wid):
+        return check_pre_req_api(wid)'''
 
     def jobvalidate(self, jid, execid=''):
         ''' Validate the job before execution'''
         return job_validate(jid, execid)
-
-    def createworkflow(self):
-        return create_workflow_api()
-
-    def addtask(self, data):
-        return add_task_api(data)
-
-    def deletetask(self, execid, wid):
-        return delete_task_api(execid, wid)
-
-    def deletealltask(self, wid):
-        return delete_all_task_api(wid)
-
-    def createconnection(self, data):
-        return create_connection_api(data)
-
-    def deleteconnection(self, wid, execid, ttype):
-        return delete_connection_api(wid, execid, ttype)
-
-    def deleteallconnection(self, wid):
-        return delete_all_connection_api(wid)
-
-    def saveworkflow(self, data):
-        return save_workflow_api(self, data)
 
     def jobmandatoryvalidate(self, jid):
         ''' Validate the  mandatory fields before job execution'''
@@ -160,24 +123,30 @@ class Orchestration:
     def jobretry(self, stacktype=None, jid=None):
         return job_retry_api(stacktype, jid)
 
-    def jobrevert(self,  stacktype=None, jid=None):
+    def jobrevert(self, stacktype=None, jid=None):
         return job_rollback_api(stacktype, jid)
 
     def rollbacktaskdata(self, jobid, pjobid, tid):
-        return rollback_task_data_api(jobid, pjobid,  tid)
+        return rollback_task_data_api(jobid, pjobid, tid)
 
     def rollbackstatus(self, jobid):
         return rollback_batch_status_helper_api(jobid)
 
+    
+    #remove	
     def jobsaveas(self, jobid, data):
         return job_save_as_api(jobid, data)
 
+
+    #remove	
     def exportworkflow(self, jobid):
         return export_workflow_api(jobid)
 
     def exportlog(self):
         return exportlog_helper()
 
+
+    #remove	
     def importworkflow(self, uploadfile):
         return import_workflow_api(uploadfile)
 
@@ -195,9 +164,6 @@ class Orchestration:
 
     def importimage(self, uploadfile, image_type, image_sub_type='', image_os_sub_type=''):
         return import_image(uploadfile, image_type, image_sub_type, image_os_sub_type)
-
-    # def isobinding(self, isofile,kickstart):
-    #    return iso_binding(isofile,kickstart)
 
     def getglobals(self, stacktype, hidden):
         return get_globals_api(stacktype, hidden)

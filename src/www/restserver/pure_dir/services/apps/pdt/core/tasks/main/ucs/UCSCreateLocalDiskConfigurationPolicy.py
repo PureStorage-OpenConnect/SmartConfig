@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 
@@ -67,29 +67,103 @@ class UCSCreateLocalDiskConfigurationPolicy:
                {"id": "raid-striped-dual-parity-striped",
                 "selected": "0",
                 "label": "RAID 60 Striped Dual Parity and Striped"}]
-        res.setResult(val, PTK_OKAY, "success")
+        res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateLocalDiskConfigurationPolicyInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Local disk policy name', api="", dt_type="string", label="Name", mapval="0", name="name",
-                   static="False", svalue="SAN-Boot", mandatory='1', static_values="", order=2)
-    descr = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='description', api="", dt_type="string", label="Description", mapval="0", name="descr",
-                    static="False", svalue="Local disk config policy", mandatory='1', static_values="", order=3)
-    mode = Dropdown(hidden='False', isbasic='True', helptext='Disk config modes', api="getdiskconfigmodes()", dt_type="string", label="Mode", mapval="0", name="mode",
-                    static="False", svalue="no-local-storage", mandatory='1', static_values="", order=4)
-    flash_state = Radiobutton(hidden='False', isbasic='True', helptext='Flexflash State', api="", dt_type="string", label="FlexFlash State", mapval="0", name="flash_state",
-                              static="True", static_values="disable:1:Disable|enable:0:Enable", svalue="disable", mandatory='1', order=5)
-    raid_state = Radiobutton(hidden='False', isbasic='True', helptext='RAID reporting state', api="", dt_type="string", label="RAID Reporting State", mapval="0", name="raid_state",
-                             static="True", static_values="disable:1:Disable|enable:0:Enable", svalue="disable", mandatory='1', order=6)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Local disk policy name',
+        api="",
+        dt_type="string",
+        label="Name",
+        mapval="0",
+        name="name",
+        static="False",
+        svalue="SAN-Boot",
+        mandatory='1',
+        static_values="",
+        order=2)
+    descr = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='description',
+        api="",
+        dt_type="string",
+        label="Description",
+        mapval="0",
+        name="descr",
+        static="False",
+        svalue="Local disk config policy",
+        mandatory='1',
+        static_values="",
+        order=3)
+    mode = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Disk config modes',
+        api="getdiskconfigmodes()",
+        dt_type="string",
+        label="Mode",
+        mapval="0",
+        name="mode",
+        static="False",
+        svalue="no-local-storage",
+        mandatory='1',
+        static_values="",
+        order=4)
+    flash_state = Radiobutton(
+        hidden='False',
+        isbasic='True',
+        helptext='Flexflash State',
+        api="",
+        dt_type="string",
+        label="FlexFlash State",
+        mapval="0",
+        name="flash_state",
+        static="True",
+        static_values="disable:1:Disable|enable:0:Enable",
+        svalue="disable",
+        mandatory='1',
+        order=5)
+    raid_state = Radiobutton(
+        hidden='False',
+        isbasic='True',
+        helptext='RAID reporting state',
+        api="",
+        dt_type="string",
+        label="RAID Reporting State",
+        mapval="0",
+        name="raid_state",
+        static="True",
+        static_values="disable:1:Disable|enable:0:Enable",
+        svalue="disable",
+        mandatory='1',
+        order=6)
 
 
 class UCSCreateLocalDiskConfigurationPolicyOutputs:

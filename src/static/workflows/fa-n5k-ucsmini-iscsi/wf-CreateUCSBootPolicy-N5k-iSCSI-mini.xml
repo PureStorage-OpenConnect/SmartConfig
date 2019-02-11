@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Boot Policy" hidden="1" htype="fa-n5k-ucsmini-iscsi" id="CreateUCSBootPolicy-N5k-iSCSI-mini" isdeletable="0" name="Create UCS Boot Policy" type="UCSM">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="Create Boot Policy" id="UCSCreateBootPolicy" inittask="1" label="Create Boot policy" name="UCSCreateBootPolicy" texecid="t201">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="bootpolicyname" tvalue="Boot-iSCSI-X-A" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg name="boot_policy_name" value="Boot-iSCSI-X-A"/>
+        <arg name="boot_policy_desc" value="iSCSI Boot policy"/>
+      </args>
+    </task>
+    <task OnSuccess="t401" Onfailure="None" desc="Add Remote Disk to Boot Policy" id="UCSAddRemoteDiskToBootPolicy" inittask="0" label="Add Remote disk" name="UCSAddRemoteDiskToBootPolicy" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="t408" Onfailure="None" desc="Add iSCSI Boot to Boot policy" id="UCSAddiSCSIBoot" inittask="0" label="Add iSCSI Boot" name="UCSAddiSCSIBoot" texecid="t401">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg name="iSCSI_A_vNIC" value="iSCSI-A-vNIC"/>
+        <arg name="iSCSI_B_vNIC" value="iSCSI-B-vNIC"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="t409" Onfailure="None" desc="Add Cimc Mounted Disk" id="UCSAddCimcMountedDisk" inittask="0" label="Add CIMC Mounted Disk" name="UCSAddCimcMountedDisk" texecid="t408">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create default host firmware package" id="UCSCreateHostFirmwarePackage" inittask="0" label="Create Host Firmware Package" name="CreateHostFirmwarePackage" texecid="t409">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="default"/>
+        <arg mapval="0" name="desc" value="default firmware package"/>
+        <arg mapval="0" name="blade_pkg" value=""/>
+        <arg mapval="0" name="rack_pkg" value=""/>
+        <arg mapval="0" name="excluded_comp" value="local-disk"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

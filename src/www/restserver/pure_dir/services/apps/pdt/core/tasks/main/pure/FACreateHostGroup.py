@@ -3,7 +3,7 @@ from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 
 metadata = dict(
@@ -37,7 +37,7 @@ class FACreateHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -76,7 +76,7 @@ class FACreateHostGroup:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmbladeservers(self, keys):
@@ -91,8 +91,8 @@ class FACreateHostGroup:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -110,7 +110,7 @@ class FACreateHostGroup:
             blade_server_cnt += 1
             servers_list.append(server_dict)
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def purelist(self, keys):
@@ -122,7 +122,7 @@ class FACreateHostGroup:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def rollback(self, inputs, outputs, logfile):
@@ -144,7 +144,7 @@ class FACreateHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -156,11 +156,37 @@ class FACreateHostGroup:
 
 
 class FACreateHostGroupInputs:
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
 
-    hgname = Textbox(validation_criteria='str|min:1|max:64', hidden='False', isbasic='True', helptext='Host Group Name', dt_type="string", static="False", api="", name="hgname", label="Host Group Name",
-                     svalue="", mandatory="0", mapval="", static_values="", order=2, recommended="1")
+    hgname = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='False',
+        isbasic='True',
+        helptext='Host Group Name',
+        dt_type="string",
+        static="False",
+        api="",
+        name="hgname",
+        label="Host Group Name",
+        svalue="",
+        mandatory="0",
+        mapval="",
+        static_values="",
+        order=2,
+        recommended="1")
 
 
 class FACreateHostGroupOutputs:

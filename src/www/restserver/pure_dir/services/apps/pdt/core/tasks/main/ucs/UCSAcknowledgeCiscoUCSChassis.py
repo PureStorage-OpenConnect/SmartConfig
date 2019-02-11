@@ -1,10 +1,7 @@
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.services.utils.miscellaneous import *
-from pure_dir.components.common import *
-from pure_dir.components.compute.ucs.ucs_upgrade import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
@@ -37,13 +34,13 @@ class UCSAcknowledgeCiscoUCSChassis:
     def rollback(self, inputs, outputs, logfile):
         loginfo("Acknowledge Cicso UCS Chassis rollback")
         res = result()
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmchassis(self, keys):
@@ -51,8 +48,8 @@ class UCSAcknowledgeCiscoUCSChassis:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(chassis_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(chassis_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -70,15 +67,39 @@ class UCSAcknowledgeCiscoUCSChassis:
             chassis_list.append(
                 {"id": chassis.id, "selected": selected, "label": "Chassis " + chassis.id})
         ucsm_logout(handle)
-        ret.setResult(chassis_list, PTK_OKAY, "success")
+        ret.setResult(chassis_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return ret
 
 
 class UCSAcknowledgeCiscoUCSChassisInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    state = Dropdown(hidden='False', isbasic='True', helptext='Choose Acknowledge State of UCS', dt_type="string", static="True", api="", name="state", label="Acknowledge state",
-                     static_values="re-acknowledge:1:Acknowledge Chassis|remove-chassis:0:Remove Chassis|decommission:0:Decommission Chassis", svalue="re-acknowledge", mapval="", mandatory="1", order=2)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    state = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Choose Acknowledge State of UCS',
+        dt_type="string",
+        static="True",
+        api="",
+        name="state",
+        label="Acknowledge state",
+        static_values="re-acknowledge:1:Acknowledge Chassis|remove-chassis:0:Remove Chassis|decommission:0:Decommission Chassis",
+        svalue="re-acknowledge",
+        mapval="",
+        mandatory="1",
+        order=2)
 
 
 class UCSAcknowledgeCiscoUCSChassisOutputs:

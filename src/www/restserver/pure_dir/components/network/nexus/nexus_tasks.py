@@ -1,9 +1,9 @@
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.common import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_credentials
 from pycsco.nxos.device import Device
 from pycsco.nxos import error
-from pure_dir.services.utils.miscellaneous import *
+from pure_dir.services.utils.miscellaneous import execute_remote_command
 from pure_dir.components.network.nexus.nexus import *
 import json
 import time
@@ -14,7 +14,7 @@ class NEXUSTasks:
         """
         Constructor - Nexus Handler
 
-        :param ipaddress: Switch ip 
+        :param ipaddress: Switch ip
         :param username : Switch username
         :param password : Switch password
         """
@@ -48,7 +48,6 @@ class NEXUSTasks:
                 op_dict = json.loads(conf_op[1])
                 cli_error = self.switch.cli_error_check(op_dict)
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     msg = "Failed to enable feature %s" % feature
                     customlogs(msg, logfile)
                     customlogs("Error message is :", logfile)
@@ -57,7 +56,6 @@ class NEXUSTasks:
                                   "Enable features and settings failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 msg = "Failed to enable feature %s" % feature
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
@@ -82,7 +80,6 @@ class NEXUSTasks:
                     op_dict = json.loads(conf_op[1])
                     cli_error = self.switch.cli_error_check(op_dict)
                     if cli_error:
-                        dicts['status'] = "FAILURE"
                         customlogs(
                             "Failed to configuring spanning tree", logfile)
                         customlogs(str(cli_error), logfile)
@@ -90,7 +87,6 @@ class NEXUSTasks:
                                       "Enable features and settings failed")
                         return obj
                 except error.CLIError as e:
-                    dicts['status'] = "FAILURE"
                     customlogs("Failed to configuring spanning tree", logfile)
                     customlogs(str(e.msg), logfile)
                     customlogs(str(e.err), logfile)
@@ -99,7 +95,6 @@ class NEXUSTasks:
                     return obj
             customlogs("Spanning tree configured successfully\n", logfile)
 
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Enable features and settings completed\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -133,7 +128,6 @@ class NEXUSTasks:
                 op_dict = json.loads(conf_op[1])
                 cli_error = self.switch.cli_error_check(op_dict)
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     msg = "Failed to disable feature %s" % feature
                     customlogs(msg, logfile)
                     customlogs("Error message is :", logfile)
@@ -142,7 +136,6 @@ class NEXUSTasks:
                                   "Disable features and settings failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 msg = "Failed to disable feature %s" % feature
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
@@ -167,7 +160,6 @@ class NEXUSTasks:
                     op_dict = json.loads(conf_op[1])
                     cli_error = self.switch.cli_error_check(op_dict)
                     if cli_error:
-                        dicts['status'] = "FAILURE"
                         customlogs(
                             "Failed to remove spanning tree configuration", logfile)
                         customlogs(str(cli_error), logfile)
@@ -175,7 +167,6 @@ class NEXUSTasks:
                                       "Disable features and settings failed")
                         return obj
                 except error.CLIError as e:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to remove spanning tree configuration", logfile)
                     customlogs(str(e.msg), logfile)
@@ -186,7 +177,6 @@ class NEXUSTasks:
             customlogs(
                 "Spanning tree configuration removed successfully\n", logfile)
 
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Disable features and settings completed\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -218,7 +208,6 @@ class NEXUSTasks:
                     'port-channel load-balance src-dst l4port', fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(port_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs("Failed to set global configuration", logfile)
                     customlogs("Error message is :", logfile)
                     customlogs(str(cli_error), logfile)
@@ -226,7 +215,6 @@ class NEXUSTasks:
                                   "Setting global configuration failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to set global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
@@ -237,15 +225,18 @@ class NEXUSTasks:
         else:
             dicts['mtu_value'] = inputdict['mtu_value']
             try:
-                commands = ['policy-map type network-qos jumbo', 'class type network-qos class-default',
-                            'mtu %s' % inputdict['mtu_value'],
-                            'system qos', 'service-policy type network-qos jumbo']
+                commands = [
+                    'policy-map type network-qos jumbo',
+                    'class type network-qos class-default',
+                    'mtu %s' %
+                    inputdict['mtu_value'],
+                    'system qos',
+                    'service-policy type network-qos jumbo']
                 cmds_to_string = ' ; '.join(commands)
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 op_dict = json.loads(conf_op[1])
                 cli_error = self.switch.cli_error_check(op_dict)
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs("Failed to set global configuration", logfile)
                     customlogs("Error message is :", logfile)
                     customlogs(str(cli_error), logfile)
@@ -253,7 +244,6 @@ class NEXUSTasks:
                                   "Setting global configuration failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to set global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
@@ -267,7 +257,6 @@ class NEXUSTasks:
                 inputdict['route'], inputdict['gateway']), fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(route_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to set global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -275,7 +264,6 @@ class NEXUSTasks:
                               "Setting global configuration failed")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to set global configuration", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -288,7 +276,6 @@ class NEXUSTasks:
                 'ntp server %s use-vrf management' % inputdict['ntp'], fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to set global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -296,7 +283,6 @@ class NEXUSTasks:
                               "Setting global configuration failed")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to set global configuration", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -305,7 +291,6 @@ class NEXUSTasks:
                           "Setting global configuration failed")
             return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs("Setting global configuration successful\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
                       "Setting global configuration successful")
@@ -336,7 +321,6 @@ class NEXUSTasks:
                     'no port-channel load-balance src-dst l4port', fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(port_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to remove global configuration", logfile)
                     customlogs("Error message is :", logfile)
@@ -345,7 +329,6 @@ class NEXUSTasks:
                                   "Removing Global configuration failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to remove global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
@@ -356,16 +339,19 @@ class NEXUSTasks:
         else:
             dicts['mtu_value'] = inputdict['mtu_value']
             try:
-                commands = ['system qos', 'no service-policy type network-qos jumbo',
-                            'policy-map type network-qos jumbo',
-                            'class type network-qos class-default', 'no mtu %s' % inputdict['mtu_value'],
-                            'no policy-map type network-qos jumbo']
+                commands = [
+                    'system qos',
+                    'no service-policy type network-qos jumbo',
+                    'policy-map type network-qos jumbo',
+                    'class type network-qos class-default',
+                    'no mtu %s' %
+                    inputdict['mtu_value'],
+                    'no policy-map type network-qos jumbo']
                 cmds_to_string = ' ; '.join(commands)
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 op_dict = json.loads(conf_op[1])
                 cli_error = self.switch.cli_error_check(op_dict)
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to remove global configuration", logfile)
                     customlogs("Error message is :", logfile)
@@ -374,7 +360,6 @@ class NEXUSTasks:
                                   "Removing global configuration failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to remove global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
@@ -388,7 +373,6 @@ class NEXUSTasks:
                 inputdict['route'], inputdict['gateway']), fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(route_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to remove global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -396,7 +380,6 @@ class NEXUSTasks:
                               "Removing global configuration failed")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to remove global configuration", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -409,7 +392,6 @@ class NEXUSTasks:
                 'ntp server %s use-vrf management' % inputdict['ntp'], fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to remove global configuration", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -417,7 +399,6 @@ class NEXUSTasks:
                               "Removing global configuration failed")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to remove global configuration", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -426,7 +407,6 @@ class NEXUSTasks:
                           "Removing global configuration failed")
             return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs("Global configuration removed successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
                       "Removing global configuration successful")
@@ -463,7 +443,6 @@ class NEXUSTasks:
                 vlan_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(vlan_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     msg = "Failed to create VLAN %s " % data['vlan_name']['value']
                     customlogs(msg, logfile)
                     customlogs("Error message is :", logfile)
@@ -473,7 +452,6 @@ class NEXUSTasks:
                     return obj
 
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 msg = "Failed to create VLAN %s " % data['vlan_name']['value']
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
@@ -484,7 +462,6 @@ class NEXUSTasks:
             msg = "VLAN %s created successfully\n" % data['vlan_name']['value']
             customlogs(msg, logfile)
 
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY,
                       "VLAN creation completed")
         return obj
@@ -518,7 +495,6 @@ class NEXUSTasks:
                     'no vlan %s' % data['vlan_id']['value'], fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(vlan_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     msg = "Failed to delete VLAN %s " % data['vlan_name']['value']
                     customlogs(msg, logfile)
                     customlogs("Error message is :", logfile)
@@ -528,7 +504,6 @@ class NEXUSTasks:
                     return obj
 
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 msg = "Failed to delete VLAN %s " % data['vlan_name']['value']
                 customlogs(msg, logfile)
                 customlogs("Error message is :", logfile)
@@ -539,7 +514,6 @@ class NEXUSTasks:
             msg = "VLAN %s deleted successfully\n" % data['vlan_name']['value']
             customlogs(msg, logfile)
 
-        dicts['status'] = "SUCCESS"
         obj.setResult(dicts, PTK_OKAY,
                       "VLAN deletion completed")
         return obj
@@ -567,23 +541,23 @@ class NEXUSTasks:
             data = {}
             data = eval(port_data)
             try:
-                msg = "Adding description for %s %s" % (
-                    data['interface']['value'], data['id']['value'])
-                customlogs(msg, logfile)
                 if data['interface']['value'] == "Vlan":
                     commands = ['interface Vlan%s' % data['id']['value'],
                                 'description %s' % data['desc']['value'], 'exit']
+                    msg = "Adding description for vlan %s" % data['id']['value']
                 elif data['interface']['value'] == "port-channel":
                     commands = ['interface port-channel %s' % data['id']['value'],
                                 'description %s' % data['desc']['value'], 'exit']
+                    msg = "Adding description for Port channel %s" % data['id']['value']
                 elif data['interface']['value'] == "Eth":
                     commands = ['interface Eth%s' % data['id']['value'],
                                 'description %s' % data['desc']['value'], 'exit']
+                    msg = "Adding description for Eth %s" % data['id']['value']
+                customlogs(msg, logfile)
                 cmds_to_string = ' ; '.join(commands)
                 port_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(port_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     msg = "Failed to add description for %s %s" % (
                         data['interface']['value'], data['id']['value'])
                     customlogs(msg, logfile)
@@ -597,7 +571,6 @@ class NEXUSTasks:
                 customlogs(msg, logfile)
 
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 msg = "Failed to add description for %s %s" % (
                     data['interface']['value'], data['id']['value'])
                 customlogs(msg, logfile)
@@ -608,7 +581,6 @@ class NEXUSTasks:
                               "Add Individual Port Description failed")
                 return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Add Individual Port Description completed\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -654,7 +626,6 @@ class NEXUSTasks:
                     port_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(port_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     msg = "Failed to remove description for %s %s" % (
                         data['interface']['value'], data['id']['value'])
                     customlogs(msg, logfile)
@@ -668,7 +639,6 @@ class NEXUSTasks:
                 customlogs(msg, logfile)
 
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 msg = "Failed to remove description for %s %s" % (
                     data['interface']['value'], data['id']['value'])
                 customlogs(msg, logfile)
@@ -679,7 +649,6 @@ class NEXUSTasks:
                               "Remove Individual Port Description failed")
                 return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Remove Individual Port Description completed\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -700,7 +669,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['ip'] = ip
         dicts['gateway'] = inputdict['gateway']
@@ -709,15 +677,25 @@ class NEXUSTasks:
         dicts['stratum_no'] = inputdict['stratum_no']
         dicts['route'] = inputdict['route']
         try:
-            commands = ['ntp source %s' % ip, 'ntp master 3',
-                        'ip route %s %s' % (inputdict['route'], inputdict['gateway']), 'interface Vlan%s' %
-                        inputdict['vlan_id'], 'no shutdown', 'no ip redirects',
-                        ' ip address %s/%s' % (ip, inputdict['mask_length']), 'no ipv6 redirects']
+            commands = [
+                'ntp source %s' %
+                ip,
+                'ntp master 3',
+                'ip route %s %s' %
+                (inputdict['route'],
+                 inputdict['gateway']),
+                'interface Vlan%s' %
+                inputdict['vlan_id'],
+                'no shutdown',
+                'no ip redirects',
+                ' ip address %s/%s' %
+                (ip,
+                 inputdict['mask_length']),
+                'no ipv6 redirects']
             cmds_to_string = ' ; '.join(commands)
             add_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(add_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to add NTP Distribution Interface")
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -725,14 +703,12 @@ class NEXUSTasks:
                               "Add NTP Distribution Interface failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs(
                     "Add NTP Distribution Interface completed\n", logfile)
                 obj.setResult(dicts, PTK_OKAY,
                               "Add NTP Distribution Interface successful")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to add NTP Distribution Interface")
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -755,7 +731,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['ip'] = ip
         dicts['gateway'] = inputdict['gateway']
@@ -770,7 +745,6 @@ class NEXUSTasks:
             add_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(add_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to remove NTP Distribution Interface configuration")
                 customlogs("Error message is :", logfile)
@@ -779,14 +753,12 @@ class NEXUSTasks:
                               "Remove NTP Distribution Interface configuration failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs(
                     "NTP Distribution Interface configuration removed successfully\n", logfile)
                 obj.setResult(dicts, PTK_OKAY,
                               "Remove NTP Distribution Interface configuration successful")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs(
                 "Failed to remove NTP Distribution Interface configuration", logfile)
             customlogs("Error message is :", logfile)
@@ -812,7 +784,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['vpc_id'] = inputdict['vpc_id']
         dicts['vpc_role'] = inputdict['vpc_role']
@@ -820,16 +791,25 @@ class NEXUSTasks:
         dicts['ip_b'] = ip_b['ipaddress']
         dicts['delay'] = inputdict['delay']
         try:
-            commands = ['vpc domain %s' % inputdict['vpc_id'], 'peer-switch',
-                        'role priority %s' % inputdict['vpc_role'], 'peer-keepalive destination %s source %s' %
-                        (ip_b['ipaddress'], ip_a['ipaddress']
-                         ), ' delay restore %s' % inputdict['delay'],
-                        'peer-gateway', 'auto-recovery', 'ip arp synchronize', 'exit']
+            commands = [
+                'vpc domain %s' %
+                inputdict['vpc_id'],
+                'peer-switch',
+                'role priority %s' %
+                inputdict['vpc_role'],
+                'peer-keepalive destination %s source %s' %
+                (ip_b['ipaddress'],
+                 ip_a['ipaddress']),
+                ' delay restore %s' %
+                inputdict['delay'],
+                'peer-gateway',
+                'auto-recovery',
+                'ip arp synchronize',
+                'exit']
             cmds_to_string = ' ; '.join(commands)
             vpc_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(vpc_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to create VPC domain", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -837,13 +817,11 @@ class NEXUSTasks:
                               "Create VPC domain failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs("VPC domain created successfully\n", logfile)
                 obj.setResult(dicts, PTK_OKAY,
                               "VPC domain created successfully")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to create VPC domain", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -868,7 +846,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['vpc_id'] = inputdict['vpc_id']
         dicts['vpc_role'] = inputdict['vpc_role']
@@ -880,7 +857,6 @@ class NEXUSTasks:
                 'no vpc domain %s' % inputdict['vpc_id'], fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(vpc_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to remove VPC domain configuration", logfile)
                 customlogs("Error message is :", logfile)
@@ -889,14 +865,12 @@ class NEXUSTasks:
                               "Remove VPC domain configuration failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs(
                     "VPC domain configuration removed successfully\n", logfile)
                 obj.setResult(dicts, PTK_OKAY,
                               "VPC domain configuration removed successfully")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to delete VPC domain configuration", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -919,7 +893,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['slot_chassis'] = inputdict['slot_chassis']
         dicts['port_channel_number'] = inputdict['port_channel_number']
@@ -938,7 +911,6 @@ class NEXUSTasks:
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to configure port channel member interfaces", logfile)
                     customlogs("Error message is :", logfile)
@@ -947,7 +919,6 @@ class NEXUSTasks:
                                   "Configure Port Channel Member Interfaces failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to configure port channel member interfaces", logfile)
                 customlogs("Error message is :", logfile)
@@ -958,15 +929,20 @@ class NEXUSTasks:
                 return obj
 
         try:
-            commands = ['interface port-channel %s' % inputdict['port_channel_number'], 'switchport mode trunk',
-                        'switchport trunk native vlan %s' %
-                        inputdict['native_vlan_id'], 'switchport trunk allowed vlan %s' % allowed_vlans,
-                        'vpc peer-link', 'exit']
+            commands = [
+                'interface port-channel %s' %
+                inputdict['port_channel_number'],
+                'switchport mode trunk',
+                'switchport trunk native vlan %s' %
+                inputdict['native_vlan_id'],
+                'switchport trunk allowed vlan %s' %
+                allowed_vlans,
+                'vpc peer-link',
+                'exit']
             cmds_to_string = ' ; '.join(commands)
             conf_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to configure port channel member interfaces", logfile)
                 customlogs("Error message is :", logfile)
@@ -975,14 +951,12 @@ class NEXUSTasks:
                               "Configure Port Channel Member Interfaces failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs(
                     "Configuring Port Channel Member Interfaces successful\n", logfile)
                 obj.setResult(dicts, PTK_OKAY,
                               "Configure Port Channel Member Interfaces succesful")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs(
                 "Failed to configure port channel member interfaces", logfile)
             customlogs("Error message is :", logfile)
@@ -1006,7 +980,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['slot_chassis'] = inputdict['slot_chassis']
         dicts['port_channel_number'] = inputdict['port_channel_number']
@@ -1029,7 +1002,6 @@ class NEXUSTasks:
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to remove port channel member interfaces configuration", logfile)
                     customlogs("Error message is :", logfile)
@@ -1038,7 +1010,6 @@ class NEXUSTasks:
                                   "Failed to remove port channel member interfaces configuration")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to remove port channel member interfaces configuration", logfile)
                 customlogs("Error message is :", logfile)
@@ -1048,7 +1019,6 @@ class NEXUSTasks:
                               "Failed to remove port channel member interfaces configuration")
                 return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Port Channel Member Interfaces configuration removed successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -1069,7 +1039,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts = inputdict
 
@@ -1085,71 +1054,84 @@ class NEXUSTasks:
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to configure virtual port channels to UCS", logfile)
                     customlogs("Error message is :", logfile)
                     customlogs(str(cli_error), logfile)
                     obj.setResult(dicts, PTK_INTERNALERROR,
-                                  "Configure Virtual Port Channels To UCS Fabric failed")
+                                  "Configure Virtual Port Channels to UCS Fabric failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to configure virtual port channels to UCS", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
                 customlogs(str(e.err), logfile)
                 obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Configure Virtual Port Channels To UCS Fabric failed")
+                              "Configure Virtual Port Channels to UCS Fabric failed")
                 return obj
 
         try:
             if device_type == "n5k":
-                commands = ['interface port-channel %s' % inputdict['port_channel_number'], 'switchport mode trunk',
-                            'switchport trunk native vlan %s' % inputdict['native_vlan_id'],
-                            'switchport trunk allowed vlan %s' % allowed_vlans,
-                            'spanning-tree port type edge trunk',
-                            'load-interval counter %s %s' % (
-                                inputdict['counter_value'], inputdict['interval_delay']),
-                            'vpc %s' % inputdict['port_channel_number'], 'exit']
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'switchport mode trunk',
+                    'switchport trunk native vlan %s' %
+                    inputdict['native_vlan_id'],
+                    'switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+                    'spanning-tree port type edge trunk',
+                    'load-interval counter %s %s' %
+                    (inputdict['counter_value'],
+                        inputdict['interval_delay']),
+                    'vpc %s' %
+                    inputdict['port_channel_number'],
+                    'exit']
             else:
-                commands = ['interface port-channel %s' % inputdict['port_channel_number'], 'switchport mode trunk',
-                            'switchport trunk native vlan %s' % inputdict['native_vlan_id'],
-                            'switchport trunk allowed vlan %s' % allowed_vlans,
-                            'spanning-tree port type edge trunk', 'mtu %s' % inputdict['mtu_value'],
-                            'load-interval counter %s %s' % (
-                                inputdict['counter_value'], inputdict['interval_delay']),
-                            'vpc %s' % inputdict['port_channel_number'], 'exit']
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'switchport mode trunk',
+                    'switchport trunk native vlan %s' %
+                    inputdict['native_vlan_id'],
+                    'switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+                    'spanning-tree port type edge trunk',
+                    'mtu %s' %
+                    inputdict['mtu_value'],
+                    'load-interval counter %s %s' %
+                    (inputdict['counter_value'],
+                        inputdict['interval_delay']),
+                    'vpc %s' %
+                    inputdict['port_channel_number'],
+                    'exit']
 
             cmds_to_string = ' ; '.join(commands)
             conf_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to configure virtual port channels to UCS", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
                 obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Configure Virtual Port Channels To UCS Fabric failed")
+                              "Configure Virtual Port Channels to UCS Fabric failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs(
-                    "Configuring Virtual Port Channels To UCS Fabric successful\n", logfile)
+                    "Configuring Virtual Port Channels to UCS Fabric successful\n", logfile)
                 obj.setResult(dicts, PTK_OKAY,
-                              "Configure Virtual Port Channels To UCS Fabric succesful")
+                              "Configure Virtual Port Channels to UCS Fabric succesful")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs(
                 "Failed to configure virtual port channels to UCS", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
             customlogs(str(e.err), logfile)
             obj.setResult(dicts, PTK_INTERNALERROR,
-                          "Configure Virtual Port Channels To UCS Fabric failed")
+                          "Configure Virtual Port Channels to UCS Fabric failed")
             return obj
 
     def nexusUnconfigureVirtualPortChannelsToUCS(self, inputdict, logfile, device_type):
@@ -1166,7 +1148,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts = inputdict
 
@@ -1185,19 +1166,28 @@ class NEXUSTasks:
                                 'no switchport trunk native vlan %s' % inputdict['native_vlan_id'],
                                 'no switchport trunk allowed vlan %s' % allowed_vlans, 'shut']
                 else:
-                    commands = ['interface port-channel %s' % inputdict['port_channel_number'],
-                                'no load-interval counter %s %s' % (
-                                    inputdict['counter_value'], inputdict['interval_delay']),
-                                'no interface port-channel %s' % inputdict['port_channel_number'],
-                                'interface %s' % ethernet, 'no switchport mode trunk',
-                                'no switchport trunk native vlan %s' % inputdict['native_vlan_id'],
-                                'no switchport trunk allowed vlan %s' % allowed_vlans, 'no mtu', 'shut']
+                    commands = [
+                        'interface port-channel %s' %
+                        inputdict['port_channel_number'],
+                        'no load-interval counter %s %s' %
+                        (inputdict['counter_value'],
+                            inputdict['interval_delay']),
+                        'no interface port-channel %s' %
+                        inputdict['port_channel_number'],
+                        'interface %s' %
+                        ethernet,
+                        'no switchport mode trunk',
+                        'no switchport trunk native vlan %s' %
+                        inputdict['native_vlan_id'],
+                        'no switchport trunk allowed vlan %s' %
+                        allowed_vlans,
+                        'no mtu',
+                        'shut']
 
                 cmds_to_string = ' ; '.join(commands)
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to remove virtual port channels to UCS configuration", logfile)
                     customlogs("Error message is :", logfile)
@@ -1206,7 +1196,6 @@ class NEXUSTasks:
                                   "Failed to remove virtual port channels to UCS configuration")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to remove virtual port channels to UCS configuration", logfile)
                 customlogs("Error message is :", logfile)
@@ -1216,11 +1205,10 @@ class NEXUSTasks:
                               "Failed to remove virtual port channels to UCS configuration")
                 return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs(
-            "Virtual Port Channels To UCS configuration removed successfully\n", logfile)
+            "Virtual Port Channels to UCS configuration removed successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
-                      "Virtual Port Channels To UCS configuration removed successfully")
+                      "Virtual Port Channels to UCS configuration removed successfully")
         return obj
 
     def nexusConfigureVirtualPortChannelsToNetworkSwitch(self, inputdict, logfile):
@@ -1246,29 +1234,33 @@ class NEXUSTasks:
         ethernets = inputdict['slot_chassis'].split('|')
         for ethernet in ethernets:
             try:
-                commands = ['interface %s' % ethernet,
-                            'channel-group %s force mode active' % inputdict['port_channel_number'], 'no shut']
+                commands = [
+                    'interface %s' %
+                    ethernet,
+                    'channel-group %s force mode active' %
+                    inputdict['port_channel_number'],
+                    'no shut']
                 cmds_to_string = ' ; '.join(commands)
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to configure virtual port channels to network switch", logfile)
                     customlogs("Error message is :", logfile)
                     customlogs(str(cli_error), logfile)
-                    obj.setResult(dicts, PTK_INTERNALERROR,
-                                  "Configure Virtual Port Channels To Upstream Network Switch failed")
+                    obj.setResult(
+                        dicts,
+                        PTK_INTERNALERROR,
+                        "Configure Virtual Port Channels to Upstream Network Switch failed")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to configure virtual port channels to network switch", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
                 customlogs(str(e.err), logfile)
                 obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Configure Virtual Port Channels To Upstream Network Switch failed")
+                              "Configure Virtual Port Channels to Upstream Network Switch failed")
                 return obj
         try:
             commands = ['interface port-channel %s' % inputdict['port_channel_number'],
@@ -1280,30 +1272,30 @@ class NEXUSTasks:
             conf_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs(
                     "Failed to configure virtual port channels to network switch", logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
                 obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Configure Virtual Port Channels To Upstream Network Switch failed")
+                              "Configure Virtual Port Channels to Upstream Network Switch failed")
                 return obj
             else:
-                dicts['status'] = "SUCCESS"
                 customlogs(
-                    "Configuring Virtual Port Channels To Upstream Network Switch successful\n", logfile)
-                obj.setResult(dicts, PTK_OKAY,
-                              "Configure Virtual Port Channels To Upstream Network Switch succesful")
+                    "Configuring Virtual Port Channels to Upstream Network Switch successful\n",
+                    logfile)
+                obj.setResult(
+                    dicts,
+                    PTK_OKAY,
+                    "Configure Virtual Port Channels to Upstream Network Switch succesful")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs(
                 "Failed to configure virtual port channels to network switch", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
             customlogs(str(e.err), logfile)
             obj.setResult(dicts, PTK_INTERNALERROR,
-                          "Configure Virtual Port Channels To Upstream Network Switch failed")
+                          "Configure Virtual Port Channels to Upstream Network Switch failed")
             return obj
 
     def nexusUnconfigureVirtualPortChannelsToNetworkSwitch(self, inputdict, logfile):
@@ -1337,30 +1329,36 @@ class NEXUSTasks:
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
                 if cli_error:
-                    dicts['status'] = "FAILURE"
                     customlogs(
-                        "Failed to remove virtual port channels to network switch configuration", logfile)
+                        "Failed to remove virtual port channels to network switch configuration",
+                        logfile)
                     customlogs("Error message is :", logfile)
                     customlogs(str(cli_error), logfile)
-                    obj.setResult(dicts, PTK_INTERNALERROR,
-                                  "Failed to remove virtual port channels to network switch configuration")
+                    obj.setResult(
+                        dicts,
+                        PTK_INTERNALERROR,
+                        "Failed to remove virtual port channels to network switch configuration")
                     return obj
             except error.CLIError as e:
-                dicts['status'] = "FAILURE"
                 customlogs(
-                    "Failed to remove virtual port channels to network switch configuration", logfile)
+                    "Failed to remove virtual port channels to network switch configuration",
+                    logfile)
                 customlogs("Error message is :", logfile)
                 customlogs(str(e.msg), logfile)
                 customlogs(str(e.err), logfile)
-                obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Failed to remove virtual port channels to network switch configuration")
+                obj.setResult(
+                    dicts,
+                    PTK_INTERNALERROR,
+                    "Failed to remove virtual port channels to network switch configuration")
                 return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs(
-            "Virtual Port Channels To Upstream Network Switch configuration removed successfully\n", logfile)
-        obj.setResult(dicts, PTK_OKAY,
-                      "Virtual Port Channels To Upstream Network Switch configuration removed successfully")
+            "Virtual Port Channels to Upstream Network Switch configuration removed successfully\n",
+            logfile)
+        obj.setResult(
+            dicts,
+            PTK_OKAY,
+            "Virtual Port Channels to Upstream Network Switch configuration removed successfully")
         return obj
 
     def nexusConfigureiSCSIInterface(self, inputdict, logfile, device_type):
@@ -1393,9 +1391,15 @@ class NEXUSTasks:
             for ethernet in ethernets:
                 try:
                     if device_type == "n9k":
-                        commands = ['interface %s' % ethernet,
-                                    'switchport access vlan %s' % data['vlan_id']['value'],
-                                    'spanning-tree port type edge', 'mtu %s' % inputdict['mtu_value'], 'no shutdown']
+                        commands = [
+                            'interface %s' %
+                            ethernet,
+                            'switchport access vlan %s' %
+                            data['vlan_id']['value'],
+                            'spanning-tree port type edge',
+                            'mtu %s' %
+                            inputdict['mtu_value'],
+                            'no shutdown']
                         dicts['mtu_value'] = inputdict['mtu_value']
                     else:
                         commands = ['interface %s' % ethernet,
@@ -1407,7 +1411,6 @@ class NEXUSTasks:
                     cli_error = self.switch.cli_error_check(
                         json.loads(add_op[1]))
                     if cli_error:
-                        dicts['status'] = "FAILURE"
                         customlogs("iSCSI Interface configuration failed")
                         customlogs("Error message is :", logfile)
                         customlogs(str(cli_error), logfile)
@@ -1416,7 +1419,6 @@ class NEXUSTasks:
                         return obj
 
                 except error.CLIError as e:
-                    dicts['status'] = "FAILURE"
                     customlogs("Failed to configure iSCSI Interface", logfile)
                     customlogs("Error message is :", logfile)
                     customlogs(str(e.msg), logfile)
@@ -1425,7 +1427,6 @@ class NEXUSTasks:
                                   "iSCSI Interface configuration failed")
                     return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs("iSCSI Interface configuration successful\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
                       "iSCSI Interface configuration successful")
@@ -1461,9 +1462,15 @@ class NEXUSTasks:
             for ethernet in ethernets:
                 try:
                     if device_type == "n9k":
-                        commands = ['interface %s' % ethernet,
-                                    'no switchport access vlan %s' % data['vlan_id']['value'],
-                                    'no spanning-tree port type edge', 'no mtu %s' % inputdict['mtu_value'], 'shut']
+                        commands = [
+                            'interface %s' %
+                            ethernet,
+                            'no switchport access vlan %s' %
+                            data['vlan_id']['value'],
+                            'no spanning-tree port type edge',
+                            'no mtu %s' %
+                            inputdict['mtu_value'],
+                            'shut']
                         dicts['mtu_value'] = inputdict['mtu_value']
                     else:
                         commands = ['interface %s' % ethernet,
@@ -1475,7 +1482,6 @@ class NEXUSTasks:
                     cli_error = self.switch.cli_error_check(
                         json.loads(add_op[1]))
                     if cli_error:
-                        dicts['status'] = "FAILURE"
                         customlogs(
                             "Failed to remove iSCSI Interface configuration")
                         customlogs("Error message is :", logfile)
@@ -1485,7 +1491,6 @@ class NEXUSTasks:
                         return obj
 
                 except error.CLIError as e:
-                    dicts['status'] = "FAILURE"
                     customlogs(
                         "Failed to remove iSCSI Interface configuration", logfile)
                     customlogs("Error message is :", logfile)
@@ -1495,7 +1500,6 @@ class NEXUSTasks:
                                   "Failed to remove iSCSI Interface configuration")
                     return obj
 
-        dicts['status'] = "SUCCESS"
         customlogs(
             "iSCSI Interface configuration removed successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -1516,20 +1520,23 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['slot'] = inputdict['slot']
         dicts['ports'] = inputdict['ports']
         dicts['port_type'] = inputdict['port_type']
 
         try:
-            commands = ["slot %s" % inputdict['slot'], "port %s type %s" % (inputdict['ports'], inputdict['port_type']),
-                        "copy running-config startup-config"]
+            commands = [
+                "slot %s" %
+                inputdict['slot'],
+                "port %s type %s" %
+                (inputdict['ports'],
+                 inputdict['port_type']),
+                "copy running-config startup-config"]
             cmds_to_string = ' ; '.join(commands)
             add_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(add_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to Configure Unified ports")
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -1537,7 +1544,6 @@ class NEXUSTasks:
                               "Failed to Configure Unified ports")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to Configure Unified ports", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -1571,7 +1577,6 @@ class NEXUSTasks:
             return obj
 
         customlogs("Switch is up", logfile)
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Unified ports configured successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -1592,7 +1597,6 @@ class NEXUSTasks:
 
         loginfo("Parameters =")
         loginfo(inputdict)
-        message = ""
 
         dicts['slot'] = inputdict['slot']
         dicts['ports'] = inputdict['ports']
@@ -1605,7 +1609,6 @@ class NEXUSTasks:
             add_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(add_op[1]))
             if cli_error:
-                dicts['status'] = "FAILURE"
                 customlogs("Failed to Unconfigure Unified ports")
                 customlogs("Error message is :", logfile)
                 customlogs(str(cli_error), logfile)
@@ -1613,7 +1616,6 @@ class NEXUSTasks:
                               "Failed to Unconfigure Unified ports")
                 return obj
         except error.CLIError as e:
-            dicts['status'] = "FAILURE"
             customlogs("Failed to Unconfigure Unified ports", logfile)
             customlogs("Error message is :", logfile)
             customlogs(str(e.msg), logfile)
@@ -1640,14 +1642,12 @@ class NEXUSTasks:
             else:
                 break
         if status is False:
-            dicts['status'] = "FAILURE"
             customlogs("Timeout reached. Nexus switch is still down", logfile)
             obj.setResult(dicts, PTK_INTERNALERROR,
                           "Failed to Unconfigure Unified ports")
             return obj
 
         customlogs("Switch is up", logfile)
-        dicts['status'] = "SUCCESS"
         customlogs(
             "Unified ports unconfigured successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY,
@@ -1879,7 +1879,7 @@ class NEXUSTasks:
             customlogs("Failed to create port channel", logfile)
 
         else:
-            customlogs("Portchannel '%s' created successfully" %
+            customlogs("Port channel '%s' created successfully" %
                        input_dict['portchannel_id'], logfile)
             output_dict['status'] = "SUCCESS"
             output_dict['portchannel_id'] = input_dict['portchannel_id']
@@ -1911,7 +1911,7 @@ class NEXUSTasks:
             customlogs("Failed to delete port channel", logfile)
 
         else:
-            customlogs("Portchannel '%s' deleted successfully" %
+            customlogs("Port channel '%s' deleted successfully" %
                        input_dict['portchannel_id'], logfile)
             output_dict['status'] = "SUCCESS"
             output_dict['portchannel_id'] = input_dict['portchannel_id']
@@ -1953,8 +1953,11 @@ class NEXUSTasks:
                            zone_dict['zone_name']['value'], logfile)
                 zone_members = zone_dict['zone_members']['value']
 
-                helper.add_to_zone(self.switch,
-                                   zone_dict['zone_name']['value'], zone_members, input_dict['vsan_id'])
+                helper.add_to_zone(
+                    self.switch,
+                    zone_dict['zone_name']['value'],
+                    zone_members,
+                    input_dict['vsan_id'])
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
                     customlogs(
@@ -1986,7 +1989,6 @@ class NEXUSTasks:
         obj = result()
         output_dict = {}
 
-        vsan_id = input_dict['vsan_id']
         zones = input_dict['zones'].split('|')
 
         helper = Nexus()
@@ -2027,8 +2029,10 @@ class NEXUSTasks:
         helper = Nexus()
         for zoneset_dict in zonesets:
             zoneset_dict = eval(zoneset_dict)
-            res = helper.create_zoneset(self.switch,
-                                        zoneset_dict['zoneset_name']['value'], input_dict['vsan_id'])
+            res = helper.create_zoneset(
+                self.switch,
+                zoneset_dict['zoneset_name']['value'],
+                input_dict['vsan_id'])
             if res.getStatus() != PTK_OKAY:
                 output_dict['status'] = "FAILURE"
                 customlogs("Error message is : %s" % res.getMsg(), logfile)
@@ -2039,9 +2043,11 @@ class NEXUSTasks:
             else:
                 customlogs("Zoneset '%s' created successfully" %
                            zoneset_dict['zoneset_name']['value'], logfile)
-                helper.add_to_zoneset(self.switch,
-                                      zoneset_dict['zoneset_name']['value'], zoneset_dict['zoneset_members']['value'],
-                                      input_dict['vsan_id'])
+                helper.add_to_zoneset(
+                    self.switch,
+                    zoneset_dict['zoneset_name']['value'],
+                    zoneset_dict['zoneset_members']['value'],
+                    input_dict['vsan_id'])
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
                     customlogs(
@@ -2049,12 +2055,16 @@ class NEXUSTasks:
                     obj.setResult(output_dict, res.getStatus(), res.getMsg())
                     return obj
                 else:
-                    customlogs("Members '%s' added to the zoneset '%s' with vsan '%s' successfully" % (
-                        str(zoneset_dict['zoneset_members']['value']),
-                        zoneset_dict['zoneset_name']['value'], vsan_id), logfile)
+                    customlogs(
+                        "Members '%s' added to the zoneset '%s' with vsan '%s' successfully" %
+                        (str(
+                            zoneset_dict['zoneset_members']['value']),
+                            zoneset_dict['zoneset_name']['value'],
+                            vsan_id),
+                        logfile)
                     time.sleep(10)
-                    res = helper.activate_zoneset(self.switch,
-                                                  zoneset_dict['zoneset_name']['value'], input_dict['vsan_id'])
+                    res = helper.activate_zoneset(
+                        self.switch, zoneset_dict['zoneset_name']['value'], input_dict['vsan_id'])
                     if res.getStatus() != PTK_OKAY:
                         output_dict['status'] = "FAILURE"
                         customlogs(
@@ -2087,7 +2097,6 @@ class NEXUSTasks:
         obj = result()
         output_dict = {}
 
-        vsan_id = input_dict['vsan_id']
         zonesets = input_dict['zonesets'].split('|')
 
         helper = Nexus()
@@ -2100,8 +2109,9 @@ class NEXUSTasks:
                 obj.setResult(output_dict, res.getStatus(), res.getMsg())
                 return obj
             else:
-                customlogs("Zoneset '%s' with vsan '%s' deleted successfully" % (zoneset, input_dict['vsan_id']),
-                           logfile)
+                customlogs(
+                    "Zoneset '%s' with vsan '%s' deleted successfully" %
+                    (zoneset, input_dict['vsan_id']), logfile)
                 res = helper.delete_zoneset(
                     self.switch, zoneset, input_dict['vsan_id'])
                 if res.getStatus() != PTK_OKAY:

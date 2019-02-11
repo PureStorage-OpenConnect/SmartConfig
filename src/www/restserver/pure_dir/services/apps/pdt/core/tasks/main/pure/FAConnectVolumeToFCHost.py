@@ -1,11 +1,10 @@
 from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
+from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import get_ucs_login, ucsm_logout
 
 metadata = dict(
     task_id="FAConnectVolumeToFCHost",
@@ -36,7 +35,7 @@ class FAConnectVolumeToFCHost:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -55,7 +54,7 @@ class FAConnectVolumeToFCHost:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def rollback(self, inputs, outputs, logfile):
@@ -75,7 +74,7 @@ class FAConnectVolumeToFCHost:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -122,7 +121,7 @@ class FAConnectVolumeToFCHost:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsm_get_associated_sp_cnt(self, keys):
@@ -137,8 +136,8 @@ class FAConnectVolumeToFCHost:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -159,7 +158,7 @@ class FAConnectVolumeToFCHost:
         servers_list.append(server_dict)
         print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmbladeservers(self, keys):
@@ -174,8 +173,8 @@ class FAConnectVolumeToFCHost:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
@@ -191,7 +190,7 @@ class FAConnectVolumeToFCHost:
             blade_server_cnt += 1
             servers_list.append(server_dict)
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getHostApi(self, keys):
@@ -207,7 +206,7 @@ class FAConnectVolumeToFCHost:
             mdata.append(
                 {"id": str(host), "selected": "0", "label": str(host)})
 
-        res.setResult(mdata, PTK_OKAY, "success")
+        res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getVolumeApi(self, keys):
@@ -223,31 +222,98 @@ class FAConnectVolumeToFCHost:
             mdata.append(
                 {"id": str(host), "selected": "0", "label": str(host)})
 
-        res.setResult(mdata, PTK_OKAY, "success")
+        res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class FAConnectVolumeToFCHostInputs:
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
 
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=2)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=2)
 
-    hostname = Dropdown(hidden='False', isbasic='True', helptext='Host Name', dt_type="string", static="False", api="getHostApi()|[fabric_id:1:fabric_id.value]", name="hostname", label="Host Name",
-                        svalue="", mandatory="0", group_member="1", static_values="", mapval="", order=3)
+    hostname = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Host Name',
+        dt_type="string",
+        static="False",
+        api="getHostApi()|[fabric_id:1:fabric_id.value]",
+        name="hostname",
+        label="Host Name",
+        svalue="",
+        mandatory="0",
+        group_member="1",
+        static_values="",
+        mapval="",
+        order=3)
 
-    volumename = Dropdown(hidden='False', isbasic='True', helptext='Volume Name', dt_type="string", static="False", api="getVolumeApi()|[fabric_id:1:fabric_id.value]", name="volumename", label="Volume Name",
-                          svalue="", mandatory="0", static_values="", group_member="1", mapval="", order=4)
+    volumename = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Volume Name',
+        dt_type="string",
+        static="False",
+        api="getVolumeApi()|[fabric_id:1:fabric_id.value]",
+        name="volumename",
+        label="Volume Name",
+        svalue="",
+        mandatory="0",
+        static_values="",
+        group_member="1",
+        mapval="",
+        order=4)
 
-    hvmap_set = Group(validation_criteria='', hidden='False', isbasic='True', helptext='Connecting Volume to Host', dt_type="string", static="False", api="", name="hvmap_set", label="Connect volume to host", svalue="", mapval="0", static_values="",
-                      mandatory="0", members=["hostname", "volumename"], add="True", order=5)
+    hvmap_set = Group(
+        validation_criteria='',
+        hidden='False',
+        isbasic='True',
+        helptext='Connecting Volume to Host',
+        dt_type="string",
+        static="False",
+        api="",
+        name="hvmap_set",
+        label="Connect volume to host",
+        svalue="",
+        mapval="0",
+        static_values="",
+        mandatory="0",
+        members=[
+            "hostname",
+            "volumename"],
+        add="True",
+        order=5)
 
 
 class FAConnectVolumeToFCHostOutputs:

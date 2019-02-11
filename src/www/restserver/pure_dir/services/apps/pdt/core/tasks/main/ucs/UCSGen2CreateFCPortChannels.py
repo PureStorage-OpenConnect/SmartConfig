@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -45,7 +45,7 @@ class UCSGen2CreateFCPortChannels:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         print ucs_list, res
         return res
 
@@ -53,9 +53,9 @@ class UCSGen2CreateFCPortChannels:
         ports_list = []
         #res = obj.get_ucs_handle()
         fabricid = getArg(keys, 'fabric_id')
-
-        if fabricid == None:
-            ret.setResult(ports_list, PTK_OKAY, "success")
+        ret = result()
+        if fabricid is None:
+            ret.setResult(ports_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -76,22 +76,23 @@ class UCSGen2CreateFCPortChannels:
             ports_list.append(
                 {"id": port.port_id, "selected": selected, "label": "Port " + port.port_id})
         ucsm_logout(handle)
-        res.setResult(ports_list, PTK_OKAY, "success")
+        res.setResult(ports_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getvsan(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        ret = result()
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
         res = get_ucs_login(fabricid)
 
         if res.getStatus() != PTK_OKAY:
             return parseTaskResult(res)
         ucs_fabricid = getArg(keys, 'ucs_fabric_id')
-        if ucs_fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if ucs_fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
         handle = res.getResult()
         res = result()
@@ -104,7 +105,7 @@ class UCSGen2CreateFCPortChannels:
                 temp_list.append(
                     {"id": vsan.name, "selected": selected, "label": vsan.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsgetfcports(self, keys):
@@ -115,25 +116,114 @@ class UCSGen2CreateFCPortChannels:
             ports_entity = {
                 "id": str(i), "selected": "0", "label": "Port " + str(i)}
             ports_list.append(ports_entity)
-        res.setResult(ports_list, PTK_OKAY, "success")
+        res.setResult(ports_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSGen2CreateFCPortChannelsInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', api="getfilist()", dt_type="string", label="UCS Fabric Name", mapval="0",
-                         mandatory="1", name="fabric_id", static_values="None", static="False", svalue="", order=1)
-    fc_port_channel_name = Textbox(validation_criteria='',  hidden='False', isbasic='True', helptext='', dt_type="string",  static="False",  static_values="None", api="",
-                                   name="fc_port_channel_name", label="FC Port Channel Name", mapval="0", svalue="", mandatory='1', order=2, recommended="1")
-    port_id = Textbox(validation_criteria='',  hidden='False', isbasic='True', helptext='', dt_type="string", static="False", static_values="None", api="",
-                      name="port_id", label="ID", svalue="", mandatory='1', mapval="0", order=3)
-    ucs_fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string",  static="True", mandatory="1", static_values="A:0:Fabric Interconnect A(primary)|B:1:Fabric Interconnect B(subordinate)",
-                             api="", name="ucs_fabric_id", label="fabric id ", svalue="", mapval="0", order=4)
-    port_list = Multiselect(hidden='False', isbasic='True', helptext='', dt_type="string",  static="False", mandatory="1", static_values="None",
-                            api="ucsgetfcports()|[fabric_id:1:fabric_id.value]", name="port_list", label="FC Port List", svalue="", mapval="0", order=5, recommended="1")
-    admin_speed = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string",  static="True",  static_values="auto:1:Auto|1gbps:0:1 Gbps|2gbps:0:2 Gbps|4gbps:0:4Gbps|8gbps:0:8 Gbps|16gbps:0:16 Gbps",
-                           api="", name="admin_speed", label="Port Channel Admin Speed", svalue="", mandatory='1', mapval="0", order=6)
-    vsan_name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='', dt_type="string",  api="getvsan()|[fabric_id:1:fabric_id.value|ucs_fabric_id:1:ucs_fabric_id.value]",
-                        static="False", mapval="1", static_values="None", name="vsan_name", label="VSAN name",  svalue="", mandatory='1', order=7)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        api="getfilist()",
+        dt_type="string",
+        label="UCS Fabric Name",
+        mapval="0",
+        mandatory="1",
+        name="fabric_id",
+        static_values="None",
+        static="False",
+        svalue="",
+        order=1)
+    fc_port_channel_name = Textbox(
+        validation_criteria='',
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="None",
+        api="",
+        name="fc_port_channel_name",
+        label="FC Port Channel Name",
+        mapval="0",
+        svalue="",
+        mandatory='1',
+        order=2,
+        recommended="1")
+    port_id = Textbox(
+        validation_criteria='',
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="None",
+        api="",
+        name="port_id",
+        label="ID",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=3)
+    ucs_fabric_id = Radiobutton(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="True",
+        mandatory="1",
+        static_values="A:0:Fabric Interconnect A(primary)|B:1:Fabric Interconnect B(subordinate)",
+        api="",
+        name="ucs_fabric_id",
+        label="fabric id ",
+        svalue="",
+        mapval="0",
+        order=4)
+    port_list = Multiselect(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        mandatory="1",
+        static_values="None",
+        api="ucsgetfcports()|[fabric_id:1:fabric_id.value]",
+        name="port_list",
+        label="FC Port List",
+        svalue="",
+        mapval="0",
+        order=5,
+        recommended="1")
+    admin_speed = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="True",
+        static_values="auto:1:Auto|1gbps:0:1 Gbps|2gbps:0:2 Gbps|4gbps:0:4Gbps|8gbps:0:8 Gbps|16gbps:0:16 Gbps",
+        api="",
+        name="admin_speed",
+        label="Port Channel Admin Speed",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=6)
+    vsan_name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getvsan()|[fabric_id:1:fabric_id.value|ucs_fabric_id:1:ucs_fabric_id.value]",
+        static="False",
+        mapval="1",
+        static_values="None",
+        name="vsan_name",
+        label="VSAN name",
+        svalue="",
+        mandatory='1',
+        order=7)
 
 
 class UCSGen2CreateFCPortChannelsOutputs:

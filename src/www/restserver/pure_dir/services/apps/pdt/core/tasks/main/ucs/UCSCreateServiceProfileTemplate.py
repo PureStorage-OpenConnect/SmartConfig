@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save, get_field_value_from_jobid
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -45,7 +45,7 @@ class UCSCreateServiceProfileTemplate:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         print ucs_list, res
         return res
 
@@ -61,7 +61,7 @@ class UCSCreateServiceProfileTemplate:
         uuid_list = [uuid for uuid in res.getResult() if uuid.get('id')
                      != 'default']
         self.sp_template_save_inputs(
-            jobid, texecid,  "ident_pool_name", uuid_list)
+            jobid, texecid, "ident_pool_name", uuid_list)
 
         san_conn_policy = self.getsanconnectivity(keys)
         self.sp_template_save_inputs(
@@ -95,7 +95,7 @@ class UCSCreateServiceProfileTemplate:
         self.sp_template_save_inputs(
             jobid, texecid, "biospolicy", bios_pol_list)
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def sp_template_save_inputs(self, jobid, texecid, input_field_name, input_list):
@@ -112,8 +112,8 @@ class UCSCreateServiceProfileTemplate:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -129,15 +129,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": uuid.name, "selected": selected, "label": uuid.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getsanconnectivity(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -152,15 +152,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": san.name, "selected": selected, "label": san.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getlanconnectivity(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -176,7 +176,7 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": lan.name, "selected": selected, "label": lan.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getpowerpolicy(self, keys):
@@ -184,8 +184,8 @@ class UCSCreateServiceProfileTemplate:
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
 
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -201,15 +201,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": pp.name, "selected": selected, "label": pp.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getlocaldiskpolicy(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -224,15 +224,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": storage.name, "selected": selected, "label": storage.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getbootpolicy(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -247,15 +247,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": boot.name, "selected": selected, "label": boot.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getvmediapolicy(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -270,15 +270,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": vmedia.name, "selected": selected, "label": vmedia.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getmaintenancepolicy(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -293,7 +293,7 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": maintenance.name, "selected": selected, "label": maintenance.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getqualifier(self, keys):
@@ -301,8 +301,8 @@ class UCSCreateServiceProfileTemplate:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -318,15 +318,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": qual.name, "selected": selected, "label": qual.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getpoolassignment(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -342,15 +342,15 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": pool.name, "selected": selected, "label": pool.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getbiospolicy(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -366,37 +366,196 @@ class UCSCreateServiceProfileTemplate:
             temp_list.append(
                 {"id": bios.name, "selected": selected, "label": bios.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateServiceProfileTemplateInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='Enter Name For UCS Fabric', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    template_name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Enter Name For The Template', dt_type="string", api="", static="False", static_values="", name="template_name",
-                            label="Name", svalue="VM-Host-Infra-A", mandatory='1', mapval="0", order=2, recommended="1")
-    template_desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='', dt_type="string", api="", static="False", static_values="", name="template_desc",
-                            label="Description", svalue="Service Profile template", mandatory='1', mapval="0", order=3)
-    type = Radiobutton(hidden='False', isbasic='True', helptext='Template type', dt_type="string", api="", static="True", static_values="initial-template:0:Initial Template|updating-template:1:Updating Template",
-                       label="Type", name="type", svalue="updating-template", mandatory='1', mapval="0", order=4)
-    ident_pool_name = Dropdown(hidden='False', isbasic='True', helptext='UUID Pool', dt_type="string", api="getuuidpool()|[fabric_id:1:fabric_id.value]", static="False",
-                               static_values="", name="ident_pool_name", label="UUID Assignment", svalue="UUID_Pool", mandatory='1', mapval="0", order=5)
-    lan_conn_policy_name = Dropdown(hidden='False', isbasic='True', helptext='LAN Connectivity', dt_type="string", api="getlanconnectivity()|[fabric_id:1:fabric_id.value]", static="False",
-                                    static_values="", name="lan_conn_policy_name", label="LAN Connectivity policy", svalue="", mandatory='1', mapval="0", order=6)
-    san_conn_policy_name = Dropdown(hidden='False', isbasic='True', helptext='SAN Connectivity', dt_type="string", api="getsanconnectivity()|[fabric_id:1:fabric_id.value]", static="False",
-                                    static_values="", name="san_conn_policy_name", label="SAN Connectivity policy", svalue="", mapval="0", mandatory='1', order=7)
-    boot_policy_name = Dropdown(hidden='False', isbasic='True', helptext='Boot policy', dt_type="string", api="getbootpolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                static_values="", name="boot_policy_name", label="Boot Policy", svalue="Boot-FC-A", mapval="0", mandatory='1', order=8)
-    power_policy_name = Dropdown(hidden='False', isbasic='True', helptext='Power control policy', dt_type="string", api="getpowerpolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                 static_values="", name="power_policy_name", label="Power Policy", svalue="No-Power-Cap", mandatory='1', mapval="", order=9)
-    local_disk_policy_name = Dropdown(hidden='False', isbasic='True', helptext='Local disk policy', dt_type="string", api="getlocaldiskpolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                      static_values="", name="local_disk_policy_name", label="Local Disk Configuration Policy", svalue="SAN-Boot", mandatory='1', mapval="0", order=10)
-    pool_assignment = Dropdown(hidden='False', isbasic='True', helptext='Pool assignment', dt_type="string", api="getpoolassignment()|[fabric_id:1:fabric_id.value]", static="False", static_values="",
-                               mapval="1", name="pool_assignment", label="Pool Assignment", svalue="__t200.CreateServerPool.name", mandatory='1', order=11)
-    biospolicy = Dropdown(hidden='False', isbasic='True', helptext='BIOS policy', dt_type="string", api="getbiospolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                          static_values="", name="biospolicy", label="BIOS Policy", svalue="", mandatory='1', mapval="0", order=12)
-    maint_policy_name = Dropdown(hidden='False', isbasic='True', helptext='maintenance policy', dt_type="string", api="getmaintenancepolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                 static_values="", name="maint_policy_name", label="Maintenance Policy", svalue="", mandatory='1', mapval="0", order=13)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='Enter Name For UCS Fabric',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    template_name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Enter Name For The Template',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="",
+        name="template_name",
+        label="Name",
+        svalue="VM-Host-Infra-A",
+        mandatory='1',
+        mapval="0",
+        order=2,
+        recommended="1")
+    template_desc = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="",
+        name="template_desc",
+        label="Description",
+        svalue="Service Profile template",
+        mandatory='1',
+        mapval="0",
+        order=3)
+    type = Radiobutton(
+        hidden='False',
+        isbasic='True',
+        helptext='Template type',
+        dt_type="string",
+        api="",
+        static="True",
+        static_values="initial-template:0:Initial Template|updating-template:1:Updating Template",
+        label="Type",
+        name="type",
+        svalue="updating-template",
+        mandatory='1',
+        mapval="0",
+        order=4)
+    ident_pool_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='UUID Pool',
+        dt_type="string",
+        api="getuuidpool()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="ident_pool_name",
+        label="UUID Assignment",
+        svalue="UUID_Pool",
+        mandatory='1',
+        mapval="0",
+        order=5)
+    lan_conn_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='LAN Connectivity',
+        dt_type="string",
+        api="getlanconnectivity()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="lan_conn_policy_name",
+        label="LAN Connectivity policy",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=6)
+    san_conn_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='SAN Connectivity',
+        dt_type="string",
+        api="getsanconnectivity()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="san_conn_policy_name",
+        label="SAN Connectivity policy",
+        svalue="",
+        mapval="0",
+        mandatory='1',
+        order=7)
+    boot_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Boot policy',
+        dt_type="string",
+        api="getbootpolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="boot_policy_name",
+        label="Boot Policy",
+        svalue="Boot-FC-A",
+        mapval="0",
+        mandatory='1',
+        order=8)
+    power_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Power control policy',
+        dt_type="string",
+        api="getpowerpolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="power_policy_name",
+        label="Power Policy",
+        svalue="No-Power-Cap",
+        mandatory='1',
+        mapval="",
+        order=9)
+    local_disk_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Local disk policy',
+        dt_type="string",
+        api="getlocaldiskpolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="local_disk_policy_name",
+        label="Local Disk Configuration Policy",
+        svalue="SAN-Boot",
+        mandatory='1',
+        mapval="0",
+        order=10)
+    pool_assignment = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Pool assignment',
+        dt_type="string",
+        api="getpoolassignment()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        mapval="1",
+        name="pool_assignment",
+        label="Pool Assignment",
+        svalue="__t200.CreateServerPool.name",
+        mandatory='1',
+        order=11)
+    biospolicy = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='BIOS policy',
+        dt_type="string",
+        api="getbiospolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="biospolicy",
+        label="BIOS Policy",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=12)
+    maint_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='maintenance policy',
+        dt_type="string",
+        api="getmaintenancepolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="maint_policy_name",
+        label="Maintenance Policy",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=13)
 
 
 class UCSCreateServiceProfileTemplateOutputs:

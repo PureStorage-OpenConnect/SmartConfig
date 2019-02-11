@@ -1,8 +1,8 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from xml.dom.minidom import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
 import os
@@ -32,7 +32,8 @@ class UCSConfigureUnifiedPorts:
 
         res = obj.ucsConfigureUnifiedPorts(taskinfo['inputs'], logfile)
 
-        # obj.release_ucs_handle(handle) commenting because of handle not available due to reboot after ports configure
+        # obj.release_ucs_handle(handle) commenting because of handle not
+        # available due to reboot after ports configure
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
@@ -50,13 +51,13 @@ class UCSConfigureUnifiedPorts:
         res = result()
         val = [{"id": "A", "selected": "1", "label": "Fabric Interconnect A(primary)"}, {
             "id": "B", "selected": "0", "label": "Fabric Interconnect B (subordinate)"}]
-        res.setResult(val, PTK_OKAY, "success")
+        res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_all_ucs_list(self, keys):
@@ -71,12 +72,12 @@ class UCSConfigureUnifiedPorts:
                     details['id'] = subelement.getAttribute("mac")
                     details['selected'] = "0"
                     info_list.append(details)
-        res.setResult(info_list, PTK_OKAY, "success")
+        res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_ucs_ports(self, keys):
         """
-        Gets the list of interfaces 
+        Gets the list of interfaces
 
         :return: Returns the list of interfaces
         """
@@ -90,18 +91,58 @@ class UCSConfigureUnifiedPorts:
         details['selected'] = str(1) + "-" + str(6)
         details['extrafields'] = json.dumps(slot_info)
         intf_list.append(details)
-        res.setResult(intf_list, PTK_OKAY, "success")
+        res.setResult(intf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSConfigureUnifiedPortsInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    ucs_fabric_id = Radiobutton(hidden='', isbasic='True', helptext='Primary or Subordinate FI', dt_type="string", static="True", api="", name="ucs_fabric_id", label="Fabric ID",
-                                static_values="A:1:Fabric Interconnect A(primary)|B:0:Fabric Interconnect B(subordinate)", svalue="", mapval="", mandatory="1", order=2)
-    no_of_ports = Rangepicker(hidden='', isbasic='True', helptext='Enter the respective ports', dt_type="string",
-                              static="False", api="get_ucs_ports()", name="no_of_ports", label="FC Ports",
-                              static_values="", svalue="", mapval="", mandatory="1", order=3, recommended="1", min_range=0, max_range=0, max_fixed=False, min_interval=5)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    ucs_fabric_id = Radiobutton(
+        hidden='',
+        isbasic='True',
+        helptext='Primary or Subordinate FI',
+        dt_type="string",
+        static="True",
+        api="",
+        name="ucs_fabric_id",
+        label="Fabric ID",
+        static_values="A:1:Fabric Interconnect A(primary)|B:0:Fabric Interconnect B(subordinate)",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=2)
+    no_of_ports = Rangepicker(
+        hidden='',
+        isbasic='True',
+        helptext='Enter the respective ports',
+        dt_type="string",
+        static="False",
+        api="get_ucs_ports()",
+        name="no_of_ports",
+        label="FC Ports",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=3,
+        recommended="1",
+        min_range=0,
+        max_range=0,
+        max_fixed=False,
+        min_interval=5)
 
 
 class UCSConfigureUnifiedPortsOutputs:

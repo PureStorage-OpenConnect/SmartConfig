@@ -1,4 +1,3 @@
-import requests
 import netaddr
 import subprocess
 
@@ -58,9 +57,9 @@ class IpValidator:
         return False
 
     def validate_ip(self, ip, netmask, gateway):
-        if self.validate_network(ip, netmask, gateway) == True:
+        if self.validate_network(ip, netmask, gateway):
             isUp = self.is_ip_up(ip)
-            if isUp == True:
+            if isUp:
                 # Returning Network status, Ip reachability
                 return True, True
             else:

@@ -70,171 +70,6 @@ paths:
               $ref: '#/definitions/GWorkflowResponse'
 
 
-   /CreateWorkflow:
-     get:
-      tags:
-          - pdt
-      operationId: pure_dir.services.apps.pdt.pdt_api.createworkflow
-      summary: Used to Create workflow
-      responses:
-        '200':
-          description: Returns workflow ID
-          schema:
-              $ref: '#/definitions/WName'
-
-
-   /AddTask:
-     post:
-      tags:
-          - pdt
-      operationId: pure_dir.services.apps.pdt.pdt_api.addtask
-      summary: Used to add task
-      parameters:
-           - in: body
-             name: data
-             description: Workflow ID
-             required: true
-             schema:
-                 $ref: '#/definitions/TaskParam'
-      responses:
-        '200':
-          description: Returns Execution ID
-          schema:
-              $ref: '#/definitions/Exec'
-
-   /DeleteTask:
-     delete:
-      tags:
-          - pdt
-      operationId: pure_dir.services.apps.pdt.pdt_api.deletetask
-      summary: Used to add task
-      parameters:
-           - in: query
-             name: wid
-             description: Workflow ID
-             required: true
-             type: string
-
-           - in: query
-             name: execid
-             description: Task ID
-             required: true
-             type: string
-      responses:
-        '200':
-          description: Returns Execution ID
-          schema:
-              $ref: '#/definitions/GenericStatus'
-
-   /DeleteAllTask:
-     delete:
-      tags:
-          - pdt
-      operationId: pure_dir.services.apps.pdt.pdt_api.deletealltask
-      summary: Used to add task
-      parameters:
-           - in: query
-             name: wid
-             description: Workflow ID
-             required: true
-             type: string
-
-      responses:
-        '200':
-          description: Returns Execution ID
-          schema:
-              $ref: '#/definitions/GenericStatus'
-
-   /CreateConnection:
-     post:
-       tags:
-           - pdt
-       operationId: pure_dir.services.apps.pdt.pdt_api.createconnection
-       summary: Used to Create connection beween tasks
-       parameters:
-           - in: body
-             name: data
-             description: Connection
-             required: true
-             schema:
-              $ref: '#/definitions/CreateParam'
-
-       responses:
-         '200':
-           description: Returns Connection status
-           schema:
-               $ref: '#/definitions/GenericStatus'
-
-
-   /DeleteConnection:
-     delete:
-       tags:
-           - pdt
-       operationId: pure_dir.services.apps.pdt.pdt_api.deleteconnection
-       summary: Used to Delete connection beween tasks
-       parameters:
-           - in: query
-             name: wid
-             description: Workflow ID
-             required: true
-             type: string
-           - in: query
-             name: execid
-             description: Exec ID
-             required: true
-             type: string
-           - in: query
-             name: ttype
-             description: Type
-             required: true
-             type: string
-
-       responses:
-         '200':
-           description: Returns Connection status
-           schema:
-               $ref: '#/definitions/GenericStatus'
-
-
-   /DeleteAllConnection:
-     delete:
-       tags:
-           - pdt
-       operationId: pure_dir.services.apps.pdt.pdt_api.deleteallconnection
-       summary: Used to Delete connection beween tasks
-       parameters:
-           - in: query
-             name: wid
-             description: Workflow ID
-             required: true
-             type: string
-
-       responses:
-         '200':
-           description: Returns Connection status
-           schema:
-               $ref: '#/definitions/GenericStatus'
-
-   /SaveWorkflow:
-     post:
-       tags:
-           - pdt
-       operationId: pure_dir.services.apps.pdt.pdt_api.saveworkflow
-       summary: Used to Save workflow info
-       parameters:
-           - in: body
-             name: data
-             description: Connection
-             required: true
-             schema:
-              $ref: '#/definitions/SaveWorkflow'
-
-       responses:
-         '200':
-           description: Returns Connection status
-           schema:
-               $ref: '#/definitions/GenericStatus'
-
    /FlashStackTypes:
      get:
        tags:
@@ -400,23 +235,6 @@ paths:
  #         schema:
  #           $ref: '#/definitions/ImportResponse'
  
-   /DeleteWorkflow:
-     get:
-       tags:
-           - pdt
-       operationId: pure_dir.services.apps.pdt.pdt_api.deleteworkflow
-       summary: Used to delete Default workflows
-       parameters:
-           - in: query
-             name: wid
-             description: Workflow ID
-             required: true
-             type: string
-       responses:
-         '200':
-           description: Delete  workflow information
-           schema:
-               $ref: '#/definitions/GenericStatus'
   
    /JobTasks:
       get:
@@ -553,31 +371,6 @@ paths:
             schema:
                 $ref: '#/definitions/WorkflowPrepareResponse'
  
-
-   /JobDiscard:
-      get:
-        tags:
-          - pdt
-        operationId: pure_dir.services.apps.pdt.pdt_api.jobdiscard
-        summary: Prepare workflow for execution
-        parameters:
-            - in : query
-              name: wname
-              description: Workflow Name
-              required: true
-              type: string
-
-            - in : query
-              name: force
-              description: Workflow Name
-              required: true
-              type: string
-
-        responses:
-          '200':
-            description: Success or not 
-            schema:
-             type: string
 
    /JobSaveAs:
       post:
@@ -803,26 +596,6 @@ paths:
             schema:
                 $ref: '#/definitions/RollbackTaskInfoData'
  
-                
-
-   /LibraryTaskInfo:
-      get:
-        tags:
-           - pdt
-        operationId: pure_dir.services.apps.pdt.pdt_api.librarytaskinfo  
-        summary: Task information
-        parameters:
-           - in: query
-             name: tid
-             description: task id
-             required: true
-             type: string
-
-        responses:
-          '200':
-             description: List of tasks in the workflow
-             schema:
-                $ref: '#/definitions/TaskDetailsListResponse'
 
    /JobTaskInputs:
       get:
@@ -926,23 +699,23 @@ paths:
              schema:
                  $ref: '#/definitions/WFTasksOutputsResponse'
 
-   /LibraryTasks:
-      get:
-        tags:
-           - pdt
-        operationId: pure_dir.services.apps.pdt.pdt_api.librarytasks
-        summary: Get the list of tasks available in the library    
-        responses:
-          '200':
-             description: Get the list of tasks available in the library
-             schema:
-                type: array
-                items:
-                   $ref: '#/definitions/Tasks'
-          default:
-             description: unexpected error
-             schema:
-              $ref: '#/definitions/Status'
+#   /LibraryTasks:
+#      get:
+#        tags:
+#           - pdt
+#        operationId: pure_dir.services.apps.pdt.pdt_api.librarytasks
+#        summary: Get the list of tasks available in the library    
+#        responses:
+#          '200':
+#             description: Get the list of tasks available in the library
+#             schema:
+#                type: array
+#                items:
+#                   $ref: '#/definitions/Tasks'
+#          default:
+#             description: unexpected error
+#             schema:
+#              $ref: '#/definitions/Status'
    
    /JobStatus:
      get:
@@ -1316,25 +1089,25 @@ paths:
           description: Return tool information
           schema:
             $ref: '#/definitions/TaskInputResponse'
-   /CheckPreReq:
-     get:
-      tags:
-       - pdt
-      parameters:
-        - required: true
-          in: query
-          description: Workflow id
-          name: wid
-          type: string
+ #  /CheckPreReq:
+ #    get:
+ #     tags:
+ #      - pdt
+ #     parameters:
+ #       - required: true
+ #         in: query
+ #         description: Workflow id
+ #         name: wid
+ #         type: string
 
-      operationId: pure_dir.services.apps.pdt.pdt_api.checkprereq
-      summary: Return Value
-      security: []
-      responses:
-        '200':
-          description: Return tool information
-          schema:
-            $ref: '#/definitions/WfId'
+ #     operationId: pure_dir.services.apps.pdt.pdt_api.checkprereq
+ #     summary: Return Value
+ #     security: []
+ #     responses:
+ #       '200':
+ #         description: Return tool information
+ #         schema:
+ #           $ref: '#/definitions/WfId'
 
    
    /GetGlobals:

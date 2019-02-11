@@ -1,6 +1,7 @@
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.common import *
+from pure_dir.components.compute.ucs.ucs_tasks import UCSTasks
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_credentials
+from ucsmsdk.ucsexception import UcsException
 from ucsmsdk.ucshandle import UcsHandle
 from pure_dir.infra.apiresults import *
 
@@ -25,7 +26,7 @@ def get_ucs_handle(mac):
     obj = UCSTasks(cred['vipaddress'],
                    cred['username'],
                    cred['password'])
-    if obj != None:
+    if obj is not None:
         res.setResult(obj, PTK_OKAY,
                       "success")
     else:
@@ -55,7 +56,7 @@ def get_ucs_login(mac):
         handle = UcsHandle(cred['vipaddress'],
                            cred['username'], cred['password'])
         handle_status = handle.login()
-        if handle_status == False:
+        if not handle_status:
             res.setResult(None, PTK_INTERNALERROR,
                           "Unable to get  UCS handle")
             return res
@@ -63,7 +64,7 @@ def get_ucs_login(mac):
         res.setResult(handle, PTK_OKAY,
                       "success")
         return res
-    except:
+    except BaseException:
         res.setResult(None, PTK_INTERNALERROR,
                       "Unable to get  UCS handle")
         return res
@@ -81,7 +82,6 @@ def ucsm_logout(handle):
     try:
         handle.logout()
     except UcsException as e:
-        customlogs(str(e), logfile)
         ret.setResult(
             None,
             PTK_INTERNALERROR,

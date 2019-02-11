@@ -7,19 +7,10 @@
 """
 
 import os
-from xml.dom.minidom import *
-from pure_dir.infra.logging.logmanager import *
+from xml.dom.minidom import parse
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration import*
-from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
-from pure_dir.services.apps.pdt.core.tasks.test.ucs import*
-from pure_dir.services.apps.pdt.core.tasks.main.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.main.mds import*
-from pure_dir.services.apps.pdt.core.tasks.test.mds import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file
 
 
 def job_validate(jobid, execid=''):
@@ -172,8 +163,8 @@ def validate_static_value(doc, error_info, mandatory=''):
                     continue
 
                 if len(node_arg.attributes['static_values'].value) == 0:
-                    errStr = " Static value is empty for " + node_arg.attributes['name'].value + "in task execution id " + \
-                        node.attributes['texecid'].value
+                    errStr = " Static value is empty for " + \
+                        node_arg.attributes['name'].value + "in task execution id " + node.attributes['texecid'].value
                     er = {
                         "fieldname": node_arg.attributes['name'].value,
                         "msg": errStr
@@ -186,8 +177,8 @@ def validate_static_value(doc, error_info, mandatory=''):
                     for stat in stat_obj:
                         stat_val = stat.split(":")
                         if len(stat_val) != 3:
-                            errStr = " Incorrect Static value format for " + node_arg.attributes['name'].value + " in task execution id " + \
-                                node.attributes['texecid'].value
+                            errStr = " Incorrect Static value format for " + \
+                                node_arg.attributes['name'].value + " in task execution id " + node.attributes['texecid'].value
                             er = {
                                 "fieldname": node_arg.attributes['name'].value,
                                 "msg": errStr
@@ -211,8 +202,8 @@ def validate_static_value(doc, error_info, mandatory=''):
                             for api_param_obj in api_param_list:
                                 api_param = api_param_obj.split(":")
                                 if len(api_param) != 3:
-                                    errStr = "Incorrect Api format for " + node_arg.attributes['name'].value + " in task execution id  " + \
-                                        node.attributes['texecid'].value
+                                    errStr = "Incorrect Api format for " + \
+                                        node_arg.attributes['name'].value + " in task execution id  " + node.attributes['texecid'].value
                                     er = {
                                         "fieldname": node_arg.attributes['name'].value,
                                         "msg": errStr
@@ -224,12 +215,11 @@ def validate_static_value(doc, error_info, mandatory=''):
                                     for node_arg in arglist:
                                         if api[0] == node_arg.attributes['name'].value:
                                             flag = True
-                                    if flag == False:
+                                    if not flag:
                                         errStr = node_arg.attributes['name'].value
                                         er = er = {
                                             "fieldname": node_arg.attributes['name'].value,
-                                            "msg": "api param " + errStr + "not available in the task"
-                                        }
+                                            "msg": "api param " + errStr + "not available in the task"}
                                         error_content.append(er)
 
         error_info.append(

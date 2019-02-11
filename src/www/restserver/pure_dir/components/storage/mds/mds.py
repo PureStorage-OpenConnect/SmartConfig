@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Project_Name    :Flashstack Deployment
-# title           :mds_tasks.py
+# title           :mds.py
 # description     :MDS class for helper functions
 # author          :Guruprasad
 # version         :1.0
@@ -8,14 +8,12 @@
 
 from pycsco.nxos.device import Device
 from pycsco.nxos import error
-from pycsco.nxos.utils import nxapi_lib as nxapi_fn
-import xmltodict
 import json
 import urllib2
 import re
 
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo 
 
 
 class MDS:
@@ -23,7 +21,7 @@ class MDS:
         """
         Constructor - MDS Handler
 
-        :param ipaddress: Switch ip 
+        :param ipaddress: Switch ip
         :param username : Switch username
         :param password : Switch password
         :param port     : Switch port
@@ -41,7 +39,7 @@ class MDS:
         switch['name'] = self.get_switchname()
         switch['mac_addr'] = self.get_mac_address()
         switch['model'], switch['serial_no'] = self.get_model_and_serial()
-        if all(switch.values()) == True:
+        if all(switch.values()):
             loginfo("MDS Switch details: %s" % str(switch))
             return switch
         else:
@@ -198,7 +196,7 @@ class MDS:
 
         except urllib2.URLError as e:
             loginfo("Error msg: " + str(e.reason))
-            obj.setResult(iface_list, PTK_NOTEXIST,
+            obj.setResult(iface_details, PTK_NOTEXIST,
                           "Could not connect to switch")
             return obj
 
@@ -244,14 +242,16 @@ class MDS:
                         else:
                             iface_notpc_list.append(iface)
 
-                    if pc_bind == True:
+                    if pc_bind:
                         loginfo(
-                            "MDS interface list which are binded to port channel: " + str(iface_pc_list))
+                            "MDS interface list which are binded to port channel: " +
+                            str(iface_pc_list))
                         obj.setResult(iface_pc_list, PTK_OKAY, "Success")
                         return obj
                     elif pc_bind == False:
                         loginfo(
-                            "MDS interface list which are not binded to port channel: " + str(iface_notpc_list))
+                            "MDS interface list which are not binded to port channel: " +
+                            str(iface_notpc_list))
                         obj.setResult(iface_notpc_list, PTK_OKAY, "Success")
                         return obj
                     else:
@@ -294,7 +294,7 @@ class MDS:
                     return obj
                 pc_output = op_dict['ins_api']['outputs']['output']['body'][
                     'TABLE_interface_brief_portchannel']['ROW_interface_brief_portchannel']
-                if type(pc_output) == dict:
+                if isinstance(pc_output, dict):
                     iface_output = []
                     iface_output.append(pc_output)
                 else:
@@ -336,6 +336,7 @@ class MDS:
         :return: Returns the port configuration status
         """
         obj = result()
+	output_dict = {}
         for key, value in port_dict.items():
             commands = ['interface fc %s' % key, 'switchport description %s' % value,
                         'port-license acquire', 'no shutdown']
@@ -732,8 +733,9 @@ class MDS:
                               "Could not connect to switch")
                 return obj
 
-        obj.setResult(True, PTK_OKAY, "Port channel %s configured with interface list %s successfully" % (
-            pc_id, str(interface_list)))
+        obj.setResult(
+            True, PTK_OKAY, "Port channel %s configured with interface list %s successfully" %
+            (pc_id, str(interface_list)))
         return obj
 
     def unconfigure_portchannel(self, pc_id, interface_list):
@@ -1134,7 +1136,7 @@ class MDS:
         """
         # CLI: self.handle.show('show zone vsan %s' % vsan_id, fmat='json')
         vsan_zones = []
-        zone_list = get_zone_list()
+        zone_list = self.get_zone_list()
         for zone in zone_list:
             if zone['vsan_id'] == vsan_id:
                 zone_dict = {}
@@ -1190,7 +1192,7 @@ class MDS:
         """
         obj = result()
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zone(zone_name)
+            vsan_id = self.get_vsanid_for_zone(zone_name)
             if vsan_id == -1:
                 loginfo("MDS: Zone %s not present" % zone_name)
                 obj.setResult(False, PTK_NOTEXIST, "Zone not present in MDS")
@@ -1237,7 +1239,7 @@ class MDS:
         """
         obj = result()
         if vsan_id == "":
-            vsan_id = get_vsanid_for_zone(name)
+            vsan_id = self.get_vsanid_for_zone(name)
             if vsan_id == -1:
                 loginfo("MDS: Zone %s not present" % name)
                 obj.setResult(False, PTK_NOTEXIST, "Zone not present in MDS")
@@ -1274,7 +1276,7 @@ class MDS:
 
         :return: Returns the VSAN id
         """
-        zone_list = get_zone_list()
+        zone_list = self.get_zone_list()
         for zone in zone_list:
             if zone['name'] == name:
                 return zone['vsan_id']
@@ -1300,7 +1302,7 @@ class MDS:
                 for zoneset in zoneset_output:
                     zoneset_dict = {}
                     zoneset_dict['name'] = zoneset['zoneset_name']
-                    zone_dict['vsan_id'] = zoneset['zoneset_vsan_id']
+                    zoneset_dict['vsan_id'] = zoneset['zoneset_vsan_id']
                     zoneset_list.append(zoneset_dict)
                 loginfo("MDS zoneset list: " + str(zoneset_list))
                 obj.setResult(zoneset_list, PTK_OKAY, "Success")
@@ -1328,7 +1330,7 @@ class MDS:
         """
         # CLI: self.handle.show('show zoneset vsan %s' % vsan_id, fmat='json')
         vsan_zonesets = []
-        zoneset_list = get_zoneset_list()
+        zoneset_list = self.get_zoneset_list()
         for zoneset in zoneset_list:
             if zoneset['vsan_id'] == vsan_id:
                 zoneset_dict = {}
@@ -1384,7 +1386,7 @@ class MDS:
         obj = result()
 
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zoneset(zoneset_name)
+            vsan_id = self.get_vsanid_for_zoneset(zoneset_name)
             if vsan_id == -1:
                 loginfo("MDS: Zoneset %s not present" % zoneset_name)
                 obj.setResult(False, PTK_NOTEXIST,
@@ -1432,7 +1434,7 @@ class MDS:
         """
         obj = result()
         if vsan_id == "":
-            vsan_id = get_vsanid_for_zoneset(name)
+            vsan_id = self.get_vsanid_for_zoneset(name)
             if vsan_id == -1:
                 loginfo("MDS: Zoneset %s not present" % name)
                 obj.setResult(False, PTK_NOTEXIST,
@@ -1474,9 +1476,9 @@ class MDS:
         obj = result()
 
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zoneset(zoneset_name)
+            vsan_id = self.get_vsanid_for_zoneset(zoneset_name)
             if vsan_id == -1:
-                loginfo("MDS: Zoneset %s not present" % name)
+                loginfo("MDS: Zoneset %s not present" % zoneset_name)
                 obj.setResult(False, PTK_NOTEXIST,
                               "Zoneset not present in MDS")
                 return obj
@@ -1520,9 +1522,9 @@ class MDS:
         obj = result()
 
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zoneset(zoneset_name)
+            vsan_id = self.get_vsanid_for_zoneset(zoneset_name)
             if vsan_id == -1:
-                loginfo("MDS: Zoneset %s not present" % name)
+                loginfo("MDS: Zoneset %s not present" % zoneset_name)
                 obj.setResult(False, PTK_NOTEXIST,
                               "Zoneset not present in MDS")
                 return obj
@@ -1562,7 +1564,7 @@ class MDS:
 
         :return: Returns the VSAN id
         """
-        zoneset_list = get_zoneset_list()
+        zoneset_list = self.get_zoneset_list()
         for zoneset in zoneset_list:
             if zoneset['name'] == name:
                 return zoneset['vsan_id']

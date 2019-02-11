@@ -1,10 +1,10 @@
 from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import get_ucs_login, ucsm_logout 
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 
 metadata = dict(
     task_id="FAAddFCPortToHost",
@@ -34,9 +34,10 @@ class FAAddFCPortToHost:
         cred = get_device_credentials(
             key="mac", value=taskinfo['inputs']['pure_id'])
         if not cred:
+	    res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
 
             return parseTaskResult(res)
 
@@ -61,9 +62,10 @@ class FAAddFCPortToHost:
         cred = get_device_credentials(
             key="mac", value=inputs['pure_id'])
         if not cred:
+	    res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
 
             return parseTaskResult(res)
 
@@ -89,8 +91,8 @@ class FAAddFCPortToHost:
         port_list = []
         wwn_list = []
         res = result()
-        if pureid == None:
-            res.setResult(port_list, PTK_OKAY, "success")
+        if pureid is None:
+            res.setResult(port_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(
@@ -98,7 +100,7 @@ class FAAddFCPortToHost:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return res
 
         obj = PureTasks(cred['ipaddress'],
@@ -111,12 +113,10 @@ class FAAddFCPortToHost:
                 loginfo("target in get_ports is null")
         new_list = list(set(wwn_list))
         for unique_wwn in new_list:
-            # port_list.append(
-                # {"id": str(unique_wwn), "selected": "0", "label": str(unique_wwn)})
             port_list.append(str(unique_wwn))
         obj.release_pure_handle()
         loginfo("get port list going is : {}".format(port_list))
-        res.setResult(port_list, PTK_OKAY, "Success")
+        res.setResult(port_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return port_list
 
     def purelist(self, keys):
@@ -128,7 +128,7 @@ class FAAddFCPortToHost:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def prepare(self, jobid, texecid, inputs):
@@ -191,7 +191,7 @@ class FAAddFCPortToHost:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsm_get_associated_sp_cnt(self, keys):
@@ -206,8 +206,8 @@ class FAAddFCPortToHost:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -228,7 +228,7 @@ class FAAddFCPortToHost:
         servers_list.append(server_dict)
         print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmbladeservers(self, keys):
@@ -242,8 +242,8 @@ class FAAddFCPortToHost:
         servers_list = []
         res = result()
         fabricid = getArg(keys, 'fabric_id')
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
@@ -259,20 +259,13 @@ class FAAddFCPortToHost:
             blade_server_cnt += 1
             servers_list.append(server_dict)
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getHostApi(self, keys):
         res = result()
         res = self.ucsm_get_associated_sp_cnt(keys)
         blade_list = res.getResult()
-
-        '''jobid = str([arg['value'] for args in keys.values() for arg in args if arg['key'] == "jobid"][0])
-        if jobid == "":
-            res.setResult([], PTK_OKAY, "success")
-            return res
-
-        hostname = get_field_value_from_jobid(jobid, 'FACreateMultipleHosts', 'name')'''
 
         blade_len = 0
         if len(blade_list) > 0:
@@ -296,7 +289,6 @@ class FAAddFCPortToHost:
         blade_len = 0
         if len(blade_list) > 0:
             blade_len = int(blade_list[0]['id'])
-        host_prefix = ""
         mports = self.get_ports(pure_id, blade_len)
         loginfo("orig ports in prepare : {}".format(mports))
         mports.sort()
@@ -326,31 +318,98 @@ class FAAddFCPortToHost:
             mdata.append({"id": str(port_list[0] + "," + port_list[1]),
                           "selected": "0", "label": str(port_list[0] + "," + port_list[1])})
         print "port list goin in advanced ", mdata
-        res.setResult(mdata, PTK_OKAY, "success")
+        res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class FAAddFCPortToHostInputs:
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
 
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=2)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=2)
 
-    hosts = Dropdown(hidden='False', isbasic='True', helptext='Host List', dt_type="string", static="False", api="getHostApi()|[fabric_id:1:fabric_id.value]",
-                     name="hosts", label="Hosts", svalue="", mandatory="0", static_values="", mapval="", group_member="1", order=3)
+    hosts = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Host List',
+        dt_type="string",
+        static="False",
+        api="getHostApi()|[fabric_id:1:fabric_id.value]",
+        name="hosts",
+        label="Hosts",
+        svalue="",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        group_member="1",
+        order=3)
 
-    ports = Dropdown(hidden='False', isbasic='True', helptext='Volume List', dt_type="string", static="False", api="getPortApi()|[fabric_id:1:fabric_id.value|pure_id:1:pure_id.value]",
-                     name="ports", label="Port List", svalue="", group_member="1", static_values="", mapval="", mandatory="0", order=4)
+    ports = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Volume List',
+        dt_type="string",
+        static="False",
+        api="getPortApi()|[fabric_id:1:fabric_id.value|pure_id:1:pure_id.value]",
+        name="ports",
+        label="Port List",
+        svalue="",
+        group_member="1",
+        static_values="",
+        mapval="",
+        mandatory="0",
+        order=4)
 
-    host_set = Group(validation_criteria='', hidden='False', isbasic='True', helptext='Adding Port to Host', dt_type="string", static="False", api="",
-                     name="host_set", label="Host Port Mapping", svalue="", static_values="", mapval="", mandatory="0", members=["hosts", "ports"], add="True", order=5)
+    host_set = Group(
+        validation_criteria='',
+        hidden='False',
+        isbasic='True',
+        helptext='Adding Port to Host',
+        dt_type="string",
+        static="False",
+        api="",
+        name="host_set",
+        label="Host Port Mapping",
+        svalue="",
+        static_values="",
+        mapval="",
+        mandatory="0",
+        members=[
+            "hosts",
+            "ports"],
+        add="True",
+        order=5)
 
 
 class FAAddFCPortToHostOutputs:

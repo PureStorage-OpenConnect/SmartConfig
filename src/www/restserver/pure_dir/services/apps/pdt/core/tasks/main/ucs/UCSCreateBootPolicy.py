@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -45,24 +45,63 @@ class UCSCreateBootPolicy:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         print ucs_list, res
         return res
 
     def purelist(self, keys):
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateBootPolicyInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='UCS Fabric Name', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    boot_policy_name = Textbox(validation_criteria='str|min:1|max:128', hidden='False', isbasic='True', helptext='Boot Policy Name', dt_type="string", api="", static="False", static_values="",
-                               name="boot_policy_name", label="Name", svalue="", mandatory='1', mapval="0", order=2, recommended="1")
-    boot_policy_desc = Textbox(validation_criteria='str|min:1|max:128', hidden='False', isbasic='True', helptext='Description for Boot Policy', dt_type="string", api="", static="False", static_values="",
-                               name="boot_policy_desc", label="Description",  svalue="", mandatory='1', mapval="0", order=3)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='UCS Fabric Name',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    boot_policy_name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Boot Policy Name',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="",
+        name="boot_policy_name",
+        label="Name",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=2,
+        recommended="1")
+    boot_policy_desc = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Description for Boot Policy',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="",
+        name="boot_policy_desc",
+        label="Description",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=3)
 
 
 class UCSCreateBootPolicyOutputs:

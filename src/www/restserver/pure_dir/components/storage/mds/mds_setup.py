@@ -52,12 +52,19 @@ class MDSSetup:
         """
         res = result()
         ret = []
-        ret = validate_input_data({'switch_name': 'Switch name', 'switch_gateway': 'Gateway', 'switch_ip': 'IP address',
-                                   'switch_netmask': 'Netmask', 'switch_mac': 'MAC address',
+        ret = validate_input_data({'switch_name': 'Switch name',
+                                   'switch_gateway': 'Gateway',
+                                   'switch_ip': 'IP address',
+                                   'switch_netmask': 'Netmask',
+                                   'switch_mac': 'MAC address',
                                    'ntp_server': 'NTP Server ip',
-                                   'switch_system_image': 'System image', 'switch_kickstart_image': 'Kickstart image',
-                                   'pri_passwd': 'Password', 'conf_passwd': 'Confirm password',
-                                   'switch_serial_no': 'Serial number', 'switch_vendor': 'Switch vendor'}, data)
+                                   'switch_system_image': 'System image',
+                                   'switch_kickstart_image': 'Kickstart image',
+                                   'pri_passwd': 'Password',
+                                   'conf_passwd': 'Confirm password',
+                                   'switch_serial_no': 'Serial number',
+                                   'switch_vendor': 'Switch vendor'},
+                                  data)
 
         if data['pri_passwd'] != data['conf_passwd']:
             ret.append({'field': 'conf_passwd',
@@ -86,11 +93,13 @@ class MDSSetup:
             ipv = IpValidator()
             network_reach, ip_reach = ipv.validate_ip(
                 data['switch_ip'], data['switch_netmask'], data['switch_gateway'])
-            if network_reach == True:
-                if ip_reach == False:
+            if network_reach:
+                if not ip_reach:
                     res.setResult(ret, PTK_OKAY, "Success")
                 else:
-                    res.setResult([{"field": "switch_ip", "msg": "IP Address is already occupied"}], PTK_INTERNALERROR,
+                    res.setResult([{"field": "switch_ip",
+                                    "msg": "IP Address is already occupied"}],
+                                  PTK_INTERNALERROR,
                                   "Please check the IP address.")
             else:
                 res.setResult([{"field": "switch_ip", "msg": "Please check the network settings"},
@@ -112,8 +121,14 @@ class MDSSetup:
         res = result()
 
         loginfo("Serial number of mds switch is %s" % data['switch_serial_no'])
-        update_xml_element(static_discovery_store, matching_key="mac", matching_value=data['switch_mac'],
-                           data={"configured": "In-progress", "timestamp": str(time.time())})
+        update_xml_element(
+            static_discovery_store,
+            matching_key="mac",
+            matching_value=data['switch_mac'],
+            data={
+                "configured": "In-progress",
+                "timestamp": str(
+                    time.time())})
 
         host_ip = get_ip_address(get_filtered_ifnames()[0])
         loginfo("TFTP server ip is %s" % host_ip)
@@ -125,8 +140,14 @@ class MDSSetup:
 
         loginfo("Creating poap.cfg file for mds switch %s" %
                 data['switch_serial_no'])
-        self._createconfig(data['switch_name'], data['ntp_server'], data['switch_gateway'],
-                           data['switch_netmask'], data['switch_ip'], data['switch_serial_no'], data['domain_name'])
+        self._createconfig(
+            data['switch_name'],
+            data['ntp_server'],
+            data['switch_gateway'],
+            data['switch_netmask'],
+            data['switch_ip'],
+            data['switch_serial_no'],
+            data['domain_name'])
         loginfo("Creating device-recipe.cfg for mds switch %s" %
                 data['switch_serial_no'])
         self._createdevrecipe(data['switch_kickstart_image'],
@@ -191,7 +212,7 @@ class MDSSetup:
         res = result()
         mds_images = glob.glob("%s/m9*.bin" % image_dir)
         image_list = [os.path.basename(f) for f in mds_images if isfile(
-            f) and not 'kickstart' in f]
+            f) and 'kickstart' not in f]
         res.setResult(image_list, PTK_OKAY, "Success")
         return res
 
@@ -199,13 +220,18 @@ class MDSSetup:
         """
         Validates the MDS kickstart-system images version provided for MDS Configuration
 
-        :param data: Dictionary (kickstart_image, system_image)
+        :param data: Dictionary (switch_kickstart_image, switch_system_image)
 
         :return: Returns the validation status
         """
         res = result()
         res = result()
-        if re.match(re.sub('-kickstart', '', data['kickstart_image']), data['system_image']):
+        if re.match(
+                re.sub(
+                    '-kickstart',
+                    '',
+                    data['switch_kickstart_image']),
+                data['switch_system_image']):
             loginfo("Images correctly selected")
             res.setResult(True, PTK_OKAY, "Firmware images validated")
         else:
@@ -234,19 +260,18 @@ class MDSSetup:
         input_dict['switch_tag'] = data['tag']
         input_dict['switch_serial_no'] = data['serial_no']
         input_dict['switch_vendor'] = data['model']
-        input_dict['switch_kickstart_image'] = data['kickstart_image']
-        input_dict['switch_system_image'] = data['system_image']
         input_dict['domain_name'] = data['domain_name']
         if force == 0:
-            input_dict['switch_image'] = {k: input_dict[k] for k in (
-                'switch_kickstart_image', 'switch_system_image')}
+            input_dict['switch_image'] = {
+                'switch_kickstart_image': data['switch_kickstart_image'],
+                'switch_system_image': data['switch_system_image']}
             populate_lst = []
             populate_lst.append(input_dict)
             return True, json.dumps(populate_lst)
-        loginfo("MDS Reconfigure: Validating MDS configuration params")
-        validation_status = self.mdsvalidate(input_dict).getStatus()
-        if validation_status == PTK_OKAY:
-            loginfo("MDS Reconfigure: MDS Validation success. Configuring MDS")
+        else:
+            input_dict['switch_kickstart_image'] = data['switch_kickstart_image']
+            input_dict['switch_system_image'] = data['switch_system_image']
+            loginfo("MDS Reconfigure: Configuring MDS")
             conf_status = self.mdsconfigure(input_dict).getStatus()
             if conf_status == PTK_OKAY:
                 loginfo("MDS Reconfigure: MDS Configuration success")
@@ -254,35 +279,50 @@ class MDSSetup:
             else:
                 loginfo("MDS Reconfigure: MDS Configuration failure")
                 return False, -1
-        else:
-            loginfo("MDS Reconfigure: MDS Validation failure")
-            return False, -1
 
-    def _save_mds_details(self, ipaddress, netmask, gateway, ntp_server, username, password, serial_no, mac, model,
-                          device_type, image_version, kickstart_image, system_image, configured, name, tag, reachability,
-                          validated, domain_name):
+    def _save_mds_details(
+            self,
+            ipaddress,
+            netmask,
+            gateway,
+            ntp_server,
+            username,
+            password,
+            serial_no,
+            mac,
+            model,
+            device_type,
+            image_version,
+            switch_kickstart_image,
+            switch_system_image,
+            configured,
+            name,
+            tag,
+            reachability,
+            validated,
+            domain_name):
         """
         Saves the MDS device details to devices.xml
 
-        :param ipaddress      : IP address of mds switch
-        :param netmask        : Netmask address
-        :param gateway        : Gateway address
-        :param ntp_server     : NTP server
-        :param username       : Username for mds switch
-        :param password       : Password for mds switch
-        :param serial_no      : Serial number of mds switch
-        :param mac            : MAC address of mds switch
-        :param model          : Model number of mds switch
-        :param device_type    : Device Type
-        :param image_version  : NX-OS Image version
-        :param kickstart_image: NX-OS Kickstart Image
-        :param system_image   : NX-OS System Image
-        :param configured     : Configuration state
-        :param name           : Name of the MDS switch
-        :param tag            : Tag for the switch A/B
-        :param reachability   : Reachability status
-        :param validated      : Validated state
-        :param domain_name    : Domain name
+        :param ipaddress             : IP address of mds switch
+        :param netmask               : Netmask address
+        :param gateway               : Gateway address
+        :param ntp_server            : NTP server
+        :param username              : Username for mds switch
+        :param password              : Password for mds switch
+        :param serial_no             : Serial number of mds switch
+        :param mac                   : MAC address of mds switch
+        :param model                 : Model number of mds switch
+        :param device_type           : Device Type
+        :param image_version         : NX-OS Image version
+        :param switch_kickstart_image: NX-OS Kickstart Image
+        :param switch_system_image   : NX-OS System Image
+        :param configured            : Configuration state
+        :param name                  : Name of the MDS switch
+        :param tag                   : Tag for the switch A/B
+        :param reachability          : Reachability status
+        :param validated             : Validated state
+        :param domain_name           : Domain name
         """
         data = locals()
         data["timestamp"] = str(time.time())
@@ -292,7 +332,7 @@ class MDSSetup:
 
     def _copymdsimages(self, kickstart_img, system_img):
         """
-        Copies MDS kickstart and system images to TFTP directory 
+        Copies MDS kickstart and system images to TFTP directory
 
         :param kickstart_img: NX-OS Kickstart Image
         :param system_img   : NX-OS System Image
@@ -350,7 +390,6 @@ class MDSSetup:
         :param image_version : MDS switch image version
         :param tftp_server_ip: TFTP Server IP
         """
-        res = result()
         mds_config = {}
         mds_config['server_ip'] = tftp_server_ip
         mds_config['image_version'] = image_version
@@ -412,7 +451,7 @@ class MDSSetup:
         """
         Creates md5 for the poap_script.tcl file
 
-        :param fl  : poap_script.tcl file 
+        :param fl  : poap_script.tcl file
         :param path: TFTP directory
         """
         cmd = "cd %s; f=%s ; cat $f | sed '/^#md5sum/d' > $f.md5 ; sed -i \"s/^#md5sum=.*/#md5sum=\"$(md5sum $f.md5 | sed 's/ .*//')\"/\" $f" % (
@@ -424,7 +463,7 @@ class MDSSetup:
         """
         Creates md5 for the configuration file
 
-        :param fl  : poap_script.tcl file 
+        :param fl  : poap_script.tcl file
         :param path: TFTP directory
         """
         md5 = fl + ".md5"

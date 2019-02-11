@@ -1,7 +1,5 @@
-from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 from pure_dir.components.common import *
 
 

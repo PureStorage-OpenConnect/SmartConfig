@@ -36,7 +36,7 @@ class FAAddISCSIHostToHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_FA_LOGIN_FAILURE"))
 
             return parseTaskResult(res)
 
@@ -56,7 +56,7 @@ class FAAddISCSIHostToHostGroup:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def rollback(self, inputs, outputs, logfile):
@@ -76,7 +76,7 @@ class FAAddISCSIHostToHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the MDS")
+                          _("PDT_FA_LOGIN_FAILURE"))
 
             return parseTaskResult(res)
 
@@ -117,7 +117,7 @@ class FAAddISCSIHostToHostGroup:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsm_get_associated_sp_cnt(self, keys):
@@ -132,8 +132,8 @@ class FAAddISCSIHostToHostGroup:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -154,7 +154,7 @@ class FAAddISCSIHostToHostGroup:
         servers_list.append(server_dict)
         print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmbladeservers(self, keys):
@@ -169,8 +169,8 @@ class FAAddISCSIHostToHostGroup:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -188,7 +188,7 @@ class FAAddISCSIHostToHostGroup:
             blade_server_cnt += 1
             servers_list.append(server_dict)
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getHostApi(self, keys):
@@ -204,13 +204,13 @@ class FAAddISCSIHostToHostGroup:
             mdata.append(
                 {"id": str(host), "selected": "0", "label": str(host)})
 
-        res.setResult(mdata, PTK_OKAY, "success")
+        res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_hgroup_list(self, keys):
@@ -218,8 +218,8 @@ class FAAddISCSIHostToHostGroup:
         hg_list = []
         pureid = getArg(keys, 'pure_id')
         res = result()
-        if pureid == None:
-            res.setResult(hg_list, PTK_OKAY, "success")
+        if pureid is None:
+            res.setResult(hg_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(
@@ -228,7 +228,7 @@ class FAAddISCSIHostToHostGroup:
         if not cred:
             loginfo("Unable to get the device credentials of the Flash Array")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of Flash Array")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return res
 
         obj = PureTasks(cred['ipaddress'],
@@ -239,23 +239,72 @@ class FAAddISCSIHostToHostGroup:
             hg_list.append(
                 {"id": hgDict['name'], "selected": "0", "label": hgDict['name']})
         obj.release_pure_handle()
-        res.setResult(hg_list, PTK_OKAY, "Success")
+        res.setResult(hg_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class FAAddISCSIHostToHostGroupInputs:
 
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
 
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=2)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=2)
 
-    hgname = Dropdown(hidden='False', isbasic='True', helptext='Host Group Name', dt_type="string", static="False", api="get_hgroup_list()|[pure_id:1:pure_id.value]", name="hgname", label="Host Group Name",
-                      svalue="VM-HostGroup-iSCSI", mandatory="0", static_values="", mapval="", order=3, recommended="1")
+    hgname = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Host Group Name',
+        dt_type="string",
+        static="False",
+        api="get_hgroup_list()|[pure_id:1:pure_id.value]",
+        name="hgname",
+        label="Host Group Name",
+        svalue="VM-HostGroup-iSCSI",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=3,
+        recommended="1")
 
-    hosts = Multiselect(hidden='False', isbasic='True', helptext='Host List', dt_type="string", static="False", api="getHostApi()|[fabric_id:1:fabric_id.value]", name="hosts", label="Hosts",
-                        svalue="", mandatory="0", static_values="", mapval="", order=4)
+    hosts = Multiselect(
+        hidden='False',
+        isbasic='True',
+        helptext='Host List',
+        dt_type="string",
+        static="False",
+        api="getHostApi()|[fabric_id:1:fabric_id.value]",
+        name="hosts",
+        label="Hosts",
+        svalue="",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=4)
 
 
 class FAAddISCSIHostToHostGroupOutputs:

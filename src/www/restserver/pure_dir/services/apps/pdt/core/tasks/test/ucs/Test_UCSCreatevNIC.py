@@ -35,26 +35,32 @@ class Test_UCSCreatevNIC:
 
     def getadapterpolicy(self, keys):
         res = result()
-        adapter_pol = [{"id": "linux", "selected": "0", "label": "Linux"}, {"id": "smbclient", "selected": "0", "label": "SMBCLient"},
-                       {"id": "smbserver", "selected": "0", "label": "SMBServer"}, {
-                           "id": "sriov", "selected": "0", "label": "SRIOV"},
-                       {"id": "solaris", "selected": "0", "label": "Solaris"}, {
-                           "id": "VMWare", "selected": "0", "label": "VMWare"},
-                       {"id": "VMWarePassThrough", "selected": "0", "label": "VMWarePassThrough"}, {
-                           "id": "Windows", "selected": "0", "label": "Windows"},
-                       {"id": "default", "selected": "0", "label": "default"}, {
-                           "id": "usNIC", "selected": "0", "label": "usNIC"},
-                       {"id": "usNICOracleRAC", "selected": "0", "label": "usNICOracleRAC"}]
+        adapter_pol = [
+            {
+                "id": "linux", "selected": "0", "label": "Linux"}, {
+                "id": "smbclient", "selected": "0", "label": "SMBCLient"}, {
+                "id": "smbserver", "selected": "0", "label": "SMBServer"}, {
+                    "id": "sriov", "selected": "0", "label": "SRIOV"}, {
+                        "id": "solaris", "selected": "0", "label": "Solaris"}, {
+                            "id": "VMWare", "selected": "0", "label": "VMWare"}, {
+                                "id": "VMWarePassThrough", "selected": "0", "label": "VMWarePassThrough"}, {
+                                    "id": "Windows", "selected": "0", "label": "Windows"}, {
+                                        "id": "default", "selected": "0", "label": "default"}, {
+                                            "id": "usNIC", "selected": "0", "label": "usNIC"}, {
+                                                "id": "usNICOracleRAC", "selected": "0", "label": "usNICOracleRAC"}]
         res.setResult(adapter_pol, PTK_OKAY, "success")
         return res
 
     def getvnictemplate(self, keys):
         ret = result()
-        vnic_templ_list = [{"id": "vNIC_Mgmt_A", "label": "vNIC_Mgmt_A", "selected": "0"}, {"id": "vNIC_Mgmt_B", "label": "vNIC_Mgmt_B", "selected": "0"},
-                           {"id": "vNIC_vMotion_A", "label": "vNIC_vMotion_A", "selected": "0"}, {
-                               "id": "vNIC_vMotion_B", "label": "vNIC_vMotion_B", "selected": "0"},
-                           {"id": "vNIC_App_A", "label": "vNIC_App_A", "selected": "0"}, {
-                               "id": "vNIC_App_B", "label": "vNIC_App_B", "selected": "0"},
-                           {"id": "", "label": "not-set", "selected": "1"}]
+        vnic_templ_list = [
+            {
+                "id": "vNIC_Mgmt_A", "label": "vNIC_Mgmt_A", "selected": "0"}, {
+                "id": "vNIC_Mgmt_B", "label": "vNIC_Mgmt_B", "selected": "0"}, {
+                "id": "vNIC_vMotion_A", "label": "vNIC_vMotion_A", "selected": "0"}, {
+                    "id": "vNIC_vMotion_B", "label": "vNIC_vMotion_B", "selected": "0"}, {
+                        "id": "vNIC_App_A", "label": "vNIC_App_A", "selected": "0"}, {
+                            "id": "vNIC_App_B", "label": "vNIC_App_B", "selected": "0"}, {
+                                "id": "", "label": "not-set", "selected": "1"}]
         ret.setResult(vnic_templ_list, PTK_OKAY, "success")
         return ret

@@ -37,7 +37,7 @@
         <arg mapval="1" name="delay" value="__t300.VPC domain for switch A.delay"/>
       </args>
     </task>
-    <task OnSuccess="t303" Onfailure="None" desc="Portchannel member interfaces for switch A" id="NEXUS5kConfigurePortChannelMemberInterfaces" inittask="0" name="Portchannel member interfaces for switch A" texecid="t302">
+    <task OnSuccess="t303" Onfailure="None" desc="Port channel member interfaces for switch A" id="NEXUS5kConfigurePortChannelMemberInterfaces" inittask="0" name="Port channel member interfaces for switch A" texecid="t302">
       <outputs>
         <output name="slot_chassis" tvalue="2/13-14" value="no-op"/>
         <output name="port_channel_number" tvalue="11" value="no-op"/>
@@ -53,7 +53,7 @@
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
       </args>
     </task>
-    <task OnSuccess="t304" Onfailure="None" desc="Portchannel member interfaces for switch B" id="NEXUS5kConfigurePortChannelMemberInterfaces" inittask="0" name="Portchannel member interfaces for switch B" texecid="t303">
+    <task OnSuccess="t304" Onfailure="None" desc="Port channel member interfaces for switch B" id="NEXUS5kConfigurePortChannelMemberInterfaces" inittask="0" name="Port channel member interfaces for switch B" texecid="t303">
       <outputs>
         <output name="slot_chassis" tvalue="2/13-14" value="no-op"/>
         <output name="port_channel_number" tvalue="11" value="no-op"/>
@@ -64,7 +64,7 @@
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
         <arg name="slot_chassis" value="Eth2/13|Eth2/14"/>
-        <arg mapval="1" name="port_channel_number" value="__t302.Portchannel member interfaces for switch A.port_channel_number"/>
+        <arg mapval="1" name="port_channel_number" value="__t302.Port channel member interfaces for switch A.port_channel_number"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
       </args>

@@ -40,7 +40,7 @@ with open(config_file) as data_file:
 
 
 # Generate target yaml file
-if generate_target_yaml(config_data) == True:
+if generate_target_yaml(config_data):
     loginfo("Generated target api file for service manager")
 else:
     loginfo("Failed to generate target api file for service manager")

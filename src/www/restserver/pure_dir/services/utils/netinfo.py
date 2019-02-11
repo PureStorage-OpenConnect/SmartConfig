@@ -36,7 +36,7 @@ IFF_SLAVE = 0x800      # slave of load balancer
 IFF_MULTICAST = 0x1000  # supports multicast
 IFF_PORTSEL = 0x2000   # can set media type
 IFF_AUTOMEDIA = 0x4000  # auto media select active
-IFF_DYNAMIC = 0x8000L  # addr's lost on inet down
+IFF_DYNAMIC = 0x8000  # addr's lost on inet down
 IFF_LOWER_UP = 0x10000  # has netif_dormant_on()
 IFF_DORMANT = 0x20000  # has netif_carrier_on()
 

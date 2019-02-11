@@ -23,7 +23,7 @@ class Nexus:
         """
         Constructor - Nexus Handler
 
-        :param ipaddress: Switch ip 
+        :param ipaddress: Switch ip
         :param username : Switch username
         :param password : Switch password
         """
@@ -43,7 +43,7 @@ class Nexus:
         switch['name'] = self.get_switchname()
         switch['mac_addr'] = self.get_mac_address()
         switch['model'], switch['serial_no'] = self.get_model_and_serial()
-        if all(switch.values()) == True:
+        if all(switch.values()):
             loginfo("Nexus Switch details: %s" % str(switch))
             return switch
         else:
@@ -154,7 +154,7 @@ class Nexus:
                     details['selected'] = "0"
                     eth_intf.append(details)
             return eth_intf
-        except:
+        except BaseException:
             return eth_intf
 
     def get_slot_list(self):
@@ -187,7 +187,7 @@ class Nexus:
                 slots.append(details)
 
             return slots
-        except:
+        except BaseException:
             return slots
 
     def get_interfaces_in_slot(self, slot):
@@ -206,16 +206,18 @@ class Nexus:
                 'TABLE_interface']['ROW_interface']
             interfaces.append(intf_ret)
 
+            tmp_list = []
             for interface in interfaces[0]:
-                if "Ethernet" in interface['interface'] and interface['interface'].split('/')[0][-1] == slot:
+                if "Ethernet" in interface['interface'] and interface['interface'].split(
+                        '/')[0][-1] == slot:
                     tmp_list.append(
                         int(interface['interface'].split('/')[0][-1]))
 
             eth_list = sorted(list(set(tmp_list)))
 
             details = {}
-            slot_info = {"min_range": str(eth_list[0]), "max_range": str(eth_list[-1]), "max_fixed": "true",
-                         "min_interval": "8"}
+            slot_info = {"min_range": str(eth_list[0]), "max_range": str(
+                eth_list[-1]), "max_fixed": "true", "min_interval": "8"}
             details['label'] = ""
             details['id'] = ""
             details['selected'] = str(eth_list[0]) + "-" + str(eth_list[-1])
@@ -223,7 +225,7 @@ class Nexus:
             intf_list.append(details)
             return intf_list
 
-        except:
+        except BaseException:
             return intf_list
 
     def get_features_list(self):
@@ -242,7 +244,7 @@ class Nexus:
                 details['selected'] = "0"
                 flist.append(details)
             return flist
-        except:
+        except BaseException:
             return flist
 
     def get_feature_list_n5k(self):
@@ -348,8 +350,9 @@ class Nexus:
                               "Could not connect to switch")
                 return obj
 
-        obj.setResult(True, PTK_OKAY, "Port channel %s configured with interface list %s successfully" % (
-            pc_id, str(interface_list)))
+        obj.setResult(
+            True, PTK_OKAY, "Port channel %s configured with interface list %s successfully" %
+            (pc_id, str(interface_list)))
         return obj
 
     def configure_fcport(self, handle, fc_id, descr=""):
@@ -477,7 +480,7 @@ class Nexus:
         """
         Gets the list of FC interfaces in nexus 5k switch
 
-        :slot: Slot in nexus switch 
+        :slot: Slot in nexus switch
         :ports: Corresponding ports in nexus switch
 
         :return: Returns the interface list
@@ -528,14 +531,16 @@ class Nexus:
                             iface_pc_list.append(iface)
                         else:
                             iface_notpc_list.append(iface)
-                    if pc_bind == True:
+                    if pc_bind:
                         loginfo(
-                            "Nexus interface list which are binded to port channel: " + str(iface_pc_list))
+                            "Nexus interface list which are binded to port channel: " +
+                            str(iface_pc_list))
                         obj.setResult(iface_pc_list, PTK_OKAY, "Success")
                         return obj
                     elif pc_bind == False:
                         loginfo(
-                            "Nexus interface list which are not binded to port channel: " + str(iface_notpc_list))
+                            "Nexus interface list which are not binded to port channel: " +
+                            str(iface_notpc_list))
                         obj.setResult(iface_notpc_list, PTK_OKAY, "Success")
                         return obj
                     else:
@@ -654,7 +659,8 @@ class Nexus:
                     loginfo("VSAN %s configured with interface %s successfully" % (
                         vsan_id, iface))
                     if 'fc' in iface:
-                        if self.configure_fcport(handle=handle, fc_id=iface).getStatus() == PTK_OKAY:
+                        if self.configure_fcport(
+                                handle=handle, fc_id=iface).getStatus() == PTK_OKAY:
                             loginfo("FC interface %s activated" % iface)
                         else:
                             loginfo("Failed to activate FC port %s" % iface)
@@ -939,7 +945,7 @@ class Nexus:
         """
         obj = result()
         if vsan_id == "":
-            vsan_id = get_vsanid_for_zone(name)
+            vsan_id = self.get_vsanid_for_zone(name)
             if vsan_id == -1:
                 loginfo("Nexus: Zone %s not present" % name)
                 obj.setResult(False, PTK_NOTEXIST, "Zone not present in Nexus")
@@ -980,7 +986,7 @@ class Nexus:
         """
         obj = result()
         if vsan_id == "":
-            vsan_id = get_vsanid_for_zoneset(name)
+            vsan_id = self.get_vsanid_for_zoneset(name)
             if vsan_id == -1:
                 loginfo("Nexus: Zoneset %s not present" % name)
                 obj.setResult(False, PTK_NOTEXIST,
@@ -1126,8 +1132,8 @@ class Nexus:
             else:
                 op_dict = json.loads(vsan_op[1])
                 vsan_output = op_dict['ins_api']['outputs']['output']['body']
-                vsan_list = [lst.split(':')[1].encode('utf-8').split(',') for lst in vsan_output.split('\n') if
-                             'configured vsans:' in lst][0]
+                vsan_list = [lst.split(':')[1].encode('utf-8').split(',')
+                             for lst in vsan_output.split('\n') if 'configured vsans:' in lst][0]
                 loginfo("Nexus vsan list: " + str(vsan_list))
                 obj.setResult(vsan_list, PTK_OKAY, "Success")
                 return obj
@@ -1152,7 +1158,7 @@ class Nexus:
 
         :return: Returns the VSAN id
         """
-        zone_list = get_zone_list()
+        zone_list = self.get_zone_list()
         for zone in zone_list:
             if zone['name'] == name:
                 return zone['vsan_id']
@@ -1167,7 +1173,7 @@ class Nexus:
 
         :return: Returns the VSAN id
         """
-        zoneset_list = get_zoneset_list()
+        zoneset_list = self.get_zoneset_list()
         for zoneset in zoneset_list:
             if zoneset['name'] == name:
                 return zoneset['vsan_id']
@@ -1263,7 +1269,7 @@ class Nexus:
         """
         obj = result()
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zone(zone_name)
+            vsan_id = self.get_vsanid_for_zone(zone_name)
             if vsan_id == -1:
                 loginfo("Nexus: Zone %s not present" % zone_name)
                 obj.setResult(False, PTK_NOTEXIST, "Zone not present in Nexus")
@@ -1313,7 +1319,7 @@ class Nexus:
         obj = result()
 
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zoneset(zoneset_name)
+            vsan_id = self.get_vsanid_for_zoneset(zoneset_name)
             if vsan_id == -1:
                 loginfo("Nexus: Zoneset %s not present" % zoneset_name)
                 obj.setResult(False, PTK_NOTEXIST,
@@ -1363,9 +1369,9 @@ class Nexus:
         obj = result()
 
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zoneset(zoneset_name)
+            vsan_id = self.get_vsanid_for_zoneset(zoneset_name)
             if vsan_id == -1:
-                loginfo("Nexus: Zoneset %s not present" % name)
+                loginfo("Nexus: Zoneset %s not present" % zoneset_name)
                 obj.setResult(False, PTK_NOTEXIST,
                               "Zoneset not present in Nexus")
                 return obj
@@ -1410,9 +1416,9 @@ class Nexus:
         obj = result()
 
         if vsan_id == '':
-            vsan_id = get_vsanid_for_zoneset(zoneset_name)
+            vsan_id = self.get_vsanid_for_zoneset(zoneset_name)
             if vsan_id == -1:
-                loginfo("Nexus: Zoneset %s not present" % name)
+                loginfo("Nexus: Zoneset %s not present" % zoneset_name)
                 obj.setResult(False, PTK_NOTEXIST,
                               "Zoneset not present in Nexus")
                 return obj

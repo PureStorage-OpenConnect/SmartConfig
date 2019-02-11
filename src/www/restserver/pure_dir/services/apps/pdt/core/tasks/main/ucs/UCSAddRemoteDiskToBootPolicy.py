@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -45,16 +45,40 @@ class UCSAddRemoteDiskToBootPolicy:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
-        print ucs_list, res
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSAddRemoteDiskToBootPolicyInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='UCS Fabric Name', api="getfilist()", dt_type="string", label="UCS Fabric Name", mandatory="1",
-                         mapval="0", name="fabric_id", static="False", svalue="", static_values="None", order=1)
-    bootpolicyname = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Boot Policy Name', dt_type="string", api="", static="False", static_values="", name="bootpolicyname",
-                             label="Boot Policy Name", mapval="1", svalue="__t201.UCSCreateBootPolicy.bootpolicyname", mandatory="1", order=2)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='UCS Fabric Name',
+        api="getfilist()",
+        dt_type="string",
+        label="UCS Fabric Name",
+        mandatory="1",
+        mapval="0",
+        name="fabric_id",
+        static="False",
+        svalue="",
+        static_values="None",
+        order=1)
+    bootpolicyname = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Boot Policy Name',
+        dt_type="string",
+        api="",
+        static="False",
+        static_values="",
+        name="bootpolicyname",
+        label="Boot Policy Name",
+        mapval="1",
+        svalue="__t201.UCSCreateBootPolicy.bootpolicyname",
+        mandatory="1",
+        order=2)
 
 
 class UCSAddRemoteDiskToBootPolicyOutputs:

@@ -1,12 +1,11 @@
 import os
-from xml.dom.minidom import *
+from xml.dom.minidom import parse, parseString
 from pure_dir.services.utils.miscellaneous import *
 from pure_dir.infra.apiresults import *
 import time
 from ucsmsdk.ucshandle import UcsHandle
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 image_dir = "/mnt/system/uploads/"
-esxi_path = '/var/www/html/esxi/'
 xml_file = '/mnt/system/pure_dir/pdt/images.xml'
 
 
@@ -32,7 +31,7 @@ def get_ucsm_type(subelement):
         fi_type = None
         handle = UcsHandle(ipaddress, username, password)
         handle_status = handle.login()
-        if handle_status == False:
+        if not handle_status:
             return None
         fabrics = handle.query_classid("networkelement")
         mgmtentity = handle.query_classid("MgmtEntity")
@@ -44,7 +43,7 @@ def get_ucsm_type(subelement):
         handle.logout()
         return fi_type
 
-    except:
+    except BaseException:
         return None
 
 
@@ -58,7 +57,7 @@ def get_device_list(device_type):
                 if device_type == "UCSM":
                     #fi_type = get_ucsm_type(subelement)
                     fi_type = subelement.getAttribute("leadership")
-                    if fi_type == None or fi_type == "subordinate":
+                    if fi_type is None or fi_type == "subordinate":
                         continue
                 details['label'] = subelement.getAttribute("name")
                 details['id'] = subelement.getAttribute("mac")
@@ -99,12 +98,16 @@ class Images:
             for i in image:
                 if imagetype:
                     if i.getAttribute("type") == imagetype:
-                        dicts = {"name": i.getAttribute(
-                            "name"), "type": i.getAttribute("type"), "version": i.getAttribute("version")}
+                        dicts = {
+                            "name": i.getAttribute("name"),
+                            "type": i.getAttribute("type"),
+                            "version": i.getAttribute("version")}
                         images.append(dicts)
                 else:
-                    dicts = {"name": i.getAttribute(
-                        "name"), "type": i.getAttribute("type"), "version": i.getAttribute("version")}
+                    dicts = {
+                        "name": i.getAttribute("name"),
+                        "type": i.getAttribute("type"),
+                        "version": i.getAttribute("version")}
                     images.append(dicts)
             return images
         return images
@@ -112,7 +115,6 @@ class Images:
     def deleteimage(self, file_name):
         img = os.listdir(image_dir)
         if file_name in img:
-            path = image_dir
             os.remove(image_dir + file_name)
             doc = parse(xml_file)
             itemlist = doc.getElementsByTagName('image')

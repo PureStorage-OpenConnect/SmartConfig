@@ -6,7 +6,7 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.tasks.main.pure import*
 from pure_dir.services.apps.pdt.core.tasks.test.pure import*
@@ -22,7 +22,6 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import*
 
-from xml.dom.minidom import *
 import xmltodict
 
 
@@ -35,14 +34,14 @@ class OrchestrationForm:
         Returns True if the job is simulated
 
         :param doc: XML document object
-        :param texecid: Task execution ID 
+        :param texecid: Task execution ID
         """
         if '@simulate' in doc['workflow'].keys(
         ) and doc['workflow']['@simulate'] == "1":
             return True
 
         for task in doc['workflow']['tasks']['task']:
-            if type(task) is unicode:
+            if isinstance(task, unicode):
                 if '@simulate' in doc['workflow']['tasks']['task'] and doc['workflow']['tasks']['task']['@simulate'] == "1":
                     return True
             elif task['@texecid'] == texecid:
@@ -55,10 +54,10 @@ class OrchestrationForm:
         Returns class ID/ task ID from task execution ID
 
         :param doc: XML document object
-        :param texecid: Task execution ID 
+        :param texecid: Task execution ID
         """
         for task in doc['workflow']['tasks']['task']:
-            if type(task) is unicode:
+            if isinstance(task, unicode):
                 return doc['workflow']['tasks']['task']['@id']
             if task['@texecid'] == texecid:
                 return task['@id']
@@ -70,7 +69,7 @@ class OrchestrationForm:
 
         :param doc: XML document object
         :param texecid: Task execution ID
-        :param field_name: field name 
+        :param field_name: field name
         """
 
         for task in doc['workflow']['tasks']['task']:
@@ -87,7 +86,7 @@ class OrchestrationForm:
 
         :param doc: XML document object
         :param texecid: Task execution ID
-        :param field_name: field name 
+        :param field_name: field name
         """
 
         if '@htype' in doc['workflow'].keys():
@@ -100,7 +99,7 @@ class OrchestrationForm:
 
         :param doc: XML document object
         :param texecid: Task execution ID
-        :param field_name: field name 
+        :param field_name: field name
         """
 
         for task in doc['workflow']['tasks']['task']:
@@ -116,7 +115,7 @@ class OrchestrationForm:
 
         :param doc: XML document object
         :param texecid: Task execution ID
-        :param field_name: field name 
+        :param field_name: field name
         """
 
         grp_mbr_vals = []
@@ -143,7 +142,7 @@ class OrchestrationForm:
         path = get_file_location(execid=texecid, ttype=ttype, id=jobid)
         if not path:
             loginfo("No such instance")
-            ret.setResult(None, PTK_NOTEXIST,  _(
+            ret.setResult(None, PTK_NOTEXIST, _(
                 "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
             return ret
 
@@ -175,7 +174,7 @@ class OrchestrationForm:
                         key_pair['value'] = get_value_from_global_list(
                             hw_type, key_pair['value'])
                         # Its a global mapped value, Get the value
-            if isGroup == True:
+            if isGroup:
                 tmp_args = keys.values()[0]
                 tmp_args.append({"key": "group", "value": "1"})
                 keys['keyvalues'] = tmp_args
@@ -241,7 +240,7 @@ class OrchestrationForm:
         if fvalue:
             try:
                 fvalue = eval(fvalue)
-                if type(fvalue) == list:
+                if isinstance(fvalue, list):
                     field_values = fvalue
             except (TypeError, NameError):
                 if '|' in fvalue:

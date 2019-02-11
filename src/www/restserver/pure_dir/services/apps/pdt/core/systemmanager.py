@@ -7,12 +7,11 @@
 ############################################################
 
 import os
-from xml.dom.minidom import *
 import xml.etree.ElementTree as ET
 
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import reset_global_config
 
 info_file = "ula/pdt.txt"
 build_file = "/mnt/system/pure_dir/pdt/build.xml"
@@ -24,7 +23,7 @@ def get_smartconfig_version():
         dom = ET.parse(build_file)
         version = dom.getroot().get('version')
         return version
-    except:
+    except BaseException:
         return "1.2"
 
 
@@ -47,7 +46,7 @@ def system_info():
         sysinfo['dhcp_status'] = "disabled"
 
     status, details = get_xml_element(settings, 'current_step')
-    if status == True:
+    if status:
         sysinfo['deployment_settings'] = details[0]
 
     res.setResult(sysinfo, PTK_OKAY, "Success")
@@ -57,11 +56,11 @@ def system_info():
 def deployment_settings(data):
     res = result()
     status, details = get_xml_element(settings, 'current_step')
-    if status == False:
+    if not status:
         if add_xml_element(settings, data, element_name='deployment') == False:
             res.setResult(False, PTK_INTERNALERROR, "Failed to save settings")
     else:
-        if update_xml_element(settings, 'current_step', '', data, element_name='deployment') == True:
+        if update_xml_element(settings, 'current_step', '', data, element_name='deployment'):
             res.setResult(False, PTK_INTERNALERROR, "Failed to save settings")
     res.setResult(True, PTK_OKAY, "Success")
     return res
@@ -70,7 +69,7 @@ def deployment_settings(data):
 def networkinfo():
     res = result()
     networkinfo = network_info()
-    if bool(networkinfo) == True:
+    if bool(networkinfo):
         res.setResult(networkinfo, PTK_OKAY, "Success")
     else:
         res.setResult(networkinfo, PTK_INTERNALERROR, "No information")

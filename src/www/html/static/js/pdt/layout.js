@@ -3,6 +3,10 @@ var current_step = 1, skipValidation = 0, goTo, loaderCnt, requestCallback, call
 $(document).ready(function() {
 	if(navigator.userAgent.indexOf('Firefox') > -1) $('body').addClass('firefox');
 	var lang = navigator.language || navigator.userLanguage;
+
+	/**
+	  * @desc it will load the configuration from a settings json file such as ui theme, language and etc.
+	*/
 	$.getJSON("settings.json", function(json) {
 		settings = json;
 		$('body').addClass(settings.layout.theme);
@@ -18,29 +22,43 @@ $(document).ready(function() {
 		});
 	});
 	
+	/**
+	  * @desc event registration for masking the ip address input fields.
+	*/
 	$('.ipaddress').mask('099.099.099.099');
 	
+	/**
+	  * @desc event registration for moving back.
+	*/
 	$('body').delegate('.back.transition', 'click', function(e) {
 		closeModel();
 	});
 
+	/**
+	  * @desc event registration for closing/hiding a notification popup with certain animation.
+	*/
 	$('body').delegate('.close-notification', 'click', function(e) {
 		$(this).closest('.notification').removeClass('bounceInRight').addClass('bounceOutRight');
 	});
 	
+	/**
+	  * @desc event registration for removing a file from the selected list.
+	*/
 	$('body').delegate('.remove-file', 'click', function(e) {
 		$(this).closest('p').parent().remove();
 	});
 
-	$('body').delegate('.factory-reset-confirm', 'click', function(e) {
-		resetTool();
-	});
-
+	/**
+	  * @desc .
+	*/
 	$('body').delegate('.sf-done .sf-nav-subtext, .sf-done .sf-nav-number', 'click', function(e) {
 		var step = $(this).parent().children("div.sf-nav-number").children("span.sf-nav-number-inner").text();
 		$('#wizard li a.done[rel="' + step + '"]').trigger('click');
 	});
 
+	/**
+	  * @desc event registration for accepting the terms and agreement option.
+	*/
 	$('body').delegate('.agree-terms', 'click', function(e) {
 		if(!$('#terms_aggreement').is(':checked')) {
 			$('.agreement-container').find('.help-block').show().html(ucfirst(localization['terms_cond_acceptance']));
@@ -51,11 +69,17 @@ $(document).ready(function() {
 		}, doNothing);
 	});
 	
+	/**
+	  * @desc event registration for opening a link in new window/tab.
+	*/
 	$('body').delegate('.external_link', 'click', function(e) {
 		e.stopPropagation();
 		window.open(settings[$(this).attr('name') + '_url'], '_blank');
 	});
 
+	/**
+	  * @desc event registration for showing the software/tool information.
+	*/
 	$('body').delegate('.about-us', 'click', function(e) {
 		e.stopPropagation();
 		doAjaxRequest({url: 'System', base_path: settings.base_path, container: '.modal-body'}, function(response) {
@@ -83,10 +107,19 @@ $(document).ready(function() {
 		}, doNothing);
 	});
 	
+	/**
+	  * @desc event registration for doing factory reset.
+	*/
 	$('body').delegate('.factory_reset', 'click', function(e) {
 		$('.modal-inset').append(popupConfirmation('factory-reset-confirm', localization['reset-confirm']));
 	});
+	$('body').delegate('.factory-reset-confirm', 'click', function(e) {
+		resetTool();
+	});
 	
+	/**
+	  * @desc event registration for downloading the logs from the server.
+	*/
 	$('body').delegate('.system-log', 'click', function(e) {
 		e.stopPropagation();
 		doAjaxRequest({url: 'ExportLog', base_path: settings.base_path}, function(response) {
@@ -101,6 +134,10 @@ $(document).ready(function() {
 	});
 });
 
+/**
+  * @desc it will update the systemInfo global variable based on the server response received via HTTP.
+  * @param object $options - the object received from the server(Systems API).
+*/
 function updateDeploymentSettings(options) {
 	systemInfo = {
 		current_step: '1',
@@ -112,6 +149,10 @@ function updateDeploymentSettings(options) {
 	systemInfo = $.extend({}, systemInfo, options);
 }
 
+/**
+  * @desc this method will generate tooltip on the given input dom element.
+  * @param string $container - the container selector, for which element tooltip event should bind with.
+*/
 function initTooltip(container) {
 	var defaults = {
 		animationIn: 'bounceIn',
@@ -125,6 +166,9 @@ function initTooltip(container) {
 	$(container + ' .tipso').tipso(obj);
 }
 
+/**
+  * @desc it is used to reset the tool to initial state.
+*/
 function resetTool() {
 	doAjaxRequest({url: 'PDTReset', base_path: settings.base_path, container: '.model-inset'}, function(response) {
 		closeModel();

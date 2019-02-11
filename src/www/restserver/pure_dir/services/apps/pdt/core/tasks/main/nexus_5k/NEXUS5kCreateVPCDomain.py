@@ -1,9 +1,12 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
-from pure_dir.components.network.nexus.nexus_tasks import *
-from pure_dir.components.common import *
-from pure_dir.services.utils.miscellaneous import *
+from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
+from pure_dir.components.network.nexus.nexus import Nexus
+from pure_dir.components.common import get_device_credentials, get_device_list
+from pure_dir.services.utils.miscellaneous import get_xml_element
+from pure_dir.infra.apiresults import *
+
 
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
@@ -33,12 +36,12 @@ class NEXUS5kCreateVPCDomain:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Connection to NEXUS failed")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Failed to get NEXUS switch credentials")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
@@ -56,19 +59,19 @@ class NEXUS5kCreateVPCDomain:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                              "Connection to NEXUS failed")
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Failed to get NEXUS switch credentials")
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
     def getnexuslist(self, keys):
         res = result()
         nexus_list = get_device_list(device_type="Nexus 5k")
-        res.setResult(nexus_list, PTK_OKAY, "success")
+        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_src_ip(self, keys):
@@ -82,11 +85,11 @@ class NEXUS5kCreateVPCDomain:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(nexus_list, PTK_OKAY, "success")
+                        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         nexus_list = self.get_detail(mac=mac_addr, src="1", dst="0")
-        res.setResult(nexus_list, PTK_OKAY, "success")
+        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_dst_ip(self, keys):
@@ -100,11 +103,11 @@ class NEXUS5kCreateVPCDomain:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(nexus_list, PTK_OKAY, "success")
+                        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         nexus_list = self.get_detail(mac=mac_addr, src="0", dst="1")
-        res.setResult(nexus_list, PTK_OKAY, "success")
+        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_detail(self, mac, src, dst):
@@ -127,26 +130,96 @@ class NEXUS5kCreateVPCDomain:
 
 
 class NEXUS5kCreateVPCDomainInputs:
-    nexus_id = Dropdown(hidden='True', isbasic='', helptext='', dt_type="string", static="False", static_values="",
-                        api="getnexuslist()",
-                        name="nexus_id", label="Nexus switch", svalue="", mapval="", mandatory="1", order=1)
-    vpc_id = Textbox(validation_criteria='int|min:1|max:1000', hidden='', isbasic='True',
-                     helptext='Virtual Port channel domain id', dt_type="string", static="False", api="", name="vpc_id",
-                     static_values="",
-                     label="VPC domain (1-1000)", svalue="10", mapval="", mandatory="1", order=2, recommended="1")
-    vpc_role = Textbox(validation_criteria='int|min:1|max:65535', hidden='', isbasic='',
-                       helptext='Virtual Port channel role priority', dt_type="string", static="False", api="",
-                       name="vpc_role", static_values="",
-                       label="VPC role priority (1-65535)", svalue="10", mapval="", mandatory="1", order=3)
-    ip_b = Textbox(validation_criteria='ip', hidden='', isbasic='', helptext='Destination IP address', dt_type="string",
-                   static="False", static_values="",
-                   api="", name="ip_b", label="Destination", svalue="", mapval="", mandatory="1", order=4)
-    ip_a = Textbox(validation_criteria='ip', hidden='', isbasic='', helptext='Source IP address', dt_type="string",
-                   static="False", static_values="",
-                   api="", name="ip_a", label="Source", svalue="", mapval="", mandatory="1", order=5)
-    delay = Textbox(validation_criteria='int|min:1|max:3600', hidden='', isbasic='', helptext='Delay interval',
-                    dt_type="string", static="False", api="", name="delay", static_values="",
-                    label="Delay (1-3600)", svalue="150", mapval="", mandatory="1", order=6)
+    nexus_id = Dropdown(
+        hidden='True',
+        isbasic='',
+        helptext='',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="getnexuslist()",
+        name="nexus_id",
+        label="Nexus switch",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    vpc_id = Textbox(
+        validation_criteria='int|min:1|max:1000',
+        hidden='',
+        isbasic='True',
+        helptext='Virtual Port channel domain id',
+        dt_type="string",
+        static="False",
+        api="",
+        name="vpc_id",
+        static_values="",
+        label="VPC domain (1-1000)",
+        svalue="10",
+        mapval="",
+        mandatory="1",
+        order=2,
+        recommended="1")
+    vpc_role = Textbox(
+        validation_criteria='int|min:1|max:65535',
+        hidden='',
+        isbasic='',
+        helptext='Virtual Port channel role priority',
+        dt_type="string",
+        static="False",
+        api="",
+        name="vpc_role",
+        static_values="",
+        label="VPC role priority (1-65535)",
+        svalue="10",
+        mapval="",
+        mandatory="1",
+        order=3)
+    ip_b = Textbox(
+        validation_criteria='ip',
+        hidden='',
+        isbasic='',
+        helptext='Destination IP address',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="",
+        name="ip_b",
+        label="Destination",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=4)
+    ip_a = Textbox(
+        validation_criteria='ip',
+        hidden='',
+        isbasic='',
+        helptext='Source IP address',
+        dt_type="string",
+        static="False",
+        static_values="",
+        api="",
+        name="ip_a",
+        label="Source",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=5)
+    delay = Textbox(
+        validation_criteria='int|min:1|max:3600',
+        hidden='',
+        isbasic='',
+        helptext='Delay interval',
+        dt_type="string",
+        static="False",
+        api="",
+        name="delay",
+        static_values="",
+        label="Delay (1-3600)",
+        svalue="150",
+        mapval="",
+        mandatory="1",
+        order=6)
 
 
 class NEXUS5kCreateVPCDomainOutputs:

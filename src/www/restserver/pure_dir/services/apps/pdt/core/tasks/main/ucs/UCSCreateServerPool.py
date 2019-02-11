@@ -1,7 +1,8 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+import string
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -60,13 +61,13 @@ class UCSCreateServerPool:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmservers(self, keys):
@@ -75,8 +76,8 @@ class UCSCreateServerPool:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -101,19 +102,69 @@ class UCSCreateServerPool:
                 "label": blade['dn']}
             servers_list.append(server_dict)
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateServerPoolInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Server Pool name', api="", dt_type="string", label="Name", mapval="0", name="name",
-                   static="False", svalue="Infra_Pool", mandatory='1', static_values="", order=2)
-    desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='', api="", dt_type="string", label="Description", mapval="0", name="desc",
-                   static="False", svalue="server pool create", mandatory='1', static_values="", order=3)
-    servers = Multiselect(hidden='False', isbasic='True', helptext='Blade Servers for Creating server pool', api="ucsmservers()|[fabric_id:1:fabric_id.value]", dt_type="string", label="Add Servers",
-                          mandatory="1", mapval="0", name="servers", static="False", svalue="", static_values="", order=4)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Server Pool name',
+        api="",
+        dt_type="string",
+        label="Name",
+        mapval="0",
+        name="name",
+        static="False",
+        svalue="Infra_Pool",
+        mandatory='1',
+        static_values="",
+        order=2)
+    desc = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        api="",
+        dt_type="string",
+        label="Description",
+        mapval="0",
+        name="desc",
+        static="False",
+        svalue="server pool create",
+        mandatory='1',
+        static_values="",
+        order=3)
+    servers = Multiselect(
+        hidden='False',
+        isbasic='True',
+        helptext='Blade Servers for Creating server pool',
+        api="ucsmservers()|[fabric_id:1:fabric_id.value]",
+        dt_type="string",
+        label="Add Servers",
+        mandatory="1",
+        mapval="0",
+        name="servers",
+        static="False",
+        svalue="",
+        static_values="",
+        order=4)
 
 
 class UCSCreateServerPoolOutputs:

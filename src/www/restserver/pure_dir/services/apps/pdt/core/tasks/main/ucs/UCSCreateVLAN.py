@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -45,7 +45,7 @@ class UCSCreateVLAN:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def multicastpolicies(self, keys):
@@ -53,8 +53,8 @@ class UCSCreateVLAN:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(mcast_pol_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(mcast_pol_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -69,21 +69,85 @@ class UCSCreateVLAN:
                 {"id": mcast.name, "selected": "0", "label": mcast.name})
         mcast_pol_list.append({"id": "", "selected": "1", "label": "not-set"})
         ucsm_logout(handle)
-        ret.setResult(mcast_pol_list, PTK_OKAY, "success")
+        ret.setResult(mcast_pol_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return ret
 
 
 class UCSCreateVLANInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    vlan_name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='VLAN Name', api="", dt_type="string", label="VLAN Name", mapval="0", name="vlan_name",
-                        static="False", svalue="Native-VLAN", mandatory='1', static_values="", order=2, recommended="1")
-    vlan_id = Textbox(validation_criteria='int|min:100|max:2067',  hidden='False', isbasic='True', helptext='VLAN ID', api="", dt_type="string", label="VLAN IDs", mapval="0", name="vlan_id",
-                      static="False", svalue="2", mandatory='1', static_values="", order=3, recommended="1")
-    vlan_type = Radiobutton(hidden='False', isbasic='True', helptext='Scope of VLAN', api="", dt_type="string", label="VLAN Scope", mapval="0", name="vlan_type", static="True",
-                            static_values="fabric/lan:1:Common/Global|fabric/lan/A:0:Fabric A|fabric/lan/B:0:Fabric B", svalue="fabric/lan", mandatory='1', order=4)
-    sharing = Radiobutton(hidden='False', isbasic='True', helptext='Sharing type', api="", dt_type="string", label="Sharing Type", mapval="0", name="sharing", static="True",
-                          static_values="none:1:None|pri:0:Primary|isolated:0:Isolated|community:0:Community", svalue="none", mandatory='1', order=5)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    vlan_name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='VLAN Name',
+        api="",
+        dt_type="string",
+        label="VLAN Name",
+        mapval="0",
+        name="vlan_name",
+        static="False",
+        svalue="Native-VLAN",
+        mandatory='1',
+        static_values="",
+        order=2,
+        recommended="1")
+    vlan_id = Textbox(
+        validation_criteria='int|min:100|max:2067',
+        hidden='False',
+        isbasic='True',
+        helptext='VLAN ID',
+        api="",
+        dt_type="string",
+        label="VLAN IDs",
+        mapval="0",
+        name="vlan_id",
+        static="False",
+        svalue="2",
+        mandatory='1',
+        static_values="",
+        order=3,
+        recommended="1")
+    vlan_type = Radiobutton(
+        hidden='False',
+        isbasic='True',
+        helptext='Scope of VLAN',
+        api="",
+        dt_type="string",
+        label="VLAN Scope",
+        mapval="0",
+        name="vlan_type",
+        static="True",
+        static_values="fabric/lan:1:Common/Global|fabric/lan/A:0:Fabric A|fabric/lan/B:0:Fabric B",
+        svalue="fabric/lan",
+        mandatory='1',
+        order=4)
+    sharing = Radiobutton(
+        hidden='False',
+        isbasic='True',
+        helptext='Sharing type',
+        api="",
+        dt_type="string",
+        label="Sharing Type",
+        mapval="0",
+        name="sharing",
+        static="True",
+        static_values="none:1:None|pri:0:Primary|isolated:0:Isolated|community:0:Community",
+        svalue="none",
+        mandatory='1',
+        order=5)
 
 
 class UCSCreateVLANOutputs:

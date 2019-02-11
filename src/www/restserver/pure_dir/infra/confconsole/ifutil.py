@@ -8,7 +8,6 @@ from confconsole import *
 import executil
 from netinfo import InterfaceInfo
 from xml.dom.minidom import *
-from filelock import FileLock
 import sys
 sys.path.append("/var/www/restserver/")
 from pure_dir.services.infra.service_mgr.core.application import *

@@ -4,6 +4,7 @@ from pure_dir.components.compute.ucs.ucs import *
 from pure_dir.components.common import *
 from pure_dir.services.utils import *
 from ucsmsdk.mometa.ls.LsVConAssign import LsVConAssign
+from ucsmsdk.mometa.firmware.FirmwareAck import FirmwareAck
 from ucsmsdk.mometa.vnic.VnicDefBeh import VnicDefBeh
 from ucsmsdk.mometa.vnic.VnicIScsiBootParams import VnicIScsiBootParams
 from ucsmsdk.mometa.vnic.VnicIScsiBootVnic import VnicIScsiBootVnic
@@ -109,7 +110,14 @@ from ucsmsdk.mometa.bios.BiosVfEnhancedIntelSpeedStepTech import BiosVfEnhancedI
 from ucsmsdk.mometa.bios.BiosVfCPUPerformance import BiosVfCPUPerformance
 from ucsmsdk.mometa.bios.BiosVfDirectCacheAccess import BiosVfDirectCacheAccess
 from ucsmsdk.mometa.ls.LsServer import LsServer
+from ucsmsdk.mometa.callhome.CallhomeSource import CallhomeSource
 import datetime
+from ucsmsdk.mometa.fabric.FabricSanCloud import FabricSanCloud
+from ucsmsdk.mometa.fabric.FabricFcEstcEp import FabricFcEstcEp
+from ucsmsdk.mometa.fabric.FabricFcVsanPortEp import FabricFcVsanPortEp
+from ucsmsdk.mometa.fabric.FabricEthEstcEp import FabricEthEstcEp
+from ucsmsdk.mometa.fabric.FabricEthVlanPortEp import FabricEthVlanPortEp
+from pure_dir.components.compute.ucs.ucs_upgrade import is_image_available_on_ucsm, upload_image_to_ucs
 
 
 class UCSTasks:
@@ -119,7 +127,7 @@ class UCSTasks:
             if ipaddress:
                 self.handle = UcsHandle(ipaddress, username, password)
                 self.handle_status = self.handle.login()
-        except:
+        except BaseException:
             self.handle = None
 
     def release_ucs_handle(self):
@@ -158,7 +166,7 @@ class UCSTasks:
             handle = UcsHandle(cred['vipaddress'],
                                cred['username'], cred['password'])
             handle_status = handle.login()
-            if handle_status == False:
+            if not handle_status:
                 res.setResult(None, PTK_INTERNALERROR,
                               "Unable to get  UCS handle")
                 return res
@@ -166,7 +174,7 @@ class UCSTasks:
             res.setResult(handle, PTK_OKAY,
                           "success")
             return res
-        except:
+        except BaseException:
             res.setResult(None, PTK_INTERNALERROR,
                           "Unable to get  UCS handle")
             return res
@@ -343,7 +351,7 @@ class UCSTasks:
         """
         Delete SAN boot from the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -381,7 +389,7 @@ class UCSTasks:
         """
         Add SAN boot to the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -431,7 +439,7 @@ class UCSTasks:
         """
         Delete SAN boot target from the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -448,7 +456,11 @@ class UCSTasks:
         LsbootSanCatSanImage(
             parent_mo_or_dn=mo, type=inputdict['san_type'])
         mo_1_1 = self.handle.query_dn(
-            inputdict['bootpolicyname'] + "/san/sanimg-" + inputdict['san_type'] + "/sanimgpath-" + inputdict['type'])
+            inputdict['bootpolicyname'] +
+            "/san/sanimg-" +
+            inputdict['san_type'] +
+            "/sanimgpath-" +
+            inputdict['type'])
         self.handle.remove_mo(mo_1_1)
         self.handle.add_mo(mo, True)
         try:
@@ -461,8 +473,13 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Delete SAN Boot Target failed")
             return obj
-        customlogs("\n SAN Boot Target of type " + inputdict['type'] + " for the SAN Boot type " + inputdict[
-            'san_type'] + " is deleted successfully \n", logfile)
+        customlogs(
+            "\n SAN Boot Target of type " +
+            inputdict['type'] +
+            " for the SAN Boot type " +
+            inputdict['san_type'] +
+            " is deleted successfully \n",
+            logfile)
         obj.setResult(
             dicts,
             PTK_OKAY,
@@ -473,7 +490,7 @@ class UCSTasks:
         """
         Add SAN boot target to the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -515,7 +532,7 @@ class UCSTasks:
         """
         Delete iSCSI boot target from the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -546,7 +563,7 @@ class UCSTasks:
         """
         Add iSCSI boot target to the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -591,7 +608,7 @@ class UCSTasks:
             return obj
 
         customlogs(
-            "\n iSCSI Boot to boot policy is added successfully \n", logfile)
+            "\nAdded iSCSI Boot to boot policy successfully\n", logfile)
         obj.setResult(
             dicts,
             PTK_OKAY,
@@ -602,7 +619,7 @@ class UCSTasks:
         """
         Delete CIMC Mounted disk from the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -641,7 +658,7 @@ class UCSTasks:
         """
         Add Cimc boot target to the UCS Boot policy
 
-        :param inputdict: Dictionary (boot policy name) 
+        :param inputdict: Dictionary (boot policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -672,15 +689,15 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Boot Policy creation failed")
             return obj
-        customlogs("\nCimc Mounted Disk is added successfully\n", logfile)
-        obj.setResult(dicts, PTK_OKAY, "Cimc Mounted Disk added successfully")
+        customlogs("\nCIMC Mounted Disk is added successfully\n", logfile)
+        obj.setResult(dicts, PTK_OKAY, "CIMC Mounted Disk added successfully")
         return obj
 
     def acknowledgeUcsChassis(self, inputdict, logfile):
         """
         Acknowledge Cisco UCS Chassis
 
-        :param inputdict: Dictionary (acknowledge state) 
+        :param inputdict: Dictionary (acknowledge state)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -694,7 +711,7 @@ class UCSTasks:
                           "Unable to connect to UCS")
             return obj
 
-        loginfo("Acknowledge state = " + inputdict['state'])
+        loginfo("Acknowledge state: " + inputdict['state'])
         message = "Acknowledge state: " + inputdict['state']
         customlogs("Acknowledge Cisco UCS Chassis", logfile)
         customlogs(message, logfile)
@@ -708,7 +725,14 @@ class UCSTasks:
             self.handle.add_mo(mo, True)
         # ucs chassis acknowledgement takes some time after the server ports
         # are configured
-        for attempts in range(10):
+        for attempts in range(11):
+            if attempts >= 10:
+
+                customlogs("\nAcknowledge Cisco UCS Chassis is successful\n", logfile)
+                obj.setResult(dicts,
+                              PTK_INTERNALERROR,
+                              "Acknowledge UCS Chassis failed")
+                return obj
             try:
                 self.handle.commit()
             except UcsException as e:
@@ -716,11 +740,6 @@ class UCSTasks:
                 customlogs(
                     "\n Retrying Acknowledge Cisco UCS Chassis\n", logfile)
                 continue
-                obj.setResult(
-                    dicts,
-                    PTK_INTERNALERROR,
-                    "Acknowledge UCS Chassis failed")
-                return obj
             else:
                 break
 
@@ -736,7 +755,7 @@ class UCSTasks:
         """
         Add Block of IP Address for KVM Access
 
-        :param inputdict: Dictionary (KVM Console IP,Subnet, Gateway) 
+        :param inputdict: Dictionary (KVM Console IP,Subnet, Gateway)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -806,7 +825,7 @@ class UCSTasks:
         """
         Delete Block of IP Address for KVM Access
 
-        :param inputdict: Dictionary (KVM Console IP Range) 
+        :param inputdict: Dictionary (KVM Console IP Range)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -843,7 +862,7 @@ class UCSTasks:
         """
         Configuration of Anonymous Reporting to Cisco
 
-        :param inputdict: Dictionary (SMTP Server Host, port) 
+        :param inputdict: Dictionary (SMTP Server Host, port)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -851,7 +870,7 @@ class UCSTasks:
         obj = result()
         loginfo("UCS Anonymous reporting")
         dicts = {}
-        if self.handle == None or self.handle_status != True:
+        if self.handle is None or self.handle_status != True:
             loginfo("no handle")
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
@@ -907,7 +926,7 @@ class UCSTasks:
         """
         Edit the Chassis Discovery Policy in UCS
 
-        :param inputdict: Dictionary (Chassis Discovery Policy inputs) 
+        :param inputdict: Dictionary (Chassis Discovery Policy inputs)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -924,12 +943,12 @@ class UCSTasks:
         message = "Chassis/FEX Discovery Policy" + "\nAction: " + inputdict[
             'fex_action'] + "\nLink Grouping Preference: " + inputdict['agg_pref'] + "\nBackplane Speed Preference: " + \
             inputdict['speed_pref'] + "\nRack Server Discovery Policy" + "\nAction" + inputdict[
-            'rack_action'] + "\nScrub Policy: " + inputdict['scrub'] + "\nRack Management Connection Policy" + \
-            inputdict['mgmt_action'] + "\nPower Policy" + inputdict['redundancy'] + "\nMAC Address Table Aging" + \
-            inputdict['mac_aging'] + "\nGlobal Power Allocation Policy" + inputdict['style'] + \
-            "\nFirmware Auto Sync Server Policy" + \
-            inputdict['sync_state'] + "\nGlobal Power Profiling Policy" + \
-            inputdict['profiling'] + "\nInfo Policy" + \
+            'rack_action'] + "\nScrub Policy: " + inputdict['scrub'] + "\nRack Management Connection Policy: " + \
+            inputdict['mgmt_action'] + "\nPower Policy: " + inputdict['redundancy'] + "\nMAC Address Table Aging: " + \
+            inputdict['mac_aging'] + "\nGlobal Power Allocation Policy: " + inputdict['style'] + \
+            "\nFirmware Auto Sync Server Policy: " + \
+            inputdict['sync_state'] + "\nGlobal Power Profiling Policy: " + \
+            inputdict['profiling'] + "\nInfo Policy: " + \
             inputdict['info_enable']
         loginfo("Chassis discovery policy parameters = " + message)
         customlogs(message, logfile)
@@ -1033,7 +1052,7 @@ class UCSTasks:
         """
         Configure Unified Ports
 
-        :param inputdict: Dictionary (Number of ports) 
+        :param inputdict: Dictionary (Number of ports)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1047,10 +1066,10 @@ class UCSTasks:
                           "Unable to connect to UCS")
             return obj
 
-        loginfo("No of Unified Ports to be configured =" +
+        loginfo("No of Unified Ports to be configured: " +
                 inputdict['no_of_ports'])
 
-        message = "\nNo of Unified Ports to be configured:" + \
+        message = "\nNo of Unified Ports to be configured: " + \
             inputdict['no_of_ports']
 
         customlogs(message, logfile)
@@ -1082,9 +1101,7 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Configuring Unified ports failed")
             return obj
-
-        customlogs("\nConfiguring Unified Ports successful\n", logfile)
-        dicts['no_of_ports'] = inputdict['no_of_ports']
+        dicts['no_of_ports'] = '|'.join(str(i) for i in range(port_from, port_to))
         dicts['fabric_id'] = inputdict['ucs_fabric_id']
         obj.setResult(dicts, PTK_OKAY, "Configuring Unified ports successful")
 
@@ -1102,14 +1119,15 @@ class UCSTasks:
             loginfo("Verifying the reachability of UCS " + ipaddr)
             ucsm.verify_ucsm_accessible(ipaddr)
             ucsm.verify_ucsm_accessible(fabric_ip)
-
+        customlogs("\nFI rebooted successfully\n", logfile)
+        customlogs("Unified Ports configured successfully\n", logfile)
         return obj
 
     def ucsUnConfigureUnifiedPorts(self, inputdict, logfile):
         """
         Unconfigure the Unified Ports
 
-        :param inputdict: Dictionary (Number of Unified ports) 
+        :param inputdict: Dictionary (Number of Unified ports)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1175,7 +1193,7 @@ class UCSTasks:
         """
         Create Application vNIC Template
 
-        :param inputdict: Dictionary (Application vNIC Template name,description, template type, mtu, VLAN) 
+        :param inputdict: Dictionary (Application vNIC Template name,description, template type, mtu, VLAN)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1204,12 +1222,12 @@ class UCSTasks:
 
         message = "Application vNIC Template Name: " + inputdict[
             'application_vnic_templ_name'] + "\nApplication vNIC Template Desc: " + inputdict[
-            'application_vnic_templ_desc'] + "\nFabric ID:" + inputdict[
-            'fabric_id'] + "\nRedundancy Pair Type:" + inputdict[
-            'redundancy_pair_type'] + "\nTemplate Type:" + \
-            inputdict['templ_type'] + "\nCDN SDource:" + inputdict['cdn_source'] + "\nIdent Pool Name:" + \
-            inputdict['ident_pool_name'] + "\nNetwork Control Policy:" + \
-            inputdict['nw_ctrl_policy_name'] + "\nMTU:" + inputdict['mtu']
+            'application_vnic_templ_desc'] + "\nFabric ID: " + inputdict[
+            'fabric_id'] + "\nRedundancy Pair Type: " + inputdict[
+            'redundancy_pair_type'] + "\nTemplate Type: " + \
+            inputdict['templ_type'] + "\nCDN Source: " + inputdict['cdn_source'] + "\nIdent Pool Name: " + \
+            inputdict['ident_pool_name'] + "\nNetwork Control Policy: " + \
+            inputdict['nw_ctrl_policy_name'] + "\nMTU: " + inputdict['mtu']
 
         customlogs(message, logfile)
 
@@ -1218,7 +1236,7 @@ class UCSTasks:
             redundancy_pair_type=inputdict['redundancy_pair_type'],
             name=inputdict['application_vnic_templ_name'],
             descr=inputdict['application_vnic_templ_desc'],
-            stats_policy_name="",  # inputdict['stats_policy_name'],
+            stats_policy_name="",
             admin_cdn_name="",
             switch_id=inputdict['ucs_fabric_id'],
             pin_to_group_name="",
@@ -1264,8 +1282,8 @@ class UCSTasks:
         """
         Delete Application vNIC template
 
-        :param inputs: Dictionary (Application vNIC Template name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (Application vNIC Template name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1281,8 +1299,11 @@ class UCSTasks:
         mo = self.handle.query_dn(
             "org-root/lan-conn-templ-" + inputs['application_vnic_templ_name'])
         if mo is None:
-            customlogs("\nApplication vNIC template " + inputs['application_vnic_templ_name'] + " does not exist\n",
-                       logfile)
+            customlogs(
+                "\nApplication vNIC template " +
+                inputs['application_vnic_templ_name'] +
+                " does not exist\n",
+                logfile)
             obj.setResult(
                 dicts,
                 PTK_INTERNALERROR,
@@ -1301,8 +1322,11 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Failed to delete appication vNIC template")
             return obj
-        customlogs("\n Application vNIC template " + inputs['application_vnic_templ_name'] + " deleted successfully\n",
-                   logfile)
+        customlogs(
+            "\n Application vNIC template " +
+            inputs['application_vnic_templ_name'] +
+            " deleted successfully\n",
+            logfile)
         obj.setResult(
             None,
             PTK_OKAY,
@@ -1313,7 +1337,7 @@ class UCSTasks:
         """
         Create FC Port Channels
 
-        :param inputdict: Dictionary (FC Port Channel Name) 
+        :param inputdict: Dictionary (FC Port Channel Name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1336,7 +1360,7 @@ class UCSTasks:
         message = "FC Port Channel Name: " + inputdict['fc_port_channel_name'] + "\nSwitch ID: " + inputdict[
             'fabric_id'] + \
             "\nAdmin Speed: " + inputdict['admin_speed'] + "\nPort ID: " + \
-            inputdict['port_id'] + "\nVSAN Name:" + \
+            inputdict['port_id'] + "\nVSAN Name: " + \
             inputdict['vsan_name']
         customlogs(message, logfile)
         parent_mo = "fabric/san/" + inputdict['ucs_fabric_id']
@@ -1408,7 +1432,7 @@ class UCSTasks:
         """
         Delete FC Port Channels
 
-        :param inputdict: Dictionary (FC Port Channel name) 
+        :param inputdict: Dictionary (FC Port Channel name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1473,7 +1497,7 @@ class UCSTasks:
         """
         Create Host Firmware Package in UCS
 
-        :param inputdict: Dictionary (Host Firmware Package name, blade package, rack package) 
+        :param inputdict: Dictionary (Host Firmware Package name, blade package, rack package)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1522,10 +1546,18 @@ class UCSTasks:
                 self.verify_blade_discovery(self.handle, blade, logfile)
             time.sleep(60)
 
-        mo = FirmwareComputeHostPack(parent_mo_or_dn="org-root", ignore_comp_check="yes", name=inputdict['name'],
-                                     descr=inputdict['desc'], stage_size="0", rack_bundle_version=inputdict[
-            'rack_pkg'], update_trigger="immediate", policy_owner="local", mode="staged",
-            blade_bundle_version=inputdict['blade_pkg'], override_default_exclusion="yes")
+        mo = FirmwareComputeHostPack(
+            parent_mo_or_dn="org-root",
+            ignore_comp_check="yes",
+            name=inputdict['name'],
+            descr=inputdict['desc'],
+            stage_size="0",
+            rack_bundle_version=inputdict['rack_pkg'],
+            update_trigger="immediate",
+            policy_owner="local",
+            mode="staged",
+            blade_bundle_version=inputdict['blade_pkg'],
+            override_default_exclusion="yes")
         server_comp = inputdict['excluded_comp'].split('|')
         for excluded_comp in server_comp:
             FirmwareExcludeServerComponent(
@@ -1557,8 +1589,8 @@ class UCSTasks:
         """
         Reset Host Firmware Package in UCS
 
-        :param inputs: Dictionary (Host firmware package name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (Host firmware package name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1571,10 +1603,18 @@ class UCSTasks:
                           "Unable to connect to UCS")
             return obj
 
-        mo = FirmwareComputeHostPack(parent_mo_or_dn="org-root", ignore_comp_check="yes", name=inputs['name'],
-                                     descr=inputs['desc'], stage_size="0", rack_bundle_version='',
-                                     update_trigger="immediate", policy_owner="local", mode="staged",
-                                     blade_bundle_version='', override_default_exclusion="yes")
+        mo = FirmwareComputeHostPack(
+            parent_mo_or_dn="org-root",
+            ignore_comp_check="yes",
+            name=inputs['name'],
+            descr=inputs['desc'],
+            stage_size="0",
+            rack_bundle_version='',
+            update_trigger="immediate",
+            policy_owner="local",
+            mode="staged",
+            blade_bundle_version='',
+            override_default_exclusion="yes")
 
         self.handle.add_mo(mo, modify_present=True)
         try:
@@ -1595,7 +1635,7 @@ class UCSTasks:
         """
         Create LAN Connectivity policy
 
-        :param inputdict: Dictionary (LAN Connectivity policy name) 
+        :param inputdict: Dictionary (LAN Connectivity policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1618,7 +1658,7 @@ class UCSTasks:
 
         message = "LAN connectivity policy Name: " + \
                   inputdict['lan_conn_policy_name'] + \
-                  "\n LAN Connectivity policy Description: " + \
+                  "\nLAN Connectivity policy Description: " + \
                   inputdict['lan_conn_policy_desc']
         customlogs(message, logfile)
 
@@ -1639,7 +1679,7 @@ class UCSTasks:
                 "LAN connectivity policy creation failed")
             return obj
 
-        customlogs("LAN Connectivity policy created successfully", logfile)
+        customlogs("LAN Connectivity policy created successfully\n", logfile)
         dicts['lan_conn_policy_name'] = "org-root/lan-conn-pol-" + \
                                         inputdict['lan_conn_policy_name']
         obj.setResult(
@@ -1652,8 +1692,8 @@ class UCSTasks:
         """
         Delete LAN Connectivity policy
 
-        :param inputs: Dictionary (LAN Connectivity policy name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (LAN Connectivity policy name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1700,7 +1740,7 @@ class UCSTasks:
         """
         Create vNIC in UCS
 
-        :param inputdict: Dictionary (vNIC Name, vNIC template name) 
+        :param inputdict: Dictionary (vNIC Name, vNIC template name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1716,9 +1756,8 @@ class UCSTasks:
 
         loginfo("Create vNIC parameters = ")
         loginfo(inputdict)
-        message = "Name: " + inputdict['vnic_name'] + "\npolicyname" + inputdict['policy_name'] + "\nvNIC Template" + \
-                  inputdict['nw_templ_name'] + "\nAdapter policy" + \
-                  inputdict['adaptor_policy_name']
+        message = "Name: " + inputdict['vnic_name'] + "\nPolicy Name: " + inputdict['policy_name'] + \
+            "\nvNIC Template: " + inputdict['nw_templ_name'] + "\nAdapter policy: " + inputdict['adaptor_policy_name']
         customlogs(message, logfile)
         policy_name = str(inputdict['policy_name'])
         pol_obj = self.handle.query_dn(policy_name)
@@ -1749,7 +1788,7 @@ class UCSTasks:
         """
         Delete iSCSI vNIC
 
-        :param inputdict: Dictionary (iSCSI vNIC name) 
+        :param inputdict: Dictionary (iSCSI vNIC name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1782,9 +1821,9 @@ class UCSTasks:
 
     def ucsCreateiSCSIvNIC(self, inputdict, logfile):
         """
-        Create iSCSI vNIC 
+        Create iSCSI vNIC
 
-        :param inputs: Dictionary (vNIC name) 
+        :param inputs: Dictionary (vNIC name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1849,8 +1888,8 @@ class UCSTasks:
         """
         Delete vNIC
 
-        :param inputs: Dictionary (vNIC name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (vNIC name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1890,8 +1929,8 @@ class UCSTasks:
         """
         Create Local disk configuration policy
 
-        :param inputs: Dictionary (local disk config policy name, flex flash state) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (local disk config policy name, flex flash state)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1906,9 +1945,7 @@ class UCSTasks:
             return obj
 
         message = "Name: " + inputdict['name'] + "\nMode: " + inputdict['mode'] + "\nFlexFlash: " + \
-                  inputdict['flash_state'] + \
-                  "\nFlexFlash RAID Reporting state: " + \
-            inputdict['raid_state']
+            inputdict['flash_state'] + "\nFlexFlash RAID Reporting state: " + inputdict['raid_state']
         loginfo("Create Local Disk Configuration Policy parameters = " + message)
         customlogs(message, logfile)
 
@@ -1951,8 +1988,8 @@ class UCSTasks:
         """
         Delete Local disk configuration policy
 
-        :param inputs: Dictionary (local disk configuration policy name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (local disk configuration policy name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -1992,7 +2029,7 @@ class UCSTasks:
         """
         Create MAC Address pools for both switching fabric
 
-        :param inputdict: Dictionary (MAC Address pool name, mac address start,size) 
+        :param inputdict: Dictionary (MAC Address pool name, mac address start,size)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2056,8 +2093,8 @@ class UCSTasks:
         """
         Delete MAC Address pools from both switching fabric
 
-        :param inputs: Dictionary (MAC pool name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (MAC pool name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2082,7 +2119,7 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "MAC Address Pool deletion failed for mac pool" + outputs['mac_name'])
             return obj
-        customlogs("MAC Address pool" +
+        customlogs("MAC Address pool " +
                    outputs['mac_name'] + " deleted successfully\n", logfile)
         obj.setResult(
             dicts,
@@ -2096,8 +2133,8 @@ class UCSTasks:
         """
         Create Management vNIC template
 
-        :param inputs: Dictionary (Management vNIC Template name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (Management vNIC Template name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2129,12 +2166,12 @@ class UCSTasks:
         loginfo("VLANS =" + inputdict['vlans'])
 
         message = "Mgmt vNIC Template Name: " + inputdict['mgmt_vnic_templ_name'] + "\nMgmt vNIC Template Desc: " + \
-                  inputdict['mgmt_vnic_templ_desc'] + "\nFabric ID:" + inputdict[
-                      'fabric_id'] + "\nRedundancy Pair Type:" + inputdict['redundancy_pair_type'] + \
-                  "\nTemplate Type:" + inputdict['templ_type'] + "\nCDN SDource:" + inputdict[
-                      'cdn_source'] + "\nIdent Pool Name:" + inputdict['ident_pool_name'] + \
-                  "\nNetwork Control Policy:" + \
-                  inputdict['nw_ctrl_policy_name'] + "\nMTU:" + \
+                  inputdict['mgmt_vnic_templ_desc'] + "\nFabric ID: " + inputdict[
+                      'fabric_id'] + "\nRedundancy Pair Type: " + inputdict['redundancy_pair_type'] + \
+                  "\nTemplate Type: " + inputdict['templ_type'] + "\nCDN Source: " + inputdict[
+                      'cdn_source'] + "\nIdent Pool Name: " + inputdict['ident_pool_name'] + \
+                  "\nNetwork Control Policy: " + \
+                  inputdict['nw_ctrl_policy_name'] + "\nMTU: " + \
                   inputdict['mtu']
 
         customlogs(message, logfile)
@@ -2190,8 +2227,8 @@ class UCSTasks:
         """
         Delete Management vNIC template
 
-        :param inputs: Dictionary (Management vNIC Template name) 
-        :param outputs: Outputs from task execution 
+        :param inputs: Dictionary (Management vNIC Template name)
+        :param outputs: Outputs from task execution
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2238,7 +2275,7 @@ class UCSTasks:
         """
         Delete iSCSI vNIC template
 
-        :param inputdict: Dictionary (iSCSI vNIC Template name) 
+        :param inputdict: Dictionary (iSCSI vNIC Template name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2275,7 +2312,7 @@ class UCSTasks:
         """
         Create iSCSI vNIC template
 
-        :param inputdict: Dictionary (iSCSI vNIC template) 
+        :param inputdict: Dictionary (iSCSI vNIC template)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2305,11 +2342,11 @@ class UCSTasks:
         loginfo("MTU =" + inputdict['mtu'])
 
         message = "iSCSI vNIC Template Name: " + inputdict['iSCSI_vnic_templ_name'] + "\niSCSI vNIC Template Desc: " + \
-                  inputdict['iSCSI_vnic_templ_desc'] + "\nFabric ID:" + inputdict[
-                      'fabric_id'] + "\nRedundancy Pair Type:" + inputdict['redundancy_pair_type'] + \
-                  "\nTemplate Type:" + inputdict['templ_type'] + "\nIdent Pool Name:" + inputdict['ident_pool_name'] + \
-                  "\nNetwork Control Policy:" + \
-                  inputdict['nw_ctrl_policy_name'] + "\nMTU:" + \
+                  inputdict['iSCSI_vnic_templ_desc'] + "\nFabric ID: " + inputdict[
+                      'fabric_id'] + "\nRedundancy Pair Type: " + inputdict['redundancy_pair_type'] + \
+                  "\nTemplate Type: " + inputdict['templ_type'] + "\nIdent Pool Name: " + inputdict['ident_pool_name'] + \
+                  "\nNetwork Control Policy: " + \
+                  inputdict['nw_ctrl_policy_name'] + "\nMTU: " + \
                   inputdict['mtu']
 
         customlogs(message, logfile)
@@ -2355,9 +2392,9 @@ class UCSTasks:
 
     def ucsCreatePowerControlPolicy(self, inputdict, logfile):
         """
-        Create Power Control policy 
+        Create Power Control policy
 
-        :param inputdict: Dictionary (Name, fan speed policy,cap) 
+        :param inputdict: Dictionary (Name, fan speed policy,cap)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2408,7 +2445,7 @@ class UCSTasks:
         """
         Delete Power control policy
 
-        :param inputs: Dictionary (power control policy name) 
+        :param inputs: Dictionary (power control policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2446,7 +2483,7 @@ class UCSTasks:
         """
         Create SAN Connectivity policy
 
-        :param inputdict: Dictionary (SAN Connectivity policy name. description, WWNN pool name) 
+        :param inputdict: Dictionary (SAN Connectivity policy name. description, WWNN pool name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2473,7 +2510,6 @@ class UCSTasks:
             inputdict['san_conn_policy_desc'] + \
             "\nIdent Pool Name: " + inputdict['ident_pool_name']
 
-        customlogs("create SAN Connectivity Policy....\n", logfile)
         customlogs(message, logfile)
 
         mo = VnicSanConnPolicy(
@@ -2506,7 +2542,7 @@ class UCSTasks:
         """
         Delete SAN Connectivity policy
 
-        :param inputdict: Dictionary (SAN Connectivity policy name) 
+        :param inputdict: Dictionary (SAN Connectivity policy name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2553,7 +2589,7 @@ class UCSTasks:
         """
         Create Server BIOS policy
 
-        :param inputdict: Dictionary (name,reboot,quiet boot,cdn) 
+        :param inputdict: Dictionary (name,reboot,quiet boot,cdn)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2617,11 +2653,13 @@ class UCSTasks:
             parent_mo_or_dn=mo, vp_intel_hyper_threading_tech=inputdict['hyper_threading'])
         BiosVfIntelVirtualizationTechnology(
             parent_mo_or_dn=mo, vp_intel_virtualization_technology=inputdict['intel_vt'])
-        BiosVfIntelVTForDirectedIO(parent_mo_or_dn=mo, vp_intel_vtd_pass_through_dma_support="platform-default",
-                                   vp_intel_vtdats_support="platform-default",
-                                   vp_intel_vtd_interrupt_remapping="platform-default",
-                                   vp_intel_vtd_coherency_support="platform-default",
-                                   vp_intel_vt_for_directed_io=inputdict['intel_vtd'])
+        BiosVfIntelVTForDirectedIO(
+            parent_mo_or_dn=mo,
+            vp_intel_vtd_pass_through_dma_support="platform-default",
+            vp_intel_vtdats_support="platform-default",
+            vp_intel_vtd_interrupt_remapping="platform-default",
+            vp_intel_vtd_coherency_support="platform-default",
+            vp_intel_vt_for_directed_io=inputdict['intel_vtd'])
         BiosVfCPUPerformance(parent_mo_or_dn=mo,
                              vp_cpu_performance=inputdict['cpu_perf'])
         BiosVfDirectCacheAccess(
@@ -2698,7 +2736,7 @@ class UCSTasks:
         """
         Create Server Pool for Cisco UCS environment
 
-        :param inputdict: Dictionary (name,servers) 
+        :param inputdict: Dictionary (name,servers)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2760,7 +2798,7 @@ class UCSTasks:
         """
         Create Server pool qualification policy
 
-        :param inputdict: Dictionary (name,pid,min max cores,min max threads,speed) 
+        :param inputdict: Dictionary (name,pid,min max cores,min max threads,speed)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2828,7 +2866,7 @@ class UCSTasks:
         """
         Create Service Profile from template
 
-        :param inputdict: Dictionary (name) 
+        :param inputdict: Dictionary (name)
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2874,7 +2912,7 @@ class UCSTasks:
         """
         Reset UCS Server to reboot after FlashArray configuration is completed
 
-        :param inputdict: Dictionary 
+        :param inputdict: Dictionary
         :param logfile: Logfile name
         :return: Returns the status of the execution
         """
@@ -2894,7 +2932,7 @@ class UCSTasks:
                     parent_mo_or_dn="org-root",
                     name=sp.name)
                 LsPower(parent_mo_or_dn=mo,
-                               state="hard-reset-immediate")
+                        state="hard-reset-immediate")
                 self.handle.add_mo(mo, modify_present=True)
         try:
             self.handle.commit()
@@ -2907,7 +2945,7 @@ class UCSTasks:
                 "Reset server failed")
             return obj
 
-        customlogs("\nBlade server is reset successfully\n", logfile)
+        customlogs("\nBlade servers reset successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY, "Reset server successful")
         return obj
 
@@ -2917,7 +2955,7 @@ class UCSTasks:
 
         :param handle: ucs login handle
         :param sp_dn: Service Profile DN
-        :param server_dn: Blade Server DN 
+        :param server_dn: Blade Server DN
         :param logfile: Logfile name
         """
         assoc_completion_timeout = 20 * 60
@@ -2939,9 +2977,9 @@ class UCSTasks:
                 customlogs('Server %s has not completed association' %
                            (server_dn), logfile)
                 break
-            loginfo('Server %s fsmStatus: %s, elapsed=%ds' % (server_dn,
-                                                              phys_mo.fsm_status,
-                                                              (datetime.datetime.now() - start).total_seconds()))
+            loginfo(
+                'Server %s fsmStatus: %s, elapsed=%ds' %
+                (server_dn, phys_mo.fsm_status, (datetime.datetime.now() - start).total_seconds()))
             # Query again to update association state
             phys_mo = handle.query_dn(server_dn)
 
@@ -2971,9 +3009,8 @@ class UCSTasks:
                 customlogs('Server %s has not completed discovery.May take long time' % (
                     blade.dn), logfile)
                 break
-            loginfo('Server %s fsmStatus: %s, elapsed=%ds' % (blade.dn,
-                                                              blade.fsm_status,
-                                                              (datetime.datetime.now() - start).total_seconds()))
+            loginfo('Server %s fsmStatus: %s, elapsed=%ds' %
+                    (blade.dn, blade.fsm_status, (datetime.datetime.now() - start).total_seconds()))
             # Query again to update discovery state
             mo = handle.query_dn(blade.dn)
         if mo.discovery == 'complete':
@@ -3010,10 +3047,14 @@ class UCSTasks:
             cnt += count
             dn.attr_set("value", inputdict['profile_prefix'] + str(cnt))
             dn_set.child_add(dn)
-        elem = ls_instantiate_n_named_template(cookie=self.handle.cookie, dn="org-root/ls-" +
-                                                                             inputdict['template_name'],
-                                               in_error_on_existing="true", in_name_set=dn_set,
-                                               in_target_org="org-root", in_hierarchical="false")
+        elem = ls_instantiate_n_named_template(
+            cookie=self.handle.cookie,
+            dn="org-root/ls-" +
+            inputdict['template_name'],
+            in_error_on_existing="true",
+            in_name_set=dn_set,
+            in_target_org="org-root",
+            in_hierarchical="false")
         self.handle.process_xml_elem(elem)
         customlogs(
             "\nWaiting for Service profile association to be completed\n", logfile)
@@ -3023,18 +3064,33 @@ class UCSTasks:
         for blade in blades_list:
             self.verify_blade_discovery(self.handle, blade, logfile)
 
-        # Waiting because it takes sometime for service profile to get associated with the server once it is up
+        # Waiting because it takes sometime for service profile to get associated
+        # with the server once it is up
         time.sleep(120)
-
+        sp_unassoc_cnt = 0
+        service_profiles_list = []
         service_profiles = self.handle.query_classid("lsServer")
         for sp in service_profiles:
-            if sp.type != "updating-template" and sp.dn != '' and sp.pn_dn != '':
-                self.wait_assoc_completion(
-                    self.handle, sp.dn, sp.pn_dn, logfile)
+            if sp.type != "updating-template":
+                service_profiles_list.append(sp)
+        total_sp_cnt = len(service_profiles_list)
+        for sp in service_profiles:
+            if sp.type != "updating-template":
+                if sp.dn != '' and sp.pn_dn != '':
+                    self.wait_assoc_completion(
+                        self.handle, sp.dn, sp.pn_dn, logfile)
+                else:
+                    customlogs("Failed to associate service profile " + sp.name + "\n", logfile)
+                    sp_unassoc_cnt += 1
+                    continue
+        if sp_unassoc_cnt == total_sp_cnt:
+            customlogs("Failed to associate all service profiles", logfile)
+            obj.setResult(None, PTK_INTERNALERROR, "Service profiles association failed")
+        else:
+            customlogs("\nService profiles are created successfully\n", logfile)
+            obj.setResult(dicts, PTK_OKAY, "Service profiles creation successful")
         # Waiting for sh flogi database entries to be displayed during MDS Zoning
         time.sleep(230)
-        customlogs("\nService profile is created successfully\n", logfile)
-        obj.setResult(dicts, PTK_OKAY, "Service profiles creation successful")
         return obj
 
     def ucsCloneServiceProfileTemplate(self, inputdict, logfile):
@@ -3064,17 +3120,35 @@ class UCSTasks:
             in_hierarchical="false")
         self.handle.process_xml_elem(elem)
 
-        mo = LsServer(parent_mo_or_dn="org-root", vmedia_policy_name=inputdict['vmedia_policy_name'],
-                      ext_ip_state="none", bios_profile_name=inputdict['biospolicy'], mgmt_fw_policy_name="",
-                      agent_policy_name="", mgmt_access_policy_name="", dynamic_con_policy_name="",
-                      kvm_mgmt_policy_name="", sol_policy_name="", uuid="0", descr="", stats_policy_name="default",
-                      policy_owner="local",
-                      ext_ip_pool_name="ext-mgmt", boot_policy_name=inputdict['boot_policy_name'], usr_lbl="",
-                      host_fw_policy_name="", vcon_profile_name="", ident_pool_name=inputdict['ident_pool_name'],
-                      src_templ_name="", local_disk_policy_name=inputdict['local_disk_policy_name'],
-                      scrub_policy_name="", power_policy_name=inputdict['power_policy_name'],
-                      maint_policy_name="default",
-                      name=inputdict['vmedia_template'], power_sync_policy_name="", resolve_remote="yes")
+        mo = LsServer(
+            parent_mo_or_dn="org-root",
+            vmedia_policy_name=inputdict['vmedia_policy_name'],
+            ext_ip_state="none",
+            bios_profile_name=inputdict['biospolicy'],
+            mgmt_fw_policy_name="",
+            agent_policy_name="",
+            mgmt_access_policy_name="",
+            dynamic_con_policy_name="",
+            kvm_mgmt_policy_name="",
+            sol_policy_name="",
+            uuid="0",
+            descr="",
+            stats_policy_name="default",
+            policy_owner="local",
+            ext_ip_pool_name="ext-mgmt",
+            boot_policy_name=inputdict['boot_policy_name'],
+            usr_lbl="",
+            host_fw_policy_name="",
+            vcon_profile_name="",
+            ident_pool_name=inputdict['ident_pool_name'],
+            src_templ_name="",
+            local_disk_policy_name=inputdict['local_disk_policy_name'],
+            scrub_policy_name="",
+            power_policy_name=inputdict['power_policy_name'],
+            maint_policy_name="default",
+            name=inputdict['vmedia_template'],
+            power_sync_policy_name="",
+            resolve_remote="yes")
 
         self.handle.add_mo(mo, True)
         self.handle.commit()
@@ -3109,14 +3183,22 @@ class UCSTasks:
 
         dicts = {}
 
-        mo = LsServer(parent_mo_or_dn="org-root", vmedia_policy_name="", descr=inputdict['template_desc'],
-                      stats_policy_name="default", policy_owner="local",
-                      ext_ip_pool_name="ext-mgmt", boot_policy_name=inputdict['boot_policy_name'],
-                      ident_pool_name=inputdict['ident_pool_name'], type=inputdict['type'],
-                      local_disk_policy_name=inputdict['local_disk_policy_name'],
-                      power_policy_name=inputdict['power_policy_name'],
-                      name=inputdict['template_name'], resolve_remote="yes",
-                      maint_policy_name=inputdict['maint_policy_name'], bios_profile_name=inputdict['biospolicy'])
+        mo = LsServer(
+            parent_mo_or_dn="org-root",
+            vmedia_policy_name="",
+            descr=inputdict['template_desc'],
+            stats_policy_name="default",
+            policy_owner="local",
+            ext_ip_pool_name="ext-mgmt",
+            boot_policy_name=inputdict['boot_policy_name'],
+            ident_pool_name=inputdict['ident_pool_name'],
+            type=inputdict['type'],
+            local_disk_policy_name=inputdict['local_disk_policy_name'],
+            power_policy_name=inputdict['power_policy_name'],
+            name=inputdict['template_name'],
+            resolve_remote="yes",
+            maint_policy_name=inputdict['maint_policy_name'],
+            bios_profile_name=inputdict['biospolicy'])
         vnic_list = self.handle.query_classid("vnicEther")
         lan_dn = "lan-conn-pol-" + inputdict['lan_conn_policy_name']
         VnicConnDef(parent_mo_or_dn=mo,
@@ -3129,11 +3211,25 @@ class UCSTasks:
                 vnic_name = vnic.name
                 LsVConAssign(parent_mo_or_dn=mo, admin_vcon="any", admin_host_port="ANY",
                              order=str(order), transport="ethernet", vnic_name=vnic_name)
-                VnicEther(parent_mo_or_dn=mo, cdn_prop_in_sync="yes", nw_ctrl_policy_name="", admin_host_port="ANY",
-                          admin_vcon="any", stats_policy_name="default", admin_cdn_name="", switch_id="A",
-                          pin_to_group_name="", name=vnic_name, order=str(order), qos_policy_name="",
-                          adaptor_profile_name="", ident_pool_name="", cdn_source="vnic-name", mtu="1500",
-                          nw_templ_name="", addr="derived")
+                VnicEther(
+                    parent_mo_or_dn=mo,
+                    cdn_prop_in_sync="yes",
+                    nw_ctrl_policy_name="",
+                    admin_host_port="ANY",
+                    admin_vcon="any",
+                    stats_policy_name="default",
+                    admin_cdn_name="",
+                    switch_id="A",
+                    pin_to_group_name="",
+                    name=vnic_name,
+                    order=str(order),
+                    qos_policy_name="",
+                    adaptor_profile_name="",
+                    ident_pool_name="",
+                    cdn_source="vnic-name",
+                    mtu="1500",
+                    nw_templ_name="",
+                    addr="derived")
         san_dn = "san-conn-pol-" + inputdict['san_conn_policy_name']
         fc_list = self.handle.query_classid("vnicFc")
         for fc in fc_list:
@@ -3142,11 +3238,26 @@ class UCSTasks:
                 vnic_name = fc.name
                 LsVConAssign(parent_mo_or_dn=mo, admin_vcon="any", admin_host_port="ANY",
                              order=str(order), transport="fc", vnic_name=vnic_name)
-                VnicFc(parent_mo_or_dn=mo, cdn_prop_in_sync="yes", addr="derived", admin_host_port="ANY",
-                       admin_vcon="any", stats_policy_name="default", admin_cdn_name="", switch_id="A",
-                       pin_to_group_name="", pers_bind="disabled", order=str(order), pers_bind_clear="no",
-                       qos_policy_name="", adaptor_profile_name="", ident_pool_name="", cdn_source="vnic-name",
-                       max_data_field_size="2048", nw_templ_name="", name=vnic_name)
+                VnicFc(
+                    parent_mo_or_dn=mo,
+                    cdn_prop_in_sync="yes",
+                    addr="derived",
+                    admin_host_port="ANY",
+                    admin_vcon="any",
+                    stats_policy_name="default",
+                    admin_cdn_name="",
+                    switch_id="A",
+                    pin_to_group_name="",
+                    pers_bind="disabled",
+                    order=str(order),
+                    pers_bind_clear="no",
+                    qos_policy_name="",
+                    adaptor_profile_name="",
+                    ident_pool_name="",
+                    cdn_source="vnic-name",
+                    max_data_field_size="2048",
+                    nw_templ_name="",
+                    name=vnic_name)
 
         VnicFcNode(parent_mo_or_dn=mo,
                    ident_pool_name="node-default", addr="pool-derived")
@@ -3154,14 +3265,42 @@ class UCSTasks:
         LsRequirement(parent_mo_or_dn=mo, restrict_migration="no",
                       name=inputdict['pool_assignment'], qualifier="")
         LsPower(parent_mo_or_dn=mo, state="admin-up")
-        FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE", share="shared", select="all",
-                   transport="ethernet,fc", id="1", inst_type="auto")
-        FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE", share="shared", select="all",
-                   transport="ethernet,fc", id="2", inst_type="auto")
-        FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE", share="shared", select="all",
-                   transport="ethernet,fc", id="3", inst_type="auto")
-        FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE", share="shared", select="all",
-                   transport="ethernet,fc", id="4", inst_type="auto")
+        FabricVCon(
+            parent_mo_or_dn=mo,
+            placement="physical",
+            fabric="NONE",
+            share="shared",
+            select="all",
+            transport="ethernet,fc",
+            id="1",
+            inst_type="auto")
+        FabricVCon(
+            parent_mo_or_dn=mo,
+            placement="physical",
+            fabric="NONE",
+            share="shared",
+            select="all",
+            transport="ethernet,fc",
+            id="2",
+            inst_type="auto")
+        FabricVCon(
+            parent_mo_or_dn=mo,
+            placement="physical",
+            fabric="NONE",
+            share="shared",
+            select="all",
+            transport="ethernet,fc",
+            id="3",
+            inst_type="auto")
+        FabricVCon(
+            parent_mo_or_dn=mo,
+            placement="physical",
+            fabric="NONE",
+            share="shared",
+            select="all",
+            transport="ethernet,fc",
+            id="4",
+            inst_type="auto")
 
         self.handle.add_mo(mo)
         try:
@@ -3186,7 +3325,7 @@ class UCSTasks:
 
     def ucsCreateServiceProfileTemplateForiSCSI(self, inputdict, logfile):
         """
-        Create Service Profile template for iSCSI 
+        Create Service Profile template for iSCSI
 
         :param inputdict: Dictionary (template name,type,boot policy,uuid pool,local disk policy,power policy,iSCSI vNIC name)
         :param logfile: Logfile name
@@ -3197,27 +3336,45 @@ class UCSTasks:
         loginfo("template_description =" + inputdict['template_desc'])
         message = "Template name: " + \
                   inputdict['template_name'] + \
-                  "\nTemplate_description: " + inputdict['template_desc']
-        customlogs(
-            "Create service profile template for iSCSI started....\n", logfile)
+                  "\nTemplate Description: " + inputdict['template_desc']
         customlogs(message, logfile)
 
-        if self.handle == None or self.handle_status != True:
+        if self.handle is None or self.handle_status != True:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
 
         dicts = {}
-        mo = LsServer(parent_mo_or_dn="org-root", vmedia_policy_name="", ext_ip_state="none",
-                      bios_profile_name=inputdict["biospolicy"], mgmt_fw_policy_name="", agent_policy_name="",
-                      mgmt_access_policy_name="", dynamic_con_policy_name="", kvm_mgmt_policy_name="",
-                      sol_policy_name="", uuid="0", descr="", stats_policy_name="default", policy_owner="local",
-                      ext_ip_pool_name="ext-mgmt", boot_policy_name=inputdict[
-                          "boot_policy_name"], usr_lbl="", host_fw_policy_name="", vcon_profile_name="",
-                      ident_pool_name=inputdict["ident_pool_name"], src_templ_name="", type=inputdict["type"],
-                      local_disk_policy_name=inputdict["local_disk_policy_name"], scrub_policy_name="",
-                      power_policy_name=inputdict['power_policy_name'], maint_policy_name="default",
-                      name=inputdict['template_name'], power_sync_policy_name="", resolve_remote="yes")
+        mo = LsServer(
+            parent_mo_or_dn="org-root",
+            vmedia_policy_name="",
+            ext_ip_state="none",
+            bios_profile_name=inputdict["biospolicy"],
+            mgmt_fw_policy_name="",
+            agent_policy_name="",
+            mgmt_access_policy_name="",
+            dynamic_con_policy_name="",
+            kvm_mgmt_policy_name="",
+            sol_policy_name="",
+            uuid="0",
+            descr="",
+            stats_policy_name="default",
+            policy_owner="local",
+            ext_ip_pool_name="ext-mgmt",
+            boot_policy_name=inputdict["boot_policy_name"],
+            usr_lbl="",
+            host_fw_policy_name="",
+            vcon_profile_name="",
+            ident_pool_name=inputdict["ident_pool_name"],
+            src_templ_name="",
+            type=inputdict["type"],
+            local_disk_policy_name=inputdict["local_disk_policy_name"],
+            scrub_policy_name="",
+            power_policy_name=inputdict['power_policy_name'],
+            maint_policy_name="default",
+            name=inputdict['template_name'],
+            power_sync_policy_name="",
+            resolve_remote="yes")
 
         vnic_list = self.handle.query_classid("vnicEther")
         lan_dn = "lan-conn-pol-" + inputdict['lan_conn_policy_name']
@@ -3228,44 +3385,90 @@ class UCSTasks:
                 vnic_name = vnic.name
                 LsVConAssign(parent_mo_or_dn=mo, admin_vcon="any", admin_host_port="ANY",
                              order=str(order), transport="ethernet", vnic_name=vnic_name)
-                VnicEther(parent_mo_or_dn=mo, cdn_prop_in_sync="yes", nw_ctrl_policy_name="", admin_host_port="ANY",
-                          admin_vcon="any", stats_policy_name="default", admin_cdn_name="", switch_id="A",
-                          pin_to_group_name="", name=vnic_name, order=str(order), qos_policy_name="",
-                          adaptor_profile_name="", ident_pool_name="", cdn_source="vnic-name", mtu="1500",
-                          nw_templ_name="", addr="derived")
+                VnicEther(
+                    parent_mo_or_dn=mo,
+                    cdn_prop_in_sync="yes",
+                    nw_ctrl_policy_name="",
+                    admin_host_port="ANY",
+                    admin_vcon="any",
+                    stats_policy_name="default",
+                    admin_cdn_name="",
+                    switch_id="A",
+                    pin_to_group_name="",
+                    name=vnic_name,
+                    order=str(order),
+                    qos_policy_name="",
+                    adaptor_profile_name="",
+                    ident_pool_name="",
+                    cdn_source="vnic-name",
+                    mtu="1500",
+                    nw_templ_name="",
+                    addr="derived")
 
         VnicConnDef(parent_mo_or_dn=mo, san_conn_policy_name="",
-                           lan_conn_policy_name=inputdict['lan_conn_policy_name'])
+                    lan_conn_policy_name=inputdict['lan_conn_policy_name'])
 
         VnicDefBeh(parent_mo_or_dn=mo, name="", descr="",
-                           policy_owner="local", action="none", type="vhba", nw_templ_name="")
+                   policy_owner="local", action="none", type="vhba", nw_templ_name="")
         VnicFcNode(parent_mo_or_dn=mo,
                    ident_pool_name="node-default", addr="pool-derived")
-        mo_21 = VnicIScsi(parent_mo_or_dn=mo, cdn_prop_in_sync="yes", addr="derived", iqn_ident_pool_name="",
-                          admin_host_port="ANY", admin_vcon="any", stats_policy_name="default", admin_cdn_name="",
-                          adaptor_profile_name="", switch_id="A",
-                          pin_to_group_name="", vnic_name="", ext_ip_state="none", qos_policy_name="",
-                          auth_profile_name="", ident_pool_name="", cdn_source="vnic-name", order="unspecified",
-                          name=inputdict['iSCSI_vNIC_A'], nw_templ_name="", initiator_name="")
+        mo_21 = VnicIScsi(
+            parent_mo_or_dn=mo,
+            cdn_prop_in_sync="yes",
+            addr="derived",
+            iqn_ident_pool_name="",
+            admin_host_port="ANY",
+            admin_vcon="any",
+            stats_policy_name="default",
+            admin_cdn_name="",
+            adaptor_profile_name="",
+            switch_id="A",
+            pin_to_group_name="",
+            vnic_name="",
+            ext_ip_state="none",
+            qos_policy_name="",
+            auth_profile_name="",
+            ident_pool_name="",
+            cdn_source="vnic-name",
+            order="unspecified",
+            name=inputdict['iSCSI_vNIC_A'],
+            nw_templ_name="",
+            initiator_name="")
         VnicVlan(parent_mo_or_dn=mo_21, name="", vlan_name="default")
-        mo_22 = VnicIScsi(parent_mo_or_dn=mo, cdn_prop_in_sync="yes", addr="derived", iqn_ident_pool_name="",
-                          admin_host_port="ANY", admin_vcon="any", stats_policy_name="default", admin_cdn_name="",
-                          adaptor_profile_name="", switch_id="A",
-                          pin_to_group_name="", vnic_name="", ext_ip_state="none", qos_policy_name="",
-                          auth_profile_name="", ident_pool_name="", cdn_source="vnic-name", order="unspecified",
-                          name=inputdict['iSCSI_vNIC_B'], nw_templ_name="", initiator_name="")
+        mo_22 = VnicIScsi(
+            parent_mo_or_dn=mo,
+            cdn_prop_in_sync="yes",
+            addr="derived",
+            iqn_ident_pool_name="",
+            admin_host_port="ANY",
+            admin_vcon="any",
+            stats_policy_name="default",
+            admin_cdn_name="",
+            adaptor_profile_name="",
+            switch_id="A",
+            pin_to_group_name="",
+            vnic_name="",
+            ext_ip_state="none",
+            qos_policy_name="",
+            auth_profile_name="",
+            ident_pool_name="",
+            cdn_source="vnic-name",
+            order="unspecified",
+            name=inputdict['iSCSI_vNIC_B'],
+            nw_templ_name="",
+            initiator_name="")
         VnicVlan(parent_mo_or_dn=mo_22, name="", vlan_name="default")
         VnicIScsiNode(parent_mo_or_dn=mo, initiator_policy_name="",
-                              iqn_ident_pool_name=inputdict['iqn_ident_pool_name'], initiator_name="")
+                      iqn_ident_pool_name=inputdict['iqn_ident_pool_name'], initiator_name="")
         LsPower(parent_mo_or_dn=mo, state="admin-up")
         FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE",
-                           share="shared", select="all", transport="ethernet,fc", id="1", inst_type="auto")
+                   share="shared", select="all", transport="ethernet,fc", id="1", inst_type="auto")
         FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE",
-                           share="shared", select="all", transport="ethernet,fc", id="2", inst_type="auto")
+                   share="shared", select="all", transport="ethernet,fc", id="2", inst_type="auto")
         FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE",
-                           share="shared", select="all", transport="ethernet,fc", id="3", inst_type="auto")
+                   share="shared", select="all", transport="ethernet,fc", id="3", inst_type="auto")
         FabricVCon(parent_mo_or_dn=mo, placement="physical", fabric="NONE",
-                           share="shared", select="all", transport="ethernet,fc", id="4", inst_type="auto")
+                   share="shared", select="all", transport="ethernet,fc", id="4", inst_type="auto")
         LsRequirement(parent_mo_or_dn=mo, restrict_migration="no",
                       name=inputdict['pool_assignment'], qualifier="")
 
@@ -3282,7 +3485,7 @@ class UCSTasks:
                 "Service profile template creation failed")
             return obj
         self.handle.logout()
-        customlogs("\nService profile template created successfully\n", logfile)
+        customlogs("\nService profile template is created successfully\n", logfile)
         dicts['serviceprofilename'] = inputdict['template_name']
         obj.setResult(
             dicts,
@@ -3313,7 +3516,10 @@ class UCSTasks:
         dicts = {}
         if inputdict['iSCSI_Boot'] == "A":
             mo = VnicIScsiBootParams(
-                parent_mo_or_dn="org-root/ls-" + inputdict['template_name'], policy_owner="local", descr="")
+                parent_mo_or_dn="org-root/ls-" +
+                inputdict['template_name'],
+                policy_owner="local",
+                descr="")
         else:
             mo = self.handle.query_dn(
                 "org-root/ls-" + inputdict['template_name'] + "/" + "iscsi-boot-params")
@@ -3345,20 +3551,20 @@ class UCSTasks:
         except UcsException as e:
             customlogs(str(e), logfile)
             customlogs(
-                "\nSet iSCSI Boot parameters for iSCSI vNIC started failed\n", logfile)
-            loginfo("\nSet iSCSI Boot parameters for iSCSI vNIC started failed\n")
+                "\nSet iSCSI Boot parameters for iSCSI vNIC failed\n", logfile)
+            loginfo("\nSet iSCSI Boot parameters for iSCSI vNIC failed\n")
             obj.setResult(
                 dicts,
                 PTK_INTERNALERROR,
-                "Set iSCSI Boot parameters for iSCSI vNIC started failed")
+                "Set iSCSI Boot parameters for iSCSI vNIC failed")
             return obj
         self.handle.logout()
         customlogs(
-            "\nSet iSCSI Boot parameters for iSCSI vNIC started successful\n", logfile)
+            "\niSCSI Boot parameters for iSCSI vNIC is set successfully\n", logfile)
         obj.setResult(
             dicts,
             PTK_OKAY,
-            "Set iSCSI Boot parameters for iSCSI vNIC started successful")
+            "iSCSI Boot parameters for iSCSI vNIC is set successfully")
         return obj
 
     def ucsDeleteiSCSIBootParams(self, inputs, outputs, logfile):
@@ -3383,11 +3589,23 @@ class UCSTasks:
             mo = self.handle.query_dn(
                 "org-root/ls-" + inputs['template_name'] + "/" + "iscsi-boot-params")
 
-            mo_1 = VnicIScsiBootVnic(parent_mo_or_dn=mo, initiator_name="", iqn_ident_pool_name="",
-                                     auth_profile_name="", policy_owner="local", descr="", name=inputs['iSCSI_vNIC_name'])
+            mo_1 = VnicIScsiBootVnic(
+                parent_mo_or_dn=mo,
+                initiator_name="",
+                iqn_ident_pool_name="",
+                auth_profile_name="",
+                policy_owner="local",
+                descr="",
+                name=inputs['iSCSI_vNIC_name'])
             for instance in range(1, 3):
                 mo_1_1 = self.handle.query_dn(
-                    "org-root/ls-" + inputs['template_name'] + "/" + "iscsi-boot-params/boot-vnic-" + inputs['iSCSI_vNIC_name'] + "/" + str(instance))
+                    "org-root/ls-" +
+                    inputs['template_name'] +
+                    "/" +
+                    "iscsi-boot-params/boot-vnic-" +
+                    inputs['iSCSI_vNIC_name'] +
+                    "/" +
+                    str(instance))
                 self.handle.remove_mo(mo_1_1)
 
             mo_1_1 = VnicIPv4If(parent_mo_or_dn=mo_1, name="")
@@ -3420,7 +3638,7 @@ class UCSTasks:
         loginfo("Create Uplink Port Channels")
         dicts = {}
 
-        if self.handle == None or self.handle_status != True:
+        if self.handle is None or self.handle_status != True:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
@@ -3530,7 +3748,7 @@ class UCSTasks:
         loginfo("Create UUID Suffix Pool")
         dicts = {}
 
-        if self.handle == None or self.handle_status != True:
+        if self.handle is None or self.handle_status != True:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
@@ -3542,8 +3760,7 @@ class UCSTasks:
         #        loginfo("UUID To = " + inputdict['uuid_to'])
         loginfo("Size = " + inputdict['size'])
         message = "UUID Pool name: " + inputdict['name'] + "\nPrefix: " + inputdict['prefix'] + "\nAssignment order: " + \
-                  inputdict['order'] + "\nUUID From: " + \
-                  inputdict['uuid_from'] + "\nSize: " + inputdict['size']
+            inputdict['order'] + "\nUUID from: " + inputdict['uuid_from'] + "\nSize: " + inputdict['size']
         customlogs(message, logfile)
 
         uuid_split = inputdict['uuid_from'].split('-')
@@ -3647,7 +3864,7 @@ class UCSTasks:
                 inputdict['vsan_con_policy'])
 
         message = "vHBA Name: " + inputdict['vhba_name'] + "\nvHBA Template: " + \
-                  inputdict['vhba_template'] + "\nvSAN Name:" + \
+                  inputdict['vhba_template'] + "\nvSAN Name: " + \
                   inputdict['vsan_con_policy']
 
         customlogs(message, logfile)
@@ -3721,10 +3938,10 @@ class UCSTasks:
         loginfo("VSAN Name =" + inputdict['vsan_name'])  # vSAN
 
         message = "vHBA Name: " + inputdict['vhba_name'] + "\nvHBA Description: " + inputdict[
-            'vhba_description'] + "\nIndent Pool Name:" + inputdict['ident_pool_name'] + \
-            "\nSwitch ID:" + inputdict['ucs_fabric_id'] + "\nMax data field size: " + \
+            'vhba_description'] + "\nIndent Pool Name: " + inputdict['ident_pool_name'] + \
+            "\nSwitch ID: " + inputdict['ucs_fabric_id'] + "\nMax data field size: " + \
             inputdict['max_data_field_size'] + \
-            "\nVSAN Name:" + inputdict['vsan_name']
+            "\nVSAN Name: " + inputdict['vsan_name']
 
         customlogs(message, logfile)
 
@@ -3795,8 +4012,11 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Service profile template deletion failed")
             return obj
-        customlogs("\nAll Service profiles with prefix " + inputdict['profile_prefix'] + " deleted successfully\n",
-                   logfile)
+        customlogs(
+            "\nAll Service profiles with prefix " +
+            inputdict['profile_prefix'] +
+            " deleted successfully\n",
+            logfile)
         obj.setResult(
             dicts,
             PTK_OKAY,
@@ -3909,8 +4129,11 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Service profile template deletion failed")
             return obj
-        customlogs("\n vMedia Service profile template " + inputdict['vmedia_template'] + " deleted successfully\n",
-                   logfile)
+        customlogs(
+            "\n vMedia Service profile template " +
+            inputdict['vmedia_template'] +
+            " deleted successfully\n",
+            logfile)
         obj.setResult(
             dicts,
             PTK_OKAY,
@@ -3982,7 +4205,10 @@ class UCSTasks:
             return obj
 
         mo = self.handle.query_dn(
-            "org-root/san-conn-pol-" + inputdict['vsan_con_policy'] + "/fc-" + inputdict['vhba_name'])
+            "org-root/san-conn-pol-" +
+            inputdict['vsan_con_policy'] +
+            "/fc-" +
+            inputdict['vhba_name'])
 
         self.handle.remove_mo(mo)
         try:
@@ -4024,8 +4250,8 @@ class UCSTasks:
         loginfo("Sharing =" + inputdict['sharing'])
         loginfo("Multicast Policy =" + " ")
 
-        message = "VLAN Name: " + inputdict['vlan_name'] + "\nVLAN ID:" + inputdict['vlan_id'] + \
-                  "\nSharing:" + inputdict['sharing']
+        message = "VLAN Name: " + inputdict['vlan_name'] + "\nVLAN ID: " + inputdict['vlan_id'] + \
+                  "\nSharing: " + inputdict['sharing']
 
         customlogs(message, logfile)
 
@@ -4082,7 +4308,8 @@ class UCSTasks:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
 
-        mo = self.handle.query_dn("fabric/lan/net-" + inputs['vlan_name'])
+        vlan_type = inputs['vlan_type']
+        mo = self.handle.query_dn(vlan_type + "/net-" + inputs['vlan_name'])
         if mo is None:
             customlogs(
                 "\nVLAN " + inputs['vlan_name'] + " does not exist\n", logfile)
@@ -4232,7 +4459,7 @@ class UCSTasks:
         loginfo("create_vMotion_vNIC_Template")
         dicts = {}
 
-        if self.handle == None or self.handle_status != True:
+        if self.handle is None or self.handle_status != True:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
@@ -4253,13 +4480,13 @@ class UCSTasks:
 
         message = "vMotion vNIC Template Name: " + inputdict[
             'vmotion_vnic_templ_name'] + "\nvMotion vNIC Template Desc: " + inputdict[
-            'vmotion_vnic_templ_desc'] + "\nFabric ID:" + inputdict['fabric_id'] + "\nRedundancy Pair Type:" + \
+            'vmotion_vnic_templ_desc'] + "\nFabric ID: " + inputdict['fabric_id'] + "\nRedundancy Pair Type: " + \
             inputdict['redundancy_pair_type'] + \
-            "\nTemplate Type:" + inputdict['templ_type'] + "\nCDN SDource:" + inputdict[
-            'cdn_source'] + "\nIdent Pool Name:" + inputdict['ident_pool_name'] + \
-            "\nNetwork Control Policy:" + \
-            inputdict['nw_ctrl_policy_name'] + "\nMTU:" + \
-            inputdict['mtu'] + "\nDefault Native LAN:"
+            "\nTemplate Type: " + inputdict['templ_type'] + "\nCDN Source: " + inputdict[
+            'cdn_source'] + "\nIdent Pool Name: " + inputdict['ident_pool_name'] + \
+            "\nNetwork Control Policy: " + \
+            inputdict['nw_ctrl_policy_name'] + "\nMTU: " + \
+            inputdict['mtu'] + "\nDefault Native LAN: "
 
         customlogs(message, logfile)
 
@@ -4372,9 +4599,7 @@ class UCSTasks:
             return obj
 
         message = "Name" + inputdict['name'] + "\nVirtual slot mapping scheme" + inputdict['scheme'] + \
-                  "\nVirtual Slot" + \
-                  inputdict['port_id'] + "\nSelection preference" + \
-                  inputdict['preference']
+            "\nVirtual Slot" + inputdict['port_id'] + "\nSelection preference" + inputdict['preference']
         loginfo("Create vNIC/vHBA Placement Policy parameters = " + message)
         customlogs(message, logfile)
 
@@ -4463,7 +4688,6 @@ class UCSTasks:
 
         obj = result()
         loginfo("delete_VSAN")
-        customlogs("UCS rollback VSAN", logfile)
         dicts = {}
 
         if self.handle is None or self.handle_status != True:
@@ -4512,14 +4736,13 @@ class UCSTasks:
             return obj
 
         loginfo(inputdict)
-        loginfo("VSAN Name =" + inputdict['vsan_name'])
-        loginfo("Fabric ID =" + inputdict['fabric_id'])
-        loginfo("VSAN ID =" + inputdict['vsan_id'])
-        loginfo("FCoE VLAN ID =" + inputdict['fcoe_vlan'])
+        loginfo("VSAN Name: " + inputdict['vsan_name'])
+        loginfo("Fabric ID: " + inputdict['fabric_id'])
+        loginfo("VSAN ID: " + inputdict['vsan_id'])
+        loginfo("FCoE VLAN ID: " + inputdict['fcoe_vlan'])
 
         message = "VSAN Name: " + inputdict['vsan_name'] + "\nFabric ID: " + inputdict['fabric_id'] + \
-                  "\nVSAN Id: " + inputdict['vsan_id'] + \
-                  "\nFCoE Id:" + inputdict['fcoe_vlan']
+            "\nVSAN Id: " + inputdict['vsan_id'] + "\nFCoE Id: " + inputdict['fcoe_vlan']
 
         customlogs(message, logfile)
         fabric_id = "fabric/san/" + inputdict['ucs_fabric_id']
@@ -4530,7 +4753,6 @@ class UCSTasks:
             zoning_state=inputdict['zoning_state'],
             id=inputdict['vsan_id'])
         self.handle.add_mo(mo, True)
-
         try:
             self.handle.commit()
         except UcsException as e:
@@ -4579,7 +4801,7 @@ class UCSTasks:
         wwnn_end = ":".join(wwnn_hex[i:i + 2]
                             for i in range(0, len(wwnn_hex), 2))
 
-        loginfo("WWNN End Block= " + wwnn_end)
+        loginfo("WWNN End Block: " + wwnn_end)
 
         mo = FcpoolInitiators(
             parent_mo_or_dn="org-root",
@@ -4762,7 +4984,7 @@ class UCSTasks:
 
         obj = result()
         loginfo("Enable Server Ports")
-        message = "Ports to be configured as Server Ports : " + \
+        message = "Ports to be configured as Server Ports: " + \
             inputdict['ports']
         customlogs(message, logfile)
         dicts = {}
@@ -4809,7 +5031,7 @@ class UCSTasks:
 
     def ucsEnableUplinkPorts(self, inputdict, logfile):
         """
-        Enable uplink ports 
+        Enable uplink ports
         :param inputdict: Dictionary (ucs_fabric_id,ports)
         :param logfile: Logfile name
         :return: Returns the status of the execution
@@ -4817,7 +5039,7 @@ class UCSTasks:
 
         obj = result()
         loginfo("Enable Uplink Ports")
-        message = "Ports to be configured as uplink Ports : " + \
+        message = "Ports to be configured as uplink Ports: " + \
             inputdict['ports']
         customlogs(message, logfile)
         dicts = {}
@@ -5108,7 +5330,7 @@ class UCSTasks:
                 "Setting jumbo frames failed")
             return obj
         self.handle.logout()
-        customlogs("\nSetting jumbo frames successful\n", logfile)
+        customlogs("\nJumbo frames is set successfully\n", logfile)
         dicts['mtu'] = inputdict['mtu']
         obj.setResult(dicts, PTK_OKAY, "Setting jumbo frames successful")
         return obj
@@ -5216,7 +5438,7 @@ class UCSTasks:
 
     def ucsRollbackSynchronizeUCStoNTP(self, inputs, outputs, logfile):
         """
-        Rollback synchronizing UCS to NTP 
+        Rollback synchronizing UCS to NTP
         :param inputs: Dictionary (ntp)
         :param outputs: Output from task execution
         :param logfile: Logfile name
@@ -5294,9 +5516,7 @@ class UCSTasks:
                 policy_owner="local")
         elif inputdict['uptime'] == "timer-automatic":
             message = "Soft Shutdown Timer: " + inputdict['timer'] + "\nReboot Policy: " + inputdict['uptime'] + \
-                      "\nOn next boot: " + \
-                      inputdict['trigger'] + \
-                "\nSchedule: " + inputdict['sched']
+                "\nOn next boot: " + inputdict['trigger'] + "\nSchedule: " + inputdict['sched']
             customlogs(message, logfile)
             mo = LsmaintMaintPolicy(
                 parent_mo_or_dn="org-root",
@@ -5368,9 +5588,15 @@ class UCSTasks:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
 
-        mo = LsmaintMaintPolicy(parent_mo_or_dn="org-root", uptime_disr=inputs['uptime'], name="default",
-                                descr=inputs['descr'], trigger_config=inputs['trigger'], soft_shutdown_timer=inputs['timer'],
-                                sched_name="", policy_owner="local")
+        mo = LsmaintMaintPolicy(
+            parent_mo_or_dn="org-root",
+            uptime_disr=inputs['uptime'],
+            name="default",
+            descr=inputs['descr'],
+            trigger_config=inputs['trigger'],
+            soft_shutdown_timer=inputs['timer'],
+            sched_name="",
+            policy_owner="local")
         self.handle.add_mo(mo, True)
 
         try:
@@ -5495,7 +5721,7 @@ class UCSTasks:
         Create IQN Pools for iSCSI boot
         :param inputdict: Dictionary (name,desc,prefox,suffix,order,suffix_to)
         :param logfile: Logfile name
-        :return: Returns the status of the execution 
+        :return: Returns the status of the execution
         """
 
         obj = result()
@@ -5507,18 +5733,25 @@ class UCSTasks:
                           "Unable to connect to UCS")
             return obj
 
-        message = "Name: " + inputdict['name'] + "Description: " + inputdict['desc'] + \
-                  "Assignment order: " + inputdict['order'] + "Prefix: " + inputdict['prefix'] + "\nIQN Suffix: " + \
-                  inputdict['suffix'] + "From: " + inputdict['suffix_from'] + \
-                  "To: " + inputdict['suffix_to']
-        loginfo("Create IQN Pools for iSCSI Boot parameters = " + message)
+        message = "Name: " + inputdict['name'] + "\nDescription: " + inputdict['desc'] + \
+                  "\nAssignment order: " + inputdict['order'] + "\nPrefix: " + inputdict['prefix'] + "\nIQN Suffix: " + \
+                  inputdict['suffix'] + "\nFrom: " + inputdict['suffix_from'] + \
+                  "\nTo: " + inputdict['suffix_to']
+        loginfo("Create IQN Pools for iSCSI Boot parameters: " + message)
         customlogs(message, logfile)
 
-        mo = IqnpoolPool(parent_mo_or_dn="org-root", policy_owner="local",
-                         prefix=inputdict['prefix'], descr=inputdict['desc'], assignment_order=inputdict['order'],
-                         name=inputdict['name'])
+        mo = IqnpoolPool(
+            parent_mo_or_dn="org-root",
+            policy_owner="local",
+            prefix=inputdict['prefix'],
+            descr=inputdict['desc'],
+            assignment_order=inputdict['order'],
+            name=inputdict['name'])
         IqnpoolBlock(
-            parent_mo_or_dn=mo, to=inputdict['suffix_to'], r_from=inputdict['suffix_from'], suffix=inputdict['suffix'])
+            parent_mo_or_dn=mo,
+            to=inputdict['suffix_to'],
+            r_from=inputdict['suffix_from'],
+            suffix=inputdict['suffix'])
         self.handle.add_mo(mo)
 
         try:
@@ -5546,14 +5779,14 @@ class UCSTasks:
         Delete IP Pools for iSCSI Boot
         :param inputdict: Dictionary (ip_pool_name)
         :param logfile: Logfile name
-        :return: Returns the status of the execution 
+        :return: Returns the status of the execution
         """
 
         obj = result()
         loginfo("Delete IP Pools for iSCSI Boot")
         dicts = {}
 
-        if self.handle == None or self.handle_status != True:
+        if self.handle is None or self.handle_status != True:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
@@ -5584,7 +5817,7 @@ class UCSTasks:
         Create IP Pools for iSCSI Boot
         :param inputdict: Dictionary (ip_pool_name,order,desc,ip_from,size)
         :param logfile: Logfile name
-        :return: Returns the status of the execution 
+        :return: Returns the status of the execution
         """
 
         obj = result()
@@ -5596,8 +5829,8 @@ class UCSTasks:
                           "Unable to connect to UCS")
             return obj
 
-        message = "Name: " + inputdict['ip_pool_name'] + "Description: " + inputdict['desc'] + \
-                  "Assignment order: " + inputdict['order'] + "From IP: " + inputdict['ip_from'] + "\nSize: " + \
+        message = "Name: " + inputdict['ip_pool_name'] + "\nDescription: " + inputdict['desc'] + \
+                  "\nAssignment order: " + inputdict['order'] + "\nFrom IP: " + inputdict['ip_from'] + "\nSize: " + \
                   inputdict['size']
         loginfo("Create IP Pools for iSCSI Boot parameters = " + message)
         customlogs(message, logfile)
@@ -5608,9 +5841,15 @@ class UCSTasks:
         ip_addr_split[3] = str(ip_increment)
         to_ip_addr = '.'.join(ip_addr_split)
 
-        mo = IppoolPool(parent_mo_or_dn="org-root", is_net_bios_enabled="disabled",
-                        name=inputdict['ip_pool_name'], descr=inputdict['desc'], policy_owner="local",
-                        ext_managed="internal", supports_dhcp="disabled", assignment_order=inputdict['order'])
+        mo = IppoolPool(
+            parent_mo_or_dn="org-root",
+            is_net_bios_enabled="disabled",
+            name=inputdict['ip_pool_name'],
+            descr=inputdict['desc'],
+            policy_owner="local",
+            ext_managed="internal",
+            supports_dhcp="disabled",
+            assignment_order=inputdict['order'])
         IppoolBlock(parent_mo_or_dn=mo, to=to_ip_addr,
                     r_from=inputdict['ip_from'], def_gw="0.0.0.0")
         self.handle.add_mo(mo)
@@ -5626,7 +5865,7 @@ class UCSTasks:
                 "Failed to create IP pools for iSCSI boot")
             return obj
 
-        customlogs("\nIP Pools for iSCSI Boot Created Successfully\n", logfile)
+        customlogs("\nIP Pools for iSCSI Boot created Successfully\n", logfile)
         dicts['ip_pool_name'] = inputdict['ip_pool_name']
 
         obj.setResult(
@@ -5641,7 +5880,7 @@ class UCSTasks:
         :param inputdict: Dictionary (vmedia_policy_name,bios_profile_name,boot_policy_name,ident_pool_name
                                         local_disk_policy_name,power_policy_name)
         :param logfile: Logfile name
-        :return: Returns the status of the execution 
+        :return: Returns the status of the execution
         """
 
         obj = result()
@@ -5652,17 +5891,35 @@ class UCSTasks:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
-        mo = LsServer(parent_mo_or_dn="org-root", vmedia_policy_name=inputdict['vmedia_policy_name'],
-                      ext_ip_state="none", bios_profile_name=inputdict['bios_profile_name'],
-                      mgmt_fw_policy_name="", agent_policy_name="", mgmt_access_policy_name="",
-                      dynamic_con_policy_name="", kvm_mgmt_policy_name="", sol_policy_name="", uuid="", descr="",
-                      stats_policy_name="default", policy_owner="local", ext_ip_pool_name="ext-mgmt",
-                      boot_policy_name=inputdict['boot_policy_name'], usr_lbl="", host_fw_policy_name="",
-                      vcon_profile_name="", ident_pool_name=inputdict['ident_pool_name'], src_templ_name="",
-                      local_disk_policy_name=inputdict['local_disk_policy_name'],
-                      scrub_policy_name="", power_policy_name=inputdict['power_policy_name'],
-                      maint_policy_name="default", name=inputdict['service_profile_name'], power_sync_policy_name="",
-                      resolve_remote="yes")
+        mo = LsServer(
+            parent_mo_or_dn="org-root",
+            vmedia_policy_name=inputdict['vmedia_policy_name'],
+            ext_ip_state="none",
+            bios_profile_name=inputdict['bios_profile_name'],
+            mgmt_fw_policy_name="",
+            agent_policy_name="",
+            mgmt_access_policy_name="",
+            dynamic_con_policy_name="",
+            kvm_mgmt_policy_name="",
+            sol_policy_name="",
+            uuid="",
+            descr="",
+            stats_policy_name="default",
+            policy_owner="local",
+            ext_ip_pool_name="ext-mgmt",
+            boot_policy_name=inputdict['boot_policy_name'],
+            usr_lbl="",
+            host_fw_policy_name="",
+            vcon_profile_name="",
+            ident_pool_name=inputdict['ident_pool_name'],
+            src_templ_name="",
+            local_disk_policy_name=inputdict['local_disk_policy_name'],
+            scrub_policy_name="",
+            power_policy_name=inputdict['power_policy_name'],
+            maint_policy_name="default",
+            name=inputdict['service_profile_name'],
+            power_sync_policy_name="",
+            resolve_remote="yes")
         self.handle.add_mo(mo)
         try:
             self.handle.commit()
@@ -5683,7 +5940,7 @@ class UCSTasks:
         :param inputdict: Dictionary (vmedia_policy_name,bios_profile_name,boot_policy_name,ident_pool_name
                                         local_disk_policy_name,power_policy_name)
         :param logfile: Logfile name
-        :return: Returns the status of the execution 
+        :return: Returns the status of the execution
         """
 
         obj = result()
@@ -5694,18 +5951,35 @@ class UCSTasks:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
-        mo = LsServer(parent_mo_or_dn="org-root", vmedia_policy_name=inputdict['vmedia_policy_name'],
-                      ext_ip_state="none", bios_profile_name=inputdict['bios_profile_name'],
-                      mgmt_fw_policy_name="", agent_policy_name="", mgmt_access_policy_name="",
-                      dynamic_con_policy_name="", kvm_mgmt_policy_name="", sol_policy_name="", uuid="", descr="",
-                      stats_policy_name="default", policy_owner="local", ext_ip_pool_name="ext-mgmt",
-                      boot_policy_name=inputdict['boot_policy_name'], usr_lbl="", host_fw_policy_name="",
-                      vcon_profile_name="", ident_pool_name=inputdict['ident_pool_name'],
-                      src_templ_name=inputdict['service_profile_template'],
-                      local_disk_policy_name=inputdict['local_disk_policy_name'],
-                      scrub_policy_name="", power_policy_name=inputdict['power_policy_name'],
-                      maint_policy_name="default", name=inputdict['service_profile_name'], power_sync_policy_name="",
-                      resolve_remote="yes")
+        mo = LsServer(
+            parent_mo_or_dn="org-root",
+            vmedia_policy_name=inputdict['vmedia_policy_name'],
+            ext_ip_state="none",
+            bios_profile_name=inputdict['bios_profile_name'],
+            mgmt_fw_policy_name="",
+            agent_policy_name="",
+            mgmt_access_policy_name="",
+            dynamic_con_policy_name="",
+            kvm_mgmt_policy_name="",
+            sol_policy_name="",
+            uuid="",
+            descr="",
+            stats_policy_name="default",
+            policy_owner="local",
+            ext_ip_pool_name="ext-mgmt",
+            boot_policy_name=inputdict['boot_policy_name'],
+            usr_lbl="",
+            host_fw_policy_name="",
+            vcon_profile_name="",
+            ident_pool_name=inputdict['ident_pool_name'],
+            src_templ_name=inputdict['service_profile_template'],
+            local_disk_policy_name=inputdict['local_disk_policy_name'],
+            scrub_policy_name="",
+            power_policy_name=inputdict['power_policy_name'],
+            maint_policy_name="default",
+            name=inputdict['service_profile_name'],
+            power_sync_policy_name="",
+            resolve_remote="yes")
         self.handle.add_mo(mo)
         try:
             self.handle.commit()
@@ -5728,7 +6002,7 @@ class UCSTasks:
         :ipaddress: ipaddress of the Fabric Interconnect
         :username: username of the fabric interconnect
         :password: password of the fabric interconnect
-        :return: Returns the status of the execution 
+        :return: Returns the status of the execution
         """
 
         obj = result()
@@ -5755,28 +6029,914 @@ class UCSTasks:
                       "Blade firmware task completed")
         return obj
 
-    def get_sp_wwpn(self, keys):
+    def ucs_configure_fc_storage_port(self, inputdict, logfile):
         """
-        Return the fibre channel wwpn addresses
-        of a service profile
+        Configure FC storage port
+
+        :param inputdict: Dictionary (Number of ports)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
         """
-        wwpn_list = []
-        ret = result()
-        fabricid = getArg(keys, 'fabric_id')
-        if fabricid == None:
-            ret.setResult(wwpn_list, PTK_OKAY, "success")
-            return ret
-        res = self.get_ucs_login(fabricid)
-        if res.getStatus() != PTK_OKAY:
-            return parseTaskResult(res)
-        handle = res.getResult()
-        sps = handle.query_classid("lsServer")
-        for sp in sps:
-            if sp.type != "updating-template" and sp.dn != '' and sp.pn_dn != '':
-                mo = handle.query_dn(sp.dn)
-                vnic_data = handle.query_children(in_mo=mo, class_id='VnicFc')
-                for fc_vnic in vnic_data:
-                    wwpn_list.append(fc_vnic.addr)
-        handle.logout()
-        res.setResult(wwpn_list, PTK_OKAY, "success")
-        return res
+
+        obj = result()
+        loginfo("configure_fc_storage_port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        loginfo("No of FC Storage ports to be configured: " +
+                inputdict['fc_ports'])
+
+        message = "\nFC Ports to be configured as Storage port: " + \
+            inputdict['fc_ports']
+
+        customlogs(message, logfile)
+        ports_range = inputdict['fc_ports'].split('|')
+        for i in ports_range:
+            i = "%s" % i
+            mo = FabricFcEstcEp(
+                parent_mo_or_dn="fabric/fc-estc/" +
+                inputdict['ucs_fabric_id'],
+                name="",
+                fill_pattern="arbff",
+                auto_negotiate="yes",
+                usr_lbl="",
+                slot_id="1",
+                admin_state="enabled",
+                port_id=i)
+            self.handle.add_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nConfiguring FC storage ports failed\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Configuring FC Storage ports failed")
+            return obj
+        customlogs("\nFC Storage Port configured successfully\n", logfile)
+        dicts['fc_ports'] = inputdict['fc_ports']
+        dicts['fabric_id'] = inputdict['ucs_fabric_id']
+        obj.setResult(dicts, PTK_OKAY, "Storage ports configured successfully")
+        return obj
+
+    def ucs_unconfigure_fc_storage_port(self, inputdict, logfile):
+        """
+        Unconfigure FC storage port.
+
+        :param inputdict: Dictionary (Number of ports)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("unconfigure_fc_storage_port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        loginfo("No of FC Storage ports to be configured: " +
+                inputdict['fc_ports'])
+
+        message = "\nFC Ports to be configured as Storage port: " + \
+            inputdict['fc_ports']
+
+        customlogs(message, logfile)
+        ports_range = inputdict['fc_ports'].split('|')
+        for i in ports_range:
+            i = "%s" % i
+            mo = FabricFcSanEp(
+                parent_mo_or_dn="fabric/san/" +
+                inputdict['ucs_fabric_id'],
+                name="",
+                fill_pattern="arbff",
+                auto_negotiate="yes",
+                usr_lbl="",
+                slot_id="1",
+                admin_state="enabled",
+                port_id=i)
+            self.handle.add_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nUnconfiguring FC storage ports failed\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Unconfiguring FC Storage ports failed")
+            return obj
+        customlogs("\nFC Storage Port unconfigured successfully\n", logfile)
+        dicts['fc_ports'] = inputdict['fc_ports']
+        dicts['fabric_id'] = inputdict['ucs_fabric_id']
+        obj.setResult(dicts, PTK_OKAY, "Storage ports unconfigured successfully")
+        return obj
+
+    def ucs_assign_vsan_fc_storage_port(self, inputdict, logfile):
+        """
+        Assign Storage cloud VSAN on each of the FC port in both the Fabrics
+
+        :param inputdict: Dictionary (fc_ports,vsan_name)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("assign_storage_cloud_vsan_storage_port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        ports_range = inputdict['fc_ports'].split('|')
+        for i in ports_range:
+            i = "%s" % i
+            mo = FabricFcVsanPortEp(
+                parent_mo_or_dn="fabric/fc-estc/" +
+                inputdict['ucs_fabric_id'] +
+                "/net-" +
+                inputdict['vsan_name'],
+                name="",
+                switch_id=inputdict['ucs_fabric_id'],
+                auto_negotiate="yes",
+                slot_id="1",
+                admin_state="enabled",
+                port_id=i)
+            self.handle.add_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nAssigning VSAN to FC storage ports failed\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Assigning VSAN to FC Storage ports failed")
+            return obj
+        customlogs(
+            "\nStorage Cloud VSAN " +
+            inputdict['vsan_name'] +
+            " assigned to FC Storage Port successfully\n",
+            logfile)
+        dicts['fc_ports'] = inputdict['fc_ports']
+        dicts['fabric_id'] = inputdict['ucs_fabric_id']
+        obj.setResult(dicts, PTK_OKAY, "VSAN assigned to Storage ports successfully")
+        return obj
+
+    def ucs_assign_default_vsan_fc_storage_port(self, inputdict, logfile):
+        """
+        Assign default VSAN on each of the FC port in both the Fabrics
+
+        :param inputdict: Dictionary (fc_ports,vsan_name)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("ucs_assign_default_vsan_fc_storage_port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        ports_range = inputdict['fc_ports'].split('|')
+        for i in ports_range:
+            i = "%s" % i
+            mo = FabricFcVsanPortEp(
+                parent_mo_or_dn="fabric/fc-estc/net-default",
+                name="",
+                switch_id=inputdict['ucs_fabric_id'],
+                auto_negotiate="yes",
+                slot_id="1",
+                admin_state="enabled",
+                port_id=i)
+            self.handle.add_mo(mo, True)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nAssigning default VSAN to FC storage ports failed\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Assigning default VSAN to FC Storage ports failed")
+            return obj
+        customlogs("\nDefault VSAN assigned to FC Storage Port successfully\n", logfile)
+        dicts['fc_ports'] = inputdict['fc_ports']
+        dicts['fabric_id'] = inputdict['ucs_fabric_id']
+        obj.setResult(dicts, PTK_OKAY, "default VSAN assigned to Storage ports successfully")
+        return obj
+
+    def configureCiscoUCSCallHome(self, inputdict, logfile):
+        """
+        Configure Cisco UCS Call Home
+        :param inputdict: Dictionary ()
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Configure Cisco UCS Call Home")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        mo = self.handle.query_dn("call-home")
+        mo.policy_owner = "local"
+        mo.name = ""
+        mo.alert_throttling_admin_state = inputdict['throttling']
+        mo.admin_state = inputdict['state']
+        mo.descr = ""
+
+        mo_1 = CallhomeSource(
+            parent_mo_or_dn=mo,
+            email=inputdict['email'],
+            r_from=inputdict['email_from'],
+            contract=inputdict['contract_id'],
+            reply_to=inputdict['reply_to'],
+            site=inputdict['site_id'],
+            phone=inputdict['phone'],
+            contact=inputdict['contact'],
+            customer=inputdict['customer_id'],
+            urgency=inputdict['switch_priority'],
+            addr=inputdict['address'])
+        self.handle.set_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs(
+                "\nFailed to \n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to Configure Cisco UCS Call Home")
+            return obj
+        dicts['status'] = "SUCCESS"
+        customlogs("\nConfigured UCS Call Home successfully\n", logfile)
+        obj.setResult(
+            None,
+            PTK_OKAY,
+            "Configured UCS Call Home successfully")
+        return obj
+
+    def UnConfigureCiscoUCSCallHome(self, inputdict, logfile):
+        """
+        Unconfigure Cisco Call Home
+        :param inputdict: Dictionary ()
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Unconfigure Cisco Call Home")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        mo = self.handle.query_dn("call-home")
+        mo.policy_owner = "local"
+        mo.name = ""
+        mo.alert_throttling_admin_state = inputdict['throttling']
+        mo.admin_state = inputdict['state']
+        mo.descr = ""
+
+        self.handle.set_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs(
+                "\nFailed to \n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to Unconfigure Cisco Call Home")
+            return obj
+
+    def ucs_set_fc_switching_mode(self, inputdict, logfile):
+        """
+        Set Fibre channel switching mode to switching
+
+        :param inputdict: Dictionary (Fabric ID)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("ucs_set_fc_switching_mode")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        # Set the FC switching mode restarts both the fabric interconnects in a cluster
+        mo = FabricSanCloud(parent_mo_or_dn="fabric", mode="switch")
+        self.handle.add_mo(mo, True)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nUnable to set Fibre Channel switching mode to switching\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Setting Fibre channel switching mode to switching failed")
+            return obj
+
+        loginfo("waiting for both the fabric interconnects to restart after configuring switching mode")
+        ucs_mac_id = inputdict['sec_fabric_id']
+        cred = get_device_credentials(key="mac", value=ucs_mac_id)
+        fabric_ip = cred['vipaddress']
+        ipaddr = cred['ipaddress']
+        customlogs("Waiting for subordinate FI to reboot\n", logfile)
+
+        ucsm = UCSManager()
+        ucs_status = ucsm.is_ucsm_up(ipaddr)
+        if ucs_status == "ucs down":
+            loginfo("Verifying the reachability of subordinate FI " + ipaddr)
+            ucsm.verify_ucsm_accessible(ipaddr)
+            ucsm.verify_ucsm_accessible(fabric_ip)
+        # acknowledge primary fabric interconnect reboot
+        loginfo("acknowledge primary fi reboot")
+        time.sleep(200)  # time required for subordinate to come from inapplicable state
+        customlogs("Subordinate FI rebooted successfully\n", logfile)
+        mo = FirmwareAck(parent_mo_or_dn="sys/fw-system", admin_state="trigger-immediate")
+        self.handle.add_mo(mo, True)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("Unable to reboot primary FI", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Unable to firmware acknowledge primary FI")
+            return obj
+
+        ucs_pri_mac_id = inputdict['pri_fabric_id']
+        cred = get_device_credentials(key="mac", value=ucs_pri_mac_id)
+        fabric_ip = cred['vipaddress']
+        pri_ipaddr = cred['ipaddress']
+        customlogs("Waiting for primary FI to reboot\n", logfile)
+
+        ucsm = UCSManager()
+        ucs_status = ucsm.is_ucsm_up(pri_ipaddr)
+        if ucs_status == "ucs down":
+            loginfo("Verifying the reachability of primary FI " + pri_ipaddr)
+            ucsm.verify_ucsm_accessible(pri_ipaddr)
+            ucsm.verify_ucsm_accessible(fabric_ip)
+        customlogs("Primary FI rebooted successfully\n", logfile)
+        customlogs("\nFibre Channel switching mode configured successfully\n", logfile)
+        obj.setResult(dicts, PTK_OKAY, "Switching port mode configure successfully")
+        return obj
+
+    def ucs_set_fc_endhost_mode(self, inputdict, logfile):
+        """
+        Set Fibre channel switching mode to end host
+
+        :param inputdict: Dictionary (Fabric ID)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("ucs_set_fc_endhost_mode")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        # Set the FC switching mode restarts both the fabric interconnects in a cluster
+        mo = FabricSanCloud(parent_mo_or_dn="fabric", mode="end-host")
+        self.handle.add_mo(mo, True)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nUnable to set Fibre Channel switching mode to end host\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Setting Fibre channel mode to endhost failed")
+            return obj
+        customlogs("\nFibre Channel switching mode configured successfully\n", logfile)
+        obj.setResult(dicts, PTK_OKAY, "FC End host mode configured successfully")
+
+        loginfo("waiting for both the fabric interconnects to restart after configuring switching mode")
+        ucs_mac_id = inputdict['sec_fabric_id']
+        cred = get_device_credentials(key="mac", value=ucs_mac_id)
+        fabric_ip = cred['vipaddress']
+        ipaddr = cred['ipaddress']
+        customlogs("Waiting for subordinate FI to reboot\n", logfile)
+
+        ucsm = UCSManager()
+        ucs_status = ucsm.is_ucsm_up(ipaddr)
+        if ucs_status == "ucs down":
+            loginfo("Verifying the reachability of subordinate FI " + ipaddr)
+            ucsm.verify_ucsm_accessible(ipaddr)
+            ucsm.verify_ucsm_accessible(fabric_ip)
+        # acknowledge primary fabric interconnect reboot
+        loginfo("acknowledge primary fi reboot")
+        # time.sleep(200) #time required for subordinate to come from inapplicable state
+        mo = FirmwareAck(parent_mo_or_dn="sys/fw-system", admin_state="trigger-immediate")
+        self.handle.add_mo(mo, True)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("Unable to reboot primary FI", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Unable to firmware acknowledge primary FI")
+            return obj
+
+        ucs_pri_mac_id = inputdict['pri_fabric_id']
+        cred = get_device_credentials(key="mac", value=ucs_pri_mac_id)
+        fabric_ip = cred['vipaddress']
+        pri_ipaddr = cred['ipaddress']
+        customlogs("Waiting for primary FI to reboot\n", logfile)
+
+        ucsm = UCSManager()
+        ucs_status = ucsm.is_ucsm_up(pri_ipaddr)
+        if ucs_status == "ucs down":
+            loginfo("Verifying the reachability of primary FI " + pri_ipaddr)
+            ucsm.verify_ucsm_accessible(pri_ipaddr)
+            ucsm.verify_ucsm_accessible(fabric_ip)
+        return obj
+
+    def ucsCreateStorageVSAN(self, inputdict, logfile):
+        """
+        Create Storage vSAN for UCS Direct connectivity to FlashArray
+        :param inputdict: Dictionary (vsan_name,fabric_id,vsan_id,fcoe_vlan)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Create_Storage_VSAN")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        loginfo("VSAN Name: " + inputdict['vsan_name'])
+        loginfo("Fabric ID: " + inputdict['fabric_id'])
+        loginfo("VSAN ID: " + inputdict['vsan_id'])
+        loginfo("FCoE VLAN ID: " + inputdict['fcoe_vlan'])
+        loginfo("Zoning State: " + inputdict['zoning_state'])
+
+        message = "VSAN Name: " + inputdict['vsan_name'] + "\nFabric ID: " + inputdict['fabric_id'] + "\nVSAN Id: " + \
+            inputdict['vsan_id'] + "\nFCoE Id: " + inputdict['fcoe_vlan'] + "\nZoning State: " + inputdict['zoning_state']
+
+        customlogs(message, logfile)
+        fabric_id = "fabric/fc-estc/" + inputdict['ucs_fabric_id']
+        mo = FabricVsan(
+            parent_mo_or_dn=fabric_id,
+            name=inputdict['vsan_name'],
+            fcoe_vlan=inputdict['fcoe_vlan'],
+            zoning_state=inputdict['zoning_state'],
+            id=inputdict['vsan_id'])
+        self.handle.add_mo(mo, True)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nStorage VSAN creation failed\n", logfile)
+            obj.setResult(dicts, PTK_INTERNALERROR, "VSAN creation failed")
+            return obj
+        customlogs("\nStorage VSAN is created successfully\n", logfile)
+        dicts['vsan'] = inputdict['vsan_name']
+        dicts['vsan_name'] = fabric_id + \
+            "/net-" + inputdict['vsan_name']
+        obj.setResult(dicts, PTK_OKAY, "VSAN creation successful")
+        return obj
+
+    def ucsDeleteStorageVSAN(self, inputdict, logfile):
+        """
+        Delete Storage Cloud vSAN
+        :param inputdict: Dictionary (vsan_name)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("delete_storage_VSAN")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+        mo = self.handle.query_dn(
+            "fabric/fc-estc/" + inputdict['ucs_fabric_id'] + "/net-" + inputdict['vsan_name'])
+        if mo is None:
+            customlogs(
+                "\n VSAN " + inputdict['vsan_name'] + " does not exist\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to delete VSAN")
+            return obj
+
+        self.handle.remove_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nStorage VSAN deletion failed\n", logfile)
+            obj.setResult(dicts, PTK_INTERNALERROR, "Storage VSAN deletion failed")
+            return obj
+        customlogs(
+            "\nStorage Cloud VSAN " + inputdict['vsan_name'] + " deleted successfully\n", logfile)
+        obj.setResult(dicts, PTK_OKAY, "VSAN deletion successful")
+        return obj
+
+    def ucsConfigureAppliancePorts(self, inputdict, logfile):
+        """
+        Configure Ports connected to storage array as Appliance port
+        :param inputdict: Dictionary (vsan_name,fabric_id,vsan_id,fcoe_vlan)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Configure_Appliance_Port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        loginfo("Appliance port: " + inputdict['ports'])
+
+        message = "Appliance port: " + inputdict['ports']
+
+        customlogs(message, logfile)
+        parent_mo = "fabric/eth-estc/" + inputdict['ucs_fabric_id']
+
+        ports_list = []
+        if 'ports' in inputdict:
+            ports_list = inputdict['ports'].split('|')
+            for port in ports_list:
+                mo = FabricEthEstcEp(
+                    parent_mo_or_dn=parent_mo,
+                    port_mode="trunk",
+                    name="",
+                    prio="best-effort",
+                    flow_ctrl_policy="default",
+                    admin_speed="10gbps",
+                    usr_lbl="",
+                    auto_negotiate="yes",
+                    slot_id="1",
+                    admin_state="enabled",
+                    pin_group_name="",
+                    port_id=port,
+                    nw_ctrl_policy_name="default")
+                self.handle.add_mo(mo)
+
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nAppliance Port configuration failed\n", logfile)
+            obj.setResult(dicts, PTK_INTERNALERROR, "Appliance port configuration failed")
+            return obj
+        customlogs("\nAppliance port configured successfully\n", logfile)
+        dicts['ports'] = inputdict['ports']
+        obj.setResult(dicts, PTK_OKAY, "Appliance port configured successfully")
+        return obj
+
+    def ucsUnconfigureAppliancePorts(self, inputs, outputs, logfile):
+        """
+        Unconfigure ports connected to storage array(Appliance ports)
+        :param inputs: Dictionary (ports)
+        :param outputs: Output from task execution
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("UCS Unconfigure Appliance Ports")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        if 'ports' in inputs:
+            uplink_ports_list = inputs['ports'].split('|')
+            for port in uplink_ports_list:
+                mo = self.handle.query_dn(
+                    "fabric/eth-estc/" +
+                    inputs['ucs_fabric_id'] +
+                    "/phys-eth-slot-1-port-" +
+                    port)
+                self.handle.remove_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nFailed to unconfigure appliance ports\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to unconfigure appliance ports")
+            return obj
+        customlogs(
+            "\nAppliance ports " + inputs['ports'] + " for FI " +
+            inputs['ucs_fabric_id'] + " unconfigured successfully\n",
+            logfile)
+        customlogs("\nAppliance ports unconfigured successfully\n", logfile)
+        obj.setResult(
+            dicts,
+            PTK_OKAY,
+            "Appliance ports unconfigured successfully")
+        return obj
+
+    def ucsCreateNCPForAppliancePort(self, inputdict, logfile):
+        """
+        Create network control policy
+        :param inputdict: Dictionary (name,cdp,mac_mode,uplink_fail,forge,lldp_tra,lldp_rec)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Create Network Control Policy for Appliance Port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        message = "Name: " + inputdict['name'] + "\nCDP: " + inputdict['cdp'] + "\nMAC Register mode: " + inputdict[
+            'mac_mode'] + "\nAction on Uplink fail: " + \
+            inputdict['uplink_fail'] + "\nForge: " + inputdict['forge'] + "\nLLDP Transmit: " + \
+            inputdict['lldp_tra'] + "\nLLDP Receive: " + inputdict['lldp_rec']
+        loginfo("Create Network Control Policy parameters = " + message)
+        customlogs(message, logfile)
+
+        mo = NwctrlDefinition(
+            parent_mo_or_dn="fabric/eth-estc",
+            lldp_transmit=inputdict['lldp_tra'],
+            name=inputdict['name'],
+            lldp_receive=inputdict['lldp_rec'],
+            mac_register_mode=inputdict['mac_mode'],
+            policy_owner="local",
+            cdp=inputdict['cdp'],
+            uplink_fail_action=inputdict['uplink_fail'],
+            descr=inputdict['descr'])
+        DpsecMac(
+            parent_mo_or_dn=mo,
+            forge=inputdict['forge'],
+            policy_owner="local",
+            name="",
+            descr="")
+        self.handle.add_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nFailed to Create Network Control Policy\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to create network control policy")
+            return obj
+
+        customlogs("\nNetwork Control Policy for Appliance port created successfully\n", logfile)
+        dicts['name'] = inputdict['name']
+        obj.setResult(
+            dicts,
+            PTK_OKAY,
+            "Network control policy created successfully")
+        return obj
+
+    def ucsDeleteNCPForAppliancePorts(self, inputs, outputs, logfile):
+        """
+        Delete network control policy for appliance ports
+        :param inputs: Dictionary (name)
+        :param outputs: name : network control policy name
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Delete Network Control Policy")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+        mo = self.handle.query_dn("fabric/eth-estc/nwctrl-" + outputs['name'])
+        self.handle.remove_mo(mo)
+
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs("\nFailed to Delete Network Control Policy\n", logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to delete network control policy")
+            return obj
+        customlogs("\nNetwork Control Policy for appliance ports deleted successfully\n", logfile)
+        obj.setResult(
+            None,
+            PTK_OKAY,
+            "Network control policy deleted successfully")
+        return obj
+
+    def ucsApplyPoliciesToAppliancePorts(self, inputdict, logfile):
+        """
+        Apply Network Control policy and VLAN to the appliance port
+        :param inputdict: Dictionary (ports, ncp_name, vlan)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Apply policies to Appliance Port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        message = "Appliance Interfaces: " + inputdict['ports'] + "\nNetwork Control Policy: " + inputdict['ncp_name'] + \
+            "\nAppliance VLAN: " + inputdict[
+            'vlan']
+        loginfo("Apply policies and VLAN to Appliance ports: " + message)
+        customlogs(message, logfile)
+        ports = inputdict['ports'].split('|')
+        for port in ports:
+            # Set the appliance VLAN as native in Appliance port
+            mo = FabricEthVlanPortEp(
+                parent_mo_or_dn="fabric/eth-estc/" +
+                inputdict['ucs_fabric_id'] +
+                "/net-" +
+                inputdict['vlan'],
+                name="",
+                is_native="yes",
+                switch_id=inputdict['ucs_fabric_id'],
+                auto_negotiate="yes",
+                slot_id="1",
+                admin_state="enabled",
+                port_id=port)
+            self.handle.add_mo(mo, True)
+            # Remove the default default vlan
+            mo = self.handle.query_dn(
+                "fabric/eth-estc/net-default/phys-switch-" +
+                inputdict['ucs_fabric_id'] +
+                "-slot-1-port-" +
+                port)
+            self.handle.remove_mo(mo)
+
+            mo = self.handle.query_dn(
+                "fabric/eth-estc/" +
+                inputdict['ucs_fabric_id'] +
+                "/phys-eth-slot-1-port-" +
+                port)
+            mo.prio = "best-effort"
+            mo.flow_ctrl_policy = "default"
+            mo.auto_negotiate = "yes"
+            mo.admin_state = "enabled"
+            mo.pin_group_name = ""
+            mo.port_mode = "trunk"
+            mo.nw_ctrl_policy_name = inputdict['ncp_name']
+
+            self.handle.set_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs(
+                "\nFailed to apply network control policy and VLAN to appliance interfaces\n",
+                logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to create network control policy")
+            return obj
+
+        customlogs(
+            "\nNetwork Control Policy and VLAN set to appliance interfaces successfully\n",
+            logfile)
+        obj.setResult(
+            dicts,
+            PTK_OKAY,
+            "Policies set to appliance interfaces successfully")
+        return obj
+
+    def ucsRemovePoliciesFromAppliancePorts(self, inputdict, logfile):
+        """
+        Remove Network Control policy and VLAN from the appliance port
+        :param inputdict: Dictionary (ports, ncp_name, vlan)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+
+        obj = result()
+        loginfo("Remove policies from Appliance Port")
+        dicts = {}
+
+        if self.handle is None or self.handle_status != True:
+            obj.setResult(None, PTK_INTERNALERROR,
+                          "Unable to connect to UCS")
+            return obj
+
+        message = "Appliance Interfaces: " + inputdict['ports'] + "\nNetwork Control Policy: " + inputdict['ncp_name'] + \
+            "\nAppliance VLAN: " + inputdict[
+            'vlan']
+        loginfo("Remove policies and VLAN from Appliance ports: " + message)
+        customlogs(message, logfile)
+        ports = inputdict['ports'].split('|')
+        for port in ports:
+            # Set the  default VLAN as native in Appliance port and remove the Appliance VLAN
+            mo = FabricEthVlanPortEp(
+                parent_mo_or_dn="fabric/eth-estc/net-default",
+                name="",
+                is_native="yes",
+                switch_id=inputdict['ucs_fabric_id'],
+                auto_negotiate="yes",
+                slot_id="1",
+                admin_state="enabled",
+                port_id=port)
+            self.handle.add_mo(mo, True)
+
+            mo = self.handle.query_dn(
+                "fabric/eth-estc/" +
+                inputdict['ucs_fabric_id'] +
+                "/net-" +
+                inputdict['vlan'] +
+                "/phys-switch-" +
+                inputdict['ucs_fabric_id'] +
+                "-slot-1-port-" +
+                port)
+            self.handle.remove_mo(mo)
+
+            mo = self.handle.query_dn(
+                "fabric/eth-estc/" +
+                inputdict['ucs_fabric_id'] +
+                "/phys-eth-slot-1-port-" +
+                port)
+            mo.prio = "best-effort"
+            mo.flow_ctrl_policy = "default"
+            mo.auto_negotiate = "yes"
+            mo.admin_state = "enabled"
+            mo.pin_group_name = ""
+            mo.port_mode = "trunk"
+            mo.nw_ctrl_policy_name = ""
+
+            self.handle.set_mo(mo)
+        try:
+            self.handle.commit()
+        except UcsException as e:
+            customlogs(str(e), logfile)
+            customlogs(
+                "\nFailed to remove network control policy and VLAN from appliance interfaces\n",
+                logfile)
+            obj.setResult(
+                dicts,
+                PTK_INTERNALERROR,
+                "Failed to create network control policy")
+            return obj
+
+        customlogs(
+            "\nNetwork Control Policy and VLAN reset in appliance interfaces successfully\n",
+            logfile)
+        obj.setResult(
+            dicts,
+            PTK_OKAY,
+            "Policies removed from appliance interfaces successfully")
+        return obj

@@ -10,7 +10,6 @@ from pure_dir.infra.logging.logmanager import *
 from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from xml.dom.minidom import *
-import xmltodict
 import glob
 import importlib
 import os
@@ -48,13 +47,3 @@ def tasks_list_api(htype=''):
     return obj
 
 
-def library_task_information_api(tid):
-    # TODO Unimplemented
-    obj.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return obj
-
-
-def library_task_list_api():
-    # TODO Unimplemented
-    obj.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return obj

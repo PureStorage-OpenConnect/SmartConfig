@@ -7,28 +7,34 @@
 """
 
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import *
+from pure_dir.infra.common_helper import getAsList
+#from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file, get_job_dump_file, get_shelf_file
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import update_workflow_status, update_overall_status
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import group_job_status_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import update_batch_job_status
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import  g_flash_stack_types, workflowprepare_helper
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import execute_task, jobexecute, jobexecute_helper
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_rollback import get_htype_wid_from_jobid
-
+import os
+import shelve
+import xmltodict
+import threading
+from xml.dom.minidom import parse
 
 def group_job_retry(doc, jid):
     """
     Retry a group job
 
-    :param doc: XML document object 
+    :param doc: XML document object
     :param jid: Job ID
 
     """
     res = result()
     failed_job = get_group_workflow_failed_job(jid)
-    if failed_job == None:
+    if failed_job is None:
         loginfo("No Failed Job Found in group job id=" + jid)
         res.setResult(None, PTK_INTERNALERROR, _(
             "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
@@ -49,13 +55,13 @@ def group_job_retry(doc, jid):
     for tmp_wf in wfs:
         if tmp_wf['@wexecid'] == failed_job['execid']:
             wf = tmp_wf
-    if wf == None:
+    if wf is None:
         loginfo("Unable to locate workflow")
         res.setResult(None, PTK_INTERNALERROR, "Unable to locate WF")
         return res
 
     wf = _getNextWf(doc, wf, ret)
-    if wf == None:
+    if wf is None:
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     seqno = 0
@@ -81,7 +87,7 @@ def group_job_retry(doc, jid):
             update_overall_status(jid, TASK_STATUS_FAILED)
 
         wf = _getNextWf(doc, wf, ret)
-        if wf == None:
+        if wf is None:
             break
 
     update_overall_status(jid, TASK_STATUS_COMPLETED)
@@ -134,7 +140,7 @@ def group_job_retry_precheck_helper(jobid):
         res.setResult(None, PTK_FAILED, err_msg)
         return res
     failed_job = get_group_workflow_failed_job(jobid)
-    if failed_job == None:
+    if failed_job is None:
         loginfo("No Failed Job Found in group job id=" + jobid)
         res.setResult(None, PTK_INTERNALERROR, err_msg)
         return res
@@ -180,10 +186,10 @@ def job_retry_precheck(jobid):
 
         batches = doc.getElementsByTagName('workflow')
         for batch in batches:
-            if batch.hasAttribute('jid') == True and batch.getAttribute('status') == 'FAILED':
+            if batch.hasAttribute('jid') and batch.getAttribute('status') == 'FAILED':
                 failed_jid = batch.getAttribute('jid')
                 break
-        if failed_jid == None:
+        if failed_jid is None:
             loginfo("No failed Job in batch Job")
             res.setResult(None, PTK_FAILED, err_msg)
             return res
@@ -205,12 +211,12 @@ def job_retry_api(stacktype, jobid):
     """
 
     obj = result()
-    if stacktype != None and jobid != None:
+    if stacktype is not None and jobid is not None:
         loginfo("can't specify both jobid and stacktype")
         obj.setResult(None, PTK_FAILED,
                       _("PDT_INVALID_INPUT_ERR_MSG"))
         return obj
-    if stacktype != None:
+    if stacktype is not None:
         jobid = stacktype
 
     res = job_retry_precheck(jobid)
@@ -282,33 +288,33 @@ def job_retry_batch(jobid):
     batches = doc.getElementsByTagName('workflow')
     pending_wfs = []
     for batch in batches:
-        if batch.hasAttribute('jid') == True and batch.getAttribute('status') == 'FAILED':
+        if batch.hasAttribute('jid') and batch.getAttribute('status') == 'FAILED':
             failed_jid = batch.getAttribute('jid')
             failed_wid = batch.getAttribute('id')
             break
 
     for batch in batches:
         if batch.hasAttribute('jid') == False and batch.getAttribute('status') == 'READY':
-            wf = {'id':  batch.getAttribute(
+            wf = {'id': batch.getAttribute(
                 'id'), 'order': batch.getAttribute('order')}
             pending_wfs.append(wf)
 
     pending_wfs = sorted(pending_wfs, key=lambda x: x["order"])
 
-    if failed_jid == None:
+    if failed_jid is None:
         loginfo("No failed Job in batch Job")
         res.setResult(None, PTK_FAILED, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
 
-    update_batch_job_status(jobid, failed_wid,  failed_jid, 'EXECUTING')
+    update_batch_job_status(jobid, failed_wid, failed_jid, 'EXECUTING')
     retry_res = job_retry_standalone(failed_jid)
     if retry_res.getStatus() != PTK_OKAY:
         loginfo("Workflow Failed again" + get_batch_status_file(jobid))
         ''' The failure can be either from  a task failed earlier or could be any other task in the workflow '''
-        update_batch_job_status(jobid, failed_wid,  failed_jid, 'FAILED')
+        update_batch_job_status(jobid, failed_wid, failed_jid, 'FAILED')
         return retry_res
 
-    update_batch_job_status(jobid, failed_wid,  failed_jid, 'COMPLETED')
+    update_batch_job_status(jobid, failed_wid, failed_jid, 'COMPLETED')
     for wf in pending_wfs:
         res = workflowprepare_helper(wf['id'])
         if res.getStatus() != PTK_OKAY:
@@ -317,12 +323,12 @@ def job_retry_batch(jobid):
             return res
         job_details = res.getResult()
         update_batch_job_status(
-            jobid, wf['id'],  job_details['jobid'], 'EXECUTING')
+            jobid, wf['id'], job_details['jobid'], 'EXECUTING')
         jobexecute_helper(job_details['jobid'])
         res = group_job_status_api(job_details['jobid'])
         job_status = res.getResult()
         update_batch_job_status(
-            jobid, wf['id'],  job_details['jobid'], job_status['overallstatus'])
+            jobid, wf['id'], job_details['jobid'], job_status['overallstatus'])
         if job_status['overallstatus'] == JOB_STATUS_FAILED:
             break
 
@@ -346,7 +352,7 @@ def trigger_job_from_dump(pjid, jid):
     shelf = shelve.open(get_job_dump_file(jid), flag="c")
     cur_task = shelf['cur_task']
 
-    record = shelve.open(get_shelf_file(pjid), flag="c",  writeback=True)
+    record = shelve.open(get_shelf_file(pjid), flag="c", writeback=True)
 
     loginfo("Retrying :" + cur_task['@name'])
     seq_no = get_job_seq_no(jid, record)
@@ -355,8 +361,14 @@ def trigger_job_from_dump(pjid, jid):
 
     customlogs("<b>Retrying Task</b> '%s'...\n" %
                cur_task['@name'], shelf['logfile'])
-    ret = execute_task(shelf['cur_task'], shelf['seqno'], record['job'][str(seq_no)]['record'],
-                       shelf['task_list'], shelf['outputdicts'], g_obj_list, shelf['logfile'], shelf['hw_type'])
+    ret = execute_task(shelf['cur_task'],
+                       shelf['seqno'],
+                       record['job'][str(seq_no)]['record'],
+                       shelf['task_list'],
+                       shelf['outputdicts'],
+                       g_obj_list,
+                       shelf['logfile'],
+                       shelf['hw_type'])
 
     if ret == -1:
         update_overall_status(jid, JOB_STATUS_FAILED)
@@ -372,7 +384,7 @@ def job_retry_standalone(jid):
 
     # Stanalone has two cases group workflow or individual workflow
     Retry a failed Job
-    :param jid: jobid 
+    :param jid: jobid
 
     """
     loginfo("job_retry_standalone")
@@ -405,5 +417,5 @@ def get_group_workflow_failed_job(jid):
     status_list = res.getResult()
     for job in status_list['taskstatus']:
         if job['status'] == 'FAILED':
-            return {'wid': job['id'], 'jid':  job['jid'], 'execid': job['execid']}
+            return {'wid': job['id'], 'jid': job['jid'], 'execid': job['execid']}
     return None

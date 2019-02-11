@@ -1,10 +1,10 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from distutils.version import LooseVersion
-
+from pure_dir.components.compute.ucs.ucs_upgrade import ucsbladeimages
 
 class UCSCreateHostFirmwarePackage:
     def __init__(self):
@@ -70,7 +70,7 @@ class UCSCreateHostFirmwarePackage:
         if rack_res.getStatus() != PTK_OKAY:
             return rack_res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_b_series_firmware_bundle(self, keys):
@@ -79,8 +79,8 @@ class UCSCreateHostFirmwarePackage:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -105,7 +105,7 @@ class UCSCreateHostFirmwarePackage:
                          for t in {tuple(d.items()) for d in bundle_result}]
 
         ucsm_logout(handle)
-        res.setResult(bundle_result, PTK_OKAY, "success")
+        res.setResult(bundle_result, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_c_series_firmware_bundle(self, keys):
@@ -114,8 +114,8 @@ class UCSCreateHostFirmwarePackage:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -135,7 +135,7 @@ class UCSCreateHostFirmwarePackage:
             bundle_result.append(
                 {'id': bundle.version, "selected": "1", "label": bundle.version})
         ucsm_logout(handle)
-        res.setResult(bundle_result, PTK_OKAY, "success")
+        res.setResult(bundle_result, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_firmware_bundles(self, keys, bundle_type=None):
@@ -144,8 +144,8 @@ class UCSCreateHostFirmwarePackage:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -170,15 +170,15 @@ class UCSCreateHostFirmwarePackage:
                            'selected': '1', "label": "bundle_version"}
             bundle_result.append(bundle_dict)
         ucsm_logout(handle)
-        res.setResult(bundle_result, PTK_OKAY, "success")
+        res.setResult(bundle_result, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getrackpackage(self, keys):
         temp_list = []
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -191,10 +191,10 @@ class UCSCreateHostFirmwarePackage:
             if fm_version.type == 'system':
                 if temp_list:
                     selected = "0"
-                temp_list.append(
-                    {"id": fm_version.version + "C", "selected": selected, "label": fm_version.version + "C"})
+                temp_list.append({"id": fm_version.version + "C",
+                                  "selected": selected, "label": fm_version.version + "C"})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getbladepackage(self, keys):
@@ -202,8 +202,8 @@ class UCSCreateHostFirmwarePackage:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -216,10 +216,10 @@ class UCSCreateHostFirmwarePackage:
             if fm_version.type == 'system':
                 if temp_list:
                     selected = "0"
-                temp_list.append(
-                    {"id": fm_version.version + "B", "selected": selected, "label": fm_version.version + "B"})
+                temp_list.append({"id": fm_version.version + "B",
+                                  "selected": selected, "label": fm_version.version + "B"})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getexcludedcomp(self, keys):
@@ -251,29 +251,107 @@ class UCSCreateHostFirmwarePackage:
                {"id": "storage-controller-onboard-device-cpld", "selected": "0",
                 "label": "Storage Controller Onboard Device Cpld"}
                ]
-        res.setResult(val, PTK_OKAY, "success")
+        res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class UCSCreateHostFirmwarePackageInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", svalue="", mapval="", static_values="", mandatory="1", order=1)
-    name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Firmware Package', api="", dt_type="string", label="Name", mapval="0", name="name",
-                   static_values="", static="False", mandatory='1', svalue="default", order=2)
-    desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Description', api="", dt_type="string", label="Description", mapval="0", name="desc",
-                   static_values="", static="False", mandatory='1', svalue="default firmware package", order=3)
-    blade_pkg = Dropdown(hidden='False', isbasic='True', helptext='Blade Package', api="get_b_series_firmware_bundle()|[fabric_id:1:fabric_id.value]",
-                         dt_type="string", label="Blade Package", mapval="0", mandatory="1", name="blade_pkg", static="False", static_values="", svalue="", order=4)
-    rack_pkg = Dropdown(hidden='False', isbasic='True', helptext='Rack Package', api="get_c_series_firmware_bundle()|[fabric_id:1:fabric_id.value]", dt_type="string", label="Rack Package", mapval="0", name="rack_pkg",
-                        static="False", mandatory='0', static_values="", svalue="", order=5, validation_criteria="None")
-    excluded_comp = Checkbox(hidden='False', isbasic='True', helptext='Excluded package', api="getexcludedcomp()", dt_type="string", label="Excluded Components", mapval="0", mandatory='1',
-                             name="excluded_comp", static="False", allow_multiple_values="0", static_values="", svalue="local-disk", order=6)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="1",
+        order=1)
+    name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Firmware Package',
+        api="",
+        dt_type="string",
+        label="Name",
+        mapval="0",
+        name="name",
+        static_values="",
+        static="False",
+        mandatory='1',
+        svalue="default",
+        order=2)
+    desc = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Description',
+        api="",
+        dt_type="string",
+        label="Description",
+        mapval="0",
+        name="desc",
+        static_values="",
+        static="False",
+        mandatory='1',
+        svalue="default firmware package",
+        order=3)
+    blade_pkg = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Blade Package',
+        api="get_b_series_firmware_bundle()|[fabric_id:1:fabric_id.value]",
+        dt_type="string",
+        label="Blade Package",
+        mapval="0",
+        mandatory="1",
+        name="blade_pkg",
+        static="False",
+        static_values="",
+        svalue="",
+        order=4,
+        validation_criteria="None")
+#Temporary fix
+    rack_pkg = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Rack Package',
+        api="get_c_series_firmware_bundle()|[fabric_id:1:fabric_id.value]",
+        dt_type="string",
+        label="Rack Package",
+        mapval="0",
+        name="rack_pkg",
+        static="False",
+        mandatory='0',
+        static_values="",
+        svalue="",
+        order=5,
+        validation_criteria="None")
+    excluded_comp = Checkbox(
+        hidden='False',
+        isbasic='True',
+        helptext='Excluded package',
+        api="getexcludedcomp()",
+        dt_type="string",
+        label="Excluded Components",
+        mapval="0",
+        mandatory='1',
+        name="excluded_comp",
+        static="False",
+        allow_multiple_values="0",
+        static_values="",
+        svalue="local-disk",
+        order=6)
 
 
 class UCSCreateHostFirmwarePackageOutputs:

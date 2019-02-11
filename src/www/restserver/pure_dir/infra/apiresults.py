@@ -22,6 +22,7 @@ PTK_CLIERROR = -9  # Switch CLI error
 PTK_RESOURCENOTAVAILABLE = -10  # resource not available
 PTK_PARTIAL_SUCCESS = -11  # partialy successfull operation
 PTK_FAILED = -12  # operation failed
+PTK_UNSUPPORTED = -13 #unsupported operation
 
 
 def parseResult(obj):

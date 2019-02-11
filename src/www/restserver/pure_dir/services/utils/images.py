@@ -3,18 +3,18 @@ from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.kickstart import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from xml.dom.minidom import *
-import xmltodict
 import os
 import os.path
 import shutil
 from pure_dir.infra.common_helper import *
+from pure_dir.components.common import * 
 import hashlib
 
 
 def md5sum(fname):
     """
     Returns the MD5 sum for the file
-    :param fname: 
+    :param fname:
 
     """
     hash_md5 = hashlib.md5()
@@ -23,7 +23,7 @@ def md5sum(fname):
             hash_md5.update(chunk)
             hashed_version = hash_md5.hexdigest()
     file_version = fname[fname.rindex('/') + 1:]
-    if os.path.exists(g_base_dir + 'file_version.xml') == True:
+    if os.path.exists(g_base_dir + 'file_version.xml'):
         doc = parse(g_base_dir + 'file_version.xml')
         versions = doc.getElementsByTagName("version")
         for version in versions:
@@ -36,8 +36,8 @@ def md5sum(fname):
 def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
     """
      Import an iso, save to iso store
-    :param uploadfile: Uploaded file 
-    :param iso_file: 
+    :param uploadfile: Uploaded file
+    :param iso_file:
     :param iso_image_type: image type
     """
     res = result()
@@ -52,7 +52,6 @@ def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
     if not val:
         res.setResult(True, PTK_NOTEXIST, "Invalid File")
         return res
-    ext = os.path.splitext(uploadfile.filename)[1]
     filepath = g_upload_path + "%s" % uploadfile.filename
     uploadfile.save(filepath)
     if image_sub_type:
@@ -74,7 +73,8 @@ def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
         # Check if images already exists
 
         for image in doc.getElementsByTagName('image'):
-            if image.getAttribute('name') == uploadfile.filename and image.getAttribute('type') == filetype and image.getAttribute('version') == version:
+            if image.getAttribute('name') == uploadfile.filename and image.getAttribute(
+                    'type') == filetype and image.getAttribute('version') == version:
                 res.setResult(True, PTK_OKAY, "Success")
                 return res
 
@@ -86,19 +86,6 @@ def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
     fd = open(g_base_dir + 'images.xml', 'w')
     fd.write(pretty_print(doc.toprettyxml(indent="")))
     fd.close()
-   # if ext == '.cfg':
-   #     obj = kickstart()
-   #     if iso_file:
-   #         status = obj.kickstart_iso(uploadfile, iso_file)
-   #     else:
-   #         status = False
-   #         res.setResult(status, PTK_INTERNALERROR, "Select ISO File")
-   #         return res
-
-   #     if status == True:
-   #         # deleteimage(iso_file)
-   #         res.setResult(status, PTK_OKAY, "Success")
-   #         return res
     res.setResult(True, PTK_OKAY, "Success")
     return res
 
@@ -106,7 +93,7 @@ def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
 def images_validate(uploadfile, imagetype):
     """
     Validate image type and images
-    :param imagetype:  
+    :param imagetype:
     :param uploadfile:
 
     """
@@ -150,6 +137,9 @@ def list_images(imagetype=''):
 def iso_binding(isofile, kickstart):
     isofilepath = g_upload_path + "/" + isofile
     if kickstart == "":
+        if os.path.exists(g_upload_path + "/" + "bundle"):
+            shutil.rmtree(g_upload_path + "/" + "bundle")
+        os.makedirs(g_upload_path + "/" + "bundle")
         os.system("cp %s %s" % (isofilepath, g_upload_path + "/" + "bundle"))
         return True
     kickstartfilepath = g_upload_path + "/" + kickstart
@@ -175,7 +165,8 @@ def iso_binding(isofile, kickstart):
     os.makedirs(g_upload_path + "/" + "bundle")
     bundle = g_upload_path + "/" + "bundle/" + isofile
     os.system(
-        "genisoimage -relaxed-filenames -J -R -o %s -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table %s" % (bundle, mount_path))
+        "genisoimage -relaxed-filenames -J -R -o %s -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table %s" %
+        (bundle, mount_path))
     shutil.rmtree(mount_path)
     return True
 
@@ -183,13 +174,13 @@ def iso_binding(isofile, kickstart):
 def delete_image(imagename):
     """
     Delete an image from ISO Store
-    :param imagename: 
+    :param imagename:
 
     """
     res = result()
     obj = Images()
     status = obj.deleteimage(imagename)
-    if status == True:
+    if status:
         res.setResult(True, PTK_OKAY, "Success")
         return res
     else:

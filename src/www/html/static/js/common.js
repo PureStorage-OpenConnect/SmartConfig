@@ -17,10 +17,11 @@ $(document).ready(function() {
 		}
 	});
 
-	/* Notification scripts */
+	/* Event register for closing a notification */
 	$('body').delegate('.nn-alert', 'click', function(e) {
 		hideAlert($(this), 100);
 	});
+	
 	function bindAnimationEnd() {
 		//listen to animation end, then hide the element definitely
 		$('.nn-alert').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
@@ -30,6 +31,8 @@ $(document).ready(function() {
 	}
 	//one call for handwritten html alerts
 	bindAnimationEnd();
+
+	/* Generate a notification */
 	createAlert = function(opts) {
 		notificationCnt++;
 		var icon, //any icon form fontawesome would fit		eg: 'paperclip', 'exclamation-triangle', 'exclamation-circle', 'info-circle', 'check', 'check-circle'
@@ -49,13 +52,25 @@ $(document).ready(function() {
 		
 		//Hide alerts after 5 sec
 		hideAlert("#notification_" + notificationCnt, 5000);
-	}
+	};
+
+	/* Event register for closing the notification */
+	$('body').delegate('.ns-close', 'click', function(e) {
+		$('.ns-box').removeClass('ns-show');
+		setTimeout(function() { $('.ns-box').addClass('ns-hide'); }, 500);
+		setTimeout(function() { $('.ns-box').remove(); }, 900);
+	});
 	/* Notification scripts */
 	
+	/* Event register for closing a model popup */
 	$('body').delegate('.closeModel', 'click', function(e) {
 		$(this).closest('.modal').find('.form-footer').find('button').first().trigger('click');
 	});
+	$('body').delegate('.closePopup', 'click', function(e) {
+		$('.modal-inset .dialog').remove();
+	});
 	
+	/* Event register for checking the input for a numeric value */
 	$('body').delegate('input.numeric', 'keypress', function(e) {
 		if(e.keyCode != 8 && e.keyCode != 9 && e.keyCode != 16 && e.keyCode != 37 && e.keyCode != 39 && e.keyCode != 46) {
 			var regex = new RegExp("^[0-9]+$");
@@ -69,23 +84,12 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-	
 	$('body').delegate('input.numeric', 'keyup', function(e) {
 		if(e.keyCode != 8 && e.keyCode != 9 && e.keyCode != 16 && e.keyCode != 37 && e.keyCode != 39 && e.keyCode != 46 && $(this).attr('maxlength')) {
 			if($(this).val().length == $(this).attr('maxlength')) {
 				$(this).closest('.field-group').nextAll('.field-group').first().find(':input').focus();
 			}
 		}
-	});
-
-	$('body').delegate('.closePopup', 'click', function(e) {
-		$('.modal-inset .dialog').remove();
-	});
-
-	$('body').delegate('.ns-close', 'click', function(e) {
-		$('.ns-box').removeClass('ns-show');
-		setTimeout(function() { $('.ns-box').addClass('ns-hide'); }, 500);
-		setTimeout(function() { $('.ns-box').remove(); }, 900);
 	});
 });
 
@@ -126,23 +130,23 @@ var MyRequestsCompleted = (function() {
   * @desc it will generate a confirmation popup template
 */
 function popupConfirmation(style, msg) {
-	return '<div class="dialog">\
-		<div class="dialog-overlay"></div>\
-		<div class="dialog-content">\
-			<div class="widget-title center">' + localization['confirmation'] + '</div>\
-			<div class="dialog-body">' + msg + '</div>\
-			<div class="dialog-footer">\
-				<div class="form-group">\
-					<div class="pull-left">\
-						<button type="button" class="closePopup">' + localization['no'] + '</button>\
-					</div>\
-					<div class="pull-right">\
-						<button type="button" class="' + style + ' primary">' + localization['yes'] + '</button>\
-					</div>\
-				</div>\
-			</div>\
-		</div>\
-	</div>';
+	return '<div class="dialog">' +
+		'<div class="dialog-overlay"></div>' +
+		'<div class="dialog-content">' +
+			'<div class="widget-title center">' + localization['confirmation'] + '</div>' +
+			'<div class="dialog-body">' + msg + '</div>' +
+			'<div class="dialog-footer">' +
+				'<div class="form-group">' +
+					'<div class="pull-left">' +
+						'<button type="button" class="closePopup">' + localization['no'] + '</button>' +
+					'</div>' +
+					'<div class="pull-right">' +
+						'<button type="button" class="' + style + ' primary">' + localization['yes'] + '</button>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+		'</div>' +
+	'</div>';
 }
 
 /**
@@ -150,12 +154,12 @@ function popupConfirmation(style, msg) {
   * @param string $msg - messaage string to display
 */
 function showNotification(msg, sec) {
-	$('body').prepend('<div class="ns-box ns-growl ns-effect-genie ns-type-notice ns-show">\
-		<div class="ns-box-inner">\
-			<p>' + msg + '.</p>\
-		</div>\
-		<span class="ns-close"></span>\
-	</div>');
+	$('body').prepend('<div class="ns-box ns-growl ns-effect-genie ns-type-notice ns-show">' +
+		'<div class="ns-box-inner">' +
+			'<p>' + msg + '.</p>' +
+		'</div>' +
+		'<span class="ns-close"></span>' +
+	'</div>');
 	hideNotification(sec);
 }
 
@@ -228,11 +232,11 @@ function doImport(container, formContainer, isValidate, successCallback, errorCa
 }
 
 /**
-  * @desc 
-  * @param object $api - 
-  * @param object $successCallback - 
-  * @param object $errorCallback - 
-  * @param object $backgroundCallback - 
+  * @desc it will check the status of the background operation triggered eariler.
+  * @param object $api - parameters for the api call.
+  * @param object $successCallback - set of commands to execute if the request got success
+  * @param object $errorCallback - set of commands to execute incase of failure
+  * @param object $backgroundCallback - set of commands to execute when background operation successfully triggered
 */	
 function bgTaskInfo(api, successCallback, errorCallback, backgroundCallback) {
 	clearTimeout(autoLoad);
@@ -240,13 +244,14 @@ function bgTaskInfo(api, successCallback, errorCallback, backgroundCallback) {
 }
 
 /**
-  * @desc 
-  * @param object $api - 
-  * @param object $successCallback - 
-  * @param object $errorCallback - 
-  * @param object $backgroundCallback - 
+  * @desc wrapper for making a rest request 
+  * @param object $api - parameters for the api call.
+  * @param object $successCallback - set of commands to execute if the request got success
+  * @param object $errorCallback - set of commands to execute incase of failure
+  * @param object $backgroundCallback - set of commands to execute when background operation successfully triggered
 */
 function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) {
+	// Defaults for making a rest call
 	var defaults = {
 		url: 'System',
 		base_path: 'pure',
@@ -261,6 +266,8 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 		success_notify: false
 	};
 	var api = $.extend({}, defaults, api);
+
+	// Clear all validation error messages before making a rest call.
 	if(api.isValidate) {
 		var container = '';
 		if(typeof api.formContainer == 'object') {
@@ -274,7 +281,9 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 		$(container).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').removeClass('error');
 		$(container).find('.help-block').html('');
 	}
+	// Display a progressing spinner till the UI successfully receives the response.
 	var spinner_cnt = addProcessingSpinner(api.container);
+	// Form the request url and data
 	if(api.method != 'GET') api.data = JSON.stringify(api.data);
 	var sep, url = location.protocol + '//' + window.location.host + '/' + dev_mode + api.base_path + '/' + api.url + api_type;
 	if(api.query != '') {
@@ -292,18 +301,17 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 		success: function(response) {
 			if(typeof response == 'string')
 				response = $.parseJSON(response);
-			if(response.status.code == '2') {
+			if(response.status.code == '2') {		// Status code is 2 for background operations
 				successCallback(response);
 				removeProcessingSpinner(api.container, spinner_cnt);
 				if(response.status.taskid) {
 					api.data = {id: response.status.taskid};
 					autoLoad = setTimeout('bgTaskInfo(' + api + ', ' + successCallback + ', ' + errorCallback + ', ' + backgroundCallback + ');', settings.background_api_duration);
 				}
-			} else if(response.status.code == '1') {
-				//Confirmation popup
+			} else if(response.status.code == '1') {	// Status code is 1 to display a Confirmation popup
 				removeProcessingSpinner(api.container, spinner_cnt);
-				successCallback(response);
-			} else if(response.status.code == '0') {
+				successCallback(response);		// To trigger success callback
+			} else if(response.status.code == '0') {	// A successful response for server
 				if(response.status.taskid) {
 					if(response.status.progress != '100') {
 						api.data = {id: response.status.taskid};
@@ -316,20 +324,21 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 						autoLoad = setTimeout('bgTaskInfo(' + api + ', ' + successCallback + ', ' + errorCallback + ', ' + backgroundCallback + ');', settings.background_api_duration);
 					}
 				}
-				removeProcessingSpinner(api.container, spinner_cnt);
-				if(api.success_notify) {
+				removeProcessingSpinner(api.container, spinner_cnt);	// Remove the progressing spinner since the request got successful response.
+				if(api.success_notify) {		// To display a successful status notification.
 					createAlert({icon:'check-circle', title: localization['success'] + '!', color: 'green success', text: response.status.message, api: api.url});
 				}
-				successCallback(response);
-			} else if(response.status.code == '-20') {
+				successCallback(response);		// To trigger success callback
+			} else if(response.status.code == '-20') {	// Authentification failure.
 				$.removeCookie(settings.cookie_name);
 				$(location).attr('href', 'login.html');
-			} else {
+			} else {					// Other application errors.
 				removeProcessingSpinner(api.container, spinner_cnt);
 				if(api.url == 'TaskInfo') {
 					backgroundCallback(response);
 				} else {
-					if(api.notify) showError(response.status, api.url);
+					if(api.notify) showError(response.status, api.url);	// To display a failure status notification.
+					// Display the validation error occur on the forms
 					if(api.isValidate && response.data) {
 						$.each(response.data, function(i, value) {
 							container = '';
@@ -344,16 +353,13 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 							$(container).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 							$(container).find('.help-block').show().html(ucfirst(value.msg));
 						});
-						//$(api.formContainer).find('.task-input.error').first().focus();
 					}
-					errorCallback(response);
+					errorCallback(response);	// To trigger failure callback
 				}
 			}
 		},
 		error: function(response, status) {
 			if(status == 'error') {
-				//console.log(response.status);
-				//console.log(response.statusText);
 				//showError({title: localization['error'] + '!', text: response.statusText});
 			}
 		}

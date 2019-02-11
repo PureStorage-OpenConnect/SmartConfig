@@ -35,9 +35,10 @@ class FACreateMultipleHosts:
         cred = get_device_credentials(
             key="mac", value=taskinfo['inputs']['pure_id'])
         if not cred:
+	    res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
 
             return parseTaskResult(res)
 
@@ -66,9 +67,10 @@ class FACreateMultipleHosts:
         cred = get_device_credentials(
             key="mac", value=inputs['pure_id'])
         if not cred:
+	    res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
 
             return parseTaskResult(res)
 
@@ -88,7 +90,7 @@ class FACreateMultipleHosts:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def prepare(self, jobid, texecid, inputs):
@@ -119,7 +121,7 @@ class FACreateMultipleHosts:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsm_get_associated_sp_cnt(self, keys):
@@ -134,8 +136,8 @@ class FACreateMultipleHosts:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -156,7 +158,7 @@ class FACreateMultipleHosts:
         servers_list.append(server_dict)
         print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmbladeservers(self, keys):
@@ -171,8 +173,8 @@ class FACreateMultipleHosts:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -190,22 +192,89 @@ class FACreateMultipleHosts:
             blade_server_cnt += 1
             servers_list.append(server_dict)
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class FACreateMultipleHostsInputs:
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='Name of FlashArray', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='Name of FlashArray',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
 
-    name = Textbox(validation_criteria='str|min:1|max:64', hidden='False', isbasic='True', helptext='Host Name Prefix', dt_type="string", static="False", api="", name="name", label="Name",
-                   svalue="", mandatory="0", static_values="", mapval="", order=2, recommended="1")
-    st_no = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext="Host Name's starting number", dt_type="string", static="False", api="", name="st_no", label="Start number",
-                    svalue="1", mandatory="0", static_values="", mapval="", order=3, recommended="1")
-    count = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext='Number of Hosts', dt_type="string", static="False", api="", name="count", label="Count",
-                    svalue="2", mandatory="0", static_values="", mapval="", order=4)
-    num_digits = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext='Number of digits appending for Host Name', dt_type="string",
-                         static="False", api="", name="num_digits", label="Number of Digits", svalue="2", mandatory="0", static_values="", mapval="", order=5, recommended="1")
+    name = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='False',
+        isbasic='True',
+        helptext='Host Name Prefix',
+        dt_type="string",
+        static="False",
+        api="",
+        name="name",
+        label="Name",
+        svalue="",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=2,
+        recommended="1")
+    st_no = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext="Host Name's starting number",
+        dt_type="string",
+        static="False",
+        api="",
+        name="st_no",
+        label="Start number",
+        svalue="1",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=3,
+        recommended="1")
+    count = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext='Number of Hosts',
+        dt_type="string",
+        static="False",
+        api="",
+        name="count",
+        label="Count",
+        svalue="2",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=4)
+    num_digits = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext='Number of digits appending for Host Name',
+        dt_type="string",
+        static="False",
+        api="",
+        name="num_digits",
+        label="Number of Digits",
+        svalue="2",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=5,
+        recommended="1")
 
 
 class FACreateMultipleHostsOutputs:

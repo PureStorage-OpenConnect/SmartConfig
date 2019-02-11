@@ -120,3 +120,15 @@ msgstr "Reconfigure needs device to be in factory reset state"
 
 msgid "PDT_RECONFIG_FAILED_ERR_MSG"
 msgstr "Failed to reconfigure"
+
+# Task strings
+
+msgid "PDT_MDS_LOGIN_FAILURE"
+msgstr "Unable to login to the MDS"
+
+msgid "PDT_NEXUS_LOGIN_FAILURE"
+msgstr "Unable to login to the Nexus"
+
+msgid "PDT_FA_LOGIN_FAILURE"
+msgstr "Unable to login to the FlashArray"
+

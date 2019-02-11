@@ -59,7 +59,7 @@ def usercreate(user):
         res.setResult(validate_res, PTK_PWDMISMATCH, "Passwords mismatch")
         return res
 
-    if os.path.exists(users_registry) == True:
+    if os.path.exists(users_registry):
         doc = parse(users_registry)
 
         users = doc.documentElement.getElementsByTagName("user")
@@ -67,7 +67,8 @@ def usercreate(user):
             """if int(ex_user.getAttribute('id')) == user['id']:
                 res.setResult(False, PTK_ALREADYEXIST, "User id already exist")
                 return res"""
-            if ex_user.getAttribute('name') == user['name'] and ex_user.getAttribute('application') == user['application']:
+            if ex_user.getAttribute('name') == user['name'] and ex_user.getAttribute(
+                    'application') == user['application']:
                 res.setResult(validate_res, PTK_ALREADYEXIST,
                               "User name already exist")
                 return res
@@ -109,7 +110,8 @@ def userdelete(username, application):
     doc = parse(users_registry)
     users = doc.documentElement.getElementsByTagName("user")
     for user in users:
-        if user.getAttribute('name') == username and user.getAttribute('application') == application:
+        if user.getAttribute('name') == username and user.getAttribute(
+                'application') == application:
             parent = user.parentNode
             parent.removeChild(user)
             f = open(users_registry, 'w')
@@ -154,7 +156,8 @@ def userverify(user):
     doc = parse(users_registry)
     users = doc.documentElement.getElementsByTagName("user")
     for user_ent in users:
-        if user_ent.getAttribute('name') == user['name'] and user_ent.getAttribute('application') == user['application']:
+        if user_ent.getAttribute('name') == user['name'] and user_ent.getAttribute(
+                'application') == user['application']:
             hash_object = hashlib.md5(user['password'])
             hashed_password = hash_object.hexdigest()
             if user_ent.getAttribute('password') == hashed_password:
@@ -188,9 +191,9 @@ def userlogin(user):
                       "Values Not specified as expected")
         return res
     user_valid = userverify(user)
-    if user_valid.result == True:
+    if user_valid.result:
         loggedinkey = _generate_login_key()
-        if os.path.exists(sessions_registry) == True:
+        if os.path.exists(sessions_registry):
             doc = parse(sessions_registry)
             session = doc.createElement("session")
             session.setAttribute('username', user['name'])
@@ -260,5 +263,7 @@ def _generate_login_key():
     import random
     import string
     return ''.join(
-        random.SystemRandom().choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in
-        range(32))
+        random.SystemRandom().choice(
+            string.ascii_uppercase +
+            string.digits +
+            string.ascii_lowercase) for _ in range(32))

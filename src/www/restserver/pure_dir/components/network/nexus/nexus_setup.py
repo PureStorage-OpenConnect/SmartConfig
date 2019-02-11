@@ -29,9 +29,26 @@ class NEXUSSetup:
         cmd = "mkdir %s" % (tgt_dir)
         execute_local_command(cmd)
 
-    def _save_nexus_9k_details(self, ipaddress, netmask, gateway, ntp_server, username, password, serial_no, mac, model,
-                               device_type, image_version, switch_image, configured, name, tag, reachability,
-                               validated, domain_name):
+    def _save_nexus_9k_details(
+            self,
+            ipaddress,
+            netmask,
+            gateway,
+            ntp_server,
+            username,
+            password,
+            serial_no,
+            mac,
+            model,
+            device_type,
+            image_version,
+            switch_image,
+            configured,
+            name,
+            tag,
+            reachability,
+            validated,
+            domain_name):
         """
         Saves the nexus device details to devices.xml
 
@@ -58,9 +75,27 @@ class NEXUSSetup:
         del data['self']
         add_xml_element(static_discovery_store, data)
 
-    def _save_nexus_5k_details(self, ipaddress, netmask, gateway, ntp_server, username, password, serial_no, mac, model,
-                               device_type, image_version, switch_kickstart_image, switch_system_image, configured,
-                               name, tag, reachability, validated, domain_name):
+    def _save_nexus_5k_details(
+            self,
+            ipaddress,
+            netmask,
+            gateway,
+            ntp_server,
+            username,
+            password,
+            serial_no,
+            mac,
+            model,
+            device_type,
+            image_version,
+            switch_kickstart_image,
+            switch_system_image,
+            configured,
+            name,
+            tag,
+            reachability,
+            validated,
+            domain_name):
         """
         Saves the nexus device details to devices.xml
 
@@ -102,10 +137,23 @@ class NEXUSSetup:
                 data['switch_name'])
         loginfo(data)
 
-        update_xml_element(static_discovery_store, matching_key="mac", matching_value=data['switch_mac'],
-                           data={"configured": "In-progress", "timestamp": str(time.time())})
-        self.createconfig(data['switch_name'], data['ntp_server'], data['switch_gateway'],
-                          data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n9k_cfg_template, data['domain_name'])
+        update_xml_element(
+            static_discovery_store,
+            matching_key="mac",
+            matching_value=data['switch_mac'],
+            data={
+                "configured": "In-progress",
+                "timestamp": str(
+                    time.time())})
+        self.createconfig(
+            data['switch_name'],
+            data['ntp_server'],
+            data['switch_gateway'],
+            data['switch_ip'],
+            data['switch_netmask'],
+            data['switch_mac'],
+            poap_n9k_cfg_template,
+            data['domain_name'])
 
         nexus_py = {}
         nexus_py['server_ip'] = get_ip_address(get_filtered_ifnames()[0])
@@ -146,17 +194,37 @@ class NEXUSSetup:
                 data['switch_name'])
         loginfo(data)
 
-        update_xml_element(static_discovery_store, matching_key="mac", matching_value=data['switch_mac'],
-                           data={"configured": "In-progress", "timestamp": str(time.time())})
+        update_xml_element(
+            static_discovery_store,
+            matching_key="mac",
+            matching_value=data['switch_mac'],
+            data={
+                "configured": "In-progress",
+                "timestamp": str(
+                    time.time())})
 
         stacktype = get_xml_element(
             "/mnt/system/pure_dir/pdt/settings.xml", "stacktype")[1][0]['stacktype']
         if "fc" in stacktype:
-            self.createconfig(data['switch_name'], data['ntp_server'], data['switch_gateway'],
-                              data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n5k_fc_cfg_template, data['domain_name'])
+            self.createconfig(
+                data['switch_name'],
+                data['ntp_server'],
+                data['switch_gateway'],
+                data['switch_ip'],
+                data['switch_netmask'],
+                data['switch_mac'],
+                poap_n5k_fc_cfg_template,
+                data['domain_name'])
         else:
-            self.createconfig(data['switch_name'], data['ntp_server'], data['switch_gateway'],
-                              data['switch_ip'], data['switch_netmask'], data['switch_mac'], poap_n5k_iscsi_cfg_template, data['domain_name'])
+            self.createconfig(
+                data['switch_name'],
+                data['ntp_server'],
+                data['switch_gateway'],
+                data['switch_ip'],
+                data['switch_netmask'],
+                data['switch_mac'],
+                poap_n5k_iscsi_cfg_template,
+                data['domain_name'])
 
         nexus_py = {}
         nexus_py['server_ip'] = get_ip_address(get_filtered_ifnames()[0])
@@ -189,7 +257,16 @@ class NEXUSSetup:
         res.setResult(True, PTK_OKAY, "Successfully configured nexus 5k")
         return res
 
-    def createconfig(self, name, ntp, gateway, ip, netmask, mac_addr, poap_cfg_template, domain_name):
+    def createconfig(
+            self,
+            name,
+            ntp,
+            gateway,
+            ip,
+            netmask,
+            mac_addr,
+            poap_cfg_template,
+            domain_name):
         """
         Creates the configuration file for the nexus switch
 
@@ -279,13 +356,14 @@ class NEXUSSetup:
             populate_lst = []
             populate_lst.append(input_dict)
             return True, json.dumps(populate_lst)
-        loginfo("Nexus Reconfigure: Validating Nexus configuration params")
-        validation_status = self.nexusvalidate(input_dict, model).getStatus()
-        if validation_status == PTK_OKAY:
-            loginfo("Nexus Reconfigure: Nexus Validation success. Configuring Nexus")
+        else:
+            loginfo("Nexus Reconfigure: Configuring Nexus")
             if model == "n9k":
+                input_dict['switch_image'] = data['switch_image']
                 conf_status = self.nexus9kconfigure(input_dict).getStatus()
             elif model == "n5k":
+                input_dict['switch_kickstart_image'] = data['switch_kickstart_image']
+                input_dict['switch_system_image'] = data['switch_system_image']
                 conf_status = self.nexus5kconfigure(input_dict).getStatus()
             else:
                 loginfo("Nexus Reconfigure: Invalid Nexus model")
@@ -297,9 +375,6 @@ class NEXUSSetup:
             else:
                 loginfo("Nexus Reconfigure: Nexus Configuration failure")
                 return False, -1
-        else:
-            loginfo("Nexus Reconfigure: Nexus Validation failure")
-            return False, -1
 
     def nexus9kimages(self):
         """
@@ -417,11 +492,13 @@ class NEXUSSetup:
             ipv = IpValidator()
             network_reach, ip_reach = ipv.validate_ip(
                 data['switch_ip'], data['switch_netmask'], data['switch_gateway'])
-            if network_reach == True:
-                if ip_reach == False:
+            if network_reach:
+                if not ip_reach:
                     res.setResult(ret, PTK_OKAY, "Success")
                 else:
-                    res.setResult([{"field": "switch_ip", "msg": "IP Address is already occupied"}], PTK_INTERNALERROR,
+                    res.setResult([{"field": "switch_ip",
+                                    "msg": "IP Address is already occupied"}],
+                                  PTK_INTERNALERROR,
                                   "Please check the IP address.")
             else:
                 res.setResult([{"field": "switch_ip", "msg": "Please check the network settings"},

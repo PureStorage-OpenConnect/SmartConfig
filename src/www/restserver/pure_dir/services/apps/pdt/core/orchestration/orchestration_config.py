@@ -20,9 +20,8 @@ g_rollback_status_file = "%s/rollback/status" % (g_base_dir)
 g_wkflow_path = "%s/workflows/" % (g_base_dir)
 g_upload_path = '/mnt/system/uploads/'
 g_job_dump_dir = "%s/jobs/dumps" % (g_base_dir)
-log_dir = "%s/jobs/logs" % (g_base_dir)
+g_log_dir = "%s/jobs/logs" % (g_base_dir)
 g_tmp_export_location = "/tmp/export/"
-esxi_path = '/var/www/html/esxi/'
 g_error_log = "/usr/local/apache2/logs/error_log"
 g_message_log = "/var/log/messages"
 g_pure_log = "/mnt/system/pure_dir/pure_dir.log"
@@ -104,7 +103,7 @@ def get_rb_log_file(jobid):
 
 
 def get_log_file_path(jobid):
-    return "%s/job-%s.log" % (log_dir, jobid)
+    return "%s/job-%s.log" % (g_log_dir, jobid)
 
 
 def get_shelf_file(jobid):

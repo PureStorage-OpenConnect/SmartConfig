@@ -7,12 +7,12 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_shelf_file, get_rollback_status_file, get_batch_status_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import g_flash_stack_types
 from time import gmtime, strftime
-from xml.dom.minidom import *
+from xml.dom.minidom import Document, parse, parseString
 import xmltodict
 import os
 import shelve
@@ -25,7 +25,7 @@ def pretty_print(data): return '\n'.join([line for line in parseString(
 def prepare_rollback_status_file(jid):
     """
     Creates rollback status file
-    :param jid: Job id to rollback 
+    :param jid: Job id to rollback
 
     """
     res = result()
@@ -125,7 +125,7 @@ def rollback_status_helper(jid_list):
             loginfo("Job status does not exist")
             obj.setResult(res, PTK_OKAY, _("PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
             return obj
-        if doc['rollbackstatus']['tasks'] == None:
+        if doc['rollbackstatus']['tasks'] is None:
             # Workflow may have first task failed, skip
             continue
         for task in doc['rollbackstatus']['tasks']['task']:
@@ -135,7 +135,7 @@ def rollback_status_helper(jid_list):
                 'order': task['@order'],
             }
             statuslist.append(status_entity)
-        tmp_status = {'jid': jid, 'order': str(count), 'status':  statuslist}
+        tmp_status = {'jid': jid, 'order': str(count), 'status': statuslist}
         count = count + 1
         tmp_status_list.append(tmp_status)
 
@@ -148,9 +148,9 @@ def rollback_status_helper(jid_list):
 def update_rollback_task_status(jid, sub_jid, texecid, status):
     """
     Update roll back task status
-    :param jid: Jobid 
+    :param jid: Jobid
     :param texecid: Task execution ID
-    :param status: status ti update 
+    :param status: status ti update
 
     """
     doc = parse(get_rollback_status_file(jid))
@@ -173,6 +173,6 @@ def update_rollback_task_status(jid, sub_jid, texecid, status):
 
     except Exception as e:
         res.setResult(None, PTK_FILEACCESSERROR, str(e) + "failed")
-        return re
+        return res
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res

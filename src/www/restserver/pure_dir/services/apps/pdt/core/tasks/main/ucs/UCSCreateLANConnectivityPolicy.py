@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -33,7 +33,7 @@ class UCSCreateLANConnectivityPolicy:
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def rollback(self, inputs, outputs, logfile):
@@ -50,12 +50,51 @@ class UCSCreateLANConnectivityPolicy:
 
 
 class UCSCreateLANConnectivityPolicyInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", static_values="", svalue="", mapval="", mandatory="1", order=1)
-    lan_conn_policy_name = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='LAN Connectivity policy name', api="", dt_type="string", label="Name", mapval="0", name="lan_conn_policy_name",
-                                   static="False", svalue="Infra-LAN-Policy", mandatory='1', static_values="", order=2, recommended="1")
-    lan_conn_policy_desc = Textbox(validation_criteria='str|min:1|max:128',  hidden='False', isbasic='True', helptext='Description', api="", dt_type="string", label="Description", mapval="0",
-                                   name="lan_conn_policy_desc", static="False", svalue="lan-policy", mandatory='1', static_values="", order=3)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        static_values="",
+        svalue="",
+        mapval="",
+        mandatory="1",
+        order=1)
+    lan_conn_policy_name = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='LAN Connectivity policy name',
+        api="",
+        dt_type="string",
+        label="Name",
+        mapval="0",
+        name="lan_conn_policy_name",
+        static="False",
+        svalue="Infra-LAN-Policy",
+        mandatory='1',
+        static_values="",
+        order=2,
+        recommended="1")
+    lan_conn_policy_desc = Textbox(
+        validation_criteria='str|min:1|max:128',
+        hidden='False',
+        isbasic='True',
+        helptext='Description',
+        api="",
+        dt_type="string",
+        label="Description",
+        mapval="0",
+        name="lan_conn_policy_desc",
+        static="False",
+        svalue="lan-policy",
+        mandatory='1',
+        static_values="",
+        order=3)
 
 
 class UCSCreateLANConnectivityPolicyOutputs:

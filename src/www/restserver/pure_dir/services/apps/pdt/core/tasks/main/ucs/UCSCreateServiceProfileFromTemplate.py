@@ -1,8 +1,8 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 class UCSCreateServiceProfileFromTemplate:
     def __init__(self):
@@ -24,13 +24,13 @@ class UCSCreateServiceProfileFromTemplate:
     def rollback(self, inputs, outputs, logfile):
         print "create service profile from template rollback"
         res = result()
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY, "success")
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         print ucs_list, res
         return res
 
@@ -39,8 +39,8 @@ class UCSCreateServiceProfileFromTemplate:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            ret.setResult(temp_list, PTK_OKAY, "success")
+        if fabricid is None:
+            ret.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return ret
 
         res = get_ucs_login(fabricid)
@@ -56,5 +56,5 @@ class UCSCreateServiceProfileFromTemplate:
                 temp_list.append(
                     {"id": w.name, "selected": selected, "label": w.name})
         ucsm_logout(handle)
-        res.setResult(temp_list, PTK_OKAY, "success")
+        res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

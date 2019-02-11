@@ -135,7 +135,8 @@ def update_xml_element(file_name, matching_key, matching_value, data, element_na
                                      5] if element_name == '' else element_name
             for subelement in doc.getElementsByTagName(ele_name):
                 if subelement.hasAttribute(matching_key):
-                    if (matching_value == '') or (matching_value != '' and subelement.getAttribute(matching_key) == matching_value):
+                    if (matching_value == '') or (matching_value !=
+                                                  '' and subelement.getAttribute(matching_key) == matching_value):
                         for name, value in data.items():
                             subelement.setAttribute(name, value)
                         lock = FileLock(file_name + ".lock")
@@ -256,7 +257,7 @@ def network_info():
         networkinfo = {}
         networkinfo['ip'], networkinfo['netmask'], networkinfo['gateway'] = get_ipconf(
             ifname)
-        if networkinfo['gateway'] == None:
+        if networkinfo['gateway'] is None:
             networkinfo['gateway'] = ""
 
         return networkinfo

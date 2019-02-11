@@ -7,16 +7,17 @@
 """
 
 import threading
-from xml.dom.minidom import *
 import glob
 import shelve
 import os
 import time
+import xmltodict
+
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_rollback_status import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_rollback_status import update_rollback_task_status, prepare_rollback_status_file
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import update_task_status, clear_job_failed_status 
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import g_flash_stack_types
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import update_batch_job_status, clear_group_job_status 
 
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
 from pure_dir.services.apps.pdt.core.tasks.test.ucs import*
@@ -31,7 +32,7 @@ from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
 from pure_dir.services.apps.pdt.core.tasks.test.mds import*
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.infra.apiresults import *
 
 
@@ -68,8 +69,10 @@ def jobrollback_helper(jobid):
             record['tasklist']) - 1
         customlogs("------ <b> " + record['wfname'] + "</b> ------\n", logfile)
         for i in range(taskcount, -1, -1):
-            update_rollback_task_status(
-                jobid, record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_EXECUTING)
+            update_rollback_task_status(jobid,
+                                        record['jobid'],
+                                        record['tasklist'][str(i)]['texecid'],
+                                        TASK_STATUS_EXECUTING)
             task = record['tasklist'][str(i)]
             customlogs("Rolling back '" + task['name'] + "'\n", logfile)
             loginfo("Rolling back Task " + task['name'])
@@ -83,13 +86,17 @@ def jobrollback_helper(jobid):
             time.sleep(TASK_ROLLBACK_DELAY)
             if isinstance(retval, dict) == False:
                 if retval.getStatus() != PTK_OKAY:
-                    update_rollback_task_status(
-                        jobid,  record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_FAILED)
+                    update_rollback_task_status(jobid,
+                                                record['jobid'],
+                                                record['tasklist'][str(i)]['texecid'],
+                                                TASK_STATUS_FAILED)
                     res.setResult(None, PTK_FAILED, "failed")
                     return res
                 else:
-                    update_rollback_task_status(
-                        jobid,  record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_COMPLETED)
+                    update_rollback_task_status(jobid,
+                                                record['jobid'],
+                                                record['tasklist'][str(i)]['texecid'],
+                                                TASK_STATUS_COMPLETED)
 
                     # Update the original Job status as READY
                     update_task_status(
@@ -97,13 +104,17 @@ def jobrollback_helper(jobid):
 
             else:
                 if retval['status'] != 'SUCCESS':
-                    update_rollback_task_status(
-                        jobid,  record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_FAILED)
+                    update_rollback_task_status(jobid,
+                                                record['jobid'],
+                                                record['tasklist'][str(i)]['texecid'],
+                                                TASK_STATUS_FAILED)
                     res.setResult(None, PTK_FAILED, _("PDT_FAILED_MSG"))
                     return res
                 else:
-                    update_rollback_task_status(
-                        jobid,  record['jobid'], record['tasklist'][str(i)]['texecid'], TASK_STATUS_COMPLETED)
+                    update_rollback_task_status(jobid,
+                                                record['jobid'],
+                                                record['tasklist'][str(i)]['texecid'],
+                                                TASK_STATUS_COMPLETED)
                     # Update the original Job status as READY
                     update_task_status(
                         record['jobid'], record['tasklist'][str(i)]['texecid'], "READY")
@@ -125,12 +136,12 @@ def job_rollback_api(stacktype, jobid):
 
     res = result()
 
-    if stacktype != None and jobid != None:
+    if stacktype is not None and jobid is not None:
         loginfo("can't specify both jobid and stacktype")
         obj.setResult(None, PTK_FAILED,
                       _("PDT_INVALID_INPUT_ERR_MSG"))
         return obj
-    if stacktype != None:
+    if stacktype is not None:
         jobid = stacktype
 
     if not any(d['value'] == jobid for d in g_flash_stack_types):
@@ -176,8 +187,8 @@ def get_htype_wid_from_jobid(jobid):
     try:
         fd = open(get_job_file(jobid), 'r')
         doc = xmltodict.parse(fd.read())
-        res = {'stacktype':  doc['workflow']
-               ['@htype'], 'wid':  doc['workflow']['@id']}
+        res = {'stacktype': doc['workflow']
+               ['@htype'], 'wid': doc['workflow']['@id']}
         return res
 
     except Exception as e:
@@ -375,14 +386,16 @@ def get_field_name(jobid, field_id, texecid):
 
            # is a group field
                 return {'name': field.name, 'label': field.label, 'gmembers': group_members}
-    except:
+    except BaseException:
         return None
     return None
 
 
 def rollback_task_data_api(jobid, pjobid, tid):
     res = result()
-    if os.path.exists(get_shelf_file(pjobid)) == False or os.path.exists(get_job_file(pjobid)) == False:
+    if os.path.exists(
+            get_shelf_file(pjobid)) == False or os.path.exists(
+            get_job_file(pjobid)) == False:
         loginfo("file dosen't exists")
         res.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return res
@@ -403,20 +416,20 @@ def rollback_task_data_api(jobid, pjobid, tid):
             for key in job_rec['tasklist'][str(y)]['inputs']:
                 tmp = get_field_name(job_rec['jobid'], key, tid)
                 g_list = []
-                if tmp != None:
+                if tmp is not None:
                     label = tmp['label']
                     g_list = tmp['gmembers']
                 else:
                     label = job_rec['tasklist'][str(y)]['inputs'][key]
 
-                input_data = {
-                    'key': key, 'value': job_rec['tasklist'][str(y)]['inputs'][key], 'label': label, 'gmembers': g_list}
+                input_data = {'key': key, 'value': job_rec['tasklist'][str(
+                    y)]['inputs'][key], 'label': label, 'gmembers': g_list}
 
                 data['inputlist'].append(input_data)
             res.setResult(data, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
-    res.setResult(None, PTK_NOTEXISTS, "success")
+    res.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
     return res
 
 
@@ -432,4 +445,3 @@ def _get_obj(g_obj_list, classname):
     except BaseException:
         raise NotImplementedError(
             "Class `{}` does not implemented `".format(classname))
-        return None

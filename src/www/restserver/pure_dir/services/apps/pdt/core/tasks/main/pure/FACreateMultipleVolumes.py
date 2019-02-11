@@ -1,11 +1,10 @@
 from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import get_ucs_login, ucsm_logout 
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 
 
 metadata = dict(
@@ -38,7 +37,7 @@ class FACreateMultipleVolumes:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -57,7 +56,7 @@ class FACreateMultipleVolumes:
         """
         res = result()
         pure_list = get_device_list(device_type="PURE")
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def volumesize_unit(self, keys):
@@ -74,7 +73,7 @@ class FACreateMultipleVolumes:
                {"id": str(T), "selected": "0", "label": "T"},
                {"id": str(P), "selected": "0", "label": "P"}
                ]
-        res.setResult(val, PTK_OKAY, "success")
+        res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def rollback(self, inputs, outputs, logfile):
@@ -94,7 +93,7 @@ class FACreateMultipleVolumes:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -131,7 +130,7 @@ class FACreateMultipleVolumes:
         if res.getStatus() != PTK_OKAY:
             return res
 
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsm_get_associated_sp_cnt(self, keys):
@@ -146,8 +145,8 @@ class FACreateMultipleVolumes:
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
-            res.setResult(servers_list, PTK_OKAY, "success")
+        if fabricid is None:
+            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         res = get_ucs_login(fabricid)
@@ -168,27 +167,141 @@ class FACreateMultipleVolumes:
         servers_list.append(server_dict)
         print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, "success")
+        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
 
 class FACreateMultipleVolumesInputs:
-    pure_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", mandatory="0", static_values="", order=1)
-    name = Textbox(validation_criteria='str|min:1|max:64', hidden='False', isbasic='True', helptext='Volume Name', dt_type="string", static="False", api="", name="name", label="Name",
-                   svalue="VM-Vol-FC-#", static_values="", mandatory="0", mapval="", order=2, recommended="1")
-    size = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext="Volume's Size", dt_type="integer", static="False", api="", name="size", label="Size",
-                   svalue="10", group_member="1", static_values="", mandatory="0", mapval="", order=3, recommended="1")
-    size_unit = Dropdown(hidden='False', isbasic='True', helptext="Unit of volume's size", dt_type="string", static="False", api="volumesize_unit()", name="size_unit", label="Size Unit",
-                         svalue="", group_member="1", static_values="", mapval="", mandatory="0", order=3, recommended="1")
-    vol_set = Group(validation_criteria='', hidden='False', isbasic='True', helptext='Provisioning Size', dt_type="string", static="False", api="", name="vol_set", label="Provisioned size", svalue="", mapval="",
-                    mandatory="0", members=["size", "size_unit"], add="False", static_values="", order=4, recommended="1")
-    st_no = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext="Volume Name's starting number", dt_type="string", static="False", api="", name="st_no", label="Start number",
-                    svalue="1", mandatory="0", static_values="", mapval="", order=5, recommended="1")
-    count = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext='Number of Volumes', dt_type="string", static="False", api="", name="count", label="Count",
-                    svalue="2", mandatory="0", static_values="", mapval="", order=6)
-    num_digits = Textbox(validation_criteria='int', hidden='False', isbasic='True', helptext='Number of digits appending for Host Name', dt_type="string",
-                         static="False", api="", name="num_digits", label="Number of Digits", svalue="2", mandatory="0", static_values="", mapval="", order=7, recommended="1")
+    pure_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        mandatory="0",
+        static_values="",
+        order=1)
+    name = Textbox(
+        validation_criteria='str|min:1|max:64',
+        hidden='False',
+        isbasic='True',
+        helptext='Volume Name',
+        dt_type="string",
+        static="False",
+        api="",
+        name="name",
+        label="Name",
+        svalue="VM-Vol-FC-#",
+        static_values="",
+        mandatory="0",
+        mapval="",
+        order=2,
+        recommended="1")
+    size = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext="Volume's Size",
+        dt_type="integer",
+        static="False",
+        api="",
+        name="size",
+        label="Size",
+        svalue="10",
+        group_member="1",
+        static_values="",
+        mandatory="0",
+        mapval="",
+        order=3,
+        recommended="1")
+    size_unit = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext="Unit of volume's size",
+        dt_type="string",
+        static="False",
+        api="volumesize_unit()",
+        name="size_unit",
+        label="Size Unit",
+        svalue="",
+        group_member="1",
+        static_values="",
+        mapval="",
+        mandatory="0",
+        order=3,
+        recommended="1")
+    vol_set = Group(
+        validation_criteria='',
+        hidden='False',
+        isbasic='True',
+        helptext='Provisioning Size',
+        dt_type="string",
+        static="False",
+        api="",
+        name="vol_set",
+        label="Provisioned size",
+        svalue="",
+        mapval="",
+        mandatory="0",
+        members=[
+            "size",
+            "size_unit"],
+        add="False",
+        static_values="",
+        order=4,
+        recommended="1")
+    st_no = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext="Volume Name's starting number",
+        dt_type="string",
+        static="False",
+        api="",
+        name="st_no",
+        label="Start number",
+        svalue="1",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=5,
+        recommended="1")
+    count = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext='Number of Volumes',
+        dt_type="string",
+        static="False",
+        api="",
+        name="count",
+        label="Count",
+        svalue="2",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=6)
+    num_digits = Textbox(
+        validation_criteria='int',
+        hidden='False',
+        isbasic='True',
+        helptext='Number of digits appending for Host Name',
+        dt_type="string",
+        static="False",
+        api="",
+        name="num_digits",
+        label="Number of Digits",
+        svalue="2",
+        mandatory="0",
+        static_values="",
+        mapval="",
+        order=7,
+        recommended="1")
 
 
 class FACreateMultipleVolumesOutputs:

@@ -6,9 +6,9 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import *
+from pure_dir.infra.common_helper import getAsList
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import *
@@ -26,7 +26,6 @@ from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
 from pure_dir.services.apps.pdt.core.tasks.test.mds import*
 from time import gmtime, strftime
-from xml.dom.minidom import *
 from copy import deepcopy
 import xmltodict
 import shelve
@@ -35,9 +34,9 @@ import time
 
 def get_value_from_global_list(hw_type, key):
     """
-    Reads and returns initial-config or global key value 
-    :param hw_type: FlashStack type 
-    :param key: variable to fetch 
+    Reads and returns initial-config or global key value
+    :param hw_type: FlashStack type
+    :param key: variable to fetch
 
     """
     fd = None
@@ -61,11 +60,11 @@ def _map_input_args(tasks, hw_type, dicts, outputdicts, input_obj):
     """
     Helper method to map values for values from previous task, also help values from global xml
     Keep tracks of all outputs produced by task
-    :param tasks: task to track input for 
-    :param hw_type: FlashStack type 
-    :param dicts: inputs values to finally passed to task 
+    :param tasks: task to track input for
+    :param hw_type: FlashStack type
+    :param dicts: inputs values to finally passed to task
     :param outputdicts: Holds outputs of all previous tasks
-    :param input_obj: Inputs for the task 
+    :param input_obj: Inputs for the task
 
     """
     if tasks['args'] is None:
@@ -90,7 +89,7 @@ def _map_input_args(tasks, hw_type, dicts, outputdicts, input_obj):
                 dicts[inputarg['@name']] = outputdicts[inputarg['@value']]
         elif '@mapval' in inputarg and inputarg['@mapval'] == '3' and field.ip_type != "group":
             val = get_value_from_global_list(hw_type, inputarg['@value'])
-            if val == None:
+            if val is None:
                 loginfo("Error: No such Global value")
             dicts[inputarg['@name']] = val
         else:
@@ -114,7 +113,7 @@ def _get_obj(g_obj_list, classname):
     """
     Creates object for the task class, if already exist, return it
     :param g_obj_list: Global obj list
-    :param classname: Class for which the object needs to be created 
+    :param classname: Class for which the object needs to be created
 
     """
     if classname in g_obj_list:
@@ -128,13 +127,12 @@ def _get_obj(g_obj_list, classname):
     except BaseException:
         raise NotImplementedError(
             "Class `{}` does not implemented `".format(classname))
-        return None
 
 
 def _get_initial_task(tasks):
     """
     Method helps in identifying the first task of a workflow
-    :param tasks: List of tasks in workflow 
+    :param tasks: List of tasks in workflow
     :returns : First task
     """
     for task in tasks:
@@ -146,7 +144,7 @@ def _get_initial_task(tasks):
 def _get_initial_wf(wfs):
     """
     Method helps in identifying the initial workflow
-    :param wfs: list of workflows 
+    :param wfs: list of workflows
     :returns : Initial workflow
     """
     for wf in wfs:
@@ -158,7 +156,7 @@ def _get_initial_wf(wfs):
 def _getNextWf(doc, wf, ret):
     """
     Get Next workflow to be executed
-    :param doc: workflow doc object 
+    :param doc: workflow doc object
     :param wf:  current workflow
     :param ret: status of current workflow
 
@@ -179,7 +177,7 @@ def _get_next_task(cur_task, prev_task_state, task_list):
     Get next task to be executed
     :param cur_task: current task
     :param prev_task_state: previous task status
-    :param task_list: Entire task list 
+    :param task_list: Entire task list
 
     """
     next_task_id = None
@@ -194,13 +192,13 @@ def _get_next_task(cur_task, prev_task_state, task_list):
     for task in task_list:
         if next_task_id == task['@texecid']:
             return task
-    return task
+    return None
 
 
 def _get_recorder_data(task, seqno, inputs, outputs):
     """
     Returns job recorder data
-    :param task: current task data 
+    :param task: current task data
     :param seqno: sequence number
     :param inputs: inputs for the task
     :param outputs: outputs for the task
@@ -210,14 +208,21 @@ def _get_recorder_data(task, seqno, inputs, outputs):
     if '@label' in task:
         name = task['@label']
 
-    return {'taskid': task['@id'], 'name': name, 'class': task['@id'], 'inputs': inputs, 'outputs': outputs, 'taskstatus': outputs['status'], 'texecid': task['@texecid']}
+    return {
+        'taskid': task['@id'],
+        'name': name,
+        'class': task['@id'],
+        'inputs': inputs,
+        'outputs': outputs,
+        'taskstatus': outputs['status'],
+        'texecid': task['@texecid']}
 
 
 def _init_job_recorder(jid, doc):
     """
-    Initialise the job recorder data structure, used for rollback operation 
+    Initialise the job recorder data structure, used for rollback operation
     :param jid: jobid
-    :param doc: XML document object 
+    :param doc: XML document object
 
     """
     job_recorder = {'jobid': jid, 'tasklist': {
@@ -258,7 +263,7 @@ def _execute_task(
         logfile, hw_type):
     """
     Executes a task (smallest unit of execution), using the values from job data and by mapping
-    global data when ever applicable. 
+    global data when ever applicable.
 
     Each task has a success path and failure path defined in job XML
 
@@ -269,13 +274,13 @@ def _execute_task(
 
     The resulting data from the task execution is saved to 'outputdicts' for reference by any subsequent task.
 
-    :param cur_task: pointer to the current task 
-    :param seqno: sequence number 
+    :param cur_task: pointer to the current task
+    :param seqno: sequence number
     :param job_recorder: job recorder pointer
     :param task_list:  list of tasks
     :param outputdicts: list of outputs generated by all previously executed task
-    :param g_obj_list: object list for task class 
-    :param logfile: logfile  
+    :param g_obj_list: object list for task class
+    :param logfile: logfile
     :param hw_type: flash stack type
 
     """
@@ -321,7 +326,7 @@ def _execute_task(
     if retval['status'] != 'SUCCESS':
 
         next_task = _get_next_task(cur_task, retval['status'], task_list)
-        if next_task == None:
+        if next_task is None:
             # Task failed and OnFailure is None, Dump the stack for Retry
             dump_stack(jid, cur_task, seqno, job_recorder,
                        task_list, logfile, outputdicts, hw_type)
@@ -358,7 +363,7 @@ def _execute_task(
 def jobexecute_helper(jid):
     """
     Executes job
-    :param jid: Job ID 
+    :param jid: Job ID
 
     """
     try:
@@ -373,9 +378,9 @@ def jobexecute_helper_safe(jid):
     Method can executes standalone job or group jobs.
     Standalone job will point to a single Job file where as Batch Job will point to group file which has reference to multiple job files
     Method also does the initialisation steps to create shelve file, jobrecord used for rollback and retry respectively.
-    Also ensures all workflows with in a batch job is executed	
+    Also ensures all workflows with in a batch job is executed
 
-    :param jid: Jobid 
+    :param jid: Jobid
 
     """
     fd = None
@@ -427,7 +432,7 @@ def jobexecute_helper_safe(jid):
             update_workflow_status(jid, wf['@jid'], JOB_STATUS_FAILED)
 
         wf = _getNextWf(doc, wf, ret)
-        if wf == None:
+        if wf is None:
             if ret == -1:
                 update_overall_group_job_status(jid, JOB_STATUS_FAILED)
                 shelf.close()
@@ -501,15 +506,15 @@ def jobexecute(jid, seqno, shelf, logfile):
 def dump_stack(jid, cur_task, seqno, job_recorder, task_list, logfile, outputdicts, hw_type):
     """
     Dumps the all the parameters of executes task in case of a failure with out any failure path
-    Dump is used to retry the task 
+    Dump is used to retry the task
 
-    :param jid: 
-    :param cur_task: 
-    :param seqno: 
-    :param job_recorder: 
-    :param task_list: 
-    :param logfile: 
-    :param outputdicts: 
+    :param jid:
+    :param cur_task:
+    :param seqno:
+    :param job_recorder:
+    :param task_list:
+    :param logfile:
+    :param outputdicts:
 
     """
     # method helps in restarting a task incase of failure

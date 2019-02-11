@@ -6,7 +6,14 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+
+import xmltodict
+import json
+import os
+import socket
+import ast
+from operator import itemgetter
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
@@ -19,14 +26,8 @@ from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
 from pure_dir.services.apps.pdt.core.tasks.test.mds import*
-from xml.dom.minidom import *
-from pure_dir.infra.common_helper import *
-from operator import itemgetter
-import xmltodict
-import json
-import os
-import socket
-import ast
+from xml.dom.minidom import parse, parseString
+from pure_dir.infra.common_helper import getAsList
 
 
 def pretty_print(data): return '\n'.join([line for line in parseString(
@@ -155,7 +156,8 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                                 err.append(
                                                     {"field": key, "msg": isvalid[1], "order": order})
                                         elif ky['value'] == "":
-                                            if 'validation_criteria' in dir(field) and field.validation_criteria == "None":
+                                            if 'validation_criteria' in dir(
+                                                    field) and field.validation_criteria == "None":
                                                 pass
                                             else:
                                                 err.append(
@@ -172,7 +174,7 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                     exec("%s = %s" %
                                          ("cl_obj", tid + "." + tid + "()"))
                                     isvalid = cl_obj.validate(item)
-                                    if isvalid[0] == False:
+                                    if not isvalid[0]:
                                         err.append(
                                             {"field": isvalid[1], "msg": isvalid[2], "order": order})
                                 if len(err) == 0:
@@ -180,7 +182,8 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                     inp.setAttribute('mapval', mapval)
 
                             elif tvalue == "":
-                                if 'validation_criteria' in dir(field) and field.validation_criteria == "None":
+                                if 'validation_criteria' in dir(
+                                        field) and field.validation_criteria == "None":
                                     inp.setAttribute('value', tvalue)
                                     inp.setAttribute('mapval', mapval)
                                 else:
@@ -273,7 +276,8 @@ def validation(validation_criteria, value):
             if isvalid[0] and len(val) > 1:
                 if int(val[1].split(":")[1]) <= int(value) <= int(val[2].split(":")[1]):
                     return True, ""
-                return False, "Valid Range is " + val[1].split(":")[1] + " - " + val[2].split(":")[1]
+                return False, "Valid Range is " + \
+                    val[1].split(":")[1] + " - " + val[2].split(":")[1]
             return isvalid
         elif val[0] == "str":
             if int(val[1].split(":")[1]) <= len(value) <= int(val[2].split(":")[1]):
@@ -296,7 +300,7 @@ def form_value(input_args, argname):
     if isinstance(tvalue, list):
         tmp_list = []
         for element in tvalue:
-            if type(element) is dict:
+            if isinstance(element, dict):
                 tmp_list.append(json.dumps(
                     element).replace('\"', '\''))
             else:
@@ -368,7 +372,7 @@ def job_task_inputs_api(execid, id, ttype=''):
         doc = xmltodict.parse(fd.read())
 
     for task in doc['workflow']['tasks']['task']:
-        if type(task) is unicode:
+        if isinstance(task, unicode):
             tid = doc['workflow']['tasks']['task']['@id']
             break
         if task['@texecid'] == execid:
@@ -378,7 +382,7 @@ def job_task_inputs_api(execid, id, ttype=''):
         '__') and not x.endswith('__')]
     for ipt in inputs:
         exec("%s = %s.%s" % ("field", "input_obj", ipt))
-        if type(field) is list or field.group_member == "1":
+        if isinstance(field, list) or field.group_member == "1":
             continue
         if execid:
             wftaskip = job_task_inputs(
@@ -429,7 +433,7 @@ def job_task_mandatory_inputs_api(jid, ttype=''):
         tmplist = []
         for ipt in inputs:
             exec("%s = %s.%s" % ("field", "input_obj", ipt))
-            if type(field) is list or field.group_member == "1":
+            if isinstance(field, list) or field.group_member == "1":
                 continue
             mandatory = True if 'mandatory' in dir(
                 field) and field.mandatory == "1" else False
@@ -441,8 +445,13 @@ def job_task_mandatory_inputs_api(jid, ttype=''):
                     for member in field.members:
                         exec("%s = %s.%s" %
                              ("member_data", "input_obj", member))
-                        group_members.append(job_task_inputs(
-                            field=member_data, doc=doc, tid=tid, mandatory="1", texecid=task['@texecid']))
+                        group_members.append(
+                            job_task_inputs(
+                                field=member_data,
+                                doc=doc,
+                                tid=tid,
+                                mandatory="1",
+                                texecid=task['@texecid']))
                     wftaskip['svalue'] = wftaskip['svalue'].replace('\'', '\"')
                     wftaskip['addmore'] = True if field.add.lower(
                     ) == 'true' or field.add.lower == '1' else False
@@ -487,7 +496,7 @@ def workflow_inputs_api(wid, stacktype):
             tmplist = []
             for ipt in inputs:
                 exec("%s = %s.%s" % ("field", "input_obj", ipt))
-                if type(field) is list or field.group_member == "1":
+                if isinstance(field, list) or field.group_member == "1":
                     continue
                 recommended = True if 'recommended' in dir(
                     field) and field.recommended == "1" else False
@@ -530,7 +539,7 @@ def job_task_inputs(field, tid, mandatory='', doc='', texecid=''):
 
     if doc:
         for task in doc['workflow']['tasks']['task']:
-            if type(task) is unicode:
+            if isinstance(task, unicode):
                 if 'args' not in doc['workflow']['tasks']['task']:
                     wftaskip['svalue'] = field.svalue
                     wftaskip['ismapped'] = field.mapval
@@ -567,10 +576,8 @@ def job_task_inputs(field, tid, mandatory='', doc='', texecid=''):
 
         for arg in args:
             if len(str(arg)) > 0:
-                input_entity = {
-                    'field': arg.split(':')[0],
-                    'isdynamic': True if arg.split(':')[1].lower() == 'true' or arg.split(':')[1] == '1' else False,
-                    'value': arg.split(':')[2]}
+                input_entity = {'field': arg.split(':')[0], 'isdynamic': True if arg.split(
+                    ':')[1].lower() == 'true' or arg.split(':')[1] == '1' else False, 'value': arg.split(':')[2]}
                 if mandatory:
                     input_entity['value'] = texecid + "_" + \
                         arg.split(':')[
@@ -594,7 +601,7 @@ def job_task_outputs_api(texecid, jid):
 
     except EnvironmentError:
         loginfo("No such Job")
-        obj.setResult(wftaskip_list, PTK_NOTEXIST,
+        obj.setResult(wftask_oputs, PTK_NOTEXIST,
                       _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
 
     for task in tdoc['workflow']['tasks']['task']:
@@ -665,7 +672,7 @@ def task_suggested_inputs_api(id, execid, ttype='', field=''):
     except IOError:
         loginfo("unable to read job file")
         obj.setResult(
-            task_status_list,
+            inputs_list,
             PTK_NOTEXIST,
             _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj

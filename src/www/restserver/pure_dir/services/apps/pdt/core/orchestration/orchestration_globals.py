@@ -6,19 +6,20 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file, get_devices_wf_config_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import*
 from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_mds_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_mds_fc_rack import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_fa_iscsi import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_fi_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_fi_iscsi import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_figen2_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_figen2_iscsi import *
-from pure_dir.services.utils.ipvalidator import *
-import xmltodict
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus9k_ucsmini_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_ucsmini_iscsi import *
+from pure_dir.services.utils.ipvalidator import IpValidator
 import os.path
 from xml.dom.minidom import *
 g_simulated = 0
@@ -70,7 +71,7 @@ def get_globals_api(stacktype, hidden):
                 g_val['hwtype'] = dfhwtype
                 if i.hasAttribute('hidden') and i.getAttribute('hidden') == 'True':
                     g_val['hidden'] = True
-                    if hidden == False:
+                    if not hidden:
                         continue
                 else:
                     g_val['hidden'] = False
@@ -135,10 +136,8 @@ def apivalidator(api_arg, tid):
         args = api_arg.split('|', 1)[1][1:-1].split('|')
     for arg in args:
         if len(str(arg)) > 0:
-            input_entity = {
-                'field': arg.split(':')[0],
-                'isdynamic': True if arg.split(':')[1].lower() == 'true' or arg.split(':')[1] == '1' else False,
-                'value': arg.split(':')[2]}
+            input_entity = {'field': arg.split(':')[0], 'isdynamic': True if arg.split(
+                ':')[1].lower() == 'true' or arg.split(':')[1] == '1' else False, 'value': arg.split(':')[2]}
             inputlist.append(input_entity)
     api['args'] = inputlist
     return api
@@ -209,12 +208,13 @@ def set_globals_validate_api(ip_range):
         devices = xmldoc.getElementsByTagName('device')
         for device in devices:
             if device.getAttribute('device_type') == "UCSM":
-                if device.getAttribute('ipaddress') == ip or device.getAttribute('vipaddress') == ip and IpValidator().is_ip_up(ip) == True:
+                if device.getAttribute('ipaddress') == ip or device.getAttribute(
+                        'vipaddress') == ip and IpValidator().is_ip_up(ip):
                     valid_err.append(
                         {"field": "kvm_console_ip", "msg": ip + " Ip is not available"})
                     return valid_err
             else:
-                if device.getAttribute('ipaddress') == ip and IpValidator().is_ip_up(ip) == True:
+                if device.getAttribute('ipaddress') == ip and IpValidator().is_ip_up(ip):
                     valid_err.append(
                         {"field": "kvm_console_ip", "msg": ip + " Ip is not available"})
                     return valid_err
@@ -226,7 +226,7 @@ def get_value(input_list, stacktype):
     Aggregates error messages for empty fields in Global variables
 
     :param input_list: list of inputs
-    :param stacktype: Flash stack type 
+    :param stacktype: Flash stack type
     """
 
     valid_msg_list = []
@@ -245,7 +245,7 @@ def get_label(stacktype, name):
     Returns label for a  Global variable
 
     :param stacktype: Flash stack type
-    :param name: Name of global field 
+    :param name: Name of global field
     """
     xmldoc = parse(get_global_wf_config_file())
     htypes = xmldoc.getElementsByTagName('htype')
@@ -262,7 +262,7 @@ def validate_data(stacktype, input_list):
     Returns label for a  Global variable
 
     :param stacktype: Flash stack type
-    :param name: Name of global field 
+    :param name: Name of global field
     """
 
     valid_err = []
@@ -272,7 +272,8 @@ def validate_data(stacktype, input_list):
         if htype.getAttribute('stacktype') == stacktype:
             inpts = htype.getElementsByTagName('input')
             for inpt in inpts:
-                if inpt.getAttribute('name') in input_list.keys() and inpt.hasAttribute('validation_criteria'):
+                if inpt.getAttribute('name') in input_list.keys(
+                ) and inpt.hasAttribute('validation_criteria'):
                     isvalid = validation(inpt.getAttribute(
                         'validation_criteria'), input_list[inpt.getAttribute('name')])
                     if not isvalid[0]:
@@ -297,7 +298,7 @@ def get_global_options(operation, realm, keys):
             exec("%s = %s" % ("obj", ".Test_" + realm + "()"))
             loginfo("simulated mode")
         else:
-            exec("%s = %s" % ("obj",  str(realm) + "()"))
+            exec("%s = %s" % ("obj", str(realm) + "()"))
 
     except Exception as e:
         ret.setResult([], PTK_INTERNALERROR, str(e) + "failed")

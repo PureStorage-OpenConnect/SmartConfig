@@ -6,13 +6,13 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_group_status_file, get_job_status_file
 from time import gmtime, strftime
-from xml.dom.minidom import *
+from xml.dom.minidom import parse, Document, parseString
 import xmltodict
-from pure_dir.infra.common_helper import *
+from pure_dir.infra.common_helper import getAsList
 
 
 def pretty_print(data): return '\n'.join([line for line in parseString(
@@ -74,7 +74,7 @@ def clear_group_job_status(p_jobid):
         doc.unlink()
     except Exception as e:
         loginfo(" exception " + str(e))
-        res.setResult(None, PTK_FILEACCESSERROR,  _(
+        res.setResult(None, PTK_FILEACCESSERROR, _(
             "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
 
@@ -115,7 +115,7 @@ def prepare_workflow_status_file(wid, jobid, wflist):
         doc.unlink()
     except Exception as e:
         loginfo(" exception " + str(e))
-        res.setResult(None, PTK_FILEACCESSERROR,  _(
+        res.setResult(None, PTK_FILEACCESSERROR, _(
             "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return res
 

@@ -6,10 +6,10 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from xml.dom.minidom import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file, get_global_wf_config_file
+from xml.dom.minidom import parse, parseString
 import xmltodict
 import os
 
@@ -40,7 +40,7 @@ def getMappedOutputs(jobid, texecid):
             tdoc = xmltodict.parse(td.read())
 
     except EnvironmentError:
-        obj.setResult(wftaskip_list, PTK_NOTEXIST, "No such Job")
+        obj.setResult(wftask_oputs, PTK_NOTEXIST, "No such Job")
 
     for task in tdoc['workflow']['tasks']['task']:
         if task['@texecid'] == texecid:
@@ -102,23 +102,20 @@ def get_global_val(stacktype, field_name):
         xmldoc = parse(get_global_wf_config_file())
     except IOError:
         loginfo("Globals file does not exist")
-        obj.setResult(None, PTK_NOTEXIST, _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
-        return obj
-    g_val = {}
+        return None
     xmldoc = parse(get_global_wf_config_file())
     htypes = xmldoc.getElementsByTagName('htype')
     for htype in htypes:
         if htype.getAttribute('stacktype') == stacktype:
             inpts = htype.getElementsByTagName('input')
             for i in inpts:
-                g_val = {}
                 if i.getAttribute('name') == field_name:
                     return i.getAttribute('value')
     return None
 
 
 def get_global_arg_from_jid(jobid, fieldname):
-    obj = result()
+    result()
     path = get_job_file(jobid)
     if os.path.exists(path) == False:
         return None

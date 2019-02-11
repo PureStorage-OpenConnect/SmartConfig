@@ -6,12 +6,12 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from time import gmtime, strftime
-from xml.dom.minidom import *
+
 import xmltodict
+from pure_dir.infra.apiresults import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_status_file
+from time import gmtime, strftime
+from xml.dom.minidom import parse, parseString, Document
 
 
 def pretty_print(data): return '\n'.join([line for line in parseString(
@@ -28,7 +28,7 @@ def job_status_helper_api(jobid):
     except IOError:
         res['overallstatus'] = ""
         res['taskstatus'] = statuslist
-        obj.setResult(res, PTK_OKAY, "Job status does not exist")
+        obj.setResult(res, PTK_OKAY, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
         return obj
 
     res['overallstatus'] = doc['Workflowstatus']['@ostatus']

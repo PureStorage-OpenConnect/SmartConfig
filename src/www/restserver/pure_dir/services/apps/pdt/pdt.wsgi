@@ -36,7 +36,7 @@ with open(config_file) as data_file:
 
 
 # Generate target yaml file
-if generate_target_yaml(config_data) == True:
+if generate_target_yaml(config_data):
     loginfo("Generated target api file for pdt")
 else:
     loginfo("Failed to generate target api file for pdt")
@@ -64,7 +64,7 @@ sd['service_details'] = config_data
 
 retry = 0
 while retry < 3:
-    if register_with_gateway(sd) == True:
+    if register_with_gateway(sd):
         loginfo("Registered pdt with gateway..")
         break
     else:

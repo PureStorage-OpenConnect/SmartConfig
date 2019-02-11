@@ -1,5 +1,3 @@
-from pure_dir.infra.apiresults import *
-from pure_dir.components.common import *
 
 import os
 image_dir = "/mnt/system/uploads/"
@@ -37,7 +35,8 @@ class kickstart:
                 os.remove(mount_path + '/boot.cfg')
                 os.rename(mount_path + '/boot1.cfg', mount_path + '/boot.cfg')
                 os.system(
-                    "genisoimage -relaxed-filenames -J -R -o %s -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table %s" % (f_path, mount_path))
+                    "genisoimage -relaxed-filenames -J -R -o %s -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table %s" %
+                    (f_path, mount_path))
                 shutil.rmtree(mount_path)
                 return True
         return False

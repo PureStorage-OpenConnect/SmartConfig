@@ -7,11 +7,7 @@
 """
 
 import os
-import time
 import gettext
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 
 
 def init_localization():

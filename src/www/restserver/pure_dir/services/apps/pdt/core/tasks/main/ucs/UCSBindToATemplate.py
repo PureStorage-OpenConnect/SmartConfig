@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
+from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -37,7 +37,7 @@ class UCSBindToATemplate:
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -61,7 +61,7 @@ class UCSBindToATemplate:
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -84,7 +84,7 @@ class UCSBindToATemplate:
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -108,7 +108,7 @@ class UCSBindToATemplate:
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
 
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -132,7 +132,7 @@ class UCSBindToATemplate:
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')
         ret = result()
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -157,7 +157,7 @@ class UCSBindToATemplate:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -183,7 +183,7 @@ class UCSBindToATemplate:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -211,7 +211,7 @@ class UCSBindToATemplate:
         ret = result()
         fabricid = getArg(keys, 'fabric_id')
 
-        if fabricid == None:
+        if fabricid is None:
             ret.setResult(temp_list, PTK_OKAY, "success")
             return ret
 
@@ -234,20 +234,104 @@ class UCSBindToATemplate:
 
 
 class UCSBindToATemplateInputs:
-    service_profile_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getserviceprofile()|[fabric_id:1:fabric_id.value]", static="False",
-                                    static_values="", name="service_profile_name", label="Service Profile", svalue="", mandatory='1', mapval="0", order=1)
-    vmedia_policy_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getvmediapolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                  static_values="", name="vmedia_policy_name", label="Vmedia Policy", svalue="", mapval="0", mandatory='1', order=2)
-    biospolicy = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getbiospolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                          static_values="", name="biospolicy", label="Bios Policy", svalue="", mandatory='1', mapval="0", order=3)
-    boot_policy_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getbootpolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                static_values="", name="boot_policy_name", label="Boot Policy", svalue="Boot-FC-A", mapval="0", mandatory='1', order=4)
-    power_policy_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getpowerpolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                 static_values="", name="power_policy_name", label="Power Policy", svalue="No-Power-Cap", mandatory='1', mapval="", order=5)
-    local_disk_policy_name = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getlocaldiskpolicy()|[fabric_id:1:fabric_id.value]", static="False",
-                                      static_values="", name="local_disk_policy_name", label="Local Disk Policy", svalue="SAN-Boot", mandatory='1', mapval="0", order=6)
-    service_profile_template = Dropdown(hidden='False', isbasic='True', helptext='', dt_type="string", api="getserviceprofiletemplate()|[fabric_id:1:fabric_id.value]", static="False",
-                                        static_values="", name="service_profile_template", label="Service Profile Template", svalue="", mandatory='1', mapval="0", order=7)
+    service_profile_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getserviceprofile()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="service_profile_name",
+        label="Service Profile",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=1)
+    vmedia_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getvmediapolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="vmedia_policy_name",
+        label="Vmedia Policy",
+        svalue="",
+        mapval="0",
+        mandatory='1',
+        order=2)
+    biospolicy = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getbiospolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="biospolicy",
+        label="Bios Policy",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=3)
+    boot_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getbootpolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="boot_policy_name",
+        label="Boot Policy",
+        svalue="Boot-FC-A",
+        mapval="0",
+        mandatory='1',
+        order=4)
+    power_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getpowerpolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="power_policy_name",
+        label="Power Policy",
+        svalue="No-Power-Cap",
+        mandatory='1',
+        mapval="",
+        order=5)
+    local_disk_policy_name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getlocaldiskpolicy()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="local_disk_policy_name",
+        label="Local Disk Policy",
+        svalue="SAN-Boot",
+        mandatory='1',
+        mapval="0",
+        order=6)
+    service_profile_template = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        api="getserviceprofiletemplate()|[fabric_id:1:fabric_id.value]",
+        static="False",
+        static_values="",
+        name="service_profile_template",
+        label="Service Profile Template",
+        svalue="",
+        mandatory='1',
+        mapval="0",
+        order=7)
 
 
 class UCSBindToATemplateOutputs:

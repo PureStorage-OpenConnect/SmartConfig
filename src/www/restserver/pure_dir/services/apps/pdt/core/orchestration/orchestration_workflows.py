@@ -6,10 +6,20 @@
 
 """
 
-from pure_dir.infra.logging.logmanager import *
+
+import zipfile
+from slugify import slugify
+import xmltodict
+import uuid
+import os
+import os.path
+import shutil
+import glob
+from xml.dom.minidom import parse
+
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.utils.kickstart import *
-from pure_dir.services.apps.pdt.core.discovery import*
+from pure_dir.services.apps.pdt.core.discovery import get_config_mode
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import*
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
@@ -24,28 +34,13 @@ from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
 from pure_dir.services.apps.pdt.core.tasks.test.mds import*
-
-
-from xml.dom.minidom import *
-import zipfile
-from distutils.dir_util import copy_tree
-from slugify import slugify
-import xmltodict
-import uuid
-import os
-import os.path
-import shutil
-import glob
-import random
 from pure_dir.infra.common_helper import *
-import hashlib
-g_persistant_prepare = 0
 
 g_flash_stack_types = [
-    {'label': 'FA//FI ', 'value': 'fs-mini', 'tag': 'FC',
-        'enabled': False, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
-    {'label': 'FA//FI ', 'value': 'fa-fi-iscsi', 'tag': 'iSCSI',
-        'enabled': False, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
+    {'label': 'FA//FI ', 'value': 'fa-n9k-ucsmini-fc', 'tag': 'FC',
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
+    {'label': 'FA//FI ', 'value': 'fa-n5k-ucsmini-iscsi', 'tag': 'iSCSI',
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi-mds-fc', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}},
     {'label': 'FA//MDS//FI ', 'value': 'fa-mds-fi-fc', 'tag': 'FC', 'enabled': False,
@@ -65,15 +60,17 @@ g_flash_stack_types = [
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}},
     {'label': 'FA//Nexus 9K//FI ', 'value': 'fa-n9k-fi-iscsi',
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}},
+    {'label': 'FA//MDS//Nexus 9K//FI [Rack]',
+        'value': 'fa-n9k-fi-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}},
 ]
 
 
 def _get_all_file_paths(directory, jobid, allfiles):
     """
     #TODO not used, to be removed
-    :param directory: 
-    :param jobid: 
-    :param allfiles: 
+    :param directory:
+    :param jobid:
+    :param allfiles:
 
     """
 
@@ -177,7 +174,7 @@ def workflows_list_api(htype=''):
 def workflows_group_info_api(id, ttype=''):
     """
     Returns workflow group info
-    :param id: workflow ID 
+    :param id: workflow ID
 
     """
     doc = None
@@ -215,7 +212,7 @@ def workflows_group_info_api(id, ttype=''):
 def workflow_info_api(wid):
     """
     Returns individual workflow
-    :param wid: Workflow ID 
+    :param wid: Workflow ID
 
     """
     wfs = get_all_workflows()
@@ -242,7 +239,7 @@ def workflow_info_api(wid):
 
         except IOError:
             continue
-    if flag == False:
+    if not flag:
         loginfo("Workflow does not exist")
         obj.setResult(None, PTK_NOTEXIST, _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
     else:
@@ -250,40 +247,11 @@ def workflow_info_api(wid):
     return obj
 
 
-def delete_workflow_api(wid):
-    """
-    Deletes a workflow
-    :param wid: Workflow ID 
-
-    """
-    wfs = get_all_workflows()
-    obj = result()
-    flag = False
-    for wf in wfs:
-        fd = None
-        try:
-            fd = open(wf, 'r')
-            doc = xmltodict.parse(fd.read())
-            gwflowtasks = wf.split("__")[-1]
-            if doc['workflow']['@id'] == wid or gwflowtasks == wid + ".xml":
-                flag = True
-                os.remove(wf)
-
-        except IOError:
-            continue
-    if flag == False:
-        loginfo("Workflow does not exist")
-        obj.setResult(None, PTK_NOTEXIST,  _("PDT_ITEM_NOT_FOUND_ERR_MSG"))
-    else:
-        obj.setResult(True, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return obj
-
 
 def get_workflow_file_path(wname):
-    wfs = []
     for stack_type in g_flash_stack_types:
         fname = get_workflow_file(wname, stack_type['value'])
-        if os.path.isfile(fname) == True:
+        if os.path.isfile(fname):
             return fname
     return None
 
@@ -292,8 +260,8 @@ def prepare_tasks(jobid):
     """
     Prepares a workflow for execution.
     Triggers individual prepare on each task to pre-populate the job xml
-    :param jobid: 
-    return: returns res structure 
+    :param jobid:
+    return: returns res structure
     """
     obj = result()
     try:
@@ -333,8 +301,8 @@ def prepare_tasks(jobid):
 
 def check_job_with_wid_exists(wname):
     """
-     Checks if workflow with same name exist 
-     :param wname: workflow name 
+     Checks if workflow with same name exist
+     :param wname: workflow name
 
     """
     jobs = glob.glob(get_job_file_pattern())
@@ -361,7 +329,10 @@ def check_job_with_wid_exists(wname):
                            'wtype': jobdoc['workflow']['@wtype'], 'subwfs': sub_wfs}
             else:
                 job_det = {
-                    'jobid': jobid, 'wid': jobdoc['workflow']['@id'],  'wtype': 'standalone', 'subwfs': sub_wfs}
+                    'jobid': jobid,
+                    'wid': jobdoc['workflow']['@id'],
+                    'wtype': 'standalone',
+                    'subwfs': sub_wfs}
 
             job_details.append(job_det)
         except Exception as e:
@@ -384,7 +355,7 @@ def check_job_with_wid_exists(wname):
                 for tmp_job in job_details:
                     if tmp_job['wid'] == wfs['wid']:
                         subjobs.append(
-                            {'job_id': tmp_job['jobid'], 'wid':  tmp_job['wid']})
+                            {'job_id': tmp_job['jobid'], 'wid': tmp_job['wid']})
 
             job_dict = {'jobid': job['jobid'], 'subjobs': subjobs}
             obj.setResult(job_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -404,10 +375,10 @@ def workflow_persistant_prepare_helper(wname):
 
 def workflowprepare_helper_safe(wname, persistant_prepare):
     """
-    Prepares job xml from workflow, prepopulate input values 
-    :param wname: workflow name 
+    Prepares job xml from workflow, prepopulate input values
+    :param wname: workflow name
     :param persistant_prepare: if set, if a job with same wid exists, the job id
-                                will be returned instead of a new job id 
+                                will be returned instead of a new job id
     """
 
     jobid = str(uuid.uuid4())
@@ -436,7 +407,7 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
 
         for wf in getAsList(jobdoc['workflow']['wfs']['wf']):
             tuuid = str(uuid.uuid4())
-            subjobs.append({'job_id': tuuid, 'wid':  wf['@id']})
+            subjobs.append({'job_id': tuuid, 'wid': wf['@id']})
             shutil.copyfile(get_workflow_file_path(
                 wf['@id']), get_job_file(tuuid))
             wf['@jid'] = tuuid
@@ -447,7 +418,7 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
         with open(get_job_file(jobid), 'w') as file:
             file.write(out.encode('utf-8'))
 
-    except BaseException as e:
+    except BaseException:
         loginfo("Unable to create log")
         obj.setResult(None, PTK_INTERNALERROR, _(
             "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
@@ -458,32 +429,12 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     return obj
 
 
-def job_discard_api(jobid, force):
-    """
-    Deletes a Job
-    :param jobid: jobid to delete 
-    :param force: 
-
-    """
-    obj = result()
-    # TODO execute only if force is specified
-    try:
-        os.remove(get_job_file(jobid))
-    except BaseException:
-        loginfo("unable to discard Job")
-        obj.setResult(None, PTK_INTERNALERROR, _(
-            "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
-        return obj
-
-    obj.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return obj
-
 
 def job_save_as_api(jobid, data):
     """
     Saves a Job as a new workflow
-    :param jobid: Jobid 
-    :param data: name, desc .. for new workflow 
+    :param jobid: Jobid
+    :param data: name, desc .. for new workflow
 
     """
     obj = result()
@@ -556,7 +507,7 @@ def job_save_as_api(jobid, data):
 def zip(src, dst):
     """
     Ready zip to download workflows
-    :param src: source folder path 
+    :param src: source folder path
     :param dst: destination folder path
 
     """
@@ -564,7 +515,8 @@ def zip(src, dst):
     abs_src = os.path.abspath(src)
     for dirname, subdirs, files in os.walk(src):
         for filename in files:
-            if filename.endswith('.xml') or filename.endswith('.log') or len(filename.split(".")) == 1:
+            if filename.endswith('.xml') or filename.endswith(
+                    '.log') or len(filename.split(".")) == 1:
                 absname = os.path.abspath(os.path.join(dirname, filename))
                 arcname = absname[len(abs_src) + 1:]
                 zf.write(absname, arcname)
@@ -574,30 +526,32 @@ def zip(src, dst):
 def export_workflow_api(wkflowlist):
     """
      Method to export workflow
-    :param wkflowlist: workflow list 
+    :param wkflowlist: workflow list
 
     """
     res = result()
-    filelist = []
     wkflow_path = get_workflow_path()
     dw_path = get_download_path()
     for wkf in wkflowlist['jobid']:
         for root, htypelist, filenames in os.walk(wkflow_path):
             for htype in htypelist:
-                if os.path.exists(get_htype_workflow_path(htype, wkf)) == True:
+                if os.path.exists(get_htype_workflow_path(htype, wkf)):
                     with open(get_htype_workflow_path(htype, wkf)) as td:
                         doc = xmltodict.parse(td.read())
                     if '@wtype' in doc['workflow'] and doc['workflow']['@wtype'] == "wgroup":
                         src = get_htype_workflow_path(htype, wkf)
                         shutil.copy2(src, dw_path)
-                        if type(doc['workflow']['wfs']['wf']) == list:
+                        if isinstance(doc['workflow']['wfs']['wf'], list):
                             for wkflowgrp in doc['workflow']['wfs']['wf']:
-                                if os.path.exists(get_htype_workflow_path(htype, wkflowgrp['@id'])) == True:
+                                if os.path.exists(get_htype_workflow_path(htype, wkflowgrp['@id'])):
                                     src = get_htype_workflow_path(
                                         htype, wkflowgrp['@id'])
                                     shutil.copy2(src, dw_path)
                         else:
-                            if os.path.exists(get_htype_workflow_path(htype, doc['workflow']['wfs']['wf']['@id'])) == True:
+                            if os.path.exists(
+                                get_htype_workflow_path(
+                                    htype,
+                                    doc['workflow']['wfs']['wf']['@id'])):
                                 src = get_htype_workflow_path(
                                     htype, doc['workflow']['wfs']['wf']['@id'])
                                 shutil.copy2(src, dw_path)
@@ -616,8 +570,8 @@ def export_workflow_api(wkflowlist):
 def extract_zip(zip_file, extract_to):
     """
 
-    :param zip_file: 
-    :param extract_to: 
+    :param zip_file:
+    :param extract_to:
 
     """
     zip_ref = zipfile.ZipFile(zip_file, 'r')
@@ -628,7 +582,7 @@ def extract_zip(zip_file, extract_to):
 def import_workflow_api(uploadfile):
     """
     Method to import and export workflow
-    :param uploadfile: Upload file path 
+    :param uploadfile: Upload file path
 
     """
     res = result()
@@ -641,11 +595,11 @@ def import_workflow_api(uploadfile):
             for fl in filenames:
                 if fl.endswith('.xml'):
                     fl_path = dw_path + fl
-                    if os.path.exists(fl_path) == True:
+                    if os.path.exists(fl_path):
                         with open(fl_path) as td:
                             doc = xmltodict.parse(td.read())
                         if '@htype' in doc['workflow']:
-                            if os.path.exists(get_workflow_path() + doc['workflow']['@htype']) == True:
+                            if os.path.exists(get_workflow_path() + doc['workflow']['@htype']):
                                 dest = get_workflow_path(
                                 ) + doc['workflow']['@htype'] + "/"
                                 shutil.copy2(fl_path, dest)
@@ -682,10 +636,10 @@ def flash_stack_type_api():
     return res
 
 
-def check_pre_req_api(wid):
+'''def check_pre_req_api(wid):
     """
     Looks for pre-requirement workflow
-    :param wid: workflow ID 
+    :param wid: workflow ID
     """
 
     res = result()
@@ -701,14 +655,10 @@ def check_pre_req_api(wid):
         return res
     with open(get_workflow_file_path(prereq)) as td:
         obj = xmltodict.parse(td.read())
-        wf = [
-            {
-                "name": obj['workflow']['@name'],
-                "msg":"Please ensure you have executed '" + obj['workflow']['@name'] + "' before executing this workflow",
-                "prereq":obj['workflow']['@prereq']
-            }
-        ]
+        wf = [{"name": obj['workflow']['@name'], "msg":"Please ensure you have executed '" +
+               obj['workflow']['@name'] +
+               "' before executing this workflow", "prereq":obj['workflow']['@prereq']}]
         res.setResult(wf, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return res
+    return res'''

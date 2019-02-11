@@ -35,21 +35,38 @@ class Test_UCSCreateMgmtvNiCTemplate:
 
     def getpeerredundancytempl(self, keys):
         ret = result()
-        vnic_templ_list = [{"id": "vNIC_Mgmt_A", "label": "vNIC_Mgmt_A", "selected": "0"}, {"id": "vNIC_Mgmt_B", "label": "vNIC_Mgmt_B", "selected": "0"},
-                           {"id": "vNIC_vMotion_A", "label": "vNIC_vMotion_A", "selected": "0"}, {
-                               "id": "vNIC_vMotion_B", "label": "vNIC_vMotion_B", "selected": "0"},
-                           {"id": "vNIC_App_A", "label": "vNIC_App_A", "selected": "0"}, {
-                               "id": "vNIC_App_B", "label": "vNIC_App_B", "selected": "0"},
-                           {"id": "", "label": "not-set", "selected": "1"}]
+        vnic_templ_list = [
+            {
+                "id": "vNIC_Mgmt_A", "label": "vNIC_Mgmt_A", "selected": "0"}, {
+                "id": "vNIC_Mgmt_B", "label": "vNIC_Mgmt_B", "selected": "0"}, {
+                "id": "vNIC_vMotion_A", "label": "vNIC_vMotion_A", "selected": "0"}, {
+                    "id": "vNIC_vMotion_B", "label": "vNIC_vMotion_B", "selected": "0"}, {
+                        "id": "vNIC_App_A", "label": "vNIC_App_A", "selected": "0"}, {
+                            "id": "vNIC_App_B", "label": "vNIC_App_B", "selected": "0"}, {
+                                "id": "", "label": "not-set", "selected": "1"}]
         ret.setResult(vnic_templ_list, PTK_OKAY, "success")
         return ret
 
     def getVLANs(self, keys):
         ret = result()
-        vlans_list = [{"id": "default", "label": "default", "selected": "0"}, {"id": "default", "label": "default", "selected": "0"},
-                      {"id": "Native-VLAN", "label": "Native-VLAN", "selected": "0"}, {
-                          "id": "IB-Mgmt", "label": "IB-Mgmt", "selected": "0"},
-                      {"id": "vMotion", "label": "vMotion", "selected": "0"}, {"id": "VM-App-1", "label": "VM-App-1", "selected": "0"}]
+        vlans_list = [{"id": "default",
+                       "label": "default",
+                       "selected": "0"},
+                      {"id": "default",
+                       "label": "default",
+                       "selected": "0"},
+                      {"id": "Native-VLAN",
+                       "label": "Native-VLAN",
+                       "selected": "0"},
+                      {"id": "IB-Mgmt",
+                       "label": "IB-Mgmt",
+                       "selected": "0"},
+                      {"id": "vMotion",
+                       "label": "vMotion",
+                       "selected": "0"},
+                      {"id": "VM-App-1",
+                       "label": "VM-App-1",
+                       "selected": "0"}]
         ret.setResult(vlans_list, PTK_OKAY, "success")
         return ret
 
@@ -62,8 +79,15 @@ class Test_UCSCreateMgmtvNiCTemplate:
 
     def getmacpools(self, keys):
         ret = result()
-        mac_list = [{"id": "default", "label": "default(0/0)", "selected": "0"}, {"id": "MAC_Pool_B", "label": "MAC_Pool_B(32/32)", "selected": "0"},
-                    {"id": "MAC_Pool_A", "label": "MAC_Pool_A(32/32)", "selected": "0"}]
+        mac_list = [{"id": "default",
+                     "label": "default(0/0)",
+                     "selected": "0"},
+                    {"id": "MAC_Pool_B",
+                     "label": "MAC_Pool_B(32/32)",
+                     "selected": "0"},
+                    {"id": "MAC_Pool_A",
+                     "label": "MAC_Pool_A(32/32)",
+                     "selected": "0"}]
         ret.setResult(mac_list, PTK_OKAY, "success")
         return ret
 

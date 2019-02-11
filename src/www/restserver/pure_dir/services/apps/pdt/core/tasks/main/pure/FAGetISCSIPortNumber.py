@@ -2,7 +2,7 @@ from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
+from pure_dir.components.common import get_device_credentials, get_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -32,9 +32,10 @@ class FAGetISCSIPortNumber:
             key="mac", value=inputs['inputs']['pure_id'])
 
         if not cred:
+	    res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of the FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return parseTaskResult(res)
 
         obj = PureTasks(cred['ipaddress'],
@@ -47,7 +48,7 @@ class FAGetISCSIPortNumber:
     def rollback(self, inputs, outputs, logfile):
         loginfo("get pwwn rollback")
         res = result()
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def prepare(self, jobid, texecid, inputs):
@@ -66,7 +67,7 @@ class FAGetISCSIPortNumber:
         interfaces = self.get_fa_iscsi_intf(pure_id)
         loginfo("interfaces in prepare :{}".format(interfaces))
         job_input_save(jobid, texecid, 'name', interfaces[0])
-        res.setResult(None, PTK_OKAY, "success")
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def purelist(self, keys):
@@ -79,7 +80,7 @@ class FAGetISCSIPortNumber:
         res = result()
         pure_list = get_device_list(device_type="PURE")
         loginfo("pure_list : {}".format(pure_list))
-        res.setResult(pure_list, PTK_OKAY, "success")
+        res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_fa_iscsi_intf(self, pureid):
@@ -93,8 +94,8 @@ class FAGetISCSIPortNumber:
         loginfo("comes into get_fa_iscsi_intf with pureid :{}".format(pureid))
         interface_list = []
         res = result()
-        if pureid == None:
-            res.setResult(interface_list, PTK_OKAY, "success")
+        if pureid is None:
+            res.setResult(interface_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(
@@ -102,7 +103,7 @@ class FAGetISCSIPortNumber:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return res
 
         obj = PureTasks(cred['ipaddress'],
@@ -110,8 +111,8 @@ class FAGetISCSIPortNumber:
         intf_list = obj.get_fa_ports()
         new_intf_list = []
         for intf in intf_list:
-            new_intf_list.append('ct0.' + intf)
-            new_intf_list.append('ct1.' + intf)
+            new_intf_list.append('CT0.' + intf)
+            new_intf_list.append('CT1.' + intf)
         obj.release_pure_handle()
         return new_intf_list
 
@@ -128,8 +129,8 @@ class FAGetISCSIPortNumber:
         cont_list = []
         res = result()
         pureid = getArg(keys, 'pure_id')
-        if pureid == None:
-            res.setResult(cont_list, PTK_OKAY, "success")
+        if pureid is None:
+            res.setResult(cont_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
         cred = get_device_credentials(
@@ -138,7 +139,7 @@ class FAGetISCSIPortNumber:
         if not cred:
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
-                          "Unable to get the device credentials of FlashArray")
+                          _("PDT_FA_LOGIN_FAILURE"))
             return res
 
         obj = PureTasks(cred['ipaddress'],
@@ -155,10 +156,35 @@ class FAGetISCSIPortNumber:
 
 
 class FAGetISCSIPortNumberInputs:
-    pure_id = Dropdown(hidden='False', isbasic='True', helptext='Pure ID', dt_type="string", static="False", api="purelist()", name="pure_id",
-                       label="FlashArray", svalue="", mapval="", static_values="", mandatory="0", order=1)
-    name = Dropdown(hidden='False', isbasic='True', helptext='ISCSI Controller Name', dt_type="list", api="get_iscsi_controller_list()|[pure_id:1:pure_id.value]", static="False",
-                    name="name", label="Controller name", svalue="", mandatory="0", static_values="", mapval="0", order=2, recommended="1")
+    pure_id = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='Pure ID',
+        dt_type="string",
+        static="False",
+        api="purelist()",
+        name="pure_id",
+        label="FlashArray",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="0",
+        order=1)
+    name = Dropdown(
+        hidden='False',
+        isbasic='True',
+        helptext='ISCSI Controller Name',
+        dt_type="list",
+        api="get_iscsi_controller_list()|[pure_id:1:pure_id.value]",
+        static="False",
+        name="name",
+        label="Controller name",
+        svalue="",
+        mandatory="0",
+        static_values="",
+        mapval="0",
+        order=2,
+        recommended="1")
 
 
 class FAGetISCSIPortNumberOutputs:

@@ -5,21 +5,20 @@
     Implements workflow execution logic
 
 """
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import *
-from pure_dir.services.apps.pdt.core.discovery import*
-from pure_dir.services.apps.pdt.core.config_json import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import*
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import *
-from xml.dom.minidom import *
+
 import xmltodict
 import os
 import glob
+from pure_dir.infra.apiresults import *
+from pure_dir.services.apps.pdt.core.discovery import get_config_mode
+from pure_dir.services.apps.pdt.core.config_json import update_config_inputs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_workflow_files_pattern, get_batch_status_file 
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import JOB_STATUS_FAILED
+#from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import get_batch_status_file
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import group_job_status_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import jobexecute_helper
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import workflowprepare_helper, workflow_persistant_prepare_helper
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import prepare_batch_status_file, update_batch_job_status, update_batch_job_status_on_init
 
 
 def _get_workflow_list(htype):
@@ -65,8 +64,8 @@ def flashstack_deploy(htype, wid):
     """
     Method executes all the workflows required for flash stack deployment one after another
     If wid is specified, it only executes the particular workflow alone
-    :param htype: Hardware type 
-    :param wid: Workflow ID 
+    :param htype: Hardware type
+    :param wid: Workflow ID
 
     """
     res = _get_workflow_list(htype)
@@ -111,12 +110,12 @@ def flashstack_deploy(htype, wid):
                 update_config_inputs(htype, jb)
 
         update_batch_job_status(
-            htype, wf['id'],  job_details['jobid'], 'EXECUTING')
+            htype, wf['id'], job_details['jobid'], 'EXECUTING')
         jobexecute_helper(job_details['jobid'])
         res = group_job_status_api(job_details['jobid'])
         job_status = res.getResult()
         update_batch_job_status(
-            htype, wf['id'],  job_details['jobid'], job_status['overallstatus'])
+            htype, wf['id'], job_details['jobid'], job_status['overallstatus'])
         if job_status['overallstatus'] == JOB_STATUS_FAILED:
             break
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))

@@ -2,37 +2,30 @@ from purestorage import PureError, PureHTTPError
 import json
 import time
 import ast
-import os
 import urllib3
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
-from pure_dir.components.storage.purestorage.pure import PureHelper
 from pure_dir.infra.apiresults import PTK_INTERNALERROR, PTK_OKAY, result
 from purestorage import FlashArray
 from purestorage import PureHTTPError
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
 
-from xml.dom.minidom import parse, Document
 
 from pure_dir.infra.logging.logmanager import loginfo
 
 
 class PureTasks:
-    def __init__(self,  ipaddress='', username='', password=''):
+    def __init__(self, ipaddress='', username='', password=''):
         self.handle = self.pure_handler(
             ipaddress=ipaddress, username=username, password=password)
         self.username = username
         self.pwd = password
-        pass
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def pure_handler(self, ipaddress="", username="", password=""):
-        res = result()
         try:
-            handle = FlashArray(ipaddress, username,
-                                password, verify_https=False, user_agent="PureStorage SmartConfig /1.2 (Python, CentOS 7.4)")
+            handle = FlashArray(ipaddress, username, password, verify_https=False,
+                                user_agent="PureStorage SmartConfig /1.2 (Python, CentOS 7.4)")
             return handle
         except Exception as e:
             loginfo("Unable to get purestorage handle")
@@ -47,12 +40,10 @@ class PureTasks:
         :return: Returns array information
         """
 
-        obj = result()
         loginfo("flash_array_info ip : {}".format(ip))
         switch = {}
-        if self.handle == None:
-            obj.setResult(opdict, PTK_INTERNALERROR,
-                          "Unable to Connect to FlashArray")
+        if self.handle is None:
+            loginfo("Unable to Connect to FlashArray")
             return switch
 
         res = self.get_network_interfaces(ip)
@@ -128,14 +119,14 @@ class PureTasks:
         Creates Shared Volume
 
         :param inputs: Dictonary(name, size)
-        :param logfile: Logfile name  
+        :param logfile: Logfile name
         :return: Retuns Name and status of volume created
         """
 
         obj = result()
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -180,14 +171,14 @@ class PureTasks:
         Creates multiple Volumes
 
         :param inputs: Dictonary(name, count)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -204,7 +195,6 @@ class PureTasks:
         vol_datas = self.get_multiple_vol_names(name, st_no, count, num_digits)
 
         for vol_data in vol_datas:
-            data = {}
             loginfo("vol_data is {} {}".format(vol_data, type(vol_data)))
             try:
                 msg = "Creating volume %s" % vol_data
@@ -242,14 +232,14 @@ class PureTasks:
         Create Multiple hosts
 
         :param inputs: Dictonary(name, count)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
         opdict = {}
 
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -288,14 +278,14 @@ class PureTasks:
         Add Port to hosts
 
         :param inputs: Dictonary(name, count)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -339,14 +329,14 @@ class PureTasks:
         Create Host Group
 
         :param inputs: Dictonary(name)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
         tdict = {}
         opdict = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle for FlashArray")
             return obj
@@ -370,15 +360,14 @@ class PureTasks:
         Connect Voume to host
 
         :param inputs: Dictonary(hostname, volumename)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
-        dictopt = {}
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -394,7 +383,7 @@ class PureTasks:
                 customlogs(msg, logfile)
                 hostname = data['hostname']['value']
                 volName = data['volumename']['value']
-                dictopt = self.handle.connect_host(hostname, volName)
+                self.handle.connect_host(hostname, volName)
                 obj.setResult(dicts, PTK_OKAY, "Success")
                 customlogs("Connected volume to host successfully", logfile)
 
@@ -418,8 +407,8 @@ class PureTasks:
         Connect Voume to host group
 
         :param inputs: Dictonary(hgname, volumename)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
@@ -444,14 +433,14 @@ class PureTasks:
         Add Host to host group
 
         :param inputs: Dictonary(hgname, hostlist)
-        :param logfile: Logfile name  
-        :return: Retuns status 
+        :param logfile: Logfile name
+        :return: Retuns status
         """
 
         obj = result()
         opdict = {}
         tdict = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -474,7 +463,7 @@ class PureTasks:
         """
         List host groups
 
-        :return: Retuns host group list 
+        :return: Retuns host group list
         """
 
         obj = result()
@@ -492,13 +481,13 @@ class PureTasks:
         """
         List hosts
 
-        :return: Retuns host list 
+        :return: Retuns host list
         """
 
         obj = result()
         opdict = {}
 
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -516,12 +505,12 @@ class PureTasks:
         """
         List volumes
 
-        :return: Retuns volume list 
+        :return: Retuns volume list
         """
 
         obj = result()
-        if self.handle == None:
-            obj.setResult(opdict, PTK_INTERNALERROR,
+        if self.handle is None:
+            obj.setResult({}, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
 
@@ -529,7 +518,7 @@ class PureTasks:
         try:
             tdict = self.handle.list_volumes()
             obj.setResult(tdict, PTK_OKAY, "Success")
-        except PureHTTPError as e:
+        except PureHTTPError:
             obj.setResult(tdict, PTK_INTERNALERROR,
                           "Failed to get the list of volumes")
         return obj
@@ -538,14 +527,14 @@ class PureTasks:
         """
         List ports, In case of FC waits for all ports to be discovered
 
-        :param blade_cnt: Blade Count 
+        :param blade_cnt: Blade Count
         :param fc_ports: if True FC ports are returned
-        :return: Retuns the port list 
+        :return: Retuns the port list
         """
 
         obj = result()
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -591,9 +580,9 @@ class PureTasks:
 
     def get_network_interfaces(self, ip_addr):
         """
-        returns MAC Address 
+        returns MAC Address
 
-        :param ip_addr: ip address of interface 
+        :param ip_addr: ip address of interface
         :return: MAC Address
         """
 
@@ -631,9 +620,9 @@ class PureTasks:
 
     def getSerial_no(self, ip):
         """
-        returns Serial number for FlashArray 
+        returns Serial number for FlashArray
 
-        :param ip: ip address of managment interface 
+        :param ip: ip address of managment interface
         :return: serial no
         """
 
@@ -672,7 +661,7 @@ class PureTasks:
         try:
             dicts = self.handle.get(controllers=True)
             model = dicts[0]['model']
-            if model == None:
+            if model is None:
                 model = dicts[1]['model']
         except PureHTTPError as e:
             loginfo("Get array controller is failed")
@@ -681,7 +670,7 @@ class PureTasks:
 
     def get_fc_port_list(self):
         """
-        returns FC port list from FlashArray 
+        returns FC port list from FlashArray
 
         :return: FC port list
         """
@@ -689,7 +678,7 @@ class PureTasks:
         obj = result()
         data = []
 
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(data, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -698,6 +687,8 @@ class PureTasks:
             ports = self.handle.list_ports()
             ports = json.loads(json.dumps(ports))
             for mdict in ports:
+                if "FC" not in mdict['name']:
+                    continue
                 kdict = {}
                 kdict['name'] = mdict['name']
                 kdict['wwn'] = mdict['wwn']
@@ -712,7 +703,7 @@ class PureTasks:
 
     def get_iscsi_port_list(self):
         """
-        returns iSCSI port list from FlashArray 
+        returns iSCSI port list from FlashArray
 
         :return: iSCSI port list
         """
@@ -720,7 +711,7 @@ class PureTasks:
         obj = result()
         data = []
 
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(data, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -730,6 +721,8 @@ class PureTasks:
             ports = json.loads(json.dumps(ports))
             for mdict in ports:
                 kdict = {}
+                if "ETH" not in mdict['name']:
+                    continue
                 kdict['name'] = mdict['name']
                 kdict['iqn'] = mdict['iqn']
                 data.append(kdict)
@@ -754,7 +747,7 @@ class PureTasks:
     def get_port_number(self, inputs, logfile):
         port_dict = {}
         obj = result()
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(port_dict, PTK_INTERNALERROR, "Unable to get Handle")
             return obj
         try:
@@ -770,7 +763,7 @@ class PureTasks:
                     else:
                         port_dict['pwwn'] = mdict['iqn']
             obj.setResult(port_dict, PTK_OKAY, "Success")
-            customlogs("Get port number successfull", logfile)
+            customlogs("Get port number successful", logfile)
         except PureHTTPError as e:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
@@ -782,10 +775,10 @@ class PureTasks:
 
     def get_iscsi_network_interfaces(self, inputs, logfile):
         """
-        returns list of interface with 'iscsi' service configured 
+        returns list of interface with 'iscsi' service configured
 
         :param inputs: Dictionary
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: list of interfaces
         """
 
@@ -793,12 +786,10 @@ class PureTasks:
         res = result()
         try:
             dicts = self.handle.list_network_interfaces()
-            iscsi_interfaces = []
             iscsi_list = []
             for mInterface in dicts:
                 service = mInterface['services']
                 if 'iscsi' in service:
-                    iscsi_interfaces.append(mInterface['name'])
                     iscsi_list.append(mInterface)
                 else:
                     loginfo("No iscsi network found")
@@ -816,14 +807,14 @@ class PureTasks:
         Configure Network Interface
 
         :param inputs: Dictionary(address, mtu, netmask, name)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         res_dict = {}
         obj = result()
-        if self.handle == None:
-            obj.setResult(port_dict, PTK_INTERNALERROR, "Unable to get Handle")
+        if self.handle is None:
+            obj.setResult(res_dict, PTK_INTERNALERROR, "Unable to get Handle")
             return obj
         try:
             address = inputs['address'].upper()
@@ -852,7 +843,7 @@ class PureTasks:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
             customlogs("Failed to set iscsi network interface", logfile)
-            obj.setResult(port_dict, PTK_INTERNALERROR,
+            obj.setResult(res_dict, PTK_INTERNALERROR,
                           "Failed to set iscsi network interface")
         return obj
 
@@ -861,14 +852,14 @@ class PureTasks:
         Delete multiple Hosts
 
         :param inputs: Dictionary(name, count)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
         opdict = {}
 
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -907,14 +898,14 @@ class PureTasks:
         Delete port from Hosts
 
         :param inputs: Dictionary(host, port)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -958,14 +949,14 @@ class PureTasks:
         Delete multiple volumes
 
         :param inputs: Dictionary(host, port)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -978,7 +969,6 @@ class PureTasks:
         vol_datas = self.get_multiple_vol_names(name, st_no, count, num_digits)
 
         for vol_data in vol_datas:
-            data = {}
             loginfo("vol_data is {} {}".format(vol_data, type(vol_data)))
             #data = eval(vol_data)
             try:
@@ -1010,15 +1000,14 @@ class PureTasks:
         Delete multiple volumes
 
         :param inputs: Dictionary(hostname, volumename)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
-        dictopt = {}
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -1034,7 +1023,7 @@ class PureTasks:
                 customlogs(msg, logfile)
                 hostname = data['hostname']['value']
                 volName = data['volumename']['value']
-                dictopt = self.handle.disconnect_host(hostname, volName)
+                self.handle.disconnect_host(hostname, volName)
                 obj.setResult(dicts, PTK_OKAY, "Success")
                 customlogs(
                     "Disconnected volume from host successfully", logfile)
@@ -1061,14 +1050,14 @@ class PureTasks:
         Delete Host Group
 
         :param inputs: Dictionary(hgname)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
         tdict = {}
         opdict = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle for FlashArray")
             return obj
@@ -1092,14 +1081,14 @@ class PureTasks:
         Remove Host from Host Group
 
         :param inputs: Dictionary(hgname, hosts)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
         opdict = {}
         tdict = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -1123,14 +1112,14 @@ class PureTasks:
         Delete shared volume
 
         :param inputs: Dictionary(name)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
         obj = result()
         opdict = {}
         dicts = {}
-        if self.handle == None:
+        if self.handle is None:
             obj.setResult(opdict, PTK_INTERNALERROR,
                           "Unable to get Handle to FlashArray")
             return obj
@@ -1165,7 +1154,7 @@ class PureTasks:
         Disconnect volume from host group
 
         :param inputs: Dictionary(hgname, volumename)
-        :param logfile: Logfile name 
+        :param logfile: Logfile name
         :return: status
         """
 
@@ -1191,8 +1180,8 @@ class PureTasks:
     def remove_iscsi_network_interface(self, inputs, logfile):
         res_dict = {}
         obj = result()
-        if self.handle == None:
-            obj.setResult(port_dict, PTK_INTERNALERROR, "Unable to get Handle")
+        if self.handle is None:
+            obj.setResult(res_dict, PTK_INTERNALERROR, "Unable to get Handle")
             return obj
         try:
             address = None  # inputs['address'].upper()
@@ -1217,7 +1206,7 @@ class PureTasks:
             err = e.text
             customlogs(eval(err)[0]['msg'], logfile)
             customlogs("Failed to remove iscsi network interface", logfile)
-            obj.setResult(port_dict, PTK_INTERNALERROR,
+            obj.setResult(res_dict, PTK_INTERNALERROR,
                           "Failed to remove iscsi network interface")
             loginfo(str(e))
         return obj
@@ -1230,11 +1219,11 @@ class PureTasks:
         if model in ["FA-X10R2", "FA-X20R2", "FA-X50R2", "FA-X70R2", "FA-X90R2"]:
             for port in ethernet_ports:
                 if port['speed'] == 1000000000 and 'eth4' in port['name']:
-                    return ["eth4", "eth5"]
+                    return ["ETH4", "ETH5"]
                 elif port['speed'] == 4000000000 and 'eth14' in port['name']:
-                    return ["eth14", "eth15"]
+                    return ["ETH14", "ETH15"]
         else:
             if fc_ports:
-                return ["eth8", "eth9"]
+                return ["ETH8", "ETH9"]
             else:
-                return ["eth4", "eth5"]
+                return ["ETH4", "ETH5"]

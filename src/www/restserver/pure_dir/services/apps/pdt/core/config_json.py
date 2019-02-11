@@ -79,7 +79,7 @@ def export_configuration(stacktype):
             "subworkflows": wflist
         }
         grp_wf_list.append(grp_wf)
-    if os.path.exists(get_global_wf_config_file()) == True:
+    if os.path.exists(get_global_wf_config_file()):
         doc = parse(get_global_wf_config_file())
         htype_list = doc.getElementsByTagName('htype')
         input_list = []
@@ -93,7 +93,7 @@ def export_configuration(stacktype):
                         }
                         input_list.append(input_dict)
     discovery_list = []
-    if os.path.exists(get_devices_wf_config_file()) == True:
+    if os.path.exists(get_devices_wf_config_file()):
         doc = parse(get_devices_wf_config_file())
         device_list = doc.getElementsByTagName('device')
         for device in device_list:
@@ -111,9 +111,9 @@ def export_configuration(stacktype):
             }
             if device.getAttribute('device_type') == 'Nexus 5k':
                 discovery_dict['system_image'] = device.getAttribute(
-                    'system_image')
+                    'switch_system_image')
                 discovery_dict['kickstart_image'] = device.getAttribute(
-                    'kickstart_image')
+                    'switch_kickstart_image')
                 discovery_dict['image_version'] = device.getAttribute(
                     'image_version')
             elif device.getAttribute('device_type') == 'Nexus 9k':
@@ -123,9 +123,9 @@ def export_configuration(stacktype):
                     'image_version')
             elif device.getAttribute('device_type') == 'MDS':
                 discovery_dict['kickstart_image'] = device.getAttribute(
-                    'kickstart_image')
+                    'switch_kickstart_image')
                 discovery_dict['system_image'] = device.getAttribute(
-                    'system_image')
+                    'switch_system_image')
                 discovery_dict['image_version'] = device.getAttribute(
                     'image_version')
             elif device.getAttribute('device_type') == 'UCSM':
@@ -155,11 +155,11 @@ def export_configuration(stacktype):
 
 
 def get_value_from_xml(jid, texecid, name):
-    if jid != None and os.path.exists(get_job_file(jid)) is True:
+    if jid is not None and os.path.exists(get_job_file(jid)) is True:
         job_file = get_job_file(jid)
         fd = open(job_file, 'r')
         doc = xmltodict.parse(fd.read())
-        if doc['workflow']['@id'] != None and 'wtype' not in doc['workflow']:
+        if doc['workflow']['@id'] is not None and 'wtype' not in doc['workflow']:
             for i in doc['workflow']['tasks']['task']:
                 if i['@texecid'] == texecid:
                     if isinstance(i['args']['arg'], (list,)):
@@ -195,11 +195,17 @@ def import_configuration(configfile):
                         '__') and not x.endswith('__')]
                     for j in i['input']:
                         if j['name'] not in inputs:
-                            return j['name']
+                            loginfo("Invalid task input field '%s' in json" % j['name'])
+                            res.setResult(
+                                False, PTK_INTERNALERROR, "Invalid JSON")
+                            return res
                         exec("%s = %s.%s" % ("field", "input_obj", j['name']))
                         wftaskip = job_task_inputs(
                             field=field, tid=i['taskid'])
                         if 'mandatory' in wftaskip and not str(j['value']):
+                            loginfo(
+                                "Task mandatory input field '%s' has no value in json" %
+                                j['name'])
                             res.setResult(
                                 False, PTK_INTERNALERROR, "Invalid JSON")
                             return res
@@ -215,7 +221,7 @@ def import_configuration(configfile):
                     if gl['name'] == inp['@name']:
                         inpt = True
                         break
-                if inpt == False:
+                if not inpt:
                     res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
                     return res
     for comp in data['components']:
@@ -235,7 +241,7 @@ def import_configuration(configfile):
             if 'domain_name' not in comp or 'esxi_file' not in comp or 'infra_image' not in comp or 'blade_image' not in comp:
                 res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
                 return res
-    if stacktype == False:
+    if not stacktype:
         res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
         return res
     res.setResult(True, PTK_OKAY, "success")
@@ -257,13 +263,15 @@ def json_config_defaults(stacktype):
             }
             if comp['device_type'] == 'Nexus 5k':
                 component['switch_image'] = {
-                    "switch_system_image": comp['system_image'], "switch_kickstart_image": comp['kickstart_image']}
+                    "switch_system_image": comp['system_image'],
+                    "switch_kickstart_image": comp['kickstart_image']}
             elif comp['device_type'] == 'Nexus 9k':
                 component['switch_image'] = {
                     "switch_system_image": comp['system_image']}
             elif comp['device_type'] == 'MDS':
                 component['switch_image'] = {
-                    "switch_system_image": comp['system_image'], "switch_kickstart_image": comp['kickstart_image']}
+                    "switch_system_image": comp['system_image'],
+                    "switch_kickstart_image": comp['kickstart_image']}
             elif comp['device_type'] == 'UCSM':
                 component['mode'] = comp['leadership']
                 component['dns'] = comp['dns']
@@ -285,10 +293,10 @@ def json_config_defaults(stacktype):
 
 def deploy_workflows(stacktype):
     init = 0
-    while 1:
+    while True:
         status, devices = get_xml_element(static_discovery_store, 'validated')
-        if status == True:
-            if any(dev['configured'] == 'Re-validate' for dev in devices) == True:
+        if status:
+            if any(dev['configured'] == 'Re-validate' for dev in devices):
                 loginfo(
                     "%s configuration failed. Please retry the configuration" % dev['name'])
                 return False
@@ -362,8 +370,8 @@ def update_config_inputs(stacktype, jid):
             for task in taskset:
                 task_dict = {}
                 xml_task, json_task = task[0], task[1]
-                xml_args = [xml_task['args']['arg']] if type(
-                    xml_task['args']['arg']) != list else xml_task['args']['arg']
+                xml_args = [xml_task['args']['arg']] if not isinstance(
+                    xml_task['args']['arg'], list) else xml_task['args']['arg']
                 argset = [(xarg, jarg) for xarg in xml_args for jarg in json_task['input']
                           if xarg['@name'] == jarg['name']]
                 for arg in argset:
