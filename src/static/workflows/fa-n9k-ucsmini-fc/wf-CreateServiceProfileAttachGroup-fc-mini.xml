@@ -1,6 +1,0 @@
-<?xml version="1.0" ?>
-<workflow id="CreateServiceProfileAttachGroup-fc-mini" name="Create UCS Service Profiles" desc="Create UCS Service Profile Templates and apply Service Profiles to Blade Servers" wtype="wgroup" type="UCSM" simulate="0" isdeletable="0" order="4" htype="fa-n9k-ucsmini-fc" prereq="ConfigureFI-fc-mini">
-	<wfs>
-		<wf id="createServiceProfileAndAttach-fc-mini" name="Create Service Profiles" wexecid="g300" OnSuccess="None" OnFailure="None" initwf="1"/>
-	</wfs>
-</workflow>
