@@ -67,8 +67,8 @@ class UCSEnableUplinkPorts:
         ports = handle.query_dn(ports_dn)
         ports_list_obj = handle.query_children(in_mo=ports)
         for port in ports_list_obj:
-	    if 'aggr' in port.rn:
-		continue
+            if 'aggr' in port.rn:
+                continue
             ports_list.append({"id": port.port_id,
                                "selected": "0",
                                "label": "Port " + port.port_id})

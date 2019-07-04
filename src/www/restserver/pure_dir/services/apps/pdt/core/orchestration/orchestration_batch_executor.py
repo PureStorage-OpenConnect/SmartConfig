@@ -12,7 +12,7 @@ import glob
 from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.discovery import get_config_mode
 from pure_dir.services.apps.pdt.core.config_json import update_config_inputs
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_workflow_files_pattern, get_batch_status_file 
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_workflow_files_pattern, get_batch_status_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import JOB_STATUS_FAILED
 #from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import get_batch_status_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import group_job_status_api
@@ -56,7 +56,7 @@ def _get_workflow_list(htype):
             continue
 
     wf_list = sorted(wf_list, key=lambda x: x["order"])
-    res.setResult(wf_list, PTK_OKAY, _("PDT_INVALID_FLASHSTACK_TYPE_MSG"))
+    res.setResult(wf_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
 

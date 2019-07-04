@@ -1,3 +1,8 @@
+/**
+  * @desc it will take a object(form input options) as input and will generate a html template for it.
+  * @param object $field - options object to display few placeholder (form labels, mandatory symbol, help icon end etc).
+  * @return string - html template string which will contain the form input element.
+*/
 function loadFormTemplate(field) {
 	var defaults = {
 		label: '',
@@ -24,7 +29,13 @@ function loadFormTemplate(field) {
 	return str;
 }
 
+/**
+  * @desc it will dynamically create form input elements based on the options passed.
+  * @param object $field - input type/attributes of the new form elements (label, text, dropdown end etc).
+  * @return string - html template string of the newly created input element.
+*/
 function loadFormField(field) {
+	// Default options of the field.
 	var defaults = {
 		type: 'text',
 		id: '',
@@ -121,6 +132,13 @@ function loadFormField(field) {
 	return str;
 }
 
+/**
+  * @desc this method will prepare the post data for an API(GetOptions) based on the dynamic form generated.
+  * @param object $value - the options fetched from the server for the dynamic form fields.
+  * @param string $execid - the unique identifier of the task.
+  * @param boolean $isEventBound - a flag, indicates weather events(change/click) were already bound to the html dom or not.
+  * @return object - post data object for the API.
+*/
 var seperator = "@", tmp = '';
 function generateAPIargs(value, execid, isEventBound) {
 	var data = {"keyvalues": []}, arg_value, field, ismapped;
@@ -175,6 +193,13 @@ function generateAPIargs(value, execid, isEventBound) {
         return data;
 }
 
+/**
+  * @desc this method will bind the events with the html dom based on the server response.
+  * @param object $parentDom - the parent element of the dom object where to bind the new event.
+  * @param object $dom - the html dom object where to bind the event.
+  * @param object $value - the options fetched from the server for the dynamic form fields.
+  * @param string $execid - the unique identifier of the task.
+*/
 function AddEventListner(parentDom, dom, value, execid) {
 	var event = 'change';
 	if($(dom).attr('type') == 'checkbox' || $(dom).attr('type') == 'radio')
@@ -195,6 +220,13 @@ function AddEventListner(parentDom, dom, value, execid) {
 	});
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function populateFormData(value, execid, bind, flag) {
 	var j, label;
 	var selected, data = [];
@@ -226,7 +258,9 @@ function populateFormData(value, execid, bind, flag) {
 			doAjaxRequest({url: api, base_path: settings.base_path, method: 'POST', query: query, data: args, container: container}, function(response) {
 				data = response.data;
 				getOptionsCallback(value, data, execid, bind, flag);
-			}, doNothing);
+			}, function() {
+				removeProcessingSpinner(true);
+			});
 		} else {
 			getOptionsCallback(value, data, execid, bind, flag);
 		}
@@ -238,7 +272,13 @@ function populateFormData(value, execid, bind, flag) {
 	}
 }
 
-
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function getOptionsCallback(value, data, execid, bind, flag) {
 	var str = '', tmp;
 	if(value.iptype == 'range-picker' || value.iptype == 'ip-range') {
@@ -404,19 +444,31 @@ function getOptionsCallback(value, data, execid, bind, flag) {
 	}
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @return string - .
+*/
 function loadPrevTaskTemplate(args, execid) {
 	var str = '';
 	if(jobTasks.indexOf(execid) > 0) {
 		tabIndex++;
 		if(typeof args.allow_multiple_values != 'undefined' && args.allow_multiple_values)
 			str += '<select type="multiselect-dropdown" id="prev_task_' + args.name + '" name="prev_task_' + args.name + '[]" tabindex="' + tabIndex + '" multiple="multiple" class="prev-task-input hide">';
-		else str += '<select type="multiselect-dropdown" id="prev_task_' + args.name + '" name="prev_task_' + args.name + '" tabindex="' + tabIndex + '" class="prev-task-input hide">';
+		else str += '<select type="dropdown" id="prev_task_' + args.name + '" name="prev_task_' + args.name + '" tabindex="' + tabIndex + '" class="prev-task-input hide">';
 			str += '<option value="">' + localization['select'] + '</option>\
 		</select>';
 	}
 	return str;
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @return string - .
+*/
 function loadGlobalInputTemplate(args) {
 	tabIndex++;
 	var str = '<select type="dropdown" id="global_input_' + args.name + '" name="global_input_' + args.name + '" tabindex="' + tabIndex + '" class="global-config-input hide">';
@@ -425,6 +477,13 @@ function loadGlobalInputTemplate(args) {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function workflowInputBasicTemplate(container, args, execid, mode) {
 	var str = '', tmp;
 	if(args.iptype == 'group') {
@@ -481,6 +540,13 @@ function workflowInputBasicTemplate(container, args, execid, mode) {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function loadFields(args, isGroup, execid, width, mode) {
 	var str = '', obj = {}, tmp;
 	if(isGroup) width += ' field-group';
@@ -611,27 +677,51 @@ function loadFields(args, isGroup, execid, width, mode) {
 	return str;
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function loadTaskFormInputOptions(args, isGroup, execid) {
 	tabIndex++;
+	var gchkbox_label = 'map_global_';
+	if(isGroup) {
+		gchkbox_label = 'map_global_' + group_row_count + '_';
+	}
+
 	var str = '<div class="clear"></div>';
 	str += '<div class="group-input pull-left">\
 		<div class="checkbox checkbox-info">\
-			<input type="checkbox" id="map_global_' + args.name + '" name="map_global_' + args.name + '" tabindex="' + tabIndex + '" class="map-global-input">\
-			<label for="map_global_' + args.name + '"><div class="small title previous-task-label">' + localization['map-global'] + '</div></label>\
+			<input type="checkbox" id="' + gchkbox_label + args.name + '" name="' + gchkbox_label + args.name + '" tabindex="' + tabIndex + '" class="map-global-input">\
+			<label for="' + gchkbox_label + args.name + '"><div class="small title previous-task-label">' + localization['map-global'] + '</div></label>\
 		</div>\
 	</div>\
 	<input id="ismapped_' + args.name + '" class="task_ismapped" value="' + args.ismapped + '" type="hidden">';
 	if($('#form-body').attr('tasktype') != 'wgroup' && jobTasks.indexOf(execid) > 0) {
+		var chkbox_label = 'prev_api_';
+		if(isGroup) {
+			chkbox_label = 'prev_api_' + group_row_count + '_';
+		}
 		str += '<div class="group-input pull-left">\
 			<div class="checkbox checkbox-info">\
-				<input type="checkbox" id="prev_api_' + args.name + '" name="prev_api_' + args.name + '" tabindex="' + tabIndex + '" class="map-prev-api">\
-				<label for="prev_api_' + args.name + '"><div class="small title previous-task-label">' + localization['map-prev-output'] + '</div></label>\
+				<input type="checkbox" id="' + chkbox_label + args.name + '" name="' + chkbox_label + args.name + '" tabindex="' + tabIndex + '" class="map-prev-api">\
+				<label for="' + chkbox_label + args.name + '"><div class="small title previous-task-label">' + localization['map-prev-output'] + '</div></label>\
 			</div>\
 		</div>';
 	}
+	group_row_count++;
 	return str;
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 var tmpStr;
 function loadWorkflowInputForm(args, execid, type) {
 	type = (typeof type == 'undefined') ? 'row' : type;
@@ -679,6 +769,13 @@ function loadWorkflowInputForm(args, execid, type) {
 	return obj;
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function initMultiSelector(value, data) {
 	try {
 		var str = '<div class="scroller nopadding col-lg-12 col-md-12 col-sm-12 col-xs-12">\
@@ -725,6 +822,13 @@ function initMultiSelector(value, data) {
 	}
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function makeSValueActive(value, arg_name, type) {
 	$.each(value, function(index, obj) {
 		var cond = '';
@@ -742,6 +846,13 @@ function makeSValueActive(value, arg_name, type) {
 	});
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function initDragableSelector(value, data) {
 	var str = '<div class="scroller nopadding col-lg-6 col-md-6 col-sm-6 col-xs-6">\
 		<ul id="workflow_' + value.name + '_input_list" class="draggable">\
@@ -790,6 +901,13 @@ function initDragableSelector(value, data) {
 	}
 }
 
+/**
+  * @desc .
+  * @param array $array - .
+  * @param string $field - .
+  * @param array $array - .
+  * @param string $field - .
+*/
 function getFormData(selector) {
 	var task_input = {}, task_input_api = {}, tmp, obj;
 	var value, ismapped, execid, arg_name;
@@ -895,6 +1013,10 @@ function loadFormData(field) {
 	
 }
 
+/**
+  * @desc it will open the model popup with content & button passed as args.
+  * @param object $options - args contains popup title, body, size & button list.
+*/
 function openModel(options) {
 	var defaults = {
 		size: '',
@@ -938,6 +1060,9 @@ function openModel(options) {
 	initScroller($('#form-body'));
 }
 
+/**
+  * @desc it will close/hide the model popup and clear its content.
+*/
 function closeModel() {
 	$('.modal-overlay').removeClass('state-show');
 	$('.modal-frame').removeClass('bounceInDown').addClass('bounceOutUp');

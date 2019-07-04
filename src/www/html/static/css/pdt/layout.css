@@ -351,7 +351,7 @@ header.minimized-lpanel > .right-header {
 	margin-right: 0px;
 }
 .content {
-	padding: 10px;
+	padding: 4px 10px;
 	height: calc(100% - 70px);
 }
 /* LAYOUT CSS CODE */
@@ -816,7 +816,7 @@ a:hover {
 /* CUSTOM RADIO BUTTON */
 .slideThree {
 	width: 60px;
-	height: 24px;
+	height: 26px;
 	margin-left: 5px;
 	background: #D8D8D8;
 	position: relative;
@@ -976,7 +976,7 @@ table:not(.no-border) td tr {
 	border-bottom: 1px solid #EAEAEA;
 }
 .loader-msg {
-	height: 20px;
+	font-size: 9px;
 }
 .ms-options-wrap button, .ms-options-wrap > button:focus, .ms-options-wrap > button {
 	padding: 0px 8px;
@@ -1405,7 +1405,7 @@ header .header {
 	overflow: visible;
 }
 .tag.ribbon span {
-	padding: 10px 0;
+	padding: 4px 0;
 	width: 109px;
 }
 .tag.ribbon-top-right span {
@@ -1465,6 +1465,7 @@ header .header {
 }
 .swMain {
 	padding-bottom: 8px;
+	margin-top: 4px;
 }
 /* Setup Wizard */
 
@@ -1509,7 +1510,7 @@ header .header {
 	border-left: 0;
 }
 .slideThree label {
-	min-height: 20px;
+	min-height: 22px;
 }
 .dark.toggle-modern .toggle-on, .dark.toggle-modern .toggle-off {
 	/* background: linear-gradient(#666, #333);
@@ -1630,4 +1631,16 @@ tr.selected {
 }
 .pure .toggle-modern.capitalize .toggle-on, .pure .toggle-modern.capitalize .toggle-off {
 	text-transform: capitalize;
+}
+.possible_stacktypes > button {
+	font-size: 12px !important;
+	margin: 0;
+	box-shadow: none !important;
+	background: linear-gradient(#ABABAB, #969696) !important;
+	border-color: #bbb4b4 !important;
+	outline: 0 !important;
+}
+.possible_stacktypes > button.active, .possible_stacktypes > button:hover {
+	background: linear-gradient(#FB5000, #b74909) !important;
+	border-color: #FB5000 !important;
 }

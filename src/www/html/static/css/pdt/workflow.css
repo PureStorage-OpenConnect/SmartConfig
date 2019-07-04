@@ -670,35 +670,37 @@ ul.multi-select .ms-options-wrap button, ul.multi-select .ms-options-wrap > butt
 .widget-content {
 	height: calc(100% - 30px);
 }
-.boxes {
-	text-align: center;
-	padding: 62px 10px;
+.possible_stacktypes {
+	padding: 2px 10px !important;
+	margin: 0 0 10px !important;
 }
 .boxes > div {
 	overflow: hidden;
 	text-align: center;
 	display: inline-block;
-	padding: 24px;
+	padding: 0 10px;
 }
-.boxes > h4 {
-    font-size: 17px;
-    font-weight: 500;
-    color: #8D8D8D;
+.boxes h4 {
+	font-size: 12px;
+	font-weight: 500;
+	color: #5F5F5F;
+}
+.boxes .box.active h4, .boxes .box:hover:not(.disabled) h4 {
+	color: #FFF;
 }
 .box {
 	display: inline-block;
 	position: relative;
-    background: #ececec;
-    border-radius: 4px;
-    padding: 40px 24px;
-    margin: 16px 0;
-    min-width: 250px;
-	max-width: 300px;
+	background: #D8D8D8;
+	border-radius: 4px;
+	padding: 10px;
+	margin: 6px 0;
+	min-width: 164px;
 	width: 100%;
-    cursor: pointer;
-    text-align: center;
-    color: #8D8D8D;
-    box-shadow: 4px 4px 6px #929292;
+	cursor: pointer;
+	text-align: center;
+	color: #5F5F5F;
+	box-shadow: 4px 4px 6px #929292;
 }
 .box.active:not(.disabled), .box:not(.disabled):hover {
 	background: #FE5000;
@@ -717,8 +719,8 @@ label {
 }
 
 .ribbon {
-	width: 80px;
-	height: 80px;
+	width: 50px;
+	height: 50px;
 	overflow: hidden;
 	position: absolute;
 }
@@ -738,7 +740,7 @@ label {
 	background: linear-gradient(#666, #333);	/* linear-gradient(#A0A0A0, #6D6D6D); */
 	box-shadow: 0 5px 10px rgba(0,0,0,.1);
 	color: #fff;
-	font: 700 12px/1 'Lato', sans-serif;
+	font: 700 8px/1 'Lato', sans-serif;
 	text-shadow: 0 1px 1px rgba(0,0,0,.2);
 	text-align: center;
 }
@@ -768,7 +770,7 @@ label {
 	transform: rotate(45deg);
 }
 .tag.ribbon span {
-	width: 112px;
+	width: 74px;
 }
 .header-icons {
 	clear: both;
@@ -831,6 +833,7 @@ table .actions > div {
 	top: 58px;
 	right: 0;
 	bottom: 0;
+	overflow: hidden;
 }
 .workflow-log {
 	white-space: pre-wrap;

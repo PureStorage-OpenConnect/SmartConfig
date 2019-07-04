@@ -59,12 +59,12 @@ class NEXUS5kAddNTPDistributionInterface:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                               _("PDT_NEXUS_LOGIN_FAILURE"))
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                           _("PDT_NEXUS_LOGIN_FAILURE"))
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 
@@ -85,7 +85,7 @@ class NEXUS5kAddNTPDistributionInterface:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(nexus_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+                        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         nexus_list = self.get_detail(mac=mac_addr, src="1", dst="0")

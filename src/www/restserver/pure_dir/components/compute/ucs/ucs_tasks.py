@@ -118,6 +118,7 @@ from ucsmsdk.mometa.fabric.FabricFcVsanPortEp import FabricFcVsanPortEp
 from ucsmsdk.mometa.fabric.FabricEthEstcEp import FabricEthEstcEp
 from ucsmsdk.mometa.fabric.FabricEthVlanPortEp import FabricEthVlanPortEp
 from pure_dir.components.compute.ucs.ucs_upgrade import is_image_available_on_ucsm, upload_image_to_ucs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import get_server_type
 
 
 class UCSTasks:
@@ -1453,7 +1454,6 @@ class UCSTasks:
                 parent_mo_or_dn=fabric_mo,
                 name="",
                 admin_speed="auto",
-                fill_pattern="arbff",
                 auto_negotiate="yes",
                 slot_id="1",
                 admin_state="disabled",
@@ -1512,11 +1512,17 @@ class UCSTasks:
             return obj
 
         loginfo("Host firmware package = " + inputdict['name'])
-        loginfo("Blade Package = " + inputdict['blade_pkg'])
+        if inputdict['blade_pkg']:
+            loginfo("Blade Package = " + inputdict['blade_pkg'])
+            message = "Blade Package: " + inputdict['blade_pkg']
+            customlogs(message, logfile)
+        else:
+            loginfo("Rack Package = " + inputdict['rack_pkg'])
+            message = "Rack Package: " + inputdict['blade_pkg']
+            customlogs(message, logfile)
+
         loginfo("Excluded components = " + inputdict['excluded_comp'])
-        message = "Blade Package: " + inputdict['blade_pkg']
         loginfo("Create Host Firmware Package started")
-        customlogs(message, logfile)
 
         if inputdict['blade_pkg'] == "not-set":
             inputdict['blade_pkg'] = ""
@@ -1544,6 +1550,28 @@ class UCSTasks:
             blades_list = self.handle.query_classid("computeBlade")
             for blade in blades_list:
                 self.verify_blade_discovery(self.handle, blade, logfile)
+            time.sleep(60)
+        if inputdict['rack_pkg']:
+            image = "ucs-k9-bundle-c-series." + \
+                inputdict['rack_pkg'].replace(
+                    '(', '.').replace(')', '.') + ".bin"
+            if not is_image_available_on_ucsm(self.handle, image):
+                customlogs(
+                    "Rack image is not present in UCS. Uploading rack image to UCS", logfile)
+                if not upload_image_to_ucs([image], self.handle, "/mnt/system/uploads"):
+                    customlogs("Failed to upload rack image to UCS", logfile)
+                    self.handle.logout()
+                    obj.setResult(dicts, PTK_INTERNALERROR,
+                                  "Failed to update host firmware package")
+                    return obj
+                customlogs("Rack image upload done", logfile)
+            else:
+                customlogs("Rack image is present in UCS", logfile)
+
+            customlogs("Waiting for rack to complete discovery", logfile)
+            rack_list = self.handle.query_classid("ComputeRackUnit")
+            for rack in rack_list:
+                self.verify_blade_discovery(self.handle, rack, logfile)
             time.sleep(60)
 
         mo = FirmwareComputeHostPack(
@@ -2577,7 +2605,7 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "SAN Connectivity policy deletion failed")
             return obj
-        customlogs("\nSAN Connectivity policy" +
+        customlogs("\nSAN Connectivity policy " +
                    inputdict['san_conn_policy_name'] + " deleted successfully\n", logfile)
         obj.setResult(
             dicts,
@@ -2919,7 +2947,12 @@ class UCSTasks:
 
         obj = result()
         dicts = {}
-        loginfo("Resetting the Blade server")
+
+        if get_server_type() == "Blade":
+            loginfo("Resetting the Blade server")
+        else:
+            loginfo("Resetting the Rack server")
+
         if self.handle is None or self.handle_status != True:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
@@ -2945,7 +2978,7 @@ class UCSTasks:
                 "Reset server failed")
             return obj
 
-        customlogs("\nBlade servers reset successfully\n", logfile)
+        customlogs("\nServers reset successfully\n", logfile)
         obj.setResult(dicts, PTK_OKAY, "Reset server successful")
         return obj
 
@@ -3040,29 +3073,35 @@ class UCSTasks:
             return obj
 
         dicts = {}
-        dn_set = DnSet()
-        cnt = 0
-        for suffix in range(0, instances):
+        cnt = instances + 1
+        for suffix in range(instances, 0, -1):
             dn = Dn()
-            cnt += count
+            dn_set = DnSet()
+            cnt -= count
             dn.attr_set("value", inputdict['profile_prefix'] + str(cnt))
             dn_set.child_add(dn)
-        elem = ls_instantiate_n_named_template(
-            cookie=self.handle.cookie,
-            dn="org-root/ls-" +
-            inputdict['template_name'],
-            in_error_on_existing="true",
-            in_name_set=dn_set,
-            in_target_org="org-root",
-            in_hierarchical="false")
-        self.handle.process_xml_elem(elem)
+            elem = ls_instantiate_n_named_template(
+                cookie=self.handle.cookie,
+                dn="org-root/ls-" +
+                inputdict['template_name'],
+                in_error_on_existing="true",
+                in_name_set=dn_set,
+                in_target_org="org-root",
+                in_hierarchical="false")
+            self.handle.process_xml_elem(elem)
+            time.sleep(10)
         customlogs(
             "\nWaiting for Service profile association to be completed\n", logfile)
         time.sleep(60)
 
-        blades_list = self.handle.query_classid("computeBlade")
-        for blade in blades_list:
-            self.verify_blade_discovery(self.handle, blade, logfile)
+        if get_server_type() == "Blade":
+            blades_list = self.handle.query_classid("computeBlade")
+            for blade in blades_list:
+                self.verify_blade_discovery(self.handle, blade, logfile)
+        else:
+            rack_list = self.handle.query_classid("ComputeRackUnit")
+            for rack in rack_list:
+                self.verify_blade_discovery(self.handle, rack, logfile)
 
         # Waiting because it takes sometime for service profile to get associated
         # with the server once it is up
@@ -6445,7 +6484,7 @@ class UCSTasks:
         obj.setResult(dicts, PTK_OKAY, "FC End host mode configured successfully")
 
         loginfo("waiting for both the fabric interconnects to restart after configuring switching mode")
-        ucs_mac_id = inputdict['sec_fabric_id']
+        ucs_mac_id = inputdict['pri_fabric_id']
         cred = get_device_credentials(key="mac", value=ucs_mac_id)
         fabric_ip = cred['vipaddress']
         ipaddr = cred['ipaddress']
@@ -6459,7 +6498,7 @@ class UCSTasks:
             ucsm.verify_ucsm_accessible(fabric_ip)
         # acknowledge primary fabric interconnect reboot
         loginfo("acknowledge primary fi reboot")
-        # time.sleep(200) #time required for subordinate to come from inapplicable state
+        time.sleep(200)  # time required for subordinate to come from inapplicable state
         mo = FirmwareAck(parent_mo_or_dn="sys/fw-system", admin_state="trigger-immediate")
         self.handle.add_mo(mo, True)
         try:
@@ -6473,7 +6512,7 @@ class UCSTasks:
                 "Unable to firmware acknowledge primary FI")
             return obj
 
-        ucs_pri_mac_id = inputdict['pri_fabric_id']
+        ucs_pri_mac_id = inputdict['sec_fabric_id']
         cred = get_device_credentials(key="mac", value=ucs_pri_mac_id)
         fabric_ip = cred['vipaddress']
         pri_ipaddr = cred['ipaddress']

@@ -61,57 +61,42 @@ class FACreateHostGroup:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsmbladeservers(keys)
-        blade_list = res.getResult()
-        val = ''
 
-        if len(blade_list) > 0:
-            blade_len = len(blade_list)
         prefix = ""
+        blade_len = self.ucsm_get_associated_sp_cnt(keys)
         for i in range(1, blade_len + 1):
             prefix += "VM-Host-FC-" + str(i).zfill(2) + "|"
 
         job_input_save(jobid, texecid, 'name', prefix)
-
-        if res.getStatus() != PTK_OKAY:
-            return res
-
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-    def ucsmbladeservers(self, keys):
+    def ucsm_get_associated_sp_cnt(self, keys):
         """
         :param keys: key for fabric id value
         :type taskinfo: str
-        :returns: list of blade servers
+        :returns: count of service profiles
         :rtype: list
 
         """
-        servers_list = []
-        res = result()
         fabricid = getArg(keys, 'fabric_id')
 
         if fabricid is None:
-            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-            return res
+            return 0
 
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
-            return parseTaskResult(res)
+            return 0
 
         handle = res.getResult()
-        blades = handle.query_classid("ComputeBlade")
-        blade_server_cnt = 1
-        for blade in blades:
-            server_dict = {
-                'id': str(blade_server_cnt),
-                "selected": "1",
-                "label": str(blade_server_cnt)}
-            blade_server_cnt += 1
-            servers_list.append(server_dict)
+        service_profiles = handle.query_classid("lsServer")
+        sp_cnt = []
+        for sp in service_profiles:
+            if sp.type != "updating-template" and sp.pn_dn != '':
+                sp_cnt.append(sp.name)
+
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
+        return len(sp_cnt)
 
     def purelist(self, keys):
         """

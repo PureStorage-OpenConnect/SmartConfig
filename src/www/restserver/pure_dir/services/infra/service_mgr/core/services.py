@@ -9,12 +9,8 @@
 import json
 
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 service_registry = "/tmp/services.json"
-
-
-def pretty_print(data): return '\n'.join([line for line in parseString(
-    data).toprettyxml(indent=' ' * 2).split('\n') if line.strip()])
 
 
 def service_register(data):

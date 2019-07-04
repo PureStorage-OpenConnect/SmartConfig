@@ -149,7 +149,6 @@ class UCSManager:
             t1 = time.time()
             loginfo('Took' + str(t1 - t0) + 'seconds')
 
-
     def fabric_info(self, ip, username, password):
 
         fabrics = self.fabric_list(ip, username, password).getResult()
@@ -248,7 +247,6 @@ class UCSManager:
         self._release_ucsm_handler(handle)
         return res
 
-
     def _save_ucsm_primary_details(
             self,
             ipaddress,
@@ -279,7 +277,8 @@ class UCSManager:
             esxi_kickstart,
             infra_image,
             blade_image,
-            ucs_upgrade):
+            ucs_upgrade,
+            server_type):
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
@@ -307,10 +306,12 @@ class UCSManager:
             sec_orig_ip,
             netmask,
             gateway,
+            ntp_server,
             validated,
             infra_image,
             blade_image,
-            ucs_upgrade):
+            ucs_upgrade,
+            server_type):
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
@@ -424,6 +425,7 @@ class UCSManager:
                 fi_dict['ucs_upgrade'] = dt['ucs_upgrade']
                 fi_dict['infra_image'] = dt['infra_image']
                 fi_dict['blade_image'] = dt['blade_image']
+                fi_dict['server_type'] = dt['server_type']
                 if dt['leadership'] == "primary":
                     fi_dict['dns'] = dt['dns']
                     fi_dict['domain_name'] = dt['domain_name']
@@ -466,6 +468,7 @@ class UCSManager:
                           "ucs_upgrade": primary_data["ucs_upgrade"],
                           "infra_image": primary_data["infra_image"],
                           "blade_image": primary_data["blade_image"],
+                          "server_type": primary_data["server_type"],
                           "sec_switch_mac": subordinate_data["mac"],
                           "sec_switch_serial_no": subordinate_data["serial_no"],
                           "sec_switch_vendor": subordinate_data["model"],
@@ -483,16 +486,17 @@ class UCSManager:
             input_dict['pri_name'] = data['name']
             input_dict['pri_passwd'] = decrypt(data['password'])
             input_dict['virtual_ip'] = data['vipaddress']
-            input_dict["ucs_upgrade"] = data["ucs_upgrade"],
-            input_dict["infra_image"] = data["infra_image"],
-            input_dict["blade_image"] = data["blade_image"],
+            input_dict['ucs_upgrade'] = data['ucs_upgrade'],
+            input_dict['infra_image'] = data['infra_image'],
+            input_dict['blade_image'] = data['blade_image'],
+            input_dict['server_type'] = data['server_type']
             if data['leadership'] == "primary":
                 loginfo("FI Reconfigure: Gathering inputs for primary mode")
                 input_dict['dns'] = data['dns']
                 input_dict['domain_name'] = data['domain_name']
                 input_dict['netmask'] = data['netmask']
                 input_dict['gateway'] = data['gateway']
-                input_dict["ntp_server"] = data["ntp_server"],
+                input_dict['ntp_server'] = data['ntp_server'],
                 input_dict['ipformat'] = data['ipformat']
                 input_dict['pri_cluster'] = data['pri_cluster']
                 input_dict['pri_id'] = data['pri_id']
@@ -514,6 +518,7 @@ class UCSManager:
                 input_dict['sec_switch_mac'] = data['mac']
                 input_dict['sec_switch_serial_no'] = data['serial_no']
                 input_dict['sec_switch_vendor'] = data['model']
+                input_dict['server_type'] = data['server_type']
 
         loginfo("FI Reconfigure: Validating FI configuration params")
         validation_status = self.ucsmfivalidate(mode, input_dict).getStatus()
@@ -599,7 +604,8 @@ class UCSManager:
                                        'sec_cluster': 'Cluster mode for subordiate FI',
                                        'sec_id': 'ID for subordinate FI',
                                        'esxi_file': 'Remote ESX file',
-                                       'dns': 'DNS IP'},
+                                       'dns': 'DNS IP',
+                                       'server_type': 'Server type may be Rack or Blade'},
                                       config)
             if len(ret) > 0:
                 res.setResult(ret, PTK_INTERNALERROR,
@@ -707,13 +713,21 @@ class UCSManager:
                 return res
 
         elif mode == "standalone":
-            ret = validate_input_data(
-                {'pri_ip': 'Mgmt IP for standalone FI', 'pri_passwd': 'Password for standalone FI',
-                 'pri_switch_serial_no': 'Serial number of standalone FI', 'pri_switch_mac': 'MAC of standalone FI',
-                 'pri_switch_vendor': 'Vendor of standalone FI', 'pri_name': 'Name for standalone FI',
-                 'pri_orig_ip': 'DHCP IP of standalone FI', 'pri_setup_mode': 'Set up mode for standalone FI',
-                 'pri_cluster': 'Cluster mode for standalone FI', 'pri_id': 'ID for standalone FI', 'ntp_server': 'NTP Server ip',
-                 'ipformat': 'IP format', 'netmask': 'Netmask', 'gateway': 'Gateway'}, config)
+            ret = validate_input_data({'pri_ip': 'Mgmt IP for standalone FI',
+                                       'pri_passwd': 'Password for standalone FI',
+                                       'pri_switch_serial_no': 'Serial number of standalone FI',
+                                       'pri_switch_mac': 'MAC of standalone FI',
+                                       'pri_switch_vendor': 'Vendor of standalone FI',
+                                       'pri_name': 'Name for standalone FI',
+                                       'pri_orig_ip': 'DHCP IP of standalone FI',
+                                       'pri_setup_mode': 'Set up mode for standalone FI',
+                                       'pri_cluster': 'Cluster mode for standalone FI',
+                                       'pri_id': 'ID for standalone FI',
+                                       'ntp_server': 'NTP Server ip',
+                                       'ipformat': 'IP format',
+                                       'netmask': 'Netmask',
+                                       'gateway': 'Gateway'},
+                                      config)
             if len(ret) > 0:
                 res.setResult(ret, PTK_INTERNALERROR,
                               "Please fill all mandatory fields")
@@ -1215,9 +1229,7 @@ class UCSManager:
         except BaseException:
             return None
 
-
     ############################# UCSSafe functions ##########################
-
 
     def _form_data(
             self,

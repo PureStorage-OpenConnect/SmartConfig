@@ -18,11 +18,11 @@ import netinfo
 import fnmatch
 import ipaddress
 
-from confparser import *
+from confparser import setConfValue, CONFSTRING
 from time import sleep
 from subprocess import Popen, PIPE
 from lxml import etree
-from xml.dom.minidom import *
+from xml.dom.minidom import parse, parseString, Document
 from filelock import FileLock
 
 CONF_FILE = '/etc/sysconfig/network-scripts/static-network'

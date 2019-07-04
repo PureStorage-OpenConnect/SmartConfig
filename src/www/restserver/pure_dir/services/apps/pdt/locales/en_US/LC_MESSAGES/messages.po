@@ -121,6 +121,12 @@ msgstr "Reconfigure needs device to be in factory reset state"
 msgid "PDT_RECONFIG_FAILED_ERR_MSG"
 msgstr "Failed to reconfigure"
 
+msgid "PDT_UNSUPPORTED_FI_TYPE_ERR_MSG"
+msgstr "Unsupported FI Type"
+
+
+msgid "PDT_UNSUPPORTED_FI_COUNT_ERR_MSG"
+msgstr "Please select a pair of FI"
 # Task strings
 
 msgid "PDT_MDS_LOGIN_FAILURE"

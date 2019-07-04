@@ -84,7 +84,7 @@ class NEXUS5kEnableFeaturesAndSettings:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(flist, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+                        res.setResult(flist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         cred = get_device_credentials(key="mac", value=mac_addr)

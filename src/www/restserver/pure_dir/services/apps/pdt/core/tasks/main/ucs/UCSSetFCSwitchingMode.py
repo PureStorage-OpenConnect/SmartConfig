@@ -25,13 +25,13 @@ class UCSSetFCSwitchingMode:
         if res.getStatus() != PTK_OKAY:
             return parseTaskResult(res)
         obj = res.getResult()
-	res = obj.ucs_set_fc_switching_mode(taskinfo['inputs'], logfile)
+        res = obj.ucs_set_fc_switching_mode(taskinfo['inputs'], logfile)
 
         obj.release_ucs_handle()
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
-	loginfo("set_fc_mode_endhost")
+        loginfo("set_fc_mode_endhost")
         res = get_ucs_handle(inputs['pri_fabric_id'])
         if res.getStatus() != PTK_OKAY:
             return parseTaskResult(res)
@@ -48,10 +48,34 @@ class UCSSetFCSwitchingMode:
 
 
 class UCSSetFCSwitchingModeInputs:
-    pri_fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="pri_fabric_id",
-                         label="UCS Fabric Name", svalue="", mapval="", static_values="", mandatory="1", order=1)
-    sec_fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="sec_fabric_id",
-                         label="UCS Fabric Name", svalue="", mapval="", static_values="", mandatory="1", order=2)
+    pri_fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="pri_fabric_id",
+        label="UCS Fabric Name",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="1",
+        order=1)
+    sec_fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="sec_fabric_id",
+        label="UCS Fabric Name",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="1",
+        order=2)
 
 
 class UCSSetFCSwitchingModeOutputs:

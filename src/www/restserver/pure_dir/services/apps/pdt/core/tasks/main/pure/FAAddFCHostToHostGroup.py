@@ -100,21 +100,14 @@ class FAAddFCHostToHostGroup:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsm_get_associated_sp_cnt(keys)
-        blade_list = res.getResult()
-        val = ''
+        blade_len = self.ucsm_get_associated_sp_cnt(keys)
 
-        if len(blade_list) > 0:
-            blade_len = int(blade_list[0]['id'])
         host_prefix = ""
         for pre in range(1, blade_len + 1):
             host_prefix += "VM-Host-FC-" + str(pre).zfill(2) + "|"
         loginfo("host list for add host to hg going is :{}".format(
             host_prefix[:-1]))
         job_input_save(jobid, texecid, 'hosts', host_prefix[:-1])
-
-        if res.getStatus() != PTK_OKAY:
-            return res
 
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
@@ -128,16 +121,14 @@ class FAAddFCHostToHostGroup:
 
         """
         servers_list = []
-        res = result()
         fabricid = getArg(keys, 'fabric_id')
 
         if fabricid is None:
-            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-            return res
+            return 0
 
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
-            return parseTaskResult(res)
+            return 0
 
         handle = res.getResult()
         service_profiles = handle.query_classid("lsServer")
@@ -146,57 +137,12 @@ class FAAddFCHostToHostGroup:
             if sp.type != "updating-template" and sp.pn_dn != '':
                 sp_cnt.append(sp.name)
 
-        server_dict = {
-            'id': str(len(sp_cnt)),
-            "selected": "1",
-            "label": str(len(sp_cnt))}
-        servers_list.append(server_dict)
-        print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
-
-    def ucsmbladeservers(self, keys):
-        """
-        :param keys: key for fabric id value
-        :type taskinfo: str
-        :returns: list of blade servers
-        :rtype: list
-
-        """
-        servers_list = []
-        res = result()
-        fabricid = getArg(keys, 'fabric_id')
-
-        if fabricid is None:
-            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-            return res
-
-        res = get_ucs_login(fabricid)
-        if res.getStatus() != PTK_OKAY:
-            return parseTaskResult(res)
-
-        handle = res.getResult()
-        blades = handle.query_classid("ComputeBlade")
-        blade_server_cnt = 1
-        for blade in blades:
-            server_dict = {
-                'id': str(blade_server_cnt),
-                "selected": "1",
-                "label": str(blade_server_cnt)}
-            blade_server_cnt += 1
-            servers_list.append(server_dict)
-        ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
+        return len(sp_cnt)
 
     def getHostApi(self, keys):
         res = result()
-        res = self.ucsm_get_associated_sp_cnt(keys)
-        blade_list = res.getResult()
-        blade_len = 0
-        if len(blade_list) > 0:
-            blade_len = int(blade_list[0]['id'])
+        blade_len = self.ucsm_get_associated_sp_cnt(keys)
         mdata = []
         for pre in range(1, blade_len + 1):
             host = 'VM-Host-FC-' + str(pre).zfill(2)

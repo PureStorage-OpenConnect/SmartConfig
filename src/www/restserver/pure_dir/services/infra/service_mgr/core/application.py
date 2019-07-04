@@ -8,11 +8,11 @@
 
 import json
 import importlib
-from xml.dom.minidom import *
+from xml.dom.minidom import parse, parseString
 from filelock import FileLock
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.client.pdtclient import *
 
 service_registry = "/tmp/services.json"
@@ -21,7 +21,7 @@ applications_xml = "/mnt/system/pure_dir/applications.xml"
 setup_xml = "/mnt/system/pure_dir/system.xml"
 
 ui_templates = "/var/www/html/templates/"
-static_fldr = "/mnt/apps/"
+#static_fldr = "/mnt/apps/"
 
 orig_httpd_conf = "/usr/local/apache2/conf/httpd.conf"
 tmp_httpd_conf = "/tmp/httpd.conf"

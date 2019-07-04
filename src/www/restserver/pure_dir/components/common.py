@@ -84,6 +84,16 @@ def get_device_credentials(key, value):
     return device_credentials
 
 
+def get_device_model(key, value):
+    status, details = get_xml_element(
+        file_name=static_discovery_store, attribute_key=key, attribute_value=value)
+    device_model = ''
+    if status and details:
+        device_model = details[0]['model']
+        return device_model
+    return device_model
+
+
 class Images:
 
     def __init__(self):

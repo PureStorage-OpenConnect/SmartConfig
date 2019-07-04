@@ -61,7 +61,7 @@ class MDSConfigurePortchannel:
     def get_mds_list(self, keys):
         res = result()
         mds_list = get_device_list(device_type="MDS")
-        res.setResult(mds_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+        res.setResult(mds_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_portchannel_list(self, keys):
@@ -76,7 +76,7 @@ class MDSConfigurePortchannel:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(pc_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+                        res.setResult(pc_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         cred = get_device_credentials(key="mac", value=mac_addr)

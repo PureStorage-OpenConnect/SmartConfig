@@ -81,6 +81,26 @@ paths:
            description: Returns workflow information
            schema:
                $ref: '#/definitions/TypeValue'
+
+     post:
+      tags:
+        - pdt
+      parameters:
+        - required: true
+          in: body
+          description: Contains count of selected Hardwares
+          name: data
+          schema:
+            $ref: '#/definitions/AvailableHardwares'
+      operationId: pure_dir.services.apps.pdt.pdt_api.possiblefstypes
+      summary: Suggest AvailableHardwares based on count
+      security: []
+      responses:
+        '200':
+          description: Return tool information
+          schema:
+            $ref: '#/definitions/TypeValue'
+  
  
      
    /WorkflowInfo:
@@ -1089,25 +1109,6 @@ paths:
           description: Return tool information
           schema:
             $ref: '#/definitions/TaskInputResponse'
- #  /CheckPreReq:
- #    get:
- #     tags:
- #      - pdt
- #     parameters:
- #       - required: true
- #         in: query
- #         description: Workflow id
- #         name: wid
- #         type: string
-
- #     operationId: pure_dir.services.apps.pdt.pdt_api.checkprereq
- #     summary: Return Value
- #     security: []
- #     responses:
- #       '200':
- #         description: Return tool information
- #         schema:
- #           $ref: '#/definitions/WfId'
 
    
    /GetGlobals:
@@ -1347,6 +1348,25 @@ definitions:
              type: object
              description: requeired hardwares & its count
              $ref: '#/definitions/ReqHardwareData'
+
+   AvailableHardwares:
+        required:
+           - UCSM
+           - PURE
+           - MDS
+           - Nexus 5k
+           - Nexus 9k
+        properties:
+           UCSM:
+             type: integer
+           PURE:
+             type: integer
+           MDS:
+             type: integer
+           Nexus 5k:
+             type: integer
+           Nexus 9k:
+             type: integer
 
    ReqHardwareData:
         properties:

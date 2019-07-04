@@ -15,9 +15,9 @@ import xmltodict
 
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_rollback_status import update_rollback_task_status, prepare_rollback_status_file
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import update_task_status, clear_job_failed_status 
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import update_task_status, clear_job_failed_status
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import g_flash_stack_types
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import update_batch_job_status, clear_group_job_status 
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import update_batch_job_status, clear_group_job_status
 
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
 from pure_dir.services.apps.pdt.core.tasks.test.ucs import*

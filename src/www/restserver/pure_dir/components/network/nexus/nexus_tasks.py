@@ -1,4 +1,5 @@
 from pure_dir.infra.apiresults import *
+from pure_dir.infra.common_helper import getAsList
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.common import get_device_credentials
 from pycsco.nxos.device import Device
@@ -2043,10 +2044,11 @@ class NEXUSTasks:
             else:
                 customlogs("Zoneset '%s' created successfully" %
                            zoneset_dict['zoneset_name']['value'], logfile)
+                zoneset_members = getAsList(zoneset_dict['zoneset_members']['value'])
                 helper.add_to_zoneset(
                     self.switch,
                     zoneset_dict['zoneset_name']['value'],
-                    zoneset_dict['zoneset_members']['value'],
+                    zoneset_members,
                     input_dict['vsan_id'])
                 if res.getStatus() != PTK_OKAY:
                     output_dict['status'] = "FAILURE"
@@ -2057,8 +2059,7 @@ class NEXUSTasks:
                 else:
                     customlogs(
                         "Members '%s' added to the zoneset '%s' with vsan '%s' successfully" %
-                        (str(
-                            zoneset_dict['zoneset_members']['value']),
+                        (str(zoneset_members),
                             zoneset_dict['zoneset_name']['value'],
                             vsan_id),
                         logfile)

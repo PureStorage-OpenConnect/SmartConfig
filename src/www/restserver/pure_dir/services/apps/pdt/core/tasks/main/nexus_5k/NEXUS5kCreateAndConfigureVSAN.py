@@ -49,7 +49,7 @@ class NEXUS5kCreateAndConfigureVSAN:
                 else:
                     loginfo("Failed to create VSAN")
                     res.setResult(False, PTK_INTERNALERROR,
-                                   _("PDT_FAILED_MSG"))
+                                  _("PDT_FAILED_MSG"))
             else:
                 loginfo("Unable to login to the NEXUS")
                 res.setResult(False, PTK_INTERNALERROR,

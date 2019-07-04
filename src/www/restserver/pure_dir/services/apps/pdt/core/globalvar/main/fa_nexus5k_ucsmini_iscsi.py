@@ -1,12 +1,9 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import *
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.components.network.nexus.nexus_tasks import *
-from pure_dir.components.common import *
 import os
 import glob
+
+from pure_dir.infra.apiresults import *
+from pure_dir.components.common import get_device_list
+from pure_dir.services.utils.miscellaneous import parse_xml
 static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
 

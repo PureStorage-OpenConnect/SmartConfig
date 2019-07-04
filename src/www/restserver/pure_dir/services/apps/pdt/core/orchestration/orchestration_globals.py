@@ -13,15 +13,23 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data impor
 from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_mds_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_mds_fc_rack import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_fa_iscsi import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_fa_iscsi_rack import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_fi_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_fi_iscsi import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_figen2_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_figen2_iscsi import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus9k_ucsmini_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_nexus5k_ucsmini_iscsi import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6332_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6332_iscsi import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_mds_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_iscsi import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_mds_fc_rack import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_iscsi_rack import *
 from pure_dir.services.utils.ipvalidator import IpValidator
 import os.path
-from xml.dom.minidom import *
+from xml.dom.minidom import parse
+import threading
 g_simulated = 0
 
 
@@ -158,7 +166,8 @@ def set_globals_api(stacktype, input_list):
         return obj
 
     if 'kvm_console_ip' in input_list:
-        kvm_err = set_globals_validate_api(input_list['kvm_console_ip'])
+        #kvm_err = set_globals_validate_api(input_list['kvm_console_ip'])
+        kvm_err = validate_kvm_ip_range(input_list['kvm_console_ip'])
         if len(kvm_err) > 0:
             obj.setResult(kvm_err, PTK_INTERNALERROR,
                           _("PDT_INCORRECT_DETAILS_ERR_MSG"))
@@ -214,10 +223,35 @@ def set_globals_validate_api(ip_range):
                         {"field": "kvm_console_ip", "msg": ip + " Ip is not available"})
                     return valid_err
             else:
-                if device.getAttribute('ipaddress') == ip and IpValidator().is_ip_up(ip):
+                if device.getAttribute('ipaddress') == ip or IpValidator().is_ip_up(ip):
                     valid_err.append(
                         {"field": "kvm_console_ip", "msg": ip + " Ip is not available"})
                     return valid_err
+    return valid_err
+
+
+def validate_kvm_ip_range(ip_range):
+    ip_list = IpValidator().get_ips_in_range()
+    thread_list = {}
+    valid_err = []
+    result = {}
+    subnet = '.'.join(str(ip_list[0]).split('.', 3)[:-1])
+    ip_obj = ip_range.split('-')
+    for i in range(int(ip_obj[0]), int(ip_obj[1]) + 1):
+        ip = subnet + "." + str(i)
+        thread_list[ip] = threading.Thread(target=IpValidator().is_kvm_ip_up, args=(ip, result))
+        thread_list[ip].start()
+
+    for i in range(int(ip_obj[0]), int(ip_obj[1]) + 1):
+        ip = subnet + "." + str(i)
+        thread_list[ip].join()
+
+    for i in range(int(ip_obj[0]), int(ip_obj[1]) + 1):
+        ip = subnet + "." + str(i)
+        if result[ip]:
+            valid_err.append(
+                {"field": "kvm_console_ip", "msg": ip + " IP is not available"})
+            return valid_err
     return valid_err
 
 

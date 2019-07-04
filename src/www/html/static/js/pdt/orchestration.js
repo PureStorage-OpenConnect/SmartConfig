@@ -2,6 +2,7 @@ var paper = {}, connections = [], shapeSets = {};
 var xCenter, sourceObj = null, currentShape = null, activeObj;
 var TRANSITION_TIME = 500; PAN_DISTANCE = 200, FLOWCHART_START = 20, ISEDITABLE = false, ISDRAGGABLE = false;
 
+// Shape sizes, colors & font icon declarations
 var shapeSizes = {'rect': '250', 'rect-height': '50', 'ellipse': '40', 'triangle': '65', 'diamond': '40', 'port': '5'};
 var colorCodes = {'fill': '#929292', 'stroke': '#DEDEDE', 'workflow-fill': '#3C87C2', 'workflow-stroke': '#CEDAE2', 'fill-input': '#83B98A', 'stroke-input': '#D0DECD', 'shape-fill': '#F17C22', 'shape-stroke': '#DADADA', 'EXECUTING-fill': '#096FB8', 'COMPLETED-fill': '#83B98A', 'FAILED-fill': '#CE5151', 'success-conn': '#52BF52', 'failure-conn': '#EA4747', 'success-port': '#55AD38', 'failure-port': '#CE6868', 'input-port': '#AFAFAF', 'port-stroke': '#A9A9A9', 'label': '#FFF'};
 var fontIconList = {
@@ -10,8 +11,16 @@ var fontIconList = {
 	'delete-element': {'icon': '\uf057', 'color': '#BC0001', 'font': '16'}, 
 	'task-expand': {'icon': '\uf0b2', 'color': '#555', 'font': '14'}
 };//'clear-connections': {'icon': '\uf074', 'color': '#555', 'font': '16'}, 
+// Animation declarations
 var toggleEffect = {'puff': {'in': 'puffIn', 'out': 'puffOut'}, 'vanish': {'in': 'vanishIn', 'out': 'vanishOut'}, 'slide': {'in': 'slideLeftReturn', 'out': 'slideLeft'}}, effect = 'vanish';
 
+/**
+  * @desc this method will create connection path between two shapes passed as argument.
+  * @param object $obj1 - rapheal shape object from where to start the connection.
+  * @param object $obj2 - rapheal shape object from where to end the connection.
+  * @param object $line - raphael path object for the line.
+  * @param object $bg - raphael path object for the line background.
+*/
 Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (obj1.line && obj1.from && obj1.to) {
         line = obj1;
@@ -69,6 +78,12 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
     }
 };
 
+/**
+  * @desc initialize the flow chart on the given dom element.
+  * @param string $domID - the id string of the element where to bind the raphael workspace object.
+  * @param boolean $isEditable - flag weather the chart element is a editable or not.
+  * @param boolean $isDraggable - flag weather the chart element is a draggable or not.
+*/
 function initFlowchart(domID, isEditable, isDraggable) {
 	FLOWCHART_START = 40;
 	ISEDITABLE = isEditable;
@@ -82,6 +97,10 @@ function initFlowchart(domID, isEditable, isDraggable) {
 	xCenter = parseInt($('#' + domID).width()) / 2;
 }
 
+/**
+  * @desc bind zoom object with the raphael container element.
+  * @param string $domID - the id string of the element where to bind the zoom object.
+*/
 window.zoomWorkflow = [];
 function bindPanZoom(domID) {
 	window.zoomWorkflow[domID] = $('#' + domID).panzoom({
@@ -93,11 +112,23 @@ function bindPanZoom(domID) {
 	});
 }
 
-function createTrianglePath(x, y, sl) {	// x,y = center location, sl = length of the side
+/**
+  * @desc this method will create a triangle shape on the workspace using the rapheal path object.
+  * @param integer $x - the position (x - axis) to create the shape.
+  * @param integer $y - the position (y - axis) to create the shape.
+  * @param integer $sl - length of the shape on each side.
+*/
+function createTrianglePath(x, y, sl) {
 	var path = 'M' + x + ',' + y + 'L' + (parseInt(x) - parseInt(sl)) + ',' + (parseInt(y) + parseInt(sl)) + 'L' + (parseInt(x) + parseInt(sl)) + ',' + (parseInt(y) + parseInt(sl)) + 'Z';
 	return path;
 }
 
+/**
+  * @desc this method will create a diamond shape on the workspace using the rapheal path object.
+  * @param integer $x - the position (x - axis) to create the shape.
+  * @param integer $y - the position (y - axis) to create the shape.
+  * @param integer $sl - length of the shape on each side.
+*/
 function createDiamondPath(x, y, sl) {	// x,y = center location, sl = length of the side
 	var path = 'M' + x + ',' + y + 'L' + (parseInt(x) - (parseInt(sl) * 2)) + ',' + (parseInt(y) + parseInt(sl)) + 'L' + x + ',' + (parseInt(y) + (parseInt(sl) * 2)) + 'L' + (parseInt(x) + (parseInt(sl) * 2)) + ',' + (parseInt(y) + parseInt(sl)) + 'Z';
 	return path;
@@ -111,24 +142,36 @@ $(document).ready(function() {
 		this.attr({"opacity": 1});
 	}
 
+	/**
+	  * @desc event registration for zooming the workspace area.
+	*/
 	$('body').delegate('.zoomin', 'click', function(e) {
 		e.preventDefault();
 		zoomWorkflow[activeObj].panzoom('zoom');
 		return false;
 	});
 	
+	/**
+	  * @desc event registration for zooming out the workspace area.
+	*/
 	$('body').delegate('.zoomout', 'click', function(e) {
 		e.preventDefault();
 		zoomWorkflow[activeObj].panzoom('zoom', true);
 		return false;
 	});
 
+	/**
+	  * @desc event registration for reset zoom of workspace area.
+	*/
 	$('body').delegate('#pan-reset', 'click', function(e) {
 		zoomWorkflow[activeObj].panzoom("reset");
 		$('.workshop[jobId="' + activeObj + '"]').css({top: 0, left: 0});
 		return false;
 	});
 
+	/**
+	  * @desc event registration for removing an element/shape from the workspace.
+	*/
 	$('body').delegate('.delete-element', 'click', function(e) {
 		var api, query = {};
 		query.wid = activeObj;
@@ -152,11 +195,17 @@ $(document).ready(function() {
 		return false;
 	});
 
+	/**
+	  @desc event registration for clearing the workspace area.
+	*/
 	$('body').delegate('.clear-connections', 'click', function(e) {
 		//clearConnectionsByShape(currentShape, ['s_out', 'f_out', 'input']);
 		return false;
 	});
 
+	/**
+	  * @desc event registration for reset the flow chart of the current workspace.
+	*/
 	$('body').delegate('.reset-workshop', 'click', function(e) {
 		var obj = $(this);
 		$('.workshop[jobId="' + obj.closest('.workshop').attr('groupId') + '"]').show().removeClass(toggleEffect[effect]['out']).addClass('magictime ' + toggleEffect[effect]['in']);
@@ -167,6 +216,9 @@ $(document).ready(function() {
 		return false;
 	});
 
+	/**
+	  * @desc method for making an element/shape as draggable.
+	*/
 	Raphael.st.draggable = function() {
 		var me = this, lx = 0, ly = 0, ox = 0, oy = 0,
 		moveFnc = function(dx, dy) {
@@ -198,10 +250,23 @@ $(document).ready(function() {
 		this.drag(moveFnc, startFnc, endFnc);
 	};
 
+	/**
+	  * @desc this will clear/reset the current workspace.
+	*/
 	clearPaper = function() {
 		paper[activeObj].clear();
 	};
 
+	/**
+	  * @desc this will create the given shape over workspace in the given location.
+	  * @param string $type - the shape - rect or ellipse or triangle or diamond.
+	  * @param string $label - the text to write on the shape.
+	  * @param string $execid - .
+	  * @param string $uniqueid - .
+	  * @param string $jobid - .
+	  * @param string $taskType - .
+	  * @param array $position - .
+	*/
 	createShape = function(type, label, execid, uniqueid, jobid, taskType, position) {
 		var display_label = chunk(label, 30).join('\n');
 		if(display_label.length > 60)
@@ -444,6 +509,11 @@ $(document).ready(function() {
 		$('#' + uniqueid + '>svg').css('height', FLOWCHART_START);
 	};
 
+	/**
+	  * @desc it will establish the connection path between the two passed shape object.
+	  * @param object $fromObj - the shape object from where to start the connection path.
+	  * @param object $destObj - the shape object from where to end the connection path.
+	*/
 	createConnection = function(fromObj, destObj) {
 		var colorCode = colorCodes['success-conn'], connectionType = 'success';
 		var source_id = fromObj.id.replace('s_out_', '');
@@ -471,6 +541,11 @@ $(document).ready(function() {
 		}
 	};
 
+	/**
+	  * @desc .
+	  * @param array $array - .
+	  * @param string $field - .
+	*/
 	moveSet = function(setId, source) {
 		//if(setId != 'end') {
 			var conntype = 'success', xDistance = 0;
@@ -505,6 +580,12 @@ $(document).ready(function() {
 		//}
 	};
 
+	/**
+	  * @desc .
+	  * @param array $array - .
+	  * @param string $field - .
+	  * @param string $field - .
+	*/
 	pushConnectionData = function(shapeObj, connObj, connType) {
 		var lineData = [], pathData = [];
 		if(shapeObj.data(connType + '-line')) {
@@ -517,6 +598,9 @@ $(document).ready(function() {
 		shapeObj.data(connType + '-path', pathData);
 	};
 
+	/**
+	  * @desc this method will clear all the connection path object from the current workspace.
+	*/
 	clearAllConnections = function() {
 		Object.keys(connections).forEach(function(key) {
 			removeElement(connections[key].bg.id);
@@ -524,6 +608,11 @@ $(document).ready(function() {
 		});
 	};
 
+	/**
+	  * @desc this method will clear all the connection path of the given shape object.
+	  * @param object $shape - the shape for which to clear the connection.
+	  * @param string $connectionType - what type of connection to remove (input or successful output or failure output).
+	*/
 	clearConnectionsByShape = function(shape, connectionType) {
 		//connectionType = ['s_out', 'f_out', 'input'];
 		var portIds = [], obj;
@@ -550,6 +639,10 @@ $(document).ready(function() {
 		connections = removeEmptyElementFromArray(connections);
 	};
 
+	/**
+	  * @desc .
+	  * @param object $shape - .
+	*/
 	deleteItem = function(shape) {
 		if(shape.type != 'path' || (shape.type == 'path' && (shape.node.className.baseVal == 'diamond' || shape.node.className.baseVal == 'triangle'))) {
 			removeShape(shape.id);
@@ -562,12 +655,20 @@ $(document).ready(function() {
 		$('svg>text.connection.delete-element').remove();
 	};
 
+	/**
+	  * @desc .
+	  * @param string $id - .
+	*/
 	removeElement = function(id) {
 		if(typeof id != 'undefined' && paper[activeObj].getById(id) != null && typeof paper[activeObj].getById(id) != 'undefined') {
 			paper[activeObj].getById(id).remove();
 		}
 	};
 
+	/**
+	  * @desc .
+	  * @param object $shapeID - .
+	*/
 	removeShape = function(shapeId) {
 		var obj = paper[activeObj].getById(shapeId);
 		for(var i = shapeSets[shapeId].items.length; i--;) {
@@ -586,12 +687,20 @@ $(document).ready(function() {
 		delete shapeSets[shapeId];
 	};
 
+	/**
+	  * @desc .
+	  * @param array $arr - .
+	*/
 	removeMultiElements = function(arr) {
 		for(var i = arr.length; i--;) {
 			removeElement(arr[i]);
 		}
 	};
 
+	/**
+	  * @desc .
+	  * @param object $shape - .
+	*/
 	shapeSelect = function(shape) {
 		currentShape = shape;
 		//$('svg text.shape-icons:not(.task-input)').hide();
@@ -613,6 +722,10 @@ $(document).ready(function() {
 		}
 	};
 
+	/**
+	  * @desc .
+	  * @param object $shape - .
+	*/
 	addActionIcon = function(shape) {
 		var x = parseInt(shape.attrs.path[0][1]) + 25,
 		y = parseInt(shape.attrs.path[0][2]) + 5;
@@ -621,6 +734,12 @@ $(document).ready(function() {
 		deleteIcon.node.setAttribute('class', 'connection delete-element shape-icons');
 	};
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	addActionStatusIcons = function(shape, taskType) {
 		var x, y, obj = {};
 		if(shape.type == 'ellipse') {
@@ -651,6 +770,12 @@ $(document).ready(function() {
 		return obj;
 	};
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	addIcon = function(x, y, id, icon, title) {
 		var obj = paper[activeObj].text(x, y, fontIconList[icon].icon);
 		obj.attr('font-size', fontIconList[icon].font);
@@ -661,6 +786,12 @@ $(document).ready(function() {
 		return obj;
 	};
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	highlightPorts = function(port) {
 		unHighlightPorts();
 		port.node.setAttribute('selected', '');
@@ -673,12 +804,25 @@ $(document).ready(function() {
 				obj.setAttribute('blink', '');
 		});
 	};
+
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	unHighlightPorts = function() {
 		$('svg [selected]').each(function(index, obj) {
 			obj.removeAttribute('selected');
 		});
 	};
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	addForiegnObject = function(jobId, shapeID, tstatus) {
 		var progressObj;
 		$('foreignObject.exec_' + shapeID).remove();

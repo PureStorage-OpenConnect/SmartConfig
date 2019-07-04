@@ -36,7 +36,7 @@ paths:
         '200':
           description: Return tool information
           schema:
-            $ref: '#/definitions/ImportResponse'
+            $ref: '#/definitions/ImportConfigResponse'
 
    /JSONConfig:
      get:
@@ -95,3 +95,21 @@ definitions:
       data:
         type: object
         $ref: '#/definitions/Config'
+  ImportConfigResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        type: object
+        description: data status
+        $ref: '#/definitions/Status'
+      data:
+        type: object
+        description: Data
+        properties:
+          server_type:
+            type: string
+            description: rack or blade
+

@@ -342,7 +342,7 @@ $(document).ready(function() {
 				loadImages('', '', '')
 			).then(function() {
 				setTimeout(function() {
-					var flag = true, field;
+					var flag = true, field, server_type = true;
 					plotValuesByDom($('#form-body .switch_netmask'), response.data[0]['switch_netmask']);
 					plotValuesByDom($('#form-body .switch_gateway'), response.data[0]['switch_gateway']);
 					switch(elem.find('.device-type').text()) {
@@ -364,6 +364,7 @@ $(document).ready(function() {
 							});
 							flag = true;
 							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							if(response.data[0]['server_type'] != 'Rack') server_type = false;
 							if(UCSForConfigure.length == 1) {
 								flag = false;
 								$('.toggle-select.fabricSwitch').addClass('disabled');
@@ -372,6 +373,7 @@ $(document).ready(function() {
 								$('#form-body .virtual_ip .task-input, #form-body .switch_name .task-input, #form-body .pri_ip .task-input').attr('readonly', 'readonly');
 								$('#form-body .virtual_ip, #form-body .pri_passwd, #form-body .conf_passwd, #form-body .esxi_file, #form-body .domain_name, #form-body .ucs_firmware, #form-body .ucs_upgrade, #form-body .dns.nameserver').remove();
 							}
+							$('.toggle-select.component_type').toggles({type: 'select', on: server_type, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'Rack Server', off: 'Blade Server'}}).toggleClass('disabled', true);
 							$('.toggle-select.mode').toggles({type: 'select', on: false, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['standalone'], off: localization['cluster']}});
 							$('.toggle-select.config_type').toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['primary'], off: localization['subordinate']}});
 							break;
@@ -417,9 +419,13 @@ $(document).ready(function() {
 	  * @desc event registration for poping the notification while enabling the upgrade option.
 	*/
 	$('body').delegate('#ucs_upgrade', 'change', function(e) {
-		$('.ucsm-configure .ucs_upgrade').addClass('hide');
+		$('.ucsm-configure .ucs_upgrade:not(#ucs_upgrade)').addClass('hide');
 		if($(this).is(':checked')) {
-			$('.ucsm-configure .ucs_upgrade').removeClass('hide');
+			$('.ucsm-configure .ucs_upgrade.infra_image').removeClass('hide');
+			var myToggle = $('.toggle-select.component_type').data('toggles');
+			if(myToggle.active) $('.ucsm-configure .ucs_upgrade.rack_image').removeClass('hide');
+			else $('.ucsm-configure .ucs_upgrade.blade_image').removeClass('hide');
+
 			showNotification(localization['ucsm-upgrade-msg'], 10000);
 		}
 	});
@@ -470,6 +476,26 @@ $(document).ready(function() {
 			});
 		}
 	});
+
+	/**
+	  * @desc event registration for choosing the stack type.
+	*/
+	$('body').delegate('.possible_stacktypes div.box', 'click', function(e) {
+		$('.possible_stacktypes div.box').removeClass('active');
+		$(this).addClass('active');
+		systemInfo.stacktype = $(this).attr('stacktype');
+		systemInfo.subtype = $(this).attr('stacktype');
+
+		$('.networkinfo.elementInfo .devices').attr('disabled', true).prop('checked', false);
+		$('.networkinfo.elementInfo').removeClass('active');
+		$.each(hardwares[systemInfo.stacktype], function(index, value) {
+			if(value > 0) {
+				$('.networkinfo.elementInfo:not(.Configured) .devices[htype="' + index + '"]').removeAttr('disabled').prop('checked', true);
+				$('.networkinfo.elementInfo:not(.Configured) .devices[htype="' + index + '"]').closest('.networkinfo').addClass('active');
+			}
+		});
+		checkRequiredHardwares('a');
+	});
 });
 
 /**
@@ -487,7 +513,7 @@ function selectElement(elem) {
 			elem.find('.devices[disabled!="disabled"]').prop('checked', true);
 		}
 	}
-	checkRequiredHardwares();
+	checkRequiredHardwares('');
 }
 
 /**
@@ -554,7 +580,7 @@ function updateUploadEvent(value) {
 */
 function selectISO() {
 	var options = {
-		'MDS': 'mds_switch_system_image', 'MDS-kickstart': 'mds_switch_kickstart_image', 'Nexus 9k': 'nexus_switch_image', 'Nexus 5k': 'nexus5k_system_image', 'Nexus 5k-kickstart': 'nexus5k_kickstart_image', 'kickstart': 'mds_switch_kickstart_image', 'ESXi': 'esxi_remote_file', 'ESXi-kickstart': 'esxi_kickstart_file', 'UCS-infra': 'ucs_infra_image', 'UCS-blade': 'ucs_blade_image'};
+		'MDS': 'mds_switch_system_image', 'MDS-kickstart': 'mds_switch_kickstart_image', 'Nexus 9k': 'nexus_switch_image', 'Nexus 5k': 'nexus5k_system_image', 'Nexus 5k-kickstart': 'nexus5k_kickstart_image', 'kickstart': 'mds_switch_kickstart_image', 'ESXi': 'esxi_remote_file', 'ESXi-kickstart': 'esxi_kickstart_file', 'UCS-infra': 'ucs_infra_image', 'UCS-blade': 'ucs_blade_image', 'UCS-Rack': 'ucs_rack_image'};
 	$('#list-images .error').remove();
 	if($('.images-list tr.selected').length == 0) {
 		$('.images-list').before('<div class="red-text error">Please select a file.</span>');
@@ -569,116 +595,160 @@ function selectISO() {
   * @param string $container - the dom selector string in-which location to create the loading icon.
 */
 function loadDiscovery(container) {
-	$.when(
-		loadFlashstackTypes()
-	).done(function() {
-		setTimeout(function() {
-			clearTimeout(tout);
-			var notify = true;
-			if(container == '') notify = false;
-			var cb_status, checked, title, device_type, selectedHost = [], device_state = {'Up': {'icon': 'online', 'title': localization['online']}, 'Down': {'icon': 'offline', 'title': localization['offline']}, 'Failed': {'icon': 'failed', 'title': localization['failed']}, 'Checking': {'icon': 'fa fa-circle faa-burst animated', 'title': localization['checking']}};
-			if(systemInfo.dhcp_status == "enabled")
-				$('.loader-msg').html('<i class="fa fa-sync faa-spin animated active"></i> ' + localization['searching-devices'] + '...');
-			doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, container: container, notify: notify}, function(response) {
-				var str = '', style, icon;
-				var action_icons = [];
-				setTimeout(function () {
-					$('.loader-msg').html('');
-				}, 5000);
-				str += '<table>';
-				if(response.data.length > 0) {
-					$.each(response.data, function(key, value) {
-						device_type = (value.device_type == 'UCSM') ? 'Fabric Interconnect' : value.device_type;
-						device_type = (device_type == 'PURE') ? 'FlashArray' : device_type;
-						if($.inArray(value.config_state, ['Configured', 'Unconfigured', 'In-progress', 'Failed', 'Re-validate']) > -1) {
-							icon = 'fa-times';
-							style = 'grey-text';
-							title = '';
-							switch(value.config_state) {
-								case 'Configured':
-									style = 'green-text';
-									icon = 'fa-check';
-									break;
-								case 'In-progress':
-									style = 'blue-text';
-									icon = 'fa-sync faa-spin animated';
-									break;
-								case 'Failed':
-								case 'Re-validate':
-									style = 'red-text re-validate tipso tipso_style';
-									icon = 'fa-exclamation-triangle';
-									title = ' data-tipso-title="' + localization['info'] + '" data-tipso="' + value.reval_msg + '"';
-									break;
+	clearTimeout(tout);
+	var notify = true, obj = {'PURE': 0, 'UCSM': 0, 'MDS': 0, 'Nexus 5k': 0, 'Nexus 9k': 0};
+	if(container == '') notify = false;
+	var cb_status, checked, title, device_type, selectedHost = [], device_state = {'Up': {'icon': 'online', 'title': localization['online']}, 'Down': {'icon': 'offline', 'title': localization['offline']}, 'Failed': {'icon': 'failed', 'title': localization['failed']}, 'Checking': {'icon': 'fa fa-circle faa-burst animated', 'title': localization['checking']}};
+	if(systemInfo.dhcp_status == "enabled")
+		$('.loader-msg').html('<i class="fa fa-sync faa-spin animated active"></i> ' + localization['searching-devices'] + '...');
+	doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, container: container, notify: notify}, function(response) {
+		var str = '', style, icon;
+		var action_icons = [];
+		str += '<table>';
+		if(response.data.length > 0) {
+			$.each(response.data, function(key, value) {
+				obj[value.device_type] += 1;
+				device_type = (value.device_type == 'UCSM') ? 'Fabric Interconnect' : value.device_type;
+				device_type = (device_type == 'PURE') ? 'FlashArray' : device_type;
+				if($.inArray(value.config_state, ['Configured', 'Unconfigured', 'In-progress', 'Failed', 'Re-validate']) > -1) {
+					icon = 'fa-times';
+					style = 'grey-text';
+					title = '';
+					switch(value.config_state) {
+						case 'Configured':
+							style = 'green-text';
+							icon = 'fa-check';
+							break;
+						case 'In-progress':
+							style = 'blue-text';
+							icon = 'fa-sync faa-spin animated';
+							break;
+						case 'Failed':
+						case 'Re-validate':
+							style = 'red-text re-validate tipso tipso_style';
+							icon = 'fa-exclamation-triangle';
+							title = ' data-tipso-title="' + localization['info'] + '" data-tipso="' + value.reval_msg + '"';
+							break;
+					}
+					value.reachability = (value.reachability == '') ? 'Checking' : value.reachability;
+					str += '<tr class="networkinfo elementInfo ' + value.config_state + '" primaryid="' + value.mac_address + '">\
+						<td width="50">';
+							cb_status = '';checked = ' checked = "checked"';
+							if(systemInfo.stacktype != '' && (typeof hardwares[systemInfo.stacktype] != 'undefined') && (typeof hardwares[systemInfo.stacktype][value.device_type] == 'undefined' || hardwares[systemInfo.stacktype][value.device_type] == 0))
+								checked = ' disabled="disabled"';
+							if($.inArray(value.config_state, ['Unconfigured', 'Failed']) == -1) {
+								cb_status = 'disabled';checked = '';
 							}
-							value.reachability = (value.reachability == '') ? 'Checking' : value.reachability;
-							str += '<tr class="networkinfo elementInfo ' + value.config_state + '" primaryid="' + value.mac_address + '">\
-								<td width="50">';
-									cb_status = '';checked = ' checked = "checked"';
-									if(systemInfo.stacktype != '' && (typeof hardwares[systemInfo.stacktype] != 'undefined') && (typeof hardwares[systemInfo.stacktype][value.device_type] == 'undefined' || hardwares[systemInfo.stacktype][value.device_type] == 0))
-										checked = ' disabled="disabled"';
-									if($.inArray(value.config_state, ['Unconfigured', 'Failed']) == -1) {
-										cb_status = 'disabled';checked = '';
-									}
-									str += '<div class="pull-left checkbox checkbox-primary">\
-										<input id="device_' + key + '" class="styled devices" htype="' + value.device_type + '" ' + cb_status + ' ' + checked + ' type="checkbox" value="' + value.ip_address + '">\
-										<label for="device_' + key + '" class="nopadding"></label>\
-									</div>';
-									str += '<div class="mac_address hide">' + value.mac_address + '</div>\
-								</td>\
-								<td width="50">';
-									if($.inArray(value.config_state, ['Unconfigured', 'Failed']) == -1)
-										str += '<div class="reachability_status ' + device_state[value.reachability].icon + '" alt="' + device_state[value.reachability].title + '" title="' + device_state[value.reachability].title + '"></div>';
-								str += '</td>\
-								<td width="20%" class="">\
-									<span class="device_type hide">' + value.device_type + '</span>' + device_type +
-								'</td>\
-								<td width="" class="vendor_model">' + value.vendor_model + '</td>\
-								<td width="20%" class="ip_address">' + value.ip_address + '</td>\
-								<td width="20%" class="serial_number">' + value.serial_number + '</td>\
-								<td width="40">';
-									if(value.config_state == 'Configured')
-										str += '<span class="text-center"><i class="fa fa-trash-alt red-text delete-device" alt="' + localization['delete-device'] + '" title="' + localization['delete-device'] + '"></i></span>';
-								str += '</td>\
-							</tr>';
-						}
-					});
-				} else {
-					str += '<tr><td><h4><span class="col-lg-12 col-md-12 col-sm-12 col-xs-12 widget-subtitle">' + localization['no-device'] + '.</span></h4></td></tr>';
+							str += '<div class="pull-left checkbox checkbox-primary">\
+								<input id="device_' + key + '" class="styled devices" htype="' + value.device_type + '" ' + cb_status + ' ' + checked + ' type="checkbox" value="' + value.ip_address + '">\
+								<label for="device_' + key + '" class="nopadding"></label>\
+							</div>';
+							str += '<div class="mac_address hide">' + value.mac_address + '</div>\
+						</td>\
+						<td width="50">';
+							if($.inArray(value.config_state, ['Unconfigured', 'Failed']) == -1)
+								str += '<div class="reachability_status ' + device_state[value.reachability].icon + '" alt="' + device_state[value.reachability].title + '" title="' + device_state[value.reachability].title + '"></div>';
+						str += '</td>\
+						<td width="20%" class="">\
+							<span class="device_type hide">' + value.device_type + '</span>' + device_type +
+						'</td>\
+						<td width="" class="vendor_model">' + value.vendor_model + '</td>\
+						<td width="20%" class="ip_address">' + value.ip_address + '</td>\
+						<td width="20%" class="serial_number">' + value.serial_number + '</td>\
+						<td width="40">';
+							if(value.config_state == 'Configured')
+								str += '<span class="text-center"><i class="fa fa-trash-alt red-text delete-device" alt="' + localization['delete-device'] + '" title="' + localization['delete-device'] + '"></i></span>';
+						str += '</td>\
+					</tr>';
 				}
-				str += '</table>\
-				<div class="clear"></div>';
-				if($('.networkinfo.elementInfo:not(.active)').length) {
-					$('.networkinfo.elementInfo:not(.active)').each(function(index) {
-						selectedHost.push($(this).attr('primaryId'));
-					});
-				}
-				if($('.networkList .scroller .mCSB_container').length)
-					$('.networkList .scroller').mCustomScrollbar("destroy");
-				initScroller($('.networkList .scroller'));
-				$('.networkList .scroller .mCSB_container').html(str);
-				$('.devices[checked="checked"]').closest('.networkinfo.elementInfo').addClass('active');
-				//initTooltip();
-				if(selectedHost.length > 0) {
-					$.each(selectedHost, function(index, value) {
-						$('.networkinfo.elementInfo[primaryid="' + value + '"]').removeClass('active');
-						$('.networkinfo.elementInfo[primaryid="' + value + '"]').find('.devices').prop('checked', false);
-					});
-				}
-
-				checkRequiredHardwares(container);
-				var height = parseInt($('.networkList').closest('.smartwidget').height()) - 150;
-				$('.networkList .scroller').css('height', height + 'px').css('max-height', height + 'px');
-
-				tout = setTimeout(function () {
-					loadDiscovery('');
-				}, 10000);
-			}, function() {
-				tout = setTimeout(function () {
-					loadDiscovery('');
-				}, 10000);
 			});
-		}, 500);
+		} else {
+			str += '<tr><td><h4><span class="col-lg-12 col-md-12 col-sm-12 col-xs-12 widget-subtitle">' + localization['no-device'] + '.</span></h4></td></tr>';
+		}
+		str += '</table>\
+		<div class="clear"></div>';
+		if($('.networkinfo.elementInfo:not(.active)').length) {
+			$('.networkinfo.elementInfo:not(.active)').each(function(index) {
+				selectedHost.push($(this).attr('primaryId'));
+			});
+		}
+		if($('.networkList .scroller .mCSB_container').length)
+			$('.networkList .scroller').mCustomScrollbar("destroy");
+		initScroller($('.networkList .scroller'));
+		$('.networkList .scroller .mCSB_container').html(str);
+		$('.devices[checked="checked"]').closest('.networkinfo.elementInfo').addClass('active');
+		//initTooltip();
+		if(selectedHost.length > 0) {
+			$.each(selectedHost, function(index, value) {
+				$('.networkinfo.elementInfo[primaryid="' + value + '"]').removeClass('active');
+				$('.networkinfo.elementInfo[primaryid="' + value + '"]').find('.devices').prop('checked', false);
+			});
+		}
+
+		getStackTypesByHardwares(obj, container);
+		var height = parseInt($('.networkList').closest('.smartwidget').height()) - 330;
+		$('.networkList .scroller').css('height', height + 'px').css('max-height', height + 'px');
+
+		tout = setTimeout(function () {
+			loadDiscovery('');
+		}, 10000);
+	}, function() {
+		tout = setTimeout(function () {
+			loadDiscovery('');
+		}, 10000);
 	});
+}
+
+/**
+  * @desc this method is used to get the posible stacktypes based on the hardwares discovered.
+  * @param object $obj - the object contains the type of the hardware & its quantity.
+*/
+function getStackTypesByHardwares(obj, container) {
+	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path, method: 'POST', data: obj}, function(response) {
+		$('.possible_stacktypes').remove();
+		if(response.data.length > 0) {
+			var str = '', enabled, stacktype = '';
+			str += '<fieldset class="possible_stacktypes">' +
+				'<legend>Stacktypes:</legend>' +
+				'<div class="boxes">';
+				$.each(response.data, function(key, value) {
+					hardwares[value.value] = value.req_hardwares;
+					if(value.enabled) {
+						str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" stacktype="' + value.value + '"><div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div><h4>' + value.label + '</h4></div></div>';
+					}
+				});
+				str += '</div>' +
+			'</fieldset>';
+			$('.flashstack_types').html(str);
+
+			$('.possible_stacktypes').remove();
+			$('.networkList.dataList').before(str);
+			$('.possible_stacktypes div.box[stacktype="' + systemInfo.stacktype + '"]').addClass('active');
+		}
+		checkRequiredHardwares(container);
+	}, doNothing);
+}
+
+/**
+  * @desc .
+*/
+function loadFlashstackTypes() {
+	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path}, function(response) {
+		var str = '', enabled, stacktype = '';
+		str += '<div class="boxes row">\
+			<h4>' + localization['choose-flashstack'] + '</h4>';
+		$.each(response.data, function(key, value) {
+			hardwares[value.value] = value.req_hardwares;
+			value.enabled = (value.enabled == true) ? '' : 'disabled';
+			str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" hardware_id="' + value.value + '"><div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div><h4>' + value.label + '</h4></div></div>';
+		});
+		str += '</div>';
+		$('.flashstack_types').html(str);
+		initScroller($('.flashstack_types.scroller'));
+		var height = parseInt($('.stepContainer').height()) - 76;
+		$('.flashstack_types.scroller').css('height', height + 'px').css('max-height', height + 'px');
+		$('.boxes .box[hardware_id="' + systemInfo.stacktype + '"]').addClass('active');
+	}, doNothing);
 }
 
 /**
@@ -686,56 +756,59 @@ function loadDiscovery(container) {
   * @param string $container - the dom selector string in-which location to create the loading icon.
 */
 function checkRequiredHardwares(container) {
-        var str = '', color, display_name, flag, status, selected;
-	Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
-                display_name = (key == 'UCSM') ? 'Fabric Interconnect' : key;
-                display_name = (display_name == 'PURE') ? 'FlashArray': display_name;
-                flag = false; status = 0;
-                if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + key + '"]').length > 0)
-                        flag = true;
-                color = 'red-text';
-                if($('input[type="checkbox"].devices:checked').length == 0) {
-			selected = $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length;
-			if(flag == true || $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length == hardwares[systemInfo.stacktype][key]) {
-                                color = 'green-text';status = 1;
-                        }
-                } else {
-			selected = $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length;
-			if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + key + '"]').length > 0) selected = 1;
-                        if(flag == true || $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length == hardwares[systemInfo.stacktype][key]) {
-                                color = 'green-text';status = 1;
-                        }
-                }
-		str += '<div class="' + key.replace(/\s/g, "-") + ' tipso-content hardware-types" status="' + status + '" key="' + key + '" data-tipso-title="' + display_name + '" expected="' + hardwares[systemInfo.stacktype][key] + '" selected="' + selected + '"><i class="' + color + ' fa fa-circle"></i> ' + display_name + ' x ' + hardwares[systemInfo.stacktype][key] + '</div>';
+	if(systemInfo.stacktype != '') {
+		var str = '', color, display_name, flag, status, selected;
+		Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
+		        display_name = (key == 'UCSM') ? 'Fabric Interconnect' : key;
+		        display_name = (display_name == 'PURE') ? 'FlashArray': display_name;
+		        flag = false; status = 0;
+		        if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + key + '"]').length > 0)
+		                flag = true;
+		        color = 'red-text';
+		        if($('input[type="checkbox"].devices:checked').length == 0) {
+				selected = $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length;
+				if(flag == true || $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length == hardwares[systemInfo.stacktype][key]) {
+		                        color = 'green-text';status = 1;
+		                }
+		        } else {
+				selected = $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length;
+				if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + key + '"]').length > 0) selected = 1;
+		                if(flag == true || $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length == hardwares[systemInfo.stacktype][key]) {
+		                        color = 'green-text';status = 1;
+		                }
+		        }
+			str += '<div class="' + key.replace(/\s/g, "-") + ' tipso-content hardware-types" status="' + status + '" key="' + key + '" data-tipso-title="' + display_name + '" expected="' + hardwares[systemInfo.stacktype][key] + '" selected="' + selected + '"><i class="' + color + ' fa fa-circle"></i> ' + display_name + ' x ' + hardwares[systemInfo.stacktype][key] + '</div>';
 
-                $('.tipso-content.hardware-types[key="' + key + '"]').find('i').removeClass('red-text green-text').addClass(color);
-		if(container == '')
-			$('.tipso-content.' + key.replace(/\s/g, "-")).attr('status', status);
-        });
-        if(container != '') {
-                $('.required-hardwares-flash').html(str);
-                $('.tipso-content').tipso({
-                        position: 'bottom',
-                        animationIn: 'bounceIn',
-                        animationOut: 'bounceOut',
-                        titleBackground: 'rgb(247, 124, 61)',
-                        background: '#FFF',
-                        color: '#454545',
-                        tooltipHover: true,
-                        onBeforeShow: function(ele, tipso) {
-                                var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
-                                if(ele.attr('key') == 'PURE' && $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]').length > 0) selected = 1;
-                                ele.tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
-                        }
-                });
-        } else {
-                Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
-			var ele = $('.required-hardwares-flash .hardware-types.' + key.replace(/\s/g, "-"));
-                        var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
-                        if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]').length > 0) selected = 1;
-                        $('.tipso-content.' + key.replace(/\s/g, "-")).tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
-                });
-        }
+		        $('.tipso-content.hardware-types[key="' + key + '"]').find('i').removeClass('red-text green-text').addClass(color);
+			if(container == '')
+				$('.tipso-content.' + key.replace(/\s/g, "-")).attr('status', status);
+		});
+		if(container != '') {
+		        $('.required-hardwares-flash').html(str);
+		        $('.tipso-content').tipso({
+		                position: 'bottom',
+		                animationIn: 'bounceIn',
+		                animationOut: 'bounceOut',
+		                titleBackground: 'rgb(247, 124, 61)',
+		                background: '#FFF',
+		                color: '#454545',
+		                tooltipHover: true,
+		                onBeforeShow: function(ele, tipso) {
+		                        var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
+		                        if(ele.attr('key') == 'PURE' && $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]').length > 0) selected = 1;
+		                        ele.tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
+		                }
+		        });
+		} else {
+		        Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
+				var ele = $('.required-hardwares-flash .hardware-types.' + key.replace(/\s/g, "-"));
+		                var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
+		                if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]').length > 0) selected = 1;
+		                $('.tipso-content.' + key.replace(/\s/g, "-")).tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
+		        });
+		}
+	}
+	$('.buttonNext').removeClass('disable buttonDisabled');
 }
 
 /**
@@ -743,7 +816,7 @@ function checkRequiredHardwares(container) {
 */
 function postUCSMForm() {
 	var data = {}, myToggle, type = 'cluster';
-	if(UCSForConfigure.length == 1) {
+	if(UCSForConfigure.length == 1 && $('.toggle-select.config_type').length) {
 		myToggle = $('.toggle-select.config_type').data('toggles');
 		type = 'subordinate';
 		if(myToggle.active)
@@ -754,8 +827,17 @@ function postUCSMForm() {
 	data.pri_passwd = $('#adminPasswd').val();
 	data.conf_passwd = $('#adminPasswd1').val();
 	data.ucs_upgrade = ($('#ucs_upgrade').is(':checked')) ? "Yes" : "No";
+	if(!$('#ucs_upgrade').is(':checked')) $('#infra_image, #rack_image, #blade_image').val('');
 	data.infra_image = $('#infra_image').val();
-	data.blade_image = $('#blade_image').val();
+	data.blade_image = $('#rack_image').val();
+	data.server_type = 'Rack';
+	if($('.toggle-select.component_type').length) {
+		myToggle = $('.toggle-select.component_type').data('toggles');
+		if(!myToggle.active) {
+			data.server_type = "Blade";
+			data.blade_image = $('#blade_image').val();
+		}
+	}
 	data.ntp_server = ($('#ntp_server_0').val() == '') ? '' : $('#ntp_server_0').val() + '.' + $('#ntp_server_1').val() + '.' + $('#ntp_server_2').val() + '.' + $('#ntp_server_3').val();
 	if(type == 'subordinate') {
 		data.pri_name = $('#systemName').val();
@@ -1004,12 +1086,18 @@ function saveConfig(obj) {
 		data.nexus_5k = JSON.stringify(nexus);
 	}
 	var query = {stacktype: systemInfo.subtype};
-	if($('#wizard').smartWizard('currentStep') == 4) query.update = 1;
+	if($('.toggle-select.component_type').length) {
+		query.stacktype = query.stacktype.replace("-rack", "");
+		var myToggle = $('.toggle-select.component_type').data('toggles');
+		if(myToggle.active && query.stacktype.indexOf('-rack') < 0) query.stacktype += '-rack';
+	}
+	
+	if($('#wizard').smartWizard('currentStep') == 3) query.update = 1;
 	var api = 'SaveConfiguration';
 	if($('[name="configuration-option"]:checked').val() == 'JSON')
 		api = 'RestoreConfig';
 	doAjaxRequest({url: api, base_path: settings.base_path, method: 'POST', data: data, query: query, isValidate: true, notify: false, formContainer: '.fs-configurations'}, function(response) {
-		if($('#wizard').smartWizard('currentStep') == 3) {
+		if($('#wizard').smartWizard('currentStep') == 2) {
 			var deploymentData = {config_mode: $('[name="configuration-option"]:checked').val().toLowerCase(), deployment_type: 'basic'};
 			if($('[name="configuration-option"]:checked').val() == 'JSON')
 				deploymentData.deployment_type = 'advanced';
@@ -1017,7 +1105,7 @@ function saveConfig(obj) {
 				doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
 					updateDeploymentSettings(response.data.deployment_settings);
 					removeProcessingSpinner('.content-container', loaderCnt);
-					navigateStep(4);
+					navigateStep(3);
 				}, doNothing);
 			}, doNothing);
 		} else {
@@ -1177,6 +1265,7 @@ function loadInitialSetupForm() {
 	$('.esxi_kickstart_file').after('<div type="ESXi-kickstart" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	$('.ucs_infra_image').after('<div type="UCS-infra" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	$('.ucs_blade_image').after('<div type="UCS-blade" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
+	$('.ucs_rack_image').after('<div type="UCS-Rack" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 
 	loadGlobalConfigForm();
 	initScroller($('.initial-setup>.smartwidget .scroller'));
@@ -1184,7 +1273,20 @@ function loadInitialSetupForm() {
 	$('.initial-setup>.smartwidget .scroller').css('height', height + 'px').css('max-height', height + 'px');
 	height = parseInt($('.stepContainer').height()) - 40;
 	$('.initial-setup .widget-content').css('height', height + 'px');
-	
+
+	if(systemInfo.server_types.rack) $('.toggle-select.component_type').closest('.control-group').removeClass('hide');
+	$('.toggle-select.component_type').toggles({type: 'select', on: false, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {off: 'Blade Server', on: 'Rack Server'}});
+	$('.toggle-select.component_type').on('toggle', function(e, active) {
+		$('.ucsm-configure .ucs_upgrade.blade_image, .ucsm-configure .ucs_upgrade.rack_image').addClass('hide');
+		if($('#ucs_upgrade').is(':checked')) {
+			if(active) {
+				$('.ucsm-configure .ucs_upgrade.rack_image').removeClass('hide');
+			} else {
+				$('.ucsm-configure .ucs_upgrade.blade_image').removeClass('hide');
+			}
+		}
+	});
+
 	$('.toggle-select.viewmode').toggles({type: 'select', on: true, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['basic'], off: localization['advanced']}});
 	$('.toggle-select.viewmode').on('toggle', function(e, active) {
 		$('.initial-setup .basic-view, .initial-setup .advanced-view').addClass('hide');
@@ -1225,7 +1327,12 @@ function loadImportedConfig(response) {
 	var dom, tmp;
 	$('.fs-configurations').removeClass('hide');
 	$('.buttonNext').removeClass('buttonDisabled');
-	doAjaxRequest({url: 'JSONConfig', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}}, function(response) {
+	var server_type = (response.data.server_type == 'Blade') ? false : true;
+	$('.toggle-select.component_type').toggles(server_type);
+	var stacktype = systemInfo.subtype;
+	if(server_type) stacktype += '-rack';
+
+	doAjaxRequest({url: 'JSONConfig', base_path: settings.base_path, query: {stacktype: stacktype}}, function(response) {
 		$.each(response.data.global_config, function(index, value) {
 			dom = $('.fs-configurations .control-group.' + value.name);
 			plotValuesByDom(dom, value.value);
@@ -1293,6 +1400,7 @@ function loadGlobalConfigForm() {
 	</div>';
 	$('.initial-setup .advanced-view').html(str);
 	$('.initial-setup .global.block').remove();
+	loaderCnt = addProcessingSpinner('.content-container');
 	return doAjaxRequest({url: 'GetGlobals', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}}, function(response) {
 		formData = response.data;
 		loadGlobalFormFields();
@@ -1341,7 +1449,11 @@ function updateGlobalConfig() {
 	Object.keys(obj.task_input_api).some(function(key) {
 		data[key] = obj.task_input_api[key].values;
 	});
-	doAjaxRequest({url: 'SetGlobals', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, data: data, method: 'PUT', isValidate: true, formContainer: ['.initial-setup .basic-view', '.initial-setup .advanced-view']}, function(response) {
+	var stack = systemInfo.subtype;
+	stack = stack.replace("-rack", "");
+	var myToggle = $('.toggle-select.component_type').data('toggles');
+	if(myToggle.active && stack.indexOf('-rack') < 0) stack += '-rack';
+	doAjaxRequest({url: 'SetGlobals', base_path: settings.base_path, query: {stacktype: stack}, data: data, method: 'PUT', isValidate: true, formContainer: ['.initial-setup .basic-view', '.initial-setup .advanced-view']}, function(response) {
 		requestCallback.requestComplete(true);
 	}, function(response) {
 		callbackFlag = false;
@@ -1372,11 +1484,11 @@ function populateData() {
 function loadConfigValues(data) {
 	var dom, slider, tmp;
 	$('.fabric_mapping, .mds_mapping, .nexus_mapping').html('');
-	$('.ucsm-configure .ucs_upgrade').addClass('hide');
+	$('.ucsm-configure .ucs_upgrade:not(#ucs_upgrade)').addClass('hide');
 	$.each(data, function(index, value) {
 		value.device_type = value.device_type.toLowerCase().replace(' ', '_');
 		Object.keys(value).some(function(key) {
-			if(value.device_type == 'ucsm' && key == 'kvm_console_ip') {
+			if(value.device_type == 'ucsm' && key == 'kvm_console_ip' && $('.' + value.device_type + ' input[value="' + value.switch_mac + '"]').length > 0) {
 				dom = $('.' + value.device_type + ' input[value="' + value.switch_mac + '"]').closest('.' + value.device_type).find('.control-group.' + key).find('#workflow_' + key + '.range-slider');
 				value[key] = $.parseJSON(value[key]);
 				tmp = value[key].kvm_range.split('-');
@@ -1432,6 +1544,9 @@ function loadConfigValues(data) {
 				} else if('mode' in value && value.mode == 'primary' && (key == 'domain_name' || key == 'dns')) {
 					dom = $('.control-group.' + key);
 					plotValuesByDom(dom, value[key]);
+				} else if('mode' in value && value.mode == 'primary' && key == 'server_type') {
+					var server_type = (value[key] == 'Blade') ? false : true;
+					$('.toggle-select.component_type').toggles(server_type);
 				} else if(value[key] != '' && (key == 'esxi_file' || key == 'blade_image' || key == 'infra_image') && $('[name="configuration-option"]:checked').val() == 'JSON') {
 					dom = $('.control-group.' + key);
 					plotValuesByDom(dom, value[key]);
@@ -1441,7 +1556,12 @@ function loadConfigValues(data) {
 					} else dom.find('.iso-library').addClass('hide');
 					if((key == 'blade_image' || key == 'infra_image') && value[key] != '') {
 						$('#ucs_upgrade').prop('checked', true);
-						$('.ucsm-configure .ucs_upgrade').removeClass('hide');
+						$('.ucsm-configure .ucs_upgrade.infra_image').removeClass('hide');
+						if(key == 'blade_image') {
+							var myToggle = $('.toggle-select.component_type').data('toggles');
+							if(myToggle.active) $('.ucsm-configure .ucs_upgrade.rack_image').removeClass('hide');
+							else $('.ucsm-configure .ucs_upgrade.blade_image').removeClass('hide');
+						}
 					}
 				}
 			}
@@ -1454,7 +1574,7 @@ function loadConfigValues(data) {
   * @param object $data - .
 */
 function populateDefaults(data) {
-	doAjaxRequest({url: 'ConfigDefaults', base_path: settings.base_path, method: 'POST', data: data, container: '#wizard'}, function(response) {
+	doAjaxRequest({url: 'ConfigDefaults', base_path: settings.base_path, method: 'POST', data: data}, function(response) {
 		loadConfigValues(response.data);
 		var flag = true;
 		$.each(response.data, function(index, value) {
@@ -1470,6 +1590,7 @@ function populateDefaults(data) {
 					$('.toggle-select.mode').toggles(true);
 			}
 		});
+		removeProcessingSpinner(true);
 	}, doNothing);
 }
 
@@ -1511,6 +1632,7 @@ function loadUCSMForm(column) {
 				
 				str += loadFormTemplate({type: 'toggle', id: 'mode', label: localization['mode'], mandatory: true, 'holder': 'hide'}) + 
 				loadFormTemplate({type: 'toggle', id: 'config_type', label: localization['type'], 'holder': 'hide'}) + 
+				loadFormTemplate({type: 'toggle', id: 'component_type dark', label: 'Compute Type', mandatory: true, 'holder': 'hide'}) +
 				loadFormTemplate({type: 'ipbox', id: 'virtualIP', label: localization['virtual-ip'], class: 'virtualIP', maxlength: 3, holder: 'ucsm-primary virtual_ip unique_ip', mandatory: true}) + 
 				loadFormTemplate({id: 'primaryName', label: localization['primary-name'], holder: 'ucsm-subordinate pri_name switch_name hide', mandatory: true}) +
 				loadFormTemplate({type: 'ipbox', id: 'oobIP', label: localization['primary-ip'], maxlength: 3, holder: 'ucsm-subordinate pri_ip hide', mandatory: true}) + 
@@ -1539,7 +1661,8 @@ function loadUCSMForm(column) {
 				loadFormTemplate({type: 'dropdown', id: 'esxi_kickstart', class: 'esxi_kickstart_file', label: localization['kickstart'], holder: 'esxi_kickstart remote_file'}) +
 				loadFormTemplate({type: 'checkbox', id: 'ucs_upgrade', class: 'ucs_upgrade', label: localization['ucs_firmware'], holder: 'ucs_firmware'}) +
 				loadFormTemplate({type: 'dropdown', id: 'infra_image', class: 'ucs_infra_image', label: localization['ucs-software-bundle'], holder: 'infra_image ucs_upgrade hide'}) + 
-				loadFormTemplate({type: 'dropdown', id: 'blade_image', class: 'ucs_blade_image', label: localization['blade-software'], holder: 'blade_image ucs_upgrade hide'});
+				loadFormTemplate({type: 'dropdown', id: 'blade_image', class: 'ucs_blade_image', label: localization['blade-software'], holder: 'blade_image ucs_upgrade hide'}) + 
+				loadFormTemplate({type: 'dropdown', id: 'rack_image', class: 'ucs_rack_image', label: localization['rack-software'], holder: 'rack_image ucs_upgrade hide'});
 			if(column == '2') str += '</div>';
 		str += '</div>\
 		<div class="table-end"></div>\
@@ -1604,7 +1727,7 @@ function loadNEXUSForm(options, index, isNexusPrimary, width) {
   * @desc .
 */
 function populateNetworkInfo() {
-	doAjaxRequest({url: 'NetworkInfo', base_path: settings.base_path, container: '#wizard'}, function(response) {
+	doAjaxRequest({url: 'NetworkInfo', base_path: settings.base_path}, function(response) {
 		plotValuesByDom($('.control-group.gateway'), response.data.gateway, 'gateway');
 		plotValuesByDom($('.control-group.netmask'), response.data.netmask, 'netmask');
 	}, doNothing);
@@ -1685,7 +1808,7 @@ function loadISOLibraryForm(attr) {
 	fields.push({type: 'radio', id: 'iso_image_ucsm', optional_label: 'NXOS UCS', value: 'UCSM', name: 'image_type', class: 'iso_image ' + style});
 	subtype.push({type: 'radio', id: 'iso_image_ucs_infra', optional_label: 'Infrastructure Image', value: 'UCS-infra', name: 'image_sub_type', class: 'sub_image UCSM ' + style, holder: 'hide'});
 	subtype.push({type: 'radio', id: 'iso_image_ucs_blade', optional_label: 'B-Series Blade Image', value: 'UCS-blade', name: 'image_sub_type', class: 'sub_image UCSM ' + style, holder: 'hide'});
-	subtype.push({type: 'radio', id: 'iso_image_ucs_rack', optional_label: 'C-Series Rack Image', value: 'UCS-Rack', name: 'image_sub_type', class: 'sub_image UCSM ' + style, disabled: 'disabled', holder: 'disabled hide'});
+	subtype.push({type: 'radio', id: 'iso_image_ucs_rack', optional_label: 'C-Series Rack Image', value: 'UCS-Rack', name: 'image_sub_type', class: 'sub_image UCSM ' + style, holder: 'hide'});
 
 	subtype.push({type: 'radio', id: 'iso_image_bare_metal', optional_label: 'Bare Metal', value: 'Bare-Metal', name: 'image_sub_type', class: 'sub_image UCSM ' + style, disabled: 'disabled', holder: 'operating_system hide disabled'});
 	subtype.push({type: 'radio', id: 'iso_image_hyper_v', optional_label: 'Hyper-V', value: 'Hyper-v', name: 'image_sub_type', class: 'sub_image UCSM ' + style, disabled: 'disabled', holder: 'operating_system hide disabled'});
@@ -1738,11 +1861,11 @@ function loadISOLibraryForm(attr) {
 function loadImages(container, type, file) {
 	return doAjaxRequest({url: 'ListImages', base_path: settings.base_path, container: container}, function(response) {
 		var action_icons = [], length = 0, str = '<div class="">';
-		var arr = ['#iso_file', '#esxi_file', '#esxi_kickstart', '.nexus_switch_image', '.nexus5k_system_image', '.nexus5k_kickstart_image', '.mds_switch_kickstart_image', '.mds_switch_system_image', '.ucs_infra_image', '.ucs_blade_image'];
+		var arr = ['#iso_file', '#esxi_file', '#esxi_kickstart', '.nexus_switch_image', '.nexus5k_system_image', '.nexus5k_kickstart_image', '.mds_switch_kickstart_image', '.mds_switch_system_image', '.ucs_infra_image', '.ucs_blade_image', '.ucs_rack_image'];
 		$.each(arr, function(key, val) {
 			$(val).attr('data', $(val).val());
 		});
-		$('#iso_file, #esxi_file, #esxi_kickstart, .nexus_switch_image, .nexus5k_system_image, .nexus5k_kickstart_image, .mds_switch_kickstart_image, .mds_switch_system_image, .ucs_infra_image, .ucs_blade_image').html('<option value="">' + localization['select-file'] + '</option>');
+		$('#iso_file, #esxi_file, #esxi_kickstart, .nexus_switch_image, .nexus5k_system_image, .nexus5k_kickstart_image, .mds_switch_kickstart_image, .mds_switch_system_image, .ucs_infra_image, .ucs_blade_image, .ucs_rack_image').html('<option value="">' + localization['select-file'] + '</option>');
 		if(response.data.length > 0) {
 			str += '<table>\
 				<tr class="head">\
@@ -1779,6 +1902,9 @@ function loadImages(container, type, file) {
 						case 'UCS-blade':
 							$('.ucs_blade_image').append('<option value="' + value.name + '">' + value.name + '</option>');
 							break;
+						case 'UCS-Rack':
+							$('.ucs_rack_image').append('<option value="' + value.name + '">' + value.name + '</option>');
+							break;
 					}
 					if(type == '' || (type != '' && type == value.type)) {
 						value.type = (value.type == 'UCS-infra') ? 'Infra Image' : value.type;
@@ -1803,28 +1929,6 @@ function loadImages(container, type, file) {
 		$.each(arr, function(key, val) {
 			$(val).val($(val).attr('data'));
 		});
-	}, doNothing);
-}
-
-/**
-  * @desc .
-*/
-function loadFlashstackTypes() {
-	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path}, function(response) {
-		var str = '', enabled, stacktype = '';
-		str += '<div class="boxes row">\
-			<h4>' + localization['choose-flashstack'] + '</h4>';
-		$.each(response.data, function(key, value) {
-			hardwares[value.value] = value.req_hardwares;
-			value.enabled = (value.enabled == true) ? '' : 'disabled';
-			str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" hardware_id="' + value.value + '"><div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div><h4>' + value.label + '</h4></div></div>';
-		});
-		str += '</div>';
-		$('.flashstack_types').html(str);
-		initScroller($('.flashstack_types.scroller'));
-		var height = parseInt($('.stepContainer').height()) - 76;
-		$('.flashstack_types.scroller').css('height', height + 'px').css('max-height', height + 'px');
-		$('.boxes .box[hardware_id="' + systemInfo.stacktype + '"]').addClass('active');
 	}, doNothing);
 }
 
@@ -1923,7 +2027,7 @@ function loadDevices(container) {
 		if(callbackFlag) {
 			$('.buttonNext, .buttonPrevious').removeClass('buttonDisabled');
 			disableDHCP(false);
-			navigateStep(5);
+			navigateStep(4);
 		} else {
 			tout = setTimeout(function () {
 				loadDeviceStatus();
@@ -2003,7 +2107,7 @@ function loadDeviceStatus() {
 		if(callbackFlag && exec_status) {
 			$('.buttonNext, .buttonPrevious').removeClass('buttonDisabled');
 			disableDHCP(false);
-			navigateStep(5);
+			navigateStep(4);
 		} else {
 			tout = setTimeout(function () {
 				loadDeviceStatus();

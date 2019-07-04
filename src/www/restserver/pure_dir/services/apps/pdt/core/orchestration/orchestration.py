@@ -12,9 +12,9 @@ from pure_dir.services.utils.exportlog import exportlog_helper
 from pure_dir.services.utils.eula_setup import eula_content, eula_agreement
 from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import job_status_helper_api
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status  import group_job_status_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import group_job_status_api
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import job_tasks_api, job_task_input_save_api, job_task_mandatory_input_save_api, job_task_inputs_api, task_input_value_api, job_task_outputs_api, task_suggested_inputs_api, job_task_mandatory_inputs_api, workflow_inputs_api
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import workflows_list_api, workflows_group_info_api, workflow_info_api, flash_stack_type_api, workflow_persistant_prepare_helper, job_save_as_api, export_workflow_api, import_workflow_api
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import workflows_list_api, workflows_group_info_api, workflow_info_api, flash_stack_type_api, workflow_persistant_prepare_helper, job_save_as_api, export_workflow_api, import_workflow_api, possible_fs_types
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_library import tasks_list_api
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_validator import job_validate, job_mandatory_validate_api
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_miscellaneous import get_logs_api, deployment_logs
@@ -25,7 +25,7 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import 
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_executor import flashstack_deploy
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import batch_status_api
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_retry import job_retry_api
-from pure_dir.services.utils.images import list_images, delete_image, import_image 
+from pure_dir.services.utils.images import list_images, delete_image, import_image
 
 
 class Orchestration:
@@ -47,6 +47,8 @@ class Orchestration:
     def flashstacktype(self):
         return flash_stack_type_api()
 
+    def possiblefstypes(self, data):
+        return possible_fs_types(data)
 
     def jobtasks(self, id, ttype=''):
         return job_tasks_api(id, ttype)
@@ -88,10 +90,6 @@ class Orchestration:
     def deploymentlogs(self, jid):
         return deployment_logs(jid)
 
-    #remove	
-    '''def checkprereq(self, wid):
-        return check_pre_req_api(wid)'''
-
     def jobvalidate(self, jid, execid=''):
         ''' Validate the job before execution'''
         return job_validate(jid, execid)
@@ -132,21 +130,18 @@ class Orchestration:
     def rollbackstatus(self, jobid):
         return rollback_batch_status_helper_api(jobid)
 
-    
-    #remove	
+    # remove
     def jobsaveas(self, jobid, data):
         return job_save_as_api(jobid, data)
 
-
-    #remove	
+    # remove
     def exportworkflow(self, jobid):
         return export_workflow_api(jobid)
 
     def exportlog(self):
         return exportlog_helper()
 
-
-    #remove	
+    # remove
     def importworkflow(self, uploadfile):
         return import_workflow_api(uploadfile)
 

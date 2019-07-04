@@ -2,7 +2,7 @@ from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import get_device_credentials, get_device_list
+from pure_dir.components.common import get_device_credentials, get_device_list, get_device_model
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
 metadata = dict(
@@ -32,7 +32,7 @@ class FAGetISCSIPortNumber:
             key="mac", value=inputs['inputs']['pure_id'])
 
         if not cred:
-	    res = result()
+            res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))
@@ -64,7 +64,8 @@ class FAGetISCSIPortNumber:
         loginfo("enters into iscsi interface prepare function")
         res = result()
         pure_id = getGlobalArg(inputs, 'pure_id')
-        interfaces = self.get_fa_iscsi_intf(pure_id)
+        fabric_id = getGlobalArg(inputs, 'ucs_switch_a')
+        interfaces = self.get_fa_iscsi_intf(pure_id, fabric_id)
         loginfo("interfaces in prepare :{}".format(interfaces))
         job_input_save(jobid, texecid, 'name', interfaces[0])
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -83,7 +84,7 @@ class FAGetISCSIPortNumber:
         res.setResult(pure_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-    def get_fa_iscsi_intf(self, pureid):
+    def get_fa_iscsi_intf(self, pureid, fabric_id):
         """
         :param pureid: id of FlashArray
         :type pureid: str
@@ -108,7 +109,8 @@ class FAGetISCSIPortNumber:
 
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
-        intf_list = obj.get_fa_ports()
+        fi_model = get_device_model(key="mac", value=fabric_id)
+        intf_list = obj.get_fa_ports(fi_model)
         new_intf_list = []
         for intf in intf_list:
             new_intf_list.append('CT0.' + intf)

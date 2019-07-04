@@ -237,6 +237,7 @@ def ucsmlist():
     ret = obj.ucsmlist()
     return parseResult(ret)
 
+
 def ucsmficonfigure(mode, data):
     obj = UCSManager()
     ret = obj.ucsmficonfigure(mode, data)
@@ -263,7 +264,6 @@ def ucsmsetip(
         gateway='',
         netmask='')
     return parseResult(ret)
-
 
 
 # Orchestration APIs
@@ -431,12 +431,6 @@ def jobsaveas(jobid, data):
     return parseResult(ret)
 
 
-'''def checkprereq(wid):
-    obj = Orchestration()
-    ret = obj.checkprereq(wid)
-    return parseResult(ret)'''
-
-
 def logs(jobid):
     obj = Orchestration()
     return parseResult(obj.logs(jobid))
@@ -488,6 +482,12 @@ def exportlog():
 def importworkflow(uploadfile):
     obj = Orchestration()
     ret = obj.importworkflow(uploadfile)
+    return parseResult(ret)
+
+
+def possiblefstypes(data):
+    obj = Orchestration()
+    ret = obj.possiblefstypes(data)
     return parseResult(ret)
 
 

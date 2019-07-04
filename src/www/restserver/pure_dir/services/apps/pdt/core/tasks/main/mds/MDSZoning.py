@@ -2,7 +2,7 @@ from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.storage.mds.mds_tasks import *
 from pure_dir.components.compute.ucs.ucs import UCSManager
 from pure_dir.components.common import get_device_credentials, get_device_list
-from pure_dir.services.utils.miscellaneous import get_oui, oui_pure 
+from pure_dir.services.utils.miscellaneous import get_oui, oui_pure
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 import time
@@ -150,7 +150,7 @@ class MDSZoning:
             else:
                 loginfo("Unable to login to the MDS")
                 res.setResult(False, PTK_INTERNALERROR,
-                               _("PDT_MDS_LOGIN_FAILURE"))
+                              _("PDT_MDS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the MDS")
             res.setResult(False, PTK_INTERNALERROR,

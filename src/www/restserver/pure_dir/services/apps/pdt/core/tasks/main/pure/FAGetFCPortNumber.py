@@ -32,7 +32,7 @@ class FAGetFCPortNumber:
             key="mac", value=inputs['inputs']['pure_id'])
 
         if not cred:
-	    res = result()
+            res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))

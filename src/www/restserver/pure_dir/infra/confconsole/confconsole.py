@@ -552,14 +552,14 @@ class TurnkeyConsole:
 
             errors = []
             if not addr:
-                errors.append("No IP address provided")
+                return ["No IP address provided"]
             elif not ipaddr.is_legal_ip(addr):
-                errors.append("Invalid IP address: %s" % addr)
+                return ["Invalid IP address: %s" % addr]
 
             if not netmask:
-                errors.append("No netmask provided")
+                return ["No netmask provided"]
             elif not ipaddr.is_legal_ip(netmask):
-                errors.append("Invalid netmask: %s" % netmask)
+                return ["Invalid netmask: %s" % netmask]
 
             """if nameservers == []:
 		return ["Nameserver "]

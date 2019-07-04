@@ -33,12 +33,12 @@ class NEXUS5kAddIndividualPortDescription:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
                 res.setResult(False, PTK_INTERNALERROR,
-                             _("PDT_NEXUS_LOGIN_FAILURE"))
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             customlogs("Failed to get NEXUS switch credentials", logfile)
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
-                           _("PDT_NEXUS_LOGIN_FAILURE"))
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         return parseTaskResult(res)
 

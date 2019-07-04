@@ -4,8 +4,7 @@ from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import *
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
+from pure_dir.components.common import get_device_list
 
 metadata = dict(
     task_id="FACreateMultipleHosts",
@@ -35,7 +34,7 @@ class FACreateMultipleHosts:
         cred = get_device_credentials(
             key="mac", value=taskinfo['inputs']['pure_id'])
         if not cred:
-	    res = result()
+            res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))
@@ -67,7 +66,7 @@ class FACreateMultipleHosts:
         cred = get_device_credentials(
             key="mac", value=inputs['pure_id'])
         if not cred:
-	    res = result()
+            res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))
@@ -108,18 +107,11 @@ class FACreateMultipleHosts:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
-        res = self.ucsm_get_associated_sp_cnt(
-            keys)  # self.ucsmbladeservers(keys)
-        blade_list = res.getResult()
-        val = ''
+        blade_len = self.ucsm_get_associated_sp_cnt(
+            keys)
 
-        if len(blade_list) > 0:
-            blade_len = int(blade_list[0]['id'])
         loginfo("vol count going is : {} ".format(str(blade_len)))
         job_input_save(jobid, texecid, 'count', str(blade_len))
-
-        if res.getStatus() != PTK_OKAY:
-            return res
 
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
@@ -128,21 +120,18 @@ class FACreateMultipleHosts:
         """
         :param keys: key for fabric id value
         :type taskinfo: str
-        :returns: list of blade servers
+        :returns: count of service profiles
         :rtype: list
 
         """
-        servers_list = []
-        res = result()
         fabricid = getArg(keys, 'fabric_id')
 
         if fabricid is None:
-            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-            return res
+            return 0
 
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
-            return parseTaskResult(res)
+            return 0
 
         handle = res.getResult()
         service_profiles = handle.query_classid("lsServer")
@@ -151,49 +140,8 @@ class FACreateMultipleHosts:
             if sp.type != "updating-template" and sp.pn_dn != '':
                 sp_cnt.append(sp.name)
 
-        server_dict = {
-            'id': str(len(sp_cnt)),
-            "selected": "1",
-            "label": str(len(sp_cnt))}
-        servers_list.append(server_dict)
-        print "server list from ucs", servers_list
         ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
-
-    def ucsmbladeservers(self, keys):
-        """
-        :param keys: key for fabric id value
-        :type taskinfo: str
-        :returns: list of blade servers
-        :rtype: list
-
-        """
-        servers_list = []
-        res = result()
-        fabricid = getArg(keys, 'fabric_id')
-
-        if fabricid is None:
-            res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-            return res
-
-        res = get_ucs_login(fabricid)
-        if res.getStatus() != PTK_OKAY:
-            return parseTaskResult(res)
-
-        handle = res.getResult()
-        blades = handle.query_classid("ComputeBlade")
-        blade_server_cnt = 1
-        for blade in blades:
-            server_dict = {
-                'id': str(blade_server_cnt),
-                "selected": "1",
-                "label": str(blade_server_cnt)}
-            blade_server_cnt += 1
-            servers_list.append(server_dict)
-        ucsm_logout(handle)
-        res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
+        return len(sp_cnt)
 
 
 class FACreateMultipleHostsInputs:

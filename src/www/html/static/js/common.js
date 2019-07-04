@@ -405,7 +405,9 @@ function addProcessingSpinner(container) {
   * @param int $spinner_cnt - the identifier of the spinner
 */
 function removeProcessingSpinner(container, spinner_cnt) {
-	if(container.length > 0) {
+	if(typeof container == 'boolean' && container) {
+		$('.ajax-overlay, .ajax-spinner').remove();
+	} else if(container.length > 0) {
 		setTimeout(function() {$('.executingApis_' + spinner_cnt).remove();}, 500);
 	}
 }

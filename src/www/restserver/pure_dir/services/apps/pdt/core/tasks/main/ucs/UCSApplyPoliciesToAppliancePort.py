@@ -98,7 +98,6 @@ class UCSApplyPoliciesToAppliancePort:
         return ret
 
 
-
 class UCSApplyPoliciesToAppliancePortInputs:
     fabric_id = Dropdown(
         hidden='True',

@@ -212,6 +212,7 @@
 	"ucs_firmware": "UCS Firmware",
 	"ucs-software-bundle": "UCS Infrastructure Software Bundle",
 	"blade-software": "UCS B-Series Blade Server Software Bundle",
+	"rack-software": "UCS C-Series Rack Server Software Bundle",
 	"page_error_mgs": "An error has occurred",
 	"page_error_desc": "Please wait. Server is currently under rebooting state - it will reload automatically or hit \"reload\" on your browser in a minute to try again.",
 	"file_not_found": "File not available. Please try again later."

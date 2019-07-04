@@ -94,11 +94,11 @@ class NEXUS5kConfigurePortchannel:
             else:
                 loginfo("Unable to login to the NEXUS")
                 res.setResult(pc_list, PTK_INTERNALERROR,
-                               _("PDT_NEXUS_LOGIN_FAILURE"))
+                              _("PDT_NEXUS_LOGIN_FAILURE"))
         else:
             loginfo("Unable to get the device credentials of the NEXUS")
             res.setResult(pc_list, PTK_INTERNALERROR,
-                           _("PDT_NEXUS_LOGIN_FAILURE"))
+                          _("PDT_NEXUS_LOGIN_FAILURE"))
 
         res.setResult(pc_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

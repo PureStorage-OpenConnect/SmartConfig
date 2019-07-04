@@ -12,25 +12,29 @@ import requests
 import time
 import threading
 import ipaddress
+import string
 from itertools import chain
 from isc_dhcp_leases import IscDhcpLeases
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
 from pure_dir.services.utils.images import *
 from pure_dir.services.utils.ipvalidator import *
-from pure_dir.components.network.nexus import *
-from pure_dir.components.storage.mds import *
-from pure_dir.components.compute.ucs.ucs import *
-from pure_dir.components.storage.purestorage.pure_tasks import *
+from pure_dir.components.network.nexus.nexus import Nexus
+from pure_dir.components.storage.mds.mds import MDS
+from pure_dir.components.compute.ucs.ucs import UCSManager
+from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import *
 from pure_dir.services.apps.pdt.core.systemmanager import *
 from pure_dir.components.compute.ucs.ucs_upgrade import get_version
 from pure_dir.components.network.nexus.nexus_setup import NEXUSSetup
 from pure_dir.components.storage.mds.mds_setup import MDSSetup
 from pure_dir.components.common import *
+from pure_dir.infra.logging.logmanager import loginfo
 from scapy.all import *
-from xml.dom.minidom import *
 from filelock import FileLock
+
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
+
 
 settings = "/mnt/system/pure_dir/pdt/settings.xml"
 dhcp_conf_template = "/mnt/system/pure_dir/pdt/templates/discovery/dhcpd.conf.template"
@@ -712,6 +716,7 @@ def save_config(stacktype, datas):
                                           {"ucs_switch_a": data['pri_switch_mac'],
                                            "netmask": data['netmask'],
                                               "gateway": data['gateway'],
+                                              "ntp": data['ntp_server'],
                                               "remote_file": data['esxi_file'],
                                               "upgrade": "No"})
                 else:
@@ -719,6 +724,7 @@ def save_config(stacktype, datas):
                                           {"ucs_switch_a": data['pri_switch_mac'],
                                            "netmask": data['netmask'],
                                               "gateway": data['gateway'],
+                                              "ntp": data['ntp_server'],
                                               "remote_file": data['esxi_file'],
                                               "firmware": data['blade_image'],
                                               "upgrade": "Yes"})
@@ -895,7 +901,8 @@ def save_config(stacktype, datas):
                     esxi_kickstart=data['esxi_kickstart'],
                     infra_image=data['infra_image'],
                     blade_image=data['blade_image'],
-                    ucs_upgrade=data['ucs_upgrade'])
+                    ucs_upgrade=data['ucs_upgrade'],
+                    server_type=data['server_type'])
             if 'sec_cluster' in data:
                 if check_device_exists(data['sec_switch_mac'], "mac"):
                     delete_xml_element(static_discovery_store,
@@ -925,7 +932,19 @@ def save_config(stacktype, datas):
                     blade_image=data['blade_image'],
                     ucs_upgrade=data['ucs_upgrade'],
                     sec_orig_ip=data['sec_orig_ip'],
+                    server_type=data['server_type'],
                     validated="1")
+
+            if data['server_type'] == "Rack":
+                status, details = get_xml_element(settings, "stacktype")
+                if status:
+                    rack_servertype = details[0]['stacktype'] + "-rack"
+                    deployment_settings({'subtype': rack_servertype})
+            elif data['server_type'] == "Blade":
+                status, details = get_xml_element(settings, "stacktype")
+                if status and 'figen2' not in details[0]['subtype'] and 'fi6332' not in details[
+                        0]['subtype'] and 'fi6454' not in details[0]['subtype']:
+                    deployment_settings({'subtype': details[0]['stacktype']})
 
     obj = result()
     obj.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -1042,6 +1061,7 @@ def update_config(stacktype, datas):
                         "infra_image": data['infra_image'],
                         "blade_image": data['blade_image'],
                         "ucs_upgrade": data['ucs_upgrade'],
+                        "server_type": data['server_type'],
                         "configured": "Unconfigured"}
                     update_xml_element(
                         static_discovery_store, "mac", data['pri_switch_mac'], data_to_update)
@@ -1049,9 +1069,19 @@ def update_config(stacktype, datas):
                 if check_device_exists(data['sec_switch_mac'], "mac"):
                     data_to_update = {"ipaddress": data['sec_ip'], "name": data['pri_name'] +
                                       "-B", "configured": "Unconfigured",
-                                      "pri_ip": data['pri_ip']}
+                                      "pri_ip": data['pri_ip'], "server_type": data['server_type']}
                     update_xml_element(
                         static_discovery_store, "mac", data['sec_switch_mac'], data_to_update)
+
+            if data['server_type'] == "Rack":
+                status, details = get_xml_element(settings, "stacktype")
+                if status:
+                    rack_servertype = details[0]['stacktype'] + "-rack"
+                    deployment_settings({'subtype': rack_servertype})
+            elif data['server_type'] == "Blade":
+                status, details = get_xml_element(settings, "stacktype")
+                if status:
+                    deployment_settings({'subtype': details[0]['stacktype']})
 
     obj = result()
     obj.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -1096,7 +1126,19 @@ def figenvalidate(filist, stacktype):
     res = result()
     if len(filist) != 2:
         loginfo("FI count should be 2")
-        res.setResult(stacktype, PTK_INTERNALERROR, "FI count should be 2")
+        res.setResult(stacktype, PTK_INTERNALERROR, _("PDT_UNSUPPORTED_FI_COUNT_ERR_MSG"))
+        return res
+
+    if "FI-6332" in filist[0] and "FI-6332" in filist[1]:
+        # direct connect has support for 6332 and 6324(min), identify subtype
+        if stacktype == "fa-n9k-ucsmini-fc":
+            stacktype = 'fa-fi6332-fc'
+            deployment_settings({'subtype': stacktype})
+        elif stacktype == "fa-n5k-ucsmini-iscsi":
+            stacktype = 'fa-fi6332-iscsi'
+            deployment_settings({'subtype': stacktype})
+        loginfo("Setting stacktype to %s" % stacktype)
+        res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     if "FI-62" in filist[0] and "FI-62" in filist[1] and "n5k" in stacktype:
         loginfo("Gen 2 FI detected")
@@ -1106,16 +1148,25 @@ def figenvalidate(filist, stacktype):
             stacktype = "fa-n5k-figen2-iscsi"
         loginfo("Setting stacktype to %s" % stacktype)
         deployment_settings({'subtype': stacktype})
-        res.setResult(stacktype, PTK_OKAY, "Success")
+        res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     elif "FI-63" in filist[0] and "FI-63" in filist[1]:
-        res.setResult(stacktype, PTK_OKAY, "Success")
+        res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     elif "FI-M-6324" in filist[0] and "FI-M-6324" in filist[1]:
-	res.setResult(stacktype, PTK_OKAY, "Success")
+        res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+    elif "FI-6454" in filist[0] and "FI-6454" in filist[1]:
+        if stacktype == "fa-n9k-fi-mds-fc":
+            stacktype = 'fa-n9k-fi6454-mds-fc'
+        elif stacktype == "fa-n9k-fi-iscsi":
+            stacktype = 'fa-n9k-fi6454-iscsi'
+        loginfo("Setting stacktype to %s" % stacktype)
+        deployment_settings({'subtype': stacktype})
+        res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     res.setResult(stacktype, PTK_INTERNALERROR,
-                  "FI list is not as per requirement")
+                  _("PDT_UNSUPPORTED_FI_TYPE_ERR_MSG"))
     return res
 
 

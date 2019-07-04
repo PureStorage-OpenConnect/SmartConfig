@@ -9,32 +9,25 @@
 import threading
 from xml.dom.minidom import *
 import shutil
-import glob
 import shelve
 import os
 import time
 import xmltodict
 import json
 
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
 
 from pure_dir.services.apps.pdt.core.discovery import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration import*
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
-from pure_dir.services.apps.pdt.core.tasks.test.ucs import*
-
 from pure_dir.services.apps.pdt.core.tasks.main.pure import *
-from pure_dir.services.apps.pdt.core.tasks.test.pure import *
-
 from pure_dir.services.apps.pdt.core.tasks.main.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_5k import*
 from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
-from pure_dir.services.apps.pdt.core.tasks.test.mds import*
 from pure_dir.services.apps.pdt.core.systemmanager import *
+import glob
 
 settings = "/mnt/system/pure_dir/pdt/settings.xml"
 
@@ -86,7 +79,7 @@ def export_configuration(stacktype):
         for htype in htype_list:
             if htype.getAttribute('stacktype') == stacktype:
                 for ipt in htype.getElementsByTagName('input'):
-                    if name != 'kvm_console_ip':
+                    if ipt.getAttribute('name') != 'kvm_console_ip':
                         input_dict = {
                             "name": ipt.getAttribute('name'),
                             "value": ipt.getAttribute('value'),
@@ -142,6 +135,8 @@ def export_configuration(stacktype):
                     'blade_image')
                 discovery_dict['infra_image'] = device.getAttribute(
                     'infra_image')
+                discovery_dict['server_type'] = device.getAttribute(
+                    'server_type')
 
             discovery_list.append(discovery_dict)
     dicts['components'] = discovery_list
@@ -174,12 +169,18 @@ def get_value_from_xml(jid, texecid, name):
 
 def import_configuration(configfile):
     res = result()
+    res_data = {}
     configfile.save("/tmp/" + configfile.filename)
     with open("/tmp/" + configfile.filename) as f:
         tmp_data = json.load(f)
+    if "rack" in tmp_data['stacktype']:
+        for comp in tmp_data['components']:
+            if comp['device_type'] == "UCSM" and comp['server_type'] == "Rack":
+                deployment_settings({'subtype': tmp_data['stacktype']})
+                 
     status, details = get_xml_element(settings, 'subtype')
     if details[0]['subtype'] != tmp_data['stacktype']:
-        res.setResult(False, PTK_INTERNALERROR, "Upload Valid Stacktype JSON")
+        res.setResult(res_data, PTK_INTERNALERROR, "Upload Valid Stacktype JSON")
         return res
     shutil.copy2("/tmp/" + configfile.filename, get_download_path() +
                  'import-' + tmp_data['stacktype'] + '.json')
@@ -197,7 +198,7 @@ def import_configuration(configfile):
                         if j['name'] not in inputs:
                             loginfo("Invalid task input field '%s' in json" % j['name'])
                             res.setResult(
-                                False, PTK_INTERNALERROR, "Invalid JSON")
+                                res_data, PTK_INTERNALERROR, "Invalid JSON")
                             return res
                         exec("%s = %s.%s" % ("field", "input_obj", j['name']))
                         wftaskip = job_task_inputs(
@@ -207,7 +208,7 @@ def import_configuration(configfile):
                                 "Task mandatory input field '%s' has no value in json" %
                                 j['name'])
                             res.setResult(
-                                False, PTK_INTERNALERROR, "Invalid JSON")
+                                res_data, PTK_INTERNALERROR, "Invalid JSON")
                             return res
     global_file = open(get_global_wf_config_file(), 'r')
     doc = xmltodict.parse(global_file.read())
@@ -222,29 +223,34 @@ def import_configuration(configfile):
                         inpt = True
                         break
                 if not inpt:
-                    res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
+                    res.setResult(res_data, PTK_INTERNALERROR, "Invalid JSON")
                     return res
     for comp in data['components']:
         if 'device_type' in comp and comp['device_type'] == 'Nexus 5k':
             if 'system_image' not in comp or 'kickstart_image' not in comp:
-                res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
+                res.setResult(res_data, PTK_INTERNALERROR, "Invalid JSON")
                 return res
         elif 'device_type' in comp and comp['device_type'] == 'Nexus 9k':
             if 'system_image' not in comp:
-                res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
+                res.setResult(res_data, PTK_INTERNALERROR, "Invalid JSON")
                 return res
         elif 'device_type' in comp and comp['device_type'] == 'MDS':
             if 'system_image' not in comp or 'kickstart_image' not in comp:
-                res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
+                res.setResult(res_data, PTK_INTERNALERROR, "Invalid JSON")
                 return res
         elif 'device_type' in comp and comp['device_type'] == 'UCSM':
-            if 'domain_name' not in comp or 'esxi_file' not in comp or 'infra_image' not in comp or 'blade_image' not in comp:
-                res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
+            if 'domain_name' not in comp or 'esxi_file' not in comp or 'infra_image' not in comp or 'blade_image' not in comp or 'server_type' not in comp:
+                res.setResult(res_data, PTK_INTERNALERROR, "Invalid JSON")
                 return res
     if not stacktype:
-        res.setResult(False, PTK_INTERNALERROR, "Invalid JSON")
+        res.setResult(res_data, PTK_INTERNALERROR, "Invalid JSON")
         return res
-    res.setResult(True, PTK_OKAY, "success")
+    server_type = ''
+    for comp in data['components']:
+        if comp['device_type'] == 'UCSM' and 'server_type' in comp:
+            server_type = comp['server_type']
+    res_data['server_type'] = server_type
+    res.setResult(res_data, PTK_OKAY, "success")
     return res
 
 
@@ -279,6 +285,7 @@ def json_config_defaults(stacktype):
                 component['blade_image'] = comp['blade_image']
                 component['infra_image'] = comp['infra_image']
                 component['esxi_file'] = comp['esxi_file']
+                component['server_type'] = comp['server_type']
             comp_list.append(component)
         for conf in data['global_config']:
             config = {

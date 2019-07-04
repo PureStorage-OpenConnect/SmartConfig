@@ -1211,10 +1211,9 @@ class PureTasks:
             loginfo(str(e))
         return obj
 
-    def get_fa_ports(self):
+    def get_fa_ports(self, fi_model):
         fc_ports = self.handle.list_ports()
         ethernet_ports = self.handle.list_network_interfaces()
-#	model = "XR2"
         model = self.get_array_controller()
         if model in ["FA-X10R2", "FA-X20R2", "FA-X50R2", "FA-X70R2", "FA-X90R2"]:
             for port in ethernet_ports:
@@ -1222,6 +1221,8 @@ class PureTasks:
                     return ["ETH4", "ETH5"]
                 elif port['speed'] == 4000000000 and 'eth14' in port['name']:
                     return ["ETH14", "ETH15"]
+        elif "FI-M-6324" in fi_model:  # Workaround for UCSMini Direct connect
+            return ["ETH14", "ETH15"]
         else:
             if fc_ports:
                 return ["ETH8", "ETH9"]

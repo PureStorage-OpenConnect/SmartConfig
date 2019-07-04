@@ -25,7 +25,7 @@ class UCSSetStorageVSANToFCPorts:
         if res.getStatus() != PTK_OKAY:
             return parseTaskResult(res)
         obj = res.getResult()
-	res = obj.ucs_assign_vsan_fc_storage_port(taskinfo['inputs'], logfile)
+        res = obj.ucs_assign_vsan_fc_storage_port(taskinfo['inputs'], logfile)
 
         obj.release_ucs_handle()
         return parseTaskResult(res)
@@ -49,7 +49,7 @@ class UCSSetStorageVSANToFCPorts:
     def ucs_get_fc_ports(self, keys):
         ports_list = []
         res = result()
-        for i in range(1,7):
+        for i in range(1, 7):
             ports_entity = {
                 "id": str(i), "selected": "0", "label": "Port " + str(i)}
             ports_list.append(ports_entity)
@@ -87,8 +87,20 @@ class UCSSetStorageVSANToFCPorts:
 
 
 class UCSSetStorageVSANToFCPortsInputs:
-    fabric_id = Dropdown(hidden='True', isbasic='True', helptext='', dt_type="string", static="False", api="getfilist()", name="fabric_id",
-                         label="UCS Fabric Name", svalue="", mapval="", static_values="", mandatory="1", order=1)
+    fabric_id = Dropdown(
+        hidden='True',
+        isbasic='True',
+        helptext='',
+        dt_type="string",
+        static="False",
+        api="getfilist()",
+        name="fabric_id",
+        label="UCS Fabric Name",
+        svalue="",
+        mapval="",
+        static_values="",
+        mandatory="1",
+        order=1)
     ucs_fabric_id = Radiobutton(
         hidden='False',
         isbasic='True',
@@ -104,8 +116,21 @@ class UCSSetStorageVSANToFCPortsInputs:
         mapval="0",
         order=2)
 
-    fc_ports = Multiselect(hidden='False', isbasic='True', helptext='Configure FC Storage port', api="ucs_get_fc_ports()|[fabric_id:1:fabric_id.value]", dt_type="list",
-                               mandatory="1", label="FC Ports", mapval="0", name="fc_ports", static="False", svalue="1|2", static_values="", order=3, recommended="1")
+    fc_ports = Multiselect(
+        hidden='False',
+        isbasic='True',
+        helptext='Configure FC Storage port',
+        api="ucs_get_fc_ports()|[fabric_id:1:fabric_id.value]",
+        dt_type="list",
+        mandatory="1",
+        label="FC Ports",
+        mapval="0",
+        name="fc_ports",
+        static="False",
+        svalue="1|2",
+        static_values="",
+        order=3,
+        recommended="1")
     vsan_name = Dropdown(
         hidden='False',
         isbasic='True',
@@ -120,8 +145,6 @@ class UCSSetStorageVSANToFCPortsInputs:
         svalue="",
         mandatory='1',
         order=4)
-
-
 
 
 class UCSSetStorageVSANToFCPortsOutputs:

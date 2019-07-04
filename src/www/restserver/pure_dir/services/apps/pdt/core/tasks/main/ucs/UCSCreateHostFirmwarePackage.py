@@ -1,10 +1,13 @@
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save, get_server_type
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_devices_wf_config_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from distutils.version import LooseVersion
 from pure_dir.components.compute.ucs.ucs_upgrade import ucsbladeimages
+from xml.dom.minidom import parse
+
 
 class UCSCreateHostFirmwarePackage:
     def __init__(self):
@@ -50,17 +53,22 @@ class UCSCreateHostFirmwarePackage:
         blade_val = ''
         rack_val = ''
 
-        for blade_version in blade_version_list:
-            blade_val = blade_version['id']
-        for rack_version in rack_version_list:
-            #rack_val = rack_version['id']
-            rack_val = ''  # Done because latest rack package is not uploaded
+        
+        if get_server_type() == "Blade":
+            for blade_version in blade_version_list:
+                blade_val = blade_version['id']
+        else:
+            for rack_version in rack_version_list:
+                rack_val = rack_version['id']
 
-        blade_firmware = getGlobalArg(inputs, 'firmware')
+	blade_firmware = getGlobalArg(inputs, 'firmware')
         if blade_firmware:
             ver = blade_firmware[-12:].split('.')
             version = ver[0] + "." + ver[1] + "(" + ver[2] + ")" + ver[3]
-            blade_val = version
+            if 'b-series' in blade_firmware:
+                blade_val = version
+            elif 'c-series' in blade_firmware:
+                rack_val = version
 
         job_input_save(jobid, texecid, 'blade_pkg', blade_val)
         job_input_save(jobid, texecid, 'rack_pkg', rack_val)
@@ -72,6 +80,13 @@ class UCSCreateHostFirmwarePackage:
 
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
+
+    def get_server_type(self):
+        xmldoc = parse(get_devices_wf_config_file())
+        devices = xmldoc.getElementsByTagName('device')
+        for device in devices:
+            if device.getAttribute('device_type') == "UCSM":
+                return device.getAttribute('server_type')
 
     def get_b_series_firmware_bundle(self, keys):
         bundle_type = 'b-series-bundle'
@@ -321,7 +336,7 @@ class UCSCreateHostFirmwarePackageInputs:
         svalue="",
         order=4,
         validation_criteria="None")
-#Temporary fix
+# Temporary fix
     rack_pkg = Dropdown(
         hidden='False',
         isbasic='True',

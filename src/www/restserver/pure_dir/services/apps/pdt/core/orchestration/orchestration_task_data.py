@@ -280,6 +280,7 @@ def validation(validation_criteria, value):
                     val[1].split(":")[1] + " - " + val[2].split(":")[1]
             return isvalid
         elif val[0] == "str":
+            value = value.strip()
             if int(val[1].split(":")[1]) <= len(value) <= int(val[2].split(":")[1]):
                 return True, ""
             return False, "Valid Length is " + val[1].split(":")[1] + " - " + val[2].split(":")[1]

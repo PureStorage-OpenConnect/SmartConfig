@@ -104,29 +104,24 @@ function wizardTemplate() {
 			<input type="hidden" name="issubmit" value="1">\
 			<div class="sf-nav-wrap clearfix sf-nav-smmob sf-nav-top">\
 				<ul class="sf-nav clearfix" style="clear: both;">\
-					<li class="sf-nav-step sf-li-number sf-active sf-nav-link">\
-						<span class="sf-nav-subtext">' + localization['flashstacks'] + '</span>\
-						<div class="sf-nav-number"><span class="sf-nav-number-inner">1</span></div>\
-						<div></div>\
-					</li>\
-					<li class="sf-nav-step sf-li-number sf-active sf-nav-link">\
+					<li class="sf-nav-step sf-li-number sf-active sf-nav-unlink">\
 						<span class="sf-nav-subtext">' + localization['discovery'] + '</span>\
-						<div class="sf-nav-number"><span class="sf-nav-number-inner">2</span></div>\
+						<div class="sf-nav-number"><span class="sf-nav-number-inner">1</span></div>\
 						<div></div>\
 					</li>\
 					<li class="sf-nav-step sf-li-number sf-nav-unlink">\
 						<span class="sf-nav-subtext">' + localization['configuration'] + '</span>\
-						<div class="sf-nav-number"><span class="sf-nav-number-inner">3</span></div>\
+						<div class="sf-nav-number"><span class="sf-nav-number-inner">2</span></div>\
 						<div></div>\
 					</li>\
 					<li class="sf-nav-step sf-li-number sf-nav-unlink">\
 						<span class="sf-nav-subtext">' + localization['device-initialization'] + '</span>\
-						<div class="sf-nav-number"><span class="sf-nav-number-inner">4</span></div>\
+						<div class="sf-nav-number"><span class="sf-nav-number-inner">3</span></div>\
 						<div></div>\
 					</li>\
 					<li class="sf-nav-step sf-li-number sf-nav-unlink">\
 						<span class="sf-nav-subtext">' + localization['deployment'] + '</span>\
-						<div class="sf-nav-number"><span class="sf-nav-number-inner">5</span></div>\
+						<div class="sf-nav-number"><span class="sf-nav-number-inner">4</span></div>\
 						<div></div>\
 					</li>\
 				</ul>\
@@ -153,55 +148,43 @@ function wizardTemplate() {
 							<label class="stepNumber">4</label>\
 						</a>\
 					</li>\
-					<li>\
-						<a href="#step-5">\
-							<label class="stepNumber">5</label>\
-						</a>\
-					</li>\
 				</ul>\
 				<div id="step-1" class="nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 1: ' + localization['flashstack-deployments'] + '</h5>\
-						<div class="widget-content border">\
-							<div class="flashstack_types scroller"></div>\
-						</div>\
-					</div>\
-				</div>\
-				<div id="step-2" class="nopadding">\
-					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 2: ' + localization['flashstack-discovery'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 1: ' + localization['flashstack-discovery'] + '</h5>\
 						<div class="">\
-							<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 nopadding">\
-								<div class="loader-msg"></div>\
-							</div>\
-							<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 nopadding">\
-								<div class="dropdown pull-right">\
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding">' +
+							'</div>\
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding">' +
+								'<div class="dropdown pull-right">\
 									<button class="dropbtn" type="button"><i class="fa fa-bars"></i></button>\
 									<div class="dropdown-content">\
 										<a href="javascript:;" class="add-device icon-with-link"><i class="fa fa-plus-circle"></i> ' + localization['add-device'] + '</a>\
 										<a href="javascript:;" class="dhcp-settings hide icon-with-link"><i class="fa fa-cog"></i> ' + localization['dhcp-settings'] + '</a>\
 										<a type="" href="javascript:;" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['iso-library'] + '</a>\
 									</div>\
-								</div>\
-								<div class="pull-right title-label toggle-switch">\
-									<label class="title pull-left">' + localization['enable-dhcp'] + ':</label>\
+								</div>' +
+								'<div class="pull-right">' +
+									'<label class="title pull-left" style="line-height: 24px;">' + localization['enable-dhcp'] + ':</label>\
 									<div class="controls pull-left">\
 										<div class="slideThree pull-right">\
 											<input type="checkbox" value="None" id="enable-dhcp" name="check" />\
 											<label for="enable-dhcp"></label>\
 										</div>\
 									</div>\
-								</div>\
-							</div>\
+								</div>' +
+							'</div>\
 						</div>\
 						<div class="clear"></div>\
 						<div class="networkList dataList table">\
 							<table class="table border action-table" id="network_list">\
 								<thead>\
 									<tr>\
-										<th colspan="3" class="widget-header">' + localization['devices'] + '</th>\
-										<th colspan="4" class="widget-header">\
-											<div class="pull-right required-hardwares-flash"></div>\
+										<th colspan="3" class="widget-header">' + localization['devices'] +
+											'<small><div class="loader-msg"></div></small>\
+										</th>\
+										<th colspan="4" class="widget-header">' +
+											'<div class="pull-right required-hardwares-flash"></div>\
 										</th>\
 									</tr>\
 									<tr>\
@@ -219,21 +202,21 @@ function wizardTemplate() {
 						</div>\
 					</div>\
 				</div>\
-				<div id="step-3" class="initial-setup nopadding">\
+				<div id="step-2" class="initial-setup nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 3: ' + localization['configuration'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 2: ' + localization['configuration'] + '</h5>\
 						<div class="widget-content border"></div>\
 					</div>\
 				</div>\
-				<div id="step-4" class="device-initialization nopadding">\
+				<div id="step-3" class="device-initialization nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 4: ' + localization['device-initialization'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 3: ' + localization['device-initialization'] + '</h5>\
 						<div class="widget-content border"></div>\
 					</div>\
 				</div>\
-				<div id="step-5" class="deployment nopadding">\
+				<div id="step-4" class="deployment nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 5: ' + localization['deployment'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 4: ' + localization['deployment'] + '</h5>\
 						<div class="widget-content nopadding">\
 							<div class="workflowsList dataList table">\
 								<div class="list-workflows">\
@@ -309,15 +292,15 @@ function leaveAStepCallback(obj, context) {
 		else
 			return true;
 	}
-	if(context.fromStep == 5 && context.toStep == 4) {
+	if(context.fromStep == 4 && context.toStep == 3) {
 		navigateStep(2);
-	} else if(context.fromStep == 4 && context.toStep == 3) {
+	} else if(context.fromStep == 3 && context.toStep == 2) {
 		doAjaxRequest({url: 'ClearConfiguration', base_path: settings.base_path, container: '.content-container'}, function(response) {
 			if(MDSForConfigure.length == 0 && NEXUSForConfigure.length == 0 && UCSForConfigure.length == 0) {
-				navigateStep(2);
+				navigateStep(1);
 			}
 		}, doNothing);
-	} else if((context.fromStep == 3 && context.toStep == 2) && goTo != 4) {
+	} else if((context.fromStep == 2 && context.toStep == 1) && goTo != 3) {
 		var str = '<div class="control-group">\
 			<div class="title col-lg-12 col-md-12 col-sm-12"><h4>' + localization['input-lost-msg'] + '</h4></div>\
 		</div>\
@@ -325,9 +308,9 @@ function leaveAStepCallback(obj, context) {
 		openModel({body: str, buttons: {
 			"no": closeModel,
 			"yes": function() {
-				goTo = 2;
+				goTo = 1;
 				closeModel();
-				$('#wizard').smartWizard('goToStep', 2);
+				$('#wizard').smartWizard('goToStep', 1);
 			}
 		}});
 		return false;
@@ -336,17 +319,13 @@ function leaveAStepCallback(obj, context) {
 		skipValidation = 1;
 		return true;
 	}
-	if(step_num == 1) {
+	if(step_num == 0) {
+		
+	} else if(step_num == 1) {
 		if($('.boxes .box.active').length == 0) {
 			showNotification(localization['select-flashstack'], 5000);
 			return false;
 		}
-		doAjaxRequest({url: 'DeploymentSettings', base_path: settings.base_path, method: 'POST', data: {stacktype: $('.boxes .box.active').attr('hardware_id'), subtype: $('.boxes .box.active').attr('hardware_id')}, container: '.content-container'}, function(response) {
-			systemInfo.stacktype = $('.boxes .box.active').attr('hardware_id');
-			systemInfo.subtype = $('.boxes .box.active').attr('hardware_id');
-			navigateStep(2);
-		}, doNothing);
-	} else if(step_num == 2) {
 		if($('input[type="checkbox"].devices:checked').length == 0) {
 			var flag = true;
 			Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
@@ -356,7 +335,7 @@ function leaveAStepCallback(obj, context) {
 			});
 			if(flag) {
 				disableDHCP(false);
-				navigateStep(5);
+				navigateStep(4);
 			} else {
 				showNotification(localization['device-selection-cnf'], 5000);
 				return false;
@@ -366,74 +345,83 @@ function leaveAStepCallback(obj, context) {
 			showNotification(localization['device-selection-cnf'], 5000);
 			return false;
 		}
-		MDSForConfigure = [], NEXUSForConfigure = [], UCSForConfigure = [];
-		$('.networkinfo.elementInfo.active').each(function(index) {
-			switch($(this).find('.device_type').text()) {
-				case 'UCSM':
-					UCSForConfigure.push({
-						type: $(this).find('.device_type').text(), 
-						serial: $(this).find('.serial_number').text(), 
-						ip: $(this).find('.ip_address').text(),
-						mac: $(this).find('.mac_address').text(),
-						vendor: $(this).find('.vendor_model').text()
+		
+		doAjaxRequest({url: 'DeploymentSettings', base_path: settings.base_path, method: 'POST', data: {stacktype: $('.boxes .box.active').attr('stacktype'), subtype: $('.boxes .box.active').attr('stacktype')}, container: '.content-container'}, function(response) {
+			systemInfo.stacktype = $('.boxes .box.active').attr('stacktype');
+			systemInfo.subtype = $('.boxes .box.active').attr('stacktype');
+
+			doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
+				updateDeploymentSettings(response.data.deployment_settings);console.log(response);
+
+				MDSForConfigure = [], NEXUSForConfigure = [], UCSForConfigure = [];
+				$('.networkinfo.elementInfo.active').each(function(index) {
+					switch($(this).find('.device_type').text()) {
+						case 'UCSM':
+							UCSForConfigure.push({
+								type: $(this).find('.device_type').text(), 
+								serial: $(this).find('.serial_number').text(), 
+								ip: $(this).find('.ip_address').text(),
+								mac: $(this).find('.mac_address').text(),
+								vendor: $(this).find('.vendor_model').text()
+							});
+							break;
+						case 'Nexus 9k':
+							NEXUSForConfigure.push({
+								type: $(this).find('.device_type').text(), 
+								serial: $(this).find('.serial_number').text(), 
+								ip: $(this).find('.ip_address').text(),
+								mac: $(this).find('.mac_address').text(),
+								vendor: $(this).find('.vendor_model').text()
+							});
+							break;
+						case 'Nexus 5k':
+							NEXUSForConfigure.push({
+								type: $(this).find('.device_type').text(), 
+								serial: $(this).find('.serial_number').text(), 
+								ip: $(this).find('.ip_address').text(),
+								mac: $(this).find('.mac_address').text(),
+								vendor: $(this).find('.vendor_model').text()
+							});
+							break;
+						case 'MDS':
+							MDSForConfigure.push({
+								type: $(this).find('.device_type').text(), 
+								serial: $(this).find('.serial_number').text(), 
+								ip: $(this).find('.ip_address').text(),
+								mac: $(this).find('.mac_address').text(),
+								vendor: $(this).find('.vendor_model').text()
+							});
+							break;
+					}	
+				});
+				if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0) {
+					clearTimeout(tout);
+					var data = [];
+					$.each(UCSForConfigure, function(index, value) {
+						data.push(value.vendor);
 					});
-					break;
-				case 'Nexus 9k':
-					NEXUSForConfigure.push({
-						type: $(this).find('.device_type').text(), 
-						serial: $(this).find('.serial_number').text(), 
-						ip: $(this).find('.ip_address').text(),
-						mac: $(this).find('.mac_address').text(),
-						vendor: $(this).find('.vendor_model').text()
+					doAjaxRequest({url: 'FIGenValidate', base_path: settings.base_path, method: 'POST', data: data, query: {stacktype: systemInfo.subtype}}, function(response) {
+						systemInfo.subtype = response.data;
+						loadInitialSetupForm();
+						navigateStep(2);
+					}, function(response) {
+						removeProcessingSpinner('.content-container', loaderCnt);
+						showNotification(response.status.message, 5000);
 					});
-					break;
-				case 'Nexus 5k':
-					NEXUSForConfigure.push({
-						type: $(this).find('.device_type').text(), 
-						serial: $(this).find('.serial_number').text(), 
-						ip: $(this).find('.ip_address').text(),
-						mac: $(this).find('.mac_address').text(),
-						vendor: $(this).find('.vendor_model').text()
-					});
-					break;
-				case 'MDS':
-					MDSForConfigure.push({
-						type: $(this).find('.device_type').text(), 
-						serial: $(this).find('.serial_number').text(), 
-						ip: $(this).find('.ip_address').text(),
-						mac: $(this).find('.mac_address').text(),
-						vendor: $(this).find('.vendor_model').text()
-					});
-					break;
-			}	
-		});
-		if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0) {
-			clearTimeout(tout);
-			var data = [];
-			$.each(UCSForConfigure, function(index, value) {
-				data.push(value.vendor);
-			});
-			doAjaxRequest({url: 'FIGenValidate', base_path: settings.base_path, method: 'POST', data: data, query: {stacktype: systemInfo.subtype}}, function(response) {
-				systemInfo.subtype = response.data;
-				loadInitialSetupForm();
-				navigateStep(3);
-			}, function(response) {
-				removeProcessingSpinner('.content-container', loaderCnt);
-				showNotification(response.status.message, 5000);
-			});
-			return false;
-		} else {
-			disableDHCP(false);
-			navigateStep(5);
-		}
+					return false;
+				} else {
+					disableDHCP(false);
+					navigateStep(4);
+				}
+			}, doNothing);
+		}, doNothing);
 		return false;
-	} else if(step_num == 3) {
+	} else if(step_num == 2) {
 		validateConfiguration();
 		return false;
-	} else if(step_num == 4) {
+	} else if(step_num == 3) {
 		triggerInitialization();
 	}
-	$('.sf-nav-step.sf-li-number.sf-nav-link.sf-active').addClass('sf-done');
 }
 
 /**
@@ -444,18 +432,22 @@ function onShowCallback(obj) {
 	current_step = obj.attr('rel');
 	$('.buttonFinish').hide();
 	skipValidation = 0;
-	if(current_step != 2) goTo = null;
+	if(current_step != 1) goTo = null;
 	$('.buttonNext').text(localization['next']).removeClass('hide');
-	if(current_step == 1) $('.networkinfo.elementInfo').addClass('active');
-	if(current_step == 4) $('.buttonNext').text(localization['initialize']);
+	if(current_step == 0) $('.networkinfo.elementInfo').addClass('active');
+	if(current_step == 1) {
+		$('.buttonNext').addClass('disable buttonDisabled');
+		$('.iso-library').html('<i class="fa fa-th-large"></i> ' + localization['iso-library']);
+	}
+	if(current_step == 3) $('.buttonNext').text(localization['initialize']);
 	if(current_step == no_steps) {
 		$('.buttonFinish').show();
 		$('.buttonPrevious').remove();
 		$('.buttonNext').addClass('hide');
 	}
-	if(current_step == 3 && UCSForConfigure.length == 0 && NEXUSForConfigure.length == 0 && MDSForConfigure.length == 0) {
-		goTo = 2;
-		$('#wizard').smartWizard('goToStep', 2);
+	if(current_step == 2 && UCSForConfigure.length == 0 && NEXUSForConfigure.length == 0 && MDSForConfigure.length == 0) {
+		goTo = 1;
+		$('#wizard').smartWizard('goToStep', 1);
 		return false;
 	}
 	if(current_step > 1) {
@@ -464,12 +456,10 @@ function onShowCallback(obj) {
 		}
 	}
 	$('ul.sf-nav>li.sf-nav-step').removeClass('sf-done');
-	for(i = 0; i < current_step; i++)
-		$('ul.sf-nav>li.sf-nav-step:eq(' + i + ')').addClass('sf-done');
+	$('ul.sf-nav>li.sf-nav-step:eq(' + (parseInt(current_step) - 1) + ')').addClass('sf-done');
 	triggerAPI();
-	$('.sf-nav-step').removeClass('sf-active');
-	$('li.sf-nav-step:nth-child(' + current_step + ')').addClass('sf-active sf-nav-link').removeClass('sf-done sf-error sf-nav-unlink');
-	$('li.sf-nav-step:nth-child(2)').removeClass('.sf-nav-link').addClass('.sf-nav-unlink');
+	$('.sf-nav-step').removeClass('sf-active sf-nav-link').addClass('sf-nav-unlink');
+	$('li.sf-nav-step:nth-child(' + current_step + ')').removeClass('sf-nav-unlink').addClass('sf-active sf-nav-link');
 	if(skipStep) skipStep = false;
 }
 
@@ -488,11 +478,11 @@ function onFinishCallback() {
 */
 function validateAllSteps() {
 	var isStepValid = true;
-	for(i = parseInt(stage)+1; i <= 5; i++) {
-		$('#wizard').smartWizard('setError',{stepnum:i,iserror:false});		// Dispaly the validation failure message
+	for(i = parseInt(stage)+1; i <= 4; i++) {
+		$('#wizard').smartWizard('setError', {stepnum: i, iserror: false});		// Dispaly the validation failure message
 		if(validateStep(i) == false) {
 			isStepValid = false;
-			$('#wizard').smartWizard('setError',{stepnum:i,iserror:true});
+			$('#wizard').smartWizard('setError', {stepnum: i, iserror: true});
 		}
 	}
 	$('.swMain .msgBox .close').hide();
@@ -510,14 +500,12 @@ function validateAllSteps() {
 */
 function validateSteps(step) {
 	var isStepValid = true;
-	$('#wizard').smartWizard('setError',{stepnum:step, iserror:false});
+	$('#wizard').smartWizard('setError', {stepnum: step, iserror: false});
 	$('.swMain .msgBox .close').hide();
-	$('.sf-active.sf-nav-link').addClass('sf-done').removeClass('sf-error');
 	$('#wizard').smartWizard('hideMessage');
 	if(validateStep(step) == false) {
 		isStepValid = false; 
-		$('#wizard').smartWizard('setError',{stepnum:step,iserror:true});
-		$('.sf-active.sf-nav-link').addClass('sf-error').removeClass('sf-done');
+		$('#wizard').smartWizard('setError', {stepnum: step, iserror: true});
 		$('.swMain .msgBox .close').show();
 	}
 	return isStepValid;
@@ -542,18 +530,18 @@ function triggerAPI() {
 		systemInfo.current_step = current_step;
 		clearTimeout(tout);
 		switch(current_step) {
-			case "1":
+			case "0":
 				loadFlashstackTypes();
 				break;
-			case "2":
+			case "1":
 				loadDiscovery('.content-container');
 				break;
+			case "2":
+				break;
 			case "3":
+				loadDevices('.content-container');
 				break;
 			case "4":
-				loadDevices('.device-initialization');
-				break;
-			case "5":
 				var mode = (typeof systemInfo.deployment_type != 'undefined') ? systemInfo.deployment_type : 'basic';
 				loadWorkflow(mode);
 				break;

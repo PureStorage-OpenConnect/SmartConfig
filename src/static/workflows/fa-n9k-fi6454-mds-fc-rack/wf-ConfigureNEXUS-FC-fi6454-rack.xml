@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<workflow id="ConfigureNEXUS-FC-fi6454-rack" name="Configure Nexus Switches" desc="Initial Nexus 9K Configuration and Port Channel Setup" wtype="wgroup" type="Nexus" simulate="0" isdeletable="0" order="1" htype="fa-n9k-fi6454-mds-fc-rack">
+        <wfs>
+                <wf id="generalConfigurationNEXUS-FC-fi6454-rack" name="General configuration" wexecid="g210" OnSuccess="g211" OnFailure="None" initwf="1"/>
+                <wf id="configurePortchannelSetup-FC-fi6454-rack" name="Port channel setup" wexecid="g211" OnSuccess="None" OnFailure="None" initwf="0"/>
+        </wfs>
+</workflow>
+
+

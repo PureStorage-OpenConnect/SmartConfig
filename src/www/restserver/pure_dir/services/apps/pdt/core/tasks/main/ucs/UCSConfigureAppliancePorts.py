@@ -61,12 +61,13 @@ class UCSConfigureAppliancePorts:
         if res.getStatus() != PTK_OKAY:
             return res
         handle = res.getResult()
-        #fabric_name = fabricid.split("-")[-1].upper()
         switch_id = 'sys/switch-' + ucs_fabric_name
         ports_dn = switch_id + "/slot-1/switch-ether"
         ports = handle.query_dn(ports_dn)
         ports_list_obj = handle.query_children(in_mo=ports)
         for port in ports_list_obj:
+            if 'aggr' in port.rn:
+                continue
             ports_list.append({"id": port.port_id,
                                "selected": "0",
                                "label": "Port " + port.port_id})

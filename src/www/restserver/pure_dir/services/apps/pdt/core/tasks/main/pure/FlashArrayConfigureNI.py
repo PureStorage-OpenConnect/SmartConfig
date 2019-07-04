@@ -3,8 +3,8 @@ from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.common import get_device_credentials, get_device_list
-from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import get_ucs_login, ucsm_logout 
+from pure_dir.components.common import get_device_credentials, get_device_list, get_device_model
+from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import get_ucs_login, ucsm_logout
 
 metadata = dict(
     task_id="FlashArrayConfigureNI",
@@ -36,7 +36,7 @@ class FlashArrayConfigureNI:
             key="mac", value=inputs['inputs']['pure_id'])
 
         if not cred:
-	    res = result()
+            res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))
@@ -82,7 +82,7 @@ class FlashArrayConfigureNI:
         loginfo("get iscsi interface list going is :{}".format(interface_list))
         return interface_list
 
-    def get_fa_iscsi_intf(self, pureid):
+    def get_fa_iscsi_intf(self, pureid, fabric_id):
         """
         :param pureid: id of FlashArray
         :type pureid: str
@@ -104,10 +104,10 @@ class FlashArrayConfigureNI:
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))
             return res
-
         obj = PureTasks(cred['ipaddress'],
                         cred['username'], cred['password'])
-        intf_list = obj.get_fa_ports()
+        fi_model = get_device_model(key="mac", value=fabric_id)
+        intf_list = obj.get_fa_ports(fi_model)
         new_intf_list = []
         for intf in intf_list:
             new_intf_list.append('CT0.' + intf)
@@ -141,7 +141,8 @@ class FlashArrayConfigureNI:
         loginfo("enters into iscsi interface prepare function")
         res = result()
         pure_id = getGlobalArg(inputs, 'pure_id')
-        interfaces = self.get_fa_iscsi_intf(pure_id)
+        fabric_id = getGlobalArg(inputs, 'ucs_switch_a')
+        interfaces = self.get_fa_iscsi_intf(pure_id, fabric_id)
         loginfo("interfaces in prepare :{}".format(interfaces))
         if texecid == 't300':
             job_input_save(jobid, texecid, 'name', interfaces[0])
@@ -202,7 +203,7 @@ class FlashArrayConfigureNI:
         cred = get_device_credentials(
             key="mac", value=inputs['pure_id'])
         if not cred:
-	    res = result()
+            res = result()
             loginfo("Unable to get the device credentials of the FlashArray")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_FA_LOGIN_FAILURE"))

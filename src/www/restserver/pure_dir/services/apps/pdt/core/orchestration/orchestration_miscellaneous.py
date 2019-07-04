@@ -40,5 +40,3 @@ def deployment_logs(jobid):
     logs_dict = {'logs': logs}
     obj.setResult(logs_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
-
-

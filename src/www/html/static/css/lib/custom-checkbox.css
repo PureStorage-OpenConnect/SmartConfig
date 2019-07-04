@@ -9,7 +9,7 @@
 	vertical-align: middle;
 	position: relative;
 	padding-left: 6px !important;
-	overflow: initial !important;
+	overflow: visible !important;
 }
 .checkbox :checked  + label , .radio :checked  + label{
 	color: #222222;

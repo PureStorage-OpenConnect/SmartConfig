@@ -86,11 +86,11 @@ class NEXUS9kAddNTPDistributionInterface:
                         mac_addr = arg['value']
                         break
                     else:
-                        res.setResult(nexus_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+                        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
                         return res
 
         nexus_list = self.get_detail(mac=mac_addr, src="1", dst="0")
-        res.setResult(nexus_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+        res.setResult(nexus_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def get_detail(self, mac, src, dst):

@@ -19,7 +19,7 @@ from xml.dom.minidom import parse
 
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.discovery import get_config_mode
+from pure_dir.services.apps.pdt.core.discovery import get_config_mode,get_unconfigured_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import*
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
@@ -37,12 +37,23 @@ from pure_dir.services.apps.pdt.core.tasks.test.mds import*
 from pure_dir.infra.common_helper import *
 
 g_flash_stack_types = [
-    {'label': 'FA//FI ', 'value': 'fa-n9k-ucsmini-fc', 'tag': 'FC',
+    {'label': 'FA//FI ', 'value': 'fa-n9k-ucsmini-fc', 'tag': 'FC', #name is wrong should be fa-fi-fc
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
+   
+    {'label': 'FA//FI ', 'value': 'fa-fi6332-fc', 'tag': 'FC', #name is wrong should be fa-fi-fc
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//FI ', 'value': 'fa-n5k-ucsmini-iscsi', 'tag': 'iSCSI',
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
+
+    {'label': 'FA//FI ', 'value': 'fa-fi6332-iscsi', 'tag': 'iSCSI',
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
+
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi-mds-fc', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}},
+
+    {'label': 'FA//MDS//Nexus 9K//FI',
+        'value': 'fa-n9k-fi6454-mds-fc', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+
     {'label': 'FA//MDS//FI ', 'value': 'fa-mds-fi-fc', 'tag': 'FC', 'enabled': False,
         'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}},
     {'label': 'FA//MDS//Nexus 5K//FI', 'value': 'fa-mds-n5k-fi-fc',
@@ -60,8 +71,16 @@ g_flash_stack_types = [
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}},
     {'label': 'FA//Nexus 9K//FI ', 'value': 'fa-n9k-fi-iscsi',
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}},
-    {'label': 'FA//MDS//Nexus 9K//FI [Rack]',
-        'value': 'fa-n9k-fi-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}},
+    {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi6454-iscsi',
+         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//MDS//Nexus 9K//FI',
+        'value': 'fa-n9k-fi-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi-iscsi-rack',
+         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//MDS//Nexus 9K//FI',
+        'value': 'fa-n9k-fi6454-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi6454-iscsi-rack',
+         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True}
 ]
 
 
@@ -120,11 +139,11 @@ def workflows_list_api(htype=''):
         fd = None
         wtype = ''
         try:
-            loginfo("parsing file" + wf)
+            #loginfo("parsing file" + wf)
             fd = open(wf, 'r')
             doc = xmltodict.parse(fd.read())
             if '@hidden' in doc['workflow'] and doc['workflow']['@hidden'] == '1':
-                loginfo("skipping workflow" + wf)
+                #loginfo("skipping workflow" + wf)
                 continue
 
             if '@wtype' in doc['workflow'] and doc['workflow']['@wtype'] == 'wgroup':
@@ -167,7 +186,11 @@ def workflows_list_api(htype=''):
         except IOError:
             continue
     obj.setResult(
-        sorted(wf_list, key=lambda x: x["order"]), PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        sorted(
+            wf_list,
+            key=lambda x: x["order"]),
+        PTK_OKAY,
+        _("PDT_SUCCESS_MSG"))
     return obj
 
 
@@ -247,7 +270,6 @@ def workflow_info_api(wid):
     return obj
 
 
-
 def get_workflow_file_path(wname):
     for stack_type in g_flash_stack_types:
         fname = get_workflow_file(wname, stack_type['value'])
@@ -325,8 +347,11 @@ def check_job_with_wid_exists(wname):
             jobid = job[job.find('job-') + 4: -4]
 
             if '@wtype' in jobdoc['workflow'] and jobdoc['workflow']['@wtype'] == 'wgroup':
-                job_det = {'jobid': jobid, 'wid': jobdoc['workflow']['@id'],
-                           'wtype': jobdoc['workflow']['@wtype'], 'subwfs': sub_wfs}
+                job_det = {
+                    'jobid': jobid,
+                    'wid': jobdoc['workflow']['@id'],
+                    'wtype': jobdoc['workflow']['@wtype'],
+                    'subwfs': sub_wfs}
             else:
                 job_det = {
                     'jobid': jobid,
@@ -427,7 +452,6 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     job_dict = {'jobid': jobid, 'subjobs': subjobs}
     obj.setResult(job_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
-
 
 
 def job_save_as_api(jobid, data):
@@ -543,7 +567,10 @@ def export_workflow_api(wkflowlist):
                         shutil.copy2(src, dw_path)
                         if isinstance(doc['workflow']['wfs']['wf'], list):
                             for wkflowgrp in doc['workflow']['wfs']['wf']:
-                                if os.path.exists(get_htype_workflow_path(htype, wkflowgrp['@id'])):
+                                if os.path.exists(
+                                    get_htype_workflow_path(
+                                        htype,
+                                        wkflowgrp['@id'])):
                                     src = get_htype_workflow_path(
                                         htype, wkflowgrp['@id'])
                                     shutil.copy2(src, dw_path)
@@ -599,7 +626,8 @@ def import_workflow_api(uploadfile):
                         with open(fl_path) as td:
                             doc = xmltodict.parse(td.read())
                         if '@htype' in doc['workflow']:
-                            if os.path.exists(get_workflow_path() + doc['workflow']['@htype']):
+                            if os.path.exists(
+                                    get_workflow_path() + doc['workflow']['@htype']):
                                 dest = get_workflow_path(
                                 ) + doc['workflow']['@htype'] + "/"
                                 shutil.copy2(fl_path, dest)
@@ -635,30 +663,27 @@ def flash_stack_type_api():
     res.setResult(f_types, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
-
-'''def check_pre_req_api(wid):
+def possible_fs_types(data):
     """
-    Looks for pre-requirement workflow
-    :param wid: workflow ID
+    Suggests Available FlashStack Types depending upon selected hardwares
     """
 
     res = result()
-    prereq = "None"
-    with open(get_workflow_file_path(wid)) as td:
-        jobdoc = xmltodict.parse(td.read())
-        if '@prereq' in jobdoc['workflow']:
-            prereq = jobdoc['workflow']['@prereq']
-        else:
-            prereq = "None"
-    if prereq == "None":
-        res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
-    with open(get_workflow_file_path(prereq)) as td:
-        obj = xmltodict.parse(td.read())
-        wf = [{"name": obj['workflow']['@name'], "msg":"Please ensure you have executed '" +
-               obj['workflow']['@name'] +
-               "' before executing this workflow", "prereq":obj['workflow']['@prereq']}]
-        res.setResult(wf, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res
-    res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    return res'''
+    fstypes_list = []
+    unconfigured_devices = get_unconfigured_device_list()
+    for flash_types in g_flash_stack_types:
+	not_show_n5k = False
+        not_matching = 0
+        for key in flash_types['req_hardwares'].keys():
+            if data.get(key) < flash_types['req_hardwares'][key]:
+                not_matching = 1
+                break
+        if not_matching == 0:
+	    for device in unconfigured_devices:
+		if "n5k-fi" in flash_types.get('value') and "UCSM" in device['device_type'] and "FI-6248" not in device['vendor_model']:
+		    not_show_n5k = True
+		    break
+            if not flash_types.get('hidden') and not not_show_n5k:
+                fstypes_list.append(flash_types)
+    res.setResult(fstypes_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+    return res

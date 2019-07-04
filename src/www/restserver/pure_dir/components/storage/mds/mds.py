@@ -13,7 +13,7 @@ import urllib2
 import re
 
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 
 
 class MDS:
@@ -336,7 +336,7 @@ class MDS:
         :return: Returns the port configuration status
         """
         obj = result()
-	output_dict = {}
+        output_dict = {}
         for key, value in port_dict.items():
             commands = ['interface fc %s' % key, 'switchport description %s' % value,
                         'port-license acquire', 'no shutdown']

@@ -1,6 +1,12 @@
 var jobTasks, tabIndex = 10, workflowTasks = [], overallflag = true, workflow_mode = 'Info', global_inputs = {};
 var mimeType = {'xml': 'text/xml', 'zip': 'application/zip, application/octet-stream'};
 $(document).ready(function() {
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('.content-container').delegate('#all-workflow', 'click', function(e) {
 		$('.workflowinfo.elementInfo .workflows').prop('checked', false);
 		$('.workflowinfo.elementInfo').removeClass('active');
@@ -10,6 +16,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('.content-container').delegate('.workflowinfo.elementInfo', 'click', function(e) {
 		if($(this).find('.workflows').is(':checked')) {
 			$(this).find('.workflows').prop('checked', false);
@@ -20,6 +32,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('.content-container').delegate('.workflowinfo.elementInfo .workflows', 'click', function(e) {
 		e.stopPropagation();
 		$(this).closest('.workflowinfo').removeClass('active');
@@ -28,6 +46,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.execute-workflow', 'click', function(e) {
 		$(this).removeClass('fa-play execute-workflow').addClass('fa-spinner faa-spin animated');
 		var wid = $(this).closest('.workflowinfo.elementInfo').attr('primaryid');
@@ -35,6 +59,12 @@ $(document).ready(function() {
 		return false;
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.modify-workflow, .info-workflow, .completed-workflow', 'click', function(e) {
 		e.stopPropagation();
 		if(systemInfo.deployment_type == 'advanced') {
@@ -64,6 +94,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.close-workflow', 'click', function(e) {
 		$('.reset-workshop').trigger('click');
 		$('.buttonCustom.close-workflow').remove();
@@ -73,11 +109,23 @@ $(document).ready(function() {
 		toggleWorkflows();
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.back-workflow', 'click', function(e) {
 		$('.buttonCustom.back-workflow').remove();
 		toggleWorkflowRollback();
 	});
-	
+
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.download-log', 'click', function(e) {
 		downloadInnerHtml('eventlog.log', $(this).closest('.log-container, .workflow-log-container').find('.workflow-log').find('.mCSB_container'), 'text/html');
 	});
@@ -87,19 +135,52 @@ $(document).ready(function() {
 			$(this).removeClass('active');
 		else $(this).addClass('active');
 	});
-	
+
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('ul.multi-select > li:not(.header) > span > input', 'click', function(e) {
 		e.stopPropagation();
 	});
-	
+
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.ms-options-wrap > button', 'click', function() {
 		$(this).parent().find('ul').children('li:first-child').find('[type="checkbox"]').focus();
 		return false;
 	});
-	
+
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.add-more-row', 'click', function(e) {
 		if($(this).closest('.control-group').attr('argtype') == 'group') {
 			$(this).closest('.controls').find('.group-row').last().after($(this).closest('.controls').find('.group-row').last().clone());
+
+			var tmp;
+			$(this).closest('.controls').find('.group-row').last().find('.checkbox-info').find('input[type="checkbox"], label').each(function(index) {
+				switch($(this).prop("tagName").toLowerCase()) {
+					case 'label':
+						tmp = $(this).attr('for');
+						$(this).attr('for', $(this).attr('for') + '_1');
+						break;
+					case 'input':
+						tmp = $(this).attr('id');
+						$(this).attr('id', $(this).attr('id') + '_1').attr('name', $(this).attr('id') + '_1');
+						break;
+				}
+			});
+
 			if($(this).closest('.controls').find('.group-row').last().find('.remove-row').length == 0)
 				$(this).closest('.controls').find('.group-row').last().find('.action-icons').prepend('<i class="fa fa-minus-circle orange-text remove-row" alt="' + localization['remove'] + '" title="' + localization['remove'] + '"></i>');
 			$(this).closest('.controls').find('.group-row').last().find('.field-group').each(function(index) {
@@ -119,6 +200,12 @@ $(document).ready(function() {
 		return false;
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.remove-row', 'click', function(e) {
 		if($(this).closest('.control-group').attr('argtype') == 'group') {
 			if($(this).closest('.group-row').find('.add-more-row').length > 0 && $(this).closest('.group-row').prev('.group-row').length > 0) {
@@ -130,6 +217,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.reset-config', 'click', function(e) {
 		e.stopPropagation();
 		var str = '<div class="control-group">\
@@ -144,6 +237,12 @@ $(document).ready(function() {
 		}});
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.export-config', 'click', function(e) {
 		e.stopPropagation();
 		doAjaxRequest({url: 'ExportConfiguration', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, container: '.workflowsList'}, function(response) {
@@ -151,6 +250,12 @@ $(document).ready(function() {
 		}, doNothing);
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.job-resume', 'click', function(e) {
 		e.stopPropagation();
 		var query = {stacktype: systemInfo.subtype};
@@ -161,6 +266,12 @@ $(document).ready(function() {
 		}, doNothing);
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.job-rollback', 'click', function(e) {
 		e.stopPropagation();
 		var query = {stacktype: systemInfo.subtype};
@@ -184,15 +295,33 @@ $(document).ready(function() {
 		}});
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.workflowlog', 'click', function(e) {
                 autoScroll = false;
                 $(".workflow-log").mCustomScrollbar('scrollTo', $('.workflowsList a[name="log_' + $(this).closest('.workflowinfo').attr('jobid') + '"]').last()[0].offsetTop);
         });
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.workflow-log', 'click', function(e) {
 		autoScroll = false;
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.basic-config-details', 'click', function(e) {
 		var tmp, name = $(this).closest('.workflowinfo').find('.workflow-name').text(),
 		id = $(this).closest('.workflowinfo').attr('primaryid');
@@ -240,6 +369,12 @@ $(document).ready(function() {
 		});
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.workflow-group > h2', 'click', function(e) {
 		if($(this).closest('.workflow-group').find('dl.sub-worflows').hasClass('expand')) {
 			$(this).closest('.workflow-group').find('dl.sub-worflows').removeClass('expand');
@@ -249,6 +384,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.sub-workflow-name', 'click', function(e) {
 		if($(this).next('dd.workflow-tasks-list').hasClass('expand')) {
 			$(this).next('dd.workflow-tasks-list').removeClass('expand');
@@ -258,6 +399,12 @@ $(document).ready(function() {
 		}
 	});
 
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.workflow-group li', 'click', function(e) {
 		var pjobid = $(this).closest('.workflow-group').attr('jobid');
 		var arr = $(this).attr('taskid').split('_');
@@ -332,6 +479,12 @@ $(document).ready(function() {
 	});
 });
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 var autoScroll = true;
 function triggerExecute() {
 	if(systemInfo.deployment_type == 'basic') {
@@ -346,17 +499,35 @@ function triggerExecute() {
 	}
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function toggleWorkflows() {
 	$('.workflowsList').toggle('slide', {direction: 'left'}, 'slow');
 	$('.workflowsInfo').toggle('slide', {direction: 'right'}, 'slow');
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function toggleWorkflowRollback() {
 	$('.list-workflows table .advanced').toggle();
 	$('.list-jobs').toggle('slide', {direction: 'left'}, 'slow');
 	$('.workflowsRollbackInfo').toggle('slide', {direction: 'right'}, 'slow');
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function showGlobalInputs(dom, checked, svalue) {
 	var currentDom;
 	if(dom.closest('.field-group').length) currentDom = dom.closest('.field-group');
@@ -382,6 +553,12 @@ function showGlobalInputs(dom, checked, svalue) {
 	}
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function showPrevTaskOutputs(dom, checked, svalue) {
 	var currentDom;
 	if(dom.closest('.field-group').length) currentDom = dom.closest('.field-group');
@@ -412,6 +589,12 @@ function showPrevTaskOutputs(dom, checked, svalue) {
 	}
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadPrevTaskOption(dom, execid, dfvalue) {
 	var query = {id: $('.modal-body #form-body').attr('workflowJobId'), execid: execid};
 	if(workflow_mode == 'Edit') query.ttype = 'workflow';
@@ -436,6 +619,12 @@ function resetWorkflowInfo() {
 	//$.removeCookie(settings.cookie_name + "-jobinfo", { path: '/' });
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadWorkflow(mode) {
 	mode = (mode == '' || typeof mode == 'undefined') ? 'basic': mode;
 	doAjaxRequest({url: 'DeploymentSettings', base_path: settings.base_path, method: 'POST', data: {deployment_type: mode}, container: '.content-container'}, function(response) {
@@ -452,6 +641,12 @@ function loadWorkflow(mode) {
 	}, doNothing);
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadWorkflows(container) {
 	var j = 1, str = '', query = '';
 	doAjaxRequest({url: 'Workflows', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, container: container}, function(response) {
@@ -530,6 +725,12 @@ function loadWorkflows(container) {
 	}, doNothing);
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function getBatchStatus(notify) {
 	clearTimeout(tout);clearTimeout(rout);
 	var ccount = 0, fcount = 0, ecount = 0, rfcount = 0, tmp;
@@ -665,6 +866,12 @@ function getBatchStatus(notify) {
 	});
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadWorkflowInfoTemplate(mode) {
 	workflow_mode = mode;
 	$('.workflow-container').remove();
@@ -713,6 +920,12 @@ function loadWorkflowInfoTemplate(mode) {
 	return str;
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function prepareJob(wid) {
 	doAjaxRequest({url: 'WorkflowPrepare', base_path: settings.base_path, data: {id: wid}, container: '.workflowsInfo'}, function(response) {
 		var obj = {workflowid: wid, jobid: response.data.jobid};
@@ -723,6 +936,12 @@ function prepareJob(wid) {
 	}, doNothing);
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 var workflowTypes = {};
 function loadWorkflowInfo(wid) {
 	workflowTasks = [];
@@ -741,6 +960,12 @@ function loadWorkflowInfo(wid) {
 	}, doNothing);
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadJobTasks(jobid) {
 	jobTasks = [];
 	activeObj = jobid;
@@ -786,6 +1011,12 @@ function loadJobTasks(jobid) {
 	});
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function saveWorkflowTask(type) {
 	var obj = getFormData('#form-body .control-group');
 	var api = 'JobTaskInputSave';
@@ -793,7 +1024,10 @@ function saveWorkflowTask(type) {
 	query.execid = $('#form_primaryid').val();
 	if(workflow_mode == 'Edit') query.ttype = 'workflow';
 	else if(workflow_mode == 'Info') query.ttype = 'job';
-	doAjaxRequest({url: api, base_path: settings.base_path, method: 'POST', query: query, data: obj.task_input_api, success_notify: true, container: '.modal-inset', isValidate: true, formContainer: '.modal-inset'}, function(response) {
+	$('body').find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').removeClass('error');
+	$('body').find('.help-block').html('');
+
+	doAjaxRequest({url: api, base_path: settings.base_path, method: 'POST', query: query, data: obj.task_input_api, success_notify: true, container: '.modal-inset', formContainer: '.modal-inset'}, function(response) {
 		$('svg>#' + $('#form_primaryid').val()).data('input', obj.form_data);
 		if(paper[activeObj].getById($('#form_primaryid').val()) != null)
 			paper[activeObj].getById($('#form_primaryid').val()).node.setAttribute('style', 'fill: ' + colorCodes['fill-input'] + '; stroke: ' + colorCodes['stroke-input']);
@@ -805,8 +1039,10 @@ function saveWorkflowTask(type) {
 		if(response.data) {
 			var container;
 			$.each(response.data, function(i, value) {
-				value.order = parseInt(value.order) - 1;
-				container = '.modal-inset .field-group[argname="' + value.field + '"]:eq(' + value.order + ')';
+				if("group_field" in value)
+					container = '.modal-inset [argname="' + value.field + '"] .group-row:eq(' + value.order + ') .field-group[argname="' + value.group_field + '"]';
+				else
+					container = '.modal-inset .control-group.' + value.field + '[argname="' + value.field + '"]';
 				$(container).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 				$(container).find('.help-block').show().html(ucfirst(value.msg));
 			});
@@ -815,7 +1051,13 @@ function saveWorkflowTask(type) {
 	});
 }
 
-var validate = false;
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
+var validate = false, group_row_count = 1;
 Hook.register(
 	'workflowInput',
 	function(args) {
@@ -826,6 +1068,7 @@ Hook.register(
 		var taskType = args[3];
 		var api = 'JobTaskInputs';
 		var query = {execid: execid, id: jobid};
+		group_row_count = 1;
 		if(workflow_mode == 'Edit') query.ttype = 'workflow';
 		else if(workflow_mode == 'Info') query.ttype = 'job';
 		if(taskType == 'wgroup') {
@@ -891,6 +1134,12 @@ Hook.register(
 	}
 );
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadWorkflowFormFields() {
 	var tmp, execid = $('.modal-body #form-body').attr('taskExecId'),
 	type = $('.modal-body #form-body').attr('alignType'),
@@ -946,6 +1195,12 @@ function loadWorkflowFormFields() {
 	}
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function bindInputOptionEvent() {
 	$('#form-body').delegate('.map-prev-api', 'click', function(e) {
 		showPrevTaskOutputs($(this), this.checked, '');
@@ -955,6 +1210,12 @@ function bindInputOptionEvent() {
 	});
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function validateTask(execid) {
 	doAjaxRequest({url: 'JobValidate', base_path: settings.base_path, data: {jobid: activeObj, execid: execid}, container: '.modal-inset'}, function(response) {
 		if(!response.data.isvalid) {
@@ -1029,6 +1290,12 @@ function getJobStatus(notify) {
 	});	
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadDeploymentLogs(mode) {
 	doAjaxRequest({url: 'DeploymentLogs', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}}, function(response) {
 		if(response.data.logs.length > 0) {
@@ -1110,6 +1377,12 @@ function loadWorkflowForm() {
 	return str;
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadServiceRequestInfo(query) {
 	clearTimeout(tout);
 	doAjaxRequest({url: 'ServiceRequestInfo', base_path: settings.base_path, query: query}, function(response) {
@@ -1145,6 +1418,12 @@ function loadServiceRequestInfo(query) {
 	}, doNothing);
 }
 
+/**
+  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+  * @param array $array - the initial array of objects with duplicate entries.
+  * @param string $field - attribute name by which attribute to check the duplicate entry.
+  * @return array - unique array of objects(attribute based).
+*/
 function loadJobRevertStatus(query, notify) {
 	clearTimeout(rout);
 	var state, flag = false, jid;

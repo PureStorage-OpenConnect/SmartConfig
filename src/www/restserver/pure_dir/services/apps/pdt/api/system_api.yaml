@@ -154,3 +154,13 @@ definitions:
         type: string
       config_mode:
         type: string
+      server_types:
+        type: object 
+        required:
+          - blade
+          - rack
+        properties:
+          blade:
+            type: boolean
+          rack:
+            type: boolean

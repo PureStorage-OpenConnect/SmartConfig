@@ -1,8 +1,10 @@
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.common import get_device_list
+from pure_dir.services.utils.miscellaneous import *
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+import time
 
 metadata = dict(
     task_id="UCSAnonymousReporting",
@@ -18,12 +20,15 @@ class UCSAnonymousReporting:
 
     def execute(self, taskinfo, logfile):
         loginfo("UCS Anonymous reporting")
+	stacktype = get_xml_element(
+            "/mnt/system/pure_dir/pdt/settings.xml", "stacktype")[1][0]['stacktype']
+	if "ucsmini" in stacktype:
+	    time.sleep(300)
         res = get_ucs_handle(taskinfo['inputs']['fabric_id'])
 
         if res.getStatus() != PTK_OKAY:
             return parseTaskResult(res)
         obj = res.getResult()
-        print "resullt", obj
         res = obj.ucsAnonymousReporting(taskinfo['inputs'], logfile)
 
         obj.release_ucs_handle()

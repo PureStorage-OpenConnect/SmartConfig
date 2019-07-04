@@ -6,14 +6,11 @@
 # version         :1.0
 ############################################################
 
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
-from xml.dom.minidom import *
 import glob
 import importlib
 import os
 from os.path import dirname, basename, isfile
+from pure_dir.infra.apiresults import *
 
 tasks_path = "pure_dir.services.apps.pdt.core.tasks.main"
 
@@ -45,5 +42,3 @@ def tasks_list_api(htype=''):
 
     obj.setResult(task_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
-
-

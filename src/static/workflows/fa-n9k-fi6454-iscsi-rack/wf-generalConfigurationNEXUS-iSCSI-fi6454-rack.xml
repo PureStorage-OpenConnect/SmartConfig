@@ -1,0 +1,159 @@
+<?xml version="1.0" ?>
+<workflow desc="General Configuration of Nexus switches" hidden="1" htype="fa-n9k-fi6454-iscsi-rack" id="generalConfigurationNEXUS-iSCSI-fi6454-rack" isdeletable="0" name="Nexus General Configuration" simulate="0" type="Nexus">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="Enable features for switch A" id="NEXUS9kEnableFeaturesAndSettings" inittask="1" name="Enable features for switch A" texecid="t300">
+      <outputs>
+        <output name="features" tvalue="lacp|vpc|interface-vlan" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="spanning" tvalue="Yes" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="spanning" value="Yes"/>
+        <arg name="feature" value="lacp|vpc|interface-vlan"/>
+      </args>
+    </task>
+    <task OnSuccess="t302" Onfailure="None" desc="Enable features for switch B" id="NEXUS9kEnableFeaturesAndSettings" inittask="0" name="Enable features for switch B" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="features" tvalue="lacp|vpc|interface-vlan" value="no-op"/>
+        <output name="spanning" tvalue="Yes" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="spanning" value="Yes"/>
+        <arg name="feature" value="lacp|vpc|interface-vlan"/>
+      </args>
+    </task>
+    <task OnSuccess="t303" Onfailure="None" desc="Global configurations for switch A" id="NEXUS9kSetGlobalConfigurations" inittask="0" name="Global configurations for switch A" texecid="t302">
+      <outputs>
+        <output name="route" tvalue="0.0.0.0/0" value="no-op"/>
+        <output name="gateway" tvalue="192.168.10.28" value="no-op"/>
+        <output name="ntp" tvalue="192.168.10.29" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="route" value="0.0.0.0/0"/>
+        <arg mapval="3" name="gateway" value="gateway"/>
+        <arg mapval="3" name="ntp" value="ntp"/>
+      </args>
+    </task>
+    <task OnSuccess="t304" Onfailure="None" desc="Global configurations for switch B" id="NEXUS9kSetGlobalConfigurations" inittask="0" name="Global configurations for switch B" texecid="t303">
+      <outputs>
+        <output name="route" tvalue="0.0.0.0/0" value="no-op"/>
+        <output name="gateway" tvalue="192.168.10.28" value="no-op"/>
+        <output name="ntp" tvalue="192.168.10.29" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg mapval="1" name="route" value="__t302.Global configurations for switch A.route"/>
+        <arg mapval="3" name="gateway" value="gateway"/>
+        <arg mapval="3" name="ntp" value="ntp"/>
+      </args>
+    </task>
+    <task OnSuccess="t305" Onfailure="None" desc="VLAN for switch A" id="NEXUS9kCreateVLAN" inittask="0" name="VLAN for switch A" texecid="t304">
+      <outputs>
+        <output name="vlan_set" tvalue="" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg mapval="3" name="vlan_set" value="{'vlan_id': {'ismapped': '3', 'value': 'mgmt_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'IB-MGMT-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'native_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'Native-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'vmotion_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'vMotion-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'app1_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'VM-App1-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'app2_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'VM-App2-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'app3_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'VM-App3-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'iSCSI-A-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'iSCSI-B-VLAN'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t306" Onfailure="None" desc="VLAN for switch B" id="NEXUS9kCreateVLAN" inittask="0" name="VLAN for switch B" texecid="t305">
+      <outputs>
+        <output name="vlan_set" tvalue="" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg mapval="3" name="vlan_set" value="{'vlan_id': {'ismapped': '3', 'value': 'mgmt_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'IB-MGMT-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'native_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'Native-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'vmotion_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'vMotion-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'app1_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'VM-App1-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'app2_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'VM-App2-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'app3_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'VM-App3-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'iSCSI-A-VLAN'}}|{'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}, 'vlan_name': {'ismapped': '0', 'value': 'iSCSI-B-VLAN'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t307" Onfailure="None" desc="Port Description for switch A" id="NEXUS9kAddIndividualPortDescription" inittask="0" name="Port Description for switch A" texecid="t306">
+      <outputs>
+        <output name="port_set" tvalue="" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg mapval="3" name="port_set" value="{'interface': {'ismapped': '0', 'value': 'Vlan'}, 'id': {'ismapped': '3', 'value': 'ntp_vlan'}, 'desc': {'ismapped': '0', 'value': 'In-Band NTP Redistribution Interface VLAN 115'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '0', 'value': '11'}, 'desc': {'ismapped': '0', 'value': 'vPC peer-link'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '3', 'value': 'up_port_a'}, 'desc': {'ismapped': '0', 'value': 'vPC UCS 6332-16UP-1 FI'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '3', 'value': 'up_port_b'}, 'desc': {'ismapped': '0', 'value': 'vPC UCS 6332-16UP-2 FI'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '0', 'value': '153'}, 'desc': {'ismapped': '0', 'value': 'vPC Upstream Network Switch A'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '0', 'value': '154'}, 'desc': {'ismapped': '0', 'value': 'vPC Upstream Network Switch B'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/1'}, 'desc': {'ismapped': '0', 'value': 'vPC peer-link connection to b19-93180-2'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/2'}, 'desc': {'ismapped': '0', 'value': 'vPC peer-link connection to b19-93180-2'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/49'}, 'desc': {'ismapped': '0', 'value': 'iSCSI A connection to FlashArray//X CT0.ETH8'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/50'}, 'desc': {'ismapped': '0', 'value': 'iSCSI A connection to FlashArray//X CT1.ETH8'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/51'}, 'desc': {'ismapped': '0', 'value': 'vPC 151 connection to UCS 6332-16UP-1 FI'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/52'}, 'desc': {'ismapped': '0', 'value': 'vPC 152 connection to UCS 6332-16UP-2 FI'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/53'}, 'desc': {'ismapped': '0', 'value': ' vPC 153 connection to Upstream Network Switch A'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/54'}, 'desc': {'ismapped': '0', 'value': ' vPC 153 connection to Upstream Network Switch B'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t308" Onfailure="None" desc="Port Description for switch B" id="NEXUS9kAddIndividualPortDescription" inittask="0" name="Port Description for switch B" texecid="t307">
+      <outputs>
+        <output name="port_set" tvalue="" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg mapval="3" name="port_set" value="{'interface': {'ismapped': '0', 'value': 'Vlan'}, 'id': {'ismapped': '3', 'value': 'ntp_vlan'}, 'desc': {'ismapped': '0', 'value': 'In-Band NTP Redistribution Interface VLAN 115'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '0', 'value': '11'}, 'desc': {'ismapped': '0', 'value': 'vPC peer-link'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '3', 'value': 'up_port_a'}, 'desc': {'ismapped': '0', 'value': 'vPC UCS 6332-16UP-1 FI'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '3', 'value': 'up_port_b'}, 'desc': {'ismapped': '0', 'value': 'vPC UCS 6332-16UP-2 FI'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '0', 'value': '153'}, 'desc': {'ismapped': '0', 'value': 'vPC Upstream Network Switch A'}}|{'interface': {'ismapped': '0', 'value': 'port-channel'}, 'id': {'ismapped': '0', 'value': '154'}, 'desc': {'ismapped': '0', 'value': 'vPC Upstream Network Switch B'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/1'}, 'desc': {'ismapped': '0', 'value': 'vPC peer-link connection to b19-93180-2'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/2'}, 'desc': {'ismapped': '0', 'value': 'vPC peer-link connection to b19-93180-2'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/49'}, 'desc': {'ismapped': '0', 'value': 'iSCSI A connection to FlashArray//X CT0.ETH8'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/50'}, 'desc': {'ismapped': '0', 'value': 'iSCSI A connection to FlashArray//X CT1.ETH8'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/51'}, 'desc': {'ismapped': '0', 'value': 'vPC 151 connection to UCS 6332-16UP-1 FI'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/52'}, 'desc': {'ismapped': '0', 'value': 'vPC 152 connection to UCS 6332-16UP-2 FI'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/53'}, 'desc': {'ismapped': '0', 'value': ' vPC 153 connection to Upstream Network Switch A'}}|{'interface': {'ismapped': '0', 'value': 'Eth'}, 'id': {'ismapped': '0', 'value': '1/54'}, 'desc': {'ismapped': '0', 'value': ' vPC 153 connection to Upstream Network Switch B'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="t309" Onfailure="None" desc="NTP Distribution Interface for switch A" id="NEXUS9kAddNTPDistributionInterface" inittask="0" name="NTP Distribution Interface for switch A" texecid="t308">
+      <outputs>
+        <output name="ip" tvalue="192.168.10.70" value="no-op"/>
+        <output name="gateway" tvalue="192.168.10.71" value="no-op"/>
+        <output name="route" tvalue="0.0.0.0/0" value="no-op"/>
+        <output name="mask_length" tvalue="24" value="no-op"/>
+        <output name="vlan_id" tvalue="115" value="no-op"/>
+        <output name="stratum_no" tvalue="3" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg mapval="3" name="gateway" value="gateway"/>
+        <arg mapval="1" name="route" value="__t302.Global configurations for switch A.route"/>
+        <arg name="mask_length" value="24"/>
+        <arg name="stratum_no" value="3"/>
+        <arg mapval="3" name="vlan_id" value="ntp_vlan"/>
+      </args>
+    </task>
+    <task OnSuccess="t310" Onfailure="None" desc="NTP Distribution Interface for switch B" id="NEXUS9kAddNTPDistributionInterface" inittask="0" name="NTP Distribution Interface for switch B" texecid="t309">
+      <outputs>
+        <output name="ip" tvalue="192.168.10.73" value="no-op"/>
+        <output name="gateway" tvalue="192.168.10.71" value="no-op"/>
+        <output name="route" tvalue="0.0.0.0/0" value="no-op"/>
+        <output name="mask_length" tvalue="24" value="no-op"/>
+        <output name="vlan_id" tvalue="115" value="no-op"/>
+        <output name="stratum_no" tvalue="3" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg mapval="3" name="gateway" value="gateway"/>
+        <arg mapval="1" name="route" value="__t302.Global configurations for switch A.route"/>
+        <arg mapval="1" name="mask_length" value="__t308.NTP Distribution Interface for switch A.mask_length"/>
+        <arg mapval="1" name="stratum_no" value="__t308.NTP Distribution Interface for switch A.stratum_no"/>
+        <arg mapval="3" name="vlan_id" value="ntp_vlan"/>
+      </args>
+    </task>
+    <task OnSuccess="t311" Onfailure="None" desc="Configure iSCSI Interface for switch A" id="NEXUS9kConfigureiSCSIInterface" inittask="0" name="Configure iSCSI Interface for switch A" texecid="t310">
+      <outputs>
+        <output name="intf_set" tvalue="" value="no-op"/>
+        <output name="mtu_value" tvalue="9216" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
+        <arg name="intf_set" value="{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/49'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}}|{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/50'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}}"/>
+        <arg name="mtu_value" value="9216"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Configure iSCSI Interface for switch B" id="NEXUS9kConfigureiSCSIInterface" inittask="0" name="Configure iSCSI Interface for switch B" texecid="t311">
+      <outputs>
+        <output name="intf_set" tvalue="" value="no-op"/>
+        <output name="mtu_value" tvalue="9216" value="no-op"/>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
+        <arg name="intf_set" value="{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/49'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}}|{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/50'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}}"/>
+        <arg mapval="1" name="mtu_value" value="__t310.Configure iSCSI Interface for switch A.mtu_value"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

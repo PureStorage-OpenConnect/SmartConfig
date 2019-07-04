@@ -21,6 +21,17 @@ class IpValidator:
         else:
             return False
 
+    def is_kvm_ip_up(self, ip, result):
+        loginfo("Pinging IP %s" % ip)
+        p = subprocess.Popen(["ping", "-q", "-c", "1", ip],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=False)
+        response = p.wait()
+        loginfo("IP ping response %s" % response)
+        if response == 0:
+            result[ip] = True
+        else:
+            result[ip]= False
+
     def netmask_range(self, netmask):
         netmask_range = sum([bin(int(x)).count("1")
                              for x in netmask.split(".")])

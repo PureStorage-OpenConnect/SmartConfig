@@ -117,9 +117,9 @@ class UCSCreateServiceProfilesFromTemplate:
                 "label": str(server_cnt)}
             server_cnt += 1
             servers_list.append(server_dict)
-	
-	#TODO Can do a proper switch based on server type
-	rack_servers = handle.query_classid("ComputeRackUnit")
+
+        # TODO Can do a proper switch based on server type
+        rack_servers = handle.query_classid("ComputeRackUnit")
         for rack_server in rack_servers:
             server_dict = {
                 'id': str(server_cnt),

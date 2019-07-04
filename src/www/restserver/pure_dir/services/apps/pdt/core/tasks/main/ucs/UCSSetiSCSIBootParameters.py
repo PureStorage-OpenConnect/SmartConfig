@@ -41,7 +41,6 @@ class UCSSetiSCSIBootParameters:
         obj.release_ucs_handle()
         return res
 
-
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")

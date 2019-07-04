@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import reset_global_config
-
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_workflow_dir
 info_file = "ula/pdt.txt"
 build_file = "/mnt/system/pure_dir/pdt/build.xml"
 settings = "/mnt/system/pure_dir/pdt/settings.xml"
@@ -25,6 +25,24 @@ def get_smartconfig_version():
         return version
     except BaseException:
         return "1.2"
+
+
+def get_blade_rack_support(stack_type):
+        if stack_type[-5:] == "-rack":
+                stack_type = stack_type[:-5]
+
+        blade_path = get_workflow_dir() + "/" + stack_type
+        rack_path  = get_workflow_dir() + "/" + stack_type + "-rack"
+
+        ret = {'blade' : False, 'rack' : False}
+
+        if os.path.isdir(blade_path):
+                ret['blade'] = True
+
+        if os.path.isdir(rack_path):
+                ret['rack'] = True
+
+        return ret
 
 
 def system_info():
@@ -48,6 +66,10 @@ def system_info():
     status, details = get_xml_element(settings, 'current_step')
     if status:
         sysinfo['deployment_settings'] = details[0]
+	if 'subtype' in sysinfo['deployment_settings']:
+		sysinfo['deployment_settings']['server_types'] = get_blade_rack_support(sysinfo['deployment_settings']['subtype'])
+	else:
+		sysinfo['deployment_settings']['server_types'] = {'rack':False, 'blade': False}
 
     res.setResult(sysinfo, PTK_OKAY, "Success")
     return res

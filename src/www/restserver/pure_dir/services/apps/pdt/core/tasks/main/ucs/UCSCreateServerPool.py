@@ -72,7 +72,6 @@ class UCSCreateServerPool:
 
     def ucsmservers(self, keys):
         servers_list = []
-        blades_list = []
         res = result()
         fabricid = getArg(keys, 'fabric_id')
 
@@ -87,20 +86,20 @@ class UCSCreateServerPool:
         handle = res.getResult()
         blades = handle.query_classid("ComputeBlade")
         for blade in blades:
-            eq = string.split(blade.server_id, '/')
-            blade_ent = {
-                'chassis': eq[0],
-                'blade': eq[1],
-                'dn': blade.dn,
-                'oper_state': blade.oper_state}
-            blades_list.append(blade_ent)
-
-        for blade in blades_list:
             server_dict = {
-                'id': blade['dn'],
+                'id': blade.dn,
                 "selected": "1",
-                "label": blade['dn']}
+                "label": blade.dn}
             servers_list.append(server_dict)
+
+        racks = handle.query_classid("ComputeRackUnit")
+        for rack in racks:
+            server_dict = {
+                'id': rack.dn,
+                "selected": "1",
+                "label": rack.dn}
+            servers_list.append(server_dict)
+
         ucsm_logout(handle)
         res.setResult(servers_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

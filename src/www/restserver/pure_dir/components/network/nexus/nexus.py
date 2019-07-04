@@ -15,7 +15,7 @@ import urllib2
 import re
 
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 
 
 class Nexus:
@@ -211,7 +211,7 @@ class Nexus:
                 if "Ethernet" in interface['interface'] and interface['interface'].split(
                         '/')[0][-1] == slot:
                     tmp_list.append(
-                        int(interface['interface'].split('/')[0][-1]))
+                        int(interface['interface'].split('/')[1]))
 
             eth_list = sorted(list(set(tmp_list)))
 

@@ -116,6 +116,8 @@ def images_validate(uploadfile, imagetype):
     elif imagetype == 'UCS-infra' and 'k9-bundle-infra' in uploadfile and 'A.bin' in uploadfile:
         return True
     elif imagetype == 'UCS-blade' and 'ucs-k9' in uploadfile and 'B.bin' in uploadfile:
+        return True 
+    elif imagetype == 'UCS-Rack' and 'ucs-k9' in uploadfile and 'C.bin' in uploadfile:
         return True
     else:
         return False

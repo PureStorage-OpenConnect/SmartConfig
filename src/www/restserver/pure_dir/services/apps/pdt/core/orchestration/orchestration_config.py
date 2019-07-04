@@ -118,6 +118,10 @@ def get_workflow_file(wid, hwtype):
     return "%s/%s/wf-%s.xml" % (g_workflows_dir, hwtype, wid)
 
 
+def get_workflow_dir():
+    return g_workflows_dir
+
+
 def get_tmp_file(wid):
     return "/tmp/%s.xml" % (wid)
 

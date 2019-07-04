@@ -34,13 +34,13 @@ class UCSAcknowledgeCiscoUCSChassis:
     def rollback(self, inputs, outputs, logfile):
         loginfo("Acknowledge Cicso UCS Chassis rollback")
         res = result()
-        res.setResult(None, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
-        res.setResult(ucs_list, PTK_OKAY,  _("PDT_SUCCESS_MSG"))
+        res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
     def ucsmchassis(self, keys):
