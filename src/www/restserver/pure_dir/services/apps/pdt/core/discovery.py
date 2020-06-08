@@ -13,6 +13,7 @@ import time
 import threading
 import ipaddress
 import string
+import copy
 from itertools import chain
 from isc_dhcp_leases import IscDhcpLeases
 from pure_dir.infra.apiresults import *
@@ -28,28 +29,31 @@ from pure_dir.services.apps.pdt.core.systemmanager import *
 from pure_dir.components.compute.ucs.ucs_upgrade import get_version
 from pure_dir.components.network.nexus.nexus_setup import NEXUSSetup
 from pure_dir.components.storage.mds.mds_setup import MDSSetup
+from pure_dir.components.storage.purestorage.fa_setup import FASetup
 from pure_dir.components.common import *
 from pure_dir.infra.logging.logmanager import loginfo
 from scapy.all import *
 from filelock import FileLock
-
+from xml.dom.minidom import parse, Document
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
+from pure_dir.global_config import get_settings_file, get_discovery_store
 
-
-settings = "/mnt/system/pure_dir/pdt/settings.xml"
+settings = get_settings_file()
 dhcp_conf_template = "/mnt/system/pure_dir/pdt/templates/discovery/dhcpd.conf.template"
 dhcp_conf_file = "/mnt/system/pure_dir/pdt/targets/dhcpd.conf"
 dhcp_config = '/etc/dhcp/dhcpd.conf'
 dhcp_lease_file = '/var/lib/dhcpd/dhcpd.leases'
 old_dhcp_lease_file = '/var/lib/dhcpd/dhcpd.leases.old'
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
+static_discovery_store = get_discovery_store()
 static_discovery_store_lock = '/mnt/system/pure_dir/pdt/devices.xml.lock'
+workflow_flag_file = '/mnt/system/pure_dir/pdt/workflow_flag.xml'
 
 # Maximum time to wait for configuration of FS components
 max_waittime_n9k = 900
 max_waittime_n5k = 3600
 max_waittime_mds = 1200
 max_waittime_ucs = 900
+max_waittime_fa = 1200
 
 
 def fsnetworkrange():
@@ -71,7 +75,7 @@ def fsnetworkrange():
     return nw_range
 
 
-def fscomponents(mac=''):
+def fscomponents(mac, initStage):
     res = result()
     component_list = []
     unconfigured_list = []
@@ -80,7 +84,7 @@ def fscomponents(mac=''):
     sysinfo_output = system_info()
     if sysinfo_output.getStatus() == PTK_OKAY:
         sys_info = sysinfo_output.getResult()
-        if sys_info['dhcp_status'] == 'enabled':
+        if sys_info['dhcp_status'] == 'enabled' and initStage == False:
             unconfigured_list = get_unconfigured_device_list()
 
     # Get the list of configured FS Components whose details are saved to
@@ -106,12 +110,28 @@ def fscomponents(mac=''):
             for component in component_list:
                 if component['mac_address'].lower() == mac_addr.lower():
                     info_list.append(component)
+        info_list = sorted(info_list, key=sort_by_device_type)
         res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-
     else:
+        component_list = sorted(component_list, key=sort_by_device_type)
         res.setResult(component_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
+
+
+def sort_by_device_type(comp_list):
+    if comp_list['device_type'] == "UCSM":
+        return 0
+    elif comp_list['device_type'] == "Nexus 9k":
+        return 1
+    elif comp_list['device_type'] == "Nexus 5k":
+        return 2
+    elif comp_list['device_type'] == "MDS":
+        return 3
+    elif comp_list['device_type'] == "PURE":
+        return 4
+    else:
+        return 5
 
 
 def freeip():
@@ -132,15 +152,22 @@ def get_unconfigured_device_list():
         for key, value in active_leases.items():
             client = {}
             identifiers = value.sets
-            if "vendor-string" not in identifiers or "serial" not in identifiers:
+            # TODO Need to get Serial from FlashArray
+            if "-ct1" in value.hostname:
+                pass
+            elif "vendor-string" not in identifiers or "serial" not in identifiers:
                 loginfo(
                     "Skipping dhcp client as vendor details and serial number are not available")
                 loginfo(identifiers)
                 continue
             client['mac_address'] = key.upper()
             client['ip_address'] = value.ip
-            client['serial_number'] = identifiers['serial'][4:15]
             client['vendor_model'] = identifiers['vendor-string']
+            # TODO Need to get Serial from FlashArray
+            if identifiers.get('serial'):
+                client['serial_number'] = identifiers['serial'][4:15]
+            else:
+                client['serial_number'] = "Unknown"
             if "N9K" in identifiers['vendor-string']:
                 client['config_state'] = is_nexus(value.ip, "Unconfigured")
                 client['device_type'] = "Nexus 9k"
@@ -150,9 +177,14 @@ def get_unconfigured_device_list():
             elif "MDS" in identifiers['vendor-string']:
                 client['config_state'] = is_mds(value.ip, "Unconfigured")
                 client['device_type'] = "MDS"
+            elif "FlashArray" in identifiers['vendor-string']:
+                client['config_state'], client['serial_number'] = is_pure(value.ip, "Unconfigured")
+                client['device_type'] = "PURE"
             elif "UCS" in identifiers['vendor-string']:
                 client['config_state'] = is_ucsm(value.ip, "Unconfigured")
                 client['device_type'] = "UCSM"
+                if client['config_state'] == 'Unknown':
+                    continue
                 if client['config_state'] == "Unconfigured":
                     status, data = get_xml_element(
                         static_discovery_store, "mac", client['mac_address'])
@@ -310,6 +342,11 @@ def fs_update_device_status():
             elif "MDS" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress":
                 client = check_configured_device_status(
                     device_type="MDS", max_waittime=max_waittime_mds, subelement=subelement)
+                loginfo(client)
+
+            elif "FlashArray" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress":
+                client = check_configured_device_status(
+                    device_type="PURE", max_waittime=max_waittime_fa, subelement=subelement)
                 loginfo(client)
 
             elif "UCS" in subelement.getAttribute("model") and subelement.getAttribute("configured") == "In-progress" and subelement.getAttribute("infra_image") == "":
@@ -498,7 +535,7 @@ def adddevice(data):
                 return res
 
     elif data['type'] == "PURE":
-        status = is_pure(data['ip'])
+        status, serial = is_pure(data['ip'], "Configured")
         if status == 'Configured':
             try:
                 pure_tasks = PureTasks(
@@ -628,6 +665,33 @@ def initialconfig():
                     loginfo(data)
                     threading.Thread(target=obj.mdsconfigure,
                                      args=(data,)).start()
+                elif subelement.getAttribute("device_type") == "PURE":
+                    obj = FASetup()
+                    data = {
+                        "model": subelement.getAttribute("model"),
+                        "mac": subelement.getAttribute("mac"),
+                        "serial_number": subelement.getAttribute("serial_no"),
+                        "orig_ip": subelement.getAttribute("orig_ip"),
+                        "array_name": subelement.getAttribute("name"),
+                        "ct0_ip": subelement.getAttribute("ct0_ip"),
+                        "ct1_ip": subelement.getAttribute("ct1_ip"),
+                        "vir0_ip": subelement.getAttribute("vir0_ip"),
+                        "netmask": subelement.getAttribute("netmask"),
+                        "gateway": subelement.getAttribute("gateway"),
+                        "ntp_server": subelement.getAttribute("ntp_server"),
+                        "dns": subelement.getAttribute("dns"),
+                        "domain_name": subelement.getAttribute("domain_name"),
+                        "timezone": subelement.getAttribute("timezone"),
+                        "relay_host": subelement.getAttribute("relay_host"),
+                        "alert_emails": subelement.getAttribute("alert_emails"),
+                        "sender_domain": subelement.getAttribute("sender_domain"),
+                        "organization": subelement.getAttribute("organization"),
+                        "full_name": subelement.getAttribute("full_name"),
+                        "job_title": subelement.getAttribute("job_title")}
+                    loginfo("Triggering FAConfigure api")
+                    loginfo(data)
+                    threading.Thread(target=obj.faconfigure,
+                                     args=(data,)).start()
                 elif subelement.getAttribute("device_type") == "UCSM" and not ucsm_set:
                     ucsm_set = True
                     obj = UCSManager()
@@ -659,6 +723,7 @@ def initialconfig():
                             "sec_switch_serial_no": subordinate_data.getAttribute("serial_no"),
                             "sec_switch_vendor": subordinate_data.getAttribute("model"),
                             "sec_cluster": subordinate_data.getAttribute("sec_cluster"),
+                            "os_install": primary_data.getAttribute("os_install"),
                             "esxi_file": primary_data.getAttribute("esxi_file"),
                             "sec_orig_ip": subordinate_data.getAttribute("sec_orig_ip"),
                             "sec_ip": subordinate_data.getAttribute("ipaddress"),
@@ -667,7 +732,8 @@ def initialconfig():
                             "ucs_upgrade": subordinate_data.getAttribute("ucs_upgrade"),
                             "infra_image": subordinate_data.getAttribute("infra_image")}
                     loginfo("Triggering UCSMFIConfigure api")
-                    loginfo(data)
+                    loginfo({key:value for key, value in data.items() if key not in ["pri_passwd", "conf_passwd"]})
+                    #loginfo({key:data[key] for key in data.keys() if key not in ["pri_passwd", "conf_passwd"]})
                     threading.Thread(target=obj.ucsmficonfigure,
                                      args=("cluster", data)).start()
         loginfo("Completed triggering all the apis")
@@ -677,11 +743,27 @@ def initialconfig():
     return obj
 
 
+def delete_pwd_in_logs(data):
+    if 'conf_passwd' in data and 'pri_passwd' in data:
+        del data['conf_passwd']
+        del data['pri_passwd']
+        loginfo(data)
+
+
 def save_config(stacktype, datas):
 
     # Saving the global values
     loginfo("Saving the global values")
-    loginfo(datas)
+    try:
+        for config in copy.deepcopy(datas):
+            details = eval(datas[config])
+            if isinstance(details, list):
+                for data in details:
+                    delete_pwd_in_logs(data)
+            elif isinstance(details, dict):
+                delete_pwd_in_logs(details)
+    except BaseException:
+        loginfo("Error in logging the global values")
     obj = result()
     for config in datas:
         if config == "nexus_9k" or config == "nexus_5k":
@@ -708,26 +790,59 @@ def save_config(stacktype, datas):
                     obj.setResult([], PTK_INTERNALERROR,
                                   _("PDT_FAILED_TO_SET_REQUESTED_SETTINGS_MSG"))
                     return obj
+
+        elif config == "pure":
+            details = eval(datas[config])
+            for data in details:
+                ret = set_globals_api(stacktype,
+                                      {"pure_id": data['mac'],
+                                       "netmask": data['netmask'],
+                                          "gateway": data['gateway'],
+                                          "ntp": data['ntp_server']})
+                if ret.getStatus() != PTK_OKAY:
+                    obj.setResult([], PTK_INTERNALERROR,
+                                  _("PDT_FAILED_TO_SET_REQUESTED_SETTINGS_MSG"))
+                    return obj
+
         elif config == "ucsm":
             data = eval(datas[config])
             if 'pri_cluster' in data:
+                create_wfflag(data['os_install'])
                 if data['blade_image'] == "":
-                    ret = set_globals_api(stacktype,
-                                          {"ucs_switch_a": data['pri_switch_mac'],
-                                           "netmask": data['netmask'],
-                                              "gateway": data['gateway'],
-                                              "ntp": data['ntp_server'],
-                                              "remote_file": data['esxi_file'],
-                                              "upgrade": "No"})
+                    if data['esxi_file'] != "":
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                               "netmask": data['netmask'],
+                                                  "gateway": data['gateway'],
+                                                  "ntp": data['ntp_server'],
+                                                  "remote_file": data['esxi_file'],
+                                                  "upgrade": "No"})
+                    else:
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                               "netmask": data['netmask'],
+                                                  "gateway": data['gateway'],
+                                                  "ntp": data['ntp_server'],
+                                                  "upgrade": "No"})
+
                 else:
-                    ret = set_globals_api(stacktype,
-                                          {"ucs_switch_a": data['pri_switch_mac'],
-                                           "netmask": data['netmask'],
-                                              "gateway": data['gateway'],
-                                              "ntp": data['ntp_server'],
-                                              "remote_file": data['esxi_file'],
-                                              "firmware": data['blade_image'],
-                                              "upgrade": "Yes"})
+                    if data['esxi_file'] != "":
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                               "netmask": data['netmask'],
+                                                  "gateway": data['gateway'],
+                                                  "ntp": data['ntp_server'],
+                                                  "remote_file": data['esxi_file'],
+                                                  "firmware": data['blade_image'],
+                                                  "upgrade": "Yes"})
+                    else:
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                               "netmask": data['netmask'],
+                                                  "gateway": data['gateway'],
+                                                  "ntp": data['ntp_server'],
+                                                  "firmware": data['blade_image'],
+                                                  "upgrade": "Yes"})
 
                 if ret.getStatus() != PTK_OKAY:
                     obj.setResult([], PTK_INTERNALERROR,
@@ -851,6 +966,50 @@ def save_config(stacktype, datas):
                     validated="1",
                     domain_name=data['domain_name'])
 
+        elif config == "pure":
+            obj = FASetup()
+            details = eval(datas[config])
+            for data in details:
+                if check_device_exists(data['mac'], "mac"):
+                    delete_xml_element(static_discovery_store,
+                                       "mac", data['mac'])
+                if data['domain_name'] == "":
+                    domain_name = "purestorage.com"
+                else:
+                    domain_name = data['domain_name']
+                device_data = {
+                    "name": data['array_name'],
+		    "username": "pueuser",
+                    "password": encrypt("pureuser"),
+                    "ct0_ip": data['ct0_ip'],
+                    "ct1_ip": data['ct1_ip'],
+                    "vir0_ip": data['vir0_ip'],
+                    "ipaddress": data['vir0_ip'],
+                    "orig_ip": data['orig_ip'],
+                    "serial_no": data['serial_number'],
+                    "mac": data['mac'],
+                    "netmask": data['netmask'],
+                    "gateway": data['gateway'],
+                    "dns": data['dns'],
+                    "domain_name": domain_name,
+                    "relay_host": data['relay_host'],
+                    "sender_domain": data['sender_domain'],
+                    "alert_emails": data['alert_emails'],
+                    "ntp_server": data['ntp_server'],
+                    "timezone": data['timezone'],
+                    "organization": data['organization'],
+                    "full_name": data['full_name'],
+                    "job_title": data['job_title'],
+                    "model": data['model'],
+                    "tag": "",
+                    "device_type": "PURE",
+                    "configured": "Unconfigured",
+                    "reachability": "",
+                    "validated": "1",
+		    "isZTP":True,
+                    "timestamp": str(time.time())}
+                add_xml_element(static_discovery_store, device_data)
+
         elif config == "ucsm":
             obj = UCSManager()
             data = eval(datas[config])
@@ -858,18 +1017,18 @@ def save_config(stacktype, datas):
                 if check_device_exists(data['pri_switch_mac'], "mac"):
                     delete_xml_element(static_discovery_store,
                                        "mac", data['pri_switch_mac'])
-
-                bundl_status = iso_binding(
-                    data['esxi_file'], data['esxi_kickstart'])
-                if not bundl_status:
-                    loginfo("Failed to bundle esx iso and kickstart.")
-                    res = result()
-                    ret = []
-                    ret.append({'field': 'esxi_kickstart',
-                                'msg': 'Unable to bind ESXi kickstart file with ESXi image'})
-                    res.setResult(ret, PTK_INTERNALERROR,
-                                  "ESXi kickstart file binding failed")
-                    return res
+                if data['esxi_file'] != "":
+                    bundl_status = iso_binding(
+                        data['esxi_file'], data['esxi_kickstart'])
+                    if not bundl_status:
+                        loginfo("Failed to bundle esx iso and kickstart.")
+                        res = result()
+                        ret = []
+                        ret.append({'field': 'esxi_kickstart',
+                                    'msg': 'Unable to bind ESXi kickstart file with ESXi image'})
+                        res.setResult(ret, PTK_INTERNALERROR,
+                                      "ESXi kickstart file binding failed")
+                        return res
 
                 obj._save_ucsm_primary_details(
                     ipaddress=data['pri_ip'],
@@ -899,6 +1058,7 @@ def save_config(stacktype, datas):
                     validated="1",
                     esxi_file=data['esxi_file'],
                     esxi_kickstart=data['esxi_kickstart'],
+                    os_install=data['os_install'],
                     infra_image=data['infra_image'],
                     blade_image=data['blade_image'],
                     ucs_upgrade=data['ucs_upgrade'],
@@ -937,7 +1097,12 @@ def save_config(stacktype, datas):
 
             if data['server_type'] == "Rack":
                 status, details = get_xml_element(settings, "stacktype")
-                if status:
+                if status and 'fi6454' in details[0]['subtype']:
+                    rack_servertype = details[0]['subtype']
+                    if 'rack' not in details[0]['subtype']:
+                        rack_servertype = details[0]['subtype'] + '-rack'
+                    deployment_settings({'subtype': rack_servertype})
+                else:
                     rack_servertype = details[0]['stacktype'] + "-rack"
                     deployment_settings({'subtype': rack_servertype})
             elif data['server_type'] == "Blade":
@@ -953,24 +1118,46 @@ def save_config(stacktype, datas):
 
 def update_config(stacktype, datas):
     obj = result()
-    loginfo(datas)
     # Updating the global values
     loginfo("Updating the global values")
+    try:
+        for config in copy.deepcopy(datas):
+            details = eval(datas[config])
+            if isinstance(details, list):
+                for data in details:
+                    delete_pwd_in_logs(data)
+            elif isinstance(details, dict):
+                delete_pwd_in_logs(details)
+    except BaseException:
+        loginfo("Error in logging the global values")
+
     for config in datas:
         if config == "ucsm":
             data = eval(datas[config])
             if 'pri_cluster' in data:
                 if data['blade_image'] == "":
-                    ret = set_globals_api(stacktype,
-                                          {"ucs_switch_a": data['pri_switch_mac'],
-                                           "remote_file": data['esxi_file'],
-                                              "upgrade": "No"})
+                    if data['esxi_file'] != "":
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                               "remote_file": data['esxi_file'],
+                                                  "upgrade": "No"})
+                    else:
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                                  "upgrade": "No"})
+
                 else:
-                    ret = set_globals_api(stacktype,
-                                          {"ucs_switch_a": data['pri_switch_mac'],
-                                           "remote_file": data['esxi_file'],
-                                              "upgrade": "Yes",
-                                              "firmware": data['blade_image']})
+                    if data['esxi_file'] != "":
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                               "remote_file": data['esxi_file'],
+                                                  "upgrade": "Yes",
+                                                  "firmware": data['blade_image']})
+                    else:
+                        ret = set_globals_api(stacktype,
+                                              {"ucs_switch_a": data['pri_switch_mac'],
+                                                  "upgrade": "Yes",
+                                                  "firmware": data['blade_image']})
 
                 if ret.getStatus() != PTK_OKAY:
                     obj.setResult([], PTK_INTERNALERROR,
@@ -1025,6 +1212,27 @@ def update_config(stacktype, datas):
                     update_xml_element(static_discovery_store,
                                        "mac", data['switch_mac'], data_to_update)
 
+        elif config == "pure":
+            obj = FASetup()
+            details = eval(datas[config])
+            for data in details:
+                if check_device_exists(data['mac'], "mac"):
+                    data_to_update = {
+                        "name": data['array_name'],
+                        "ct0_ip": data['ct0_ip'],
+                        "ct1_ip": data['ct1_ip'],
+                        "vir0_ip": data['vir0_ip'],
+                        "relay_host": data['relay_host'],
+                        "sender_domain": data['sender_domain'],
+                        "alert_emails": data['alert_emails'],
+                        "timezone": data['timezone'],
+                        "organization": data['organization'],
+                        "full_name": data['full_name'],
+                        "job_title": data['job_title'],
+                        "configured": "Unconfigured"}
+                update_xml_element(static_discovery_store,
+                                   "mac", data['mac'], data_to_update)
+
         elif config == "mds":
             obj = MDSSetup()
             details = eval(datas[config])
@@ -1057,6 +1265,7 @@ def update_config(stacktype, datas):
                         "vipaddress": data['virtual_ip'],
                         "dns": data['dns'],
                         "domain_name": data['domain_name'],
+                        "os_install": data['os_install'],
                         "esxi_file": data['esxi_file'],
                         "infra_image": data['infra_image'],
                         "blade_image": data['blade_image'],
@@ -1075,12 +1284,18 @@ def update_config(stacktype, datas):
 
             if data['server_type'] == "Rack":
                 status, details = get_xml_element(settings, "stacktype")
-                if status:
+                if status and 'fi6454' in details[0]['subtype']:
+                    rack_servertype = details[0]['subtype']
+                    if 'rack' not in details[0]['subtype']:
+                        rack_servertype = details[0]['subtype'] + '-rack'
+                    deployment_settings({'subtype': rack_servertype})
+                else:
                     rack_servertype = details[0]['stacktype'] + "-rack"
                     deployment_settings({'subtype': rack_servertype})
             elif data['server_type'] == "Blade":
                 status, details = get_xml_element(settings, "stacktype")
-                if status:
+                if status and 'figen2' not in details[0]['subtype'] and 'fi6332' not in details[
+                        0]['subtype'] and 'fi6454' not in details[0]['subtype']:
                     deployment_settings({'subtype': details[0]['stacktype']})
 
     obj = result()
@@ -1161,6 +1376,8 @@ def figenvalidate(filist, stacktype):
             stacktype = 'fa-n9k-fi6454-mds-fc'
         elif stacktype == "fa-n9k-fi-iscsi":
             stacktype = 'fa-n9k-fi6454-iscsi'
+        elif stacktype == "fa-fi6332-mds-fc":
+            stacktype = 'fa-fi6454-mds-fc'
         loginfo("Setting stacktype to %s" % stacktype)
         deployment_settings({'subtype': stacktype})
         res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -1189,23 +1406,28 @@ def configdefaults(data):
             ucs_populate_lst = get_ucs_configdefaults(
                 count, value, conf_ucs_list)
             conf_defaults.extend(ucs_populate_lst)
-            continue
 
-        new_hw_index = conf_hw_cnt
-        for item in value:
-            hw_dict = {}
-            hw_dict['device_type'] = key
-            hw_dict['switch_mac'] = item
-            hw_dict['switch_name'] = key.split('_')[0].lower() + "-" + \
-                string.ascii_lowercase[new_hw_index]
-            new_hw_index = new_hw_index + 1
-            if key in ["MDS", "NEXUS_9K", "NEXUS_5K"]:
-                sw_image = get_latest_image(key)
-                if not isinstance(sw_image, str):
-                    hw_dict['switch_image'] = json.dumps(sw_image)
-                else:
-                    hw_dict['switch_image'] = sw_image
-            conf_defaults.append(hw_dict)
+        elif key == "PURE":
+            for item in value:
+                hw_dict = get_fa_configdefaults(item)
+                conf_defaults.append(hw_dict)
+
+        else:
+            new_hw_index = conf_hw_cnt
+            for item in value:
+                hw_dict = {}
+                hw_dict['device_type'] = key
+                hw_dict['switch_mac'] = item
+                hw_dict['switch_name'] = key.split('_')[0].lower() + "-" + \
+                    string.ascii_lowercase[new_hw_index]
+                new_hw_index = new_hw_index + 1
+                if key in ["MDS", "NEXUS_9K", "NEXUS_5K"]:
+                    sw_image = get_latest_image(key)
+                    if not isinstance(sw_image, str):
+                        hw_dict['switch_image'] = json.dumps(sw_image)
+                    else:
+                        hw_dict['switch_image'] = sw_image
+                conf_defaults.append(hw_dict)
 
     ip_list = get_available_static_ips()
     ip_cnt = 0
@@ -1217,6 +1439,13 @@ def configdefaults(data):
             ip_cnt = ip_cnt + 1
             if hw_dict['device_type'] == "UCSM" and 'virtual_ip' in hw_dict:
                 hw_dict['virtual_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
+                ip_cnt = ip_cnt + 1
+            elif hw_dict['device_type'] == "PURE":
+                hw_dict['ct0_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
+                ip_cnt = ip_cnt + 1
+                hw_dict['ct1_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
+                ip_cnt = ip_cnt + 1
+                hw_dict['vir0_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
                 ip_cnt = ip_cnt + 1
 
         # Auto-populate free IPs for blades. This is done at atlast bcos a
@@ -1232,7 +1461,9 @@ def configdefaults(data):
     except IndexError:
         res.setResult(conf_defaults, PTK_NOTEXIST,
                       _("PDT_NO_FREE_IP_ERR_MSG"))
-
+    # Uncomment Below line for working in emulated mode- initial Config page
+    #res.setResult(conf_defaults, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+    # return res
     if ip_list == []:
         res.setResult(conf_defaults, PTK_NOTEXIST,
                       _("PDT_NO_FREE_IP_ERR_MSG"))
@@ -1261,6 +1492,8 @@ def reconfigure(hwtype, mac, force):
 
     if hwtype == "MDS":
         status, data = MDSSetup().mdsreconfigure(data_list[0], force)
+    elif hwtype == "PURE":
+        status, data = FASetup().fareconfigure(data_list[0], force)
     elif hwtype[0:5] == "Nexus":
         status, data = NEXUSSetup(
         ).nexusreconfigure(data_list[0], force)
@@ -1281,6 +1514,24 @@ def reconfigure(hwtype, mac, force):
     return res
 
 
+def get_fa_configdefaults(item):
+    hw_dict = {}
+    hw_dict['array_name'] = "FlashArray"
+    hw_dict['device_type'] = "PURE"
+    hw_dict['ct0_ip'] = ""
+    hw_dict['ct1_ip'] = ""
+    hw_dict['vir0_ip'] = ""
+    hw_dict['timezone'] = "America/Los_Angeles"
+    hw_dict['relay_host'] = "blackhole-smtp2.dev.purestorage.com"
+    hw_dict['sender_domain'] = "purestorage.com"
+    hw_dict['alert_emails'] = "admin@purestorage.com"
+    hw_dict['organization'] = "Pure Storage"
+    hw_dict['full_name'] = "Flash Array"
+    hw_dict['job_title'] = "TME"
+    hw_dict['mac'] = item
+    return hw_dict
+
+
 def get_ucs_configdefaults(input_count, mac_lst, conf_lst):
     ucs_list = []
     conf_count = len(conf_lst)
@@ -1289,7 +1540,7 @@ def get_ucs_configdefaults(input_count, mac_lst, conf_lst):
     dicts = {
         "min_range": info['static_start'].split('.')[-1],
         "max_range": info['static_end'].split('.')[-1],
-        "min_interval": "1",
+        "min_interval": "12",
         "max_interval": "12",
         "subnet": '.'.join(info['subnet'].split('.', 3)[:-1]),
         "kvm_range": ""
@@ -1472,6 +1723,32 @@ def check_device_exists(value, tag):
     return False
 
 
+def create_wfflag(os_install):
+    skip_option = "False" if os_install == "Yes" else "True"
+
+    if os.path.exists(workflow_flag_file) is False:
+        loginfo("Creating flag file for skipping vmedia")
+        doc = Document()
+        roottag = doc.createElement("wflags")
+        flag = doc.createElement("wflag")
+        flag.setAttribute("name", "vmedia_skip")
+        flag.setAttribute("flag", skip_option)
+        roottag.appendChild(flag)
+        doc.appendChild(roottag)
+        fd = open(workflow_flag_file, 'w')
+        fd.write(pretty_print(doc.toprettyxml(indent="")))
+    else:
+        docr = parse(workflow_flag_file)
+        subelement = docr.getElementsByTagName("wflag")
+        for sub in subelement:
+            inp = sub.attributes["name"].value
+            if inp == "vmedia_skip":
+                if sub.attributes["flag"].value != skip_option:
+                    sub.attributes["flag"].value = skip_option
+                    fw = open(workflow_flag_file, 'w')
+                    fw.write(pretty_print(docr.toprettyxml(indent="")))
+
+
 def exportdevices():
     res = result()
     data = {'filepath': ''}
@@ -1575,6 +1852,9 @@ def is_configured(ip, device_type):
         return is_mds(ip, "Unconfigured")
     elif device_type == "UCSM":
         return is_ucsm(ip, "Unconfigured")
+    elif device_type == "PURE":
+        state, serial = is_pure(ip, "")
+        return state
 
 
 def is_ucsm(ip, mode, username='', password=''):
@@ -1653,16 +1933,30 @@ def is_mds(ip, mode, username='', password=''):
             return "Failed"
 
 
-def is_pure(ip):
-    url = "https://" + ip
-    try:
-        r = requests.get(url, timeout=5, verify=False)
-        if r.status_code == 200:
-            if "Pure Storage Login" in r.content:
-                return "Configured"
+def is_pure(ip, mode):
+    if mode == "Unconfigured":
+        url = "http://" + ip + ":8081/array-initial-config"
+        try:
+            r = requests.get(url, timeout=5, verify=False)
+            data = r.json()
+            if data['status'] == "uninitialized":
+                return "Unconfigured", data['serial_number']
+            elif data['status'] == "initializing":
+                return "Configured", data['serial_number']
+	    else:
+		return "Unconfigured", "Unknown"
+        except BaseException:
+            return "Unconfigured", "Unknown"
+    else:
+        url = "https://" + ip
+        try:
+            r = requests.get(url, timeout=5, verify=False)
+            if r.status_code == 200:
+                if "Pure Storage Login" in r.content:
+                    return "Configured", "Unknown"
+                else:
+                    return "Unconfigured", "Unknown"
             else:
-                return "Unconfigured"
-        else:
-            return "Unknown"
-    except BaseException:
-        return "Unknown"
+                return "Unknown", "Unknown"
+        except BaseException:
+            return "Unconfigured", "Unknown"

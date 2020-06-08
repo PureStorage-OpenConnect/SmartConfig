@@ -1,6 +1,5 @@
 /*
 == malihu jquery custom scrollbar plugin ==
-Version: 3.0.2 
 Plugin URI: http://manos.malihu.gr/jquery-custom-content-scroller
 */
 
@@ -25,24 +24,22 @@ CONTENTS:
 ------------------------------------------------------------------------------------------------------------------------
 */
 
-	.mCustomScrollbar{ -ms-touch-action: none; touch-action: none; /* MSPointer events - direct all pointer events to js */ }
-	.mCustomScrollbar.mCS_no_scrollbar{ -ms-touch-action: auto; touch-action: auto; }
+	.mCustomScrollbar{ -ms-touch-action: pinch-zoom; touch-action: pinch-zoom; /* direct pointer events to js */ }
+	.mCustomScrollbar.mCS_no_scrollbar, .mCustomScrollbar.mCS_touch_action{ -ms-touch-action: auto; touch-action: auto; }
 	
 	.mCustomScrollBox{ /* contains plugin's markup */
 		position: relative;
 		overflow: hidden;
 		height: 100%;
 		max-width: 100%;
-		min-width: 98%;
 		outline: none;
 		direction: ltr;
 	}
 
 	.mCSB_container{ /* contains the original content */
 		overflow: hidden;
-		width: 100% !important;
+		width: auto;
 		height: auto;
-		padding-bottom: 20px;
 	}
 
 
@@ -240,6 +237,7 @@ yx-axis
 	.mCSB_container_wrapper > .mCSB_container{
 		padding-right: 30px;
 		padding-bottom: 30px;
+		-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;
 	}
 	
 	.mCSB_vertical_horizontal > .mCSB_scrollTools.mCSB_scrollTools_vertical{ bottom: 20px; }
@@ -264,15 +262,9 @@ yx-axis
 		margin-left: 30px;
 	}
 	
-	.mCSB_container_wrapper.mCS_no_scrollbar_y.mCS_y_hidden > .mCSB_container{ 
-		padding-right: 0; 
-		-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;
-	}
+	.mCSB_container_wrapper.mCS_no_scrollbar_y.mCS_y_hidden > .mCSB_container{ padding-right: 0; }
 	
-	.mCSB_container_wrapper.mCS_no_scrollbar_x.mCS_x_hidden > .mCSB_container{ 
-		padding-bottom: 0; 
-		-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;
-	}
+	.mCSB_container_wrapper.mCS_no_scrollbar_x.mCS_x_hidden > .mCSB_container{ padding-bottom: 0; }
 	
 	.mCustomScrollBox.mCSB_vertical_horizontal.mCSB_inside > .mCSB_container_wrapper.mCS_no_scrollbar_y.mCS_y_hidden{
 		margin-right: 0; /* non-visible scrollbar */
@@ -1046,13 +1038,13 @@ yx-axis
 	/* theme: "minimal-dark" */
 	
 	.mCS-minimal-dark.mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{
-		background-color: #000; background-color: rgba(37, 90, 23, 0.45);
+		background-color: #000; background-color: rgba(0,0,0,0.2);
 		filter: "alpha(opacity=20)"; -ms-filter: "alpha(opacity=20)"; 
 	}
 	
 	.mCS-minimal-dark.mCSB_scrollTools .mCSB_dragger:active .mCSB_dragger_bar,
 	.mCS-minimal-dark.mCSB_scrollTools .mCSB_dragger.mCSB_dragger_onDrag .mCSB_dragger_bar{
-		background-color: #000; background-color: rgba(48, 173, 18, 0.45);
+		background-color: #000; background-color: rgba(0,0,0,0.5);
 		filter: "alpha(opacity=50)"; -ms-filter: "alpha(opacity=50)"; 
 	}
 	

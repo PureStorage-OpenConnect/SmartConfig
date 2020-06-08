@@ -9,6 +9,7 @@
 
 import logging
 import connexion
+import threading
 g_log_dir = "/mnt/system/pure_dir/logs/"
 g_custom_log_dir = "/mnt/system/pure_dir/pdt/jobs/logs"
 g_log_filename = "pure_dir.log"
@@ -70,7 +71,7 @@ def get_currentuser():
     else:
         return("System")
     """
-    return "admin"
+    return "admin [tid " + str(threading.currentThread().ident) + " ]"
 
 
 def releasehandler():

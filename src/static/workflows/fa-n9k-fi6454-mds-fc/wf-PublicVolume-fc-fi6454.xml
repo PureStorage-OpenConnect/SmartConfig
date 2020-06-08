@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
-<workflow desc="Create shared volume and map with host group" hidden="1" htype="fa-n9k-fi6454-mds-fc" id="PublicVolume-fc-fi6454" isdeletable="0" name="Create shared volume and map with host group" order="7"  type="FlashArray">
+<workflow desc="Create shared volume and map with host group" hidden="1" htype="fa-n9k-fi6454-mds-fc" id="PublicVolume-fc-fi6454" isdeletable="0" name="Create shared volume and map with host group" order="7" type="FlashArray">
   <tasks>
     <task OnSuccess="t304" Onfailure="None" desc="Creating shared volume for host group" id="FACreateSharedVolume" inittask="1" label="Create Shared Volume" name="FACreateSharedVolume" texecid="t303">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
-	<output name="name" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="SUCCESS" value="no-op"/>
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
@@ -19,7 +19,7 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="0" name="hgname" value="VM-HostGroup-FC"/>
-	<arg mapval="1" name="volumename" value="__t303.FACreateSharedVolume.name"/>        
+        <arg mapval="1" name="volumename" value="__t303.FACreateSharedVolume.name"/>
       </args>
     </task>
     <task OnSuccess="None" Onfailure="None" desc="Reset UCS Server" id="UCSResetServer" inittask="0" label="Reset UCS Server" name="UCSResetServer" texecid="t305">
@@ -32,4 +32,3 @@
     </task>
   </tasks>
 </workflow>
-

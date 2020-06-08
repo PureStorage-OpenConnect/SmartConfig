@@ -103,7 +103,35 @@ $(document).ready(function() {
 				<div class="clear"></div>\
 			</div>\
 			<div class="clear"></div>';
+			if(typeof response.data.report_logo != 'undefined' && response.data.report_logo != '') {
+				var filename = 'static/images/' + response.data.report_logo;
+				if(filename.fileExists()) {
+					str += '<div class="control-group">\
+						<label class="title col-lg-3 col-md-4 col-sm-4 col-xs-4"></label>\
+						<label class="controls col-lg-9 col-md-8 col-sm-8 col-xs-8">\
+							<img class="report_logo" src="static/images/' + response.data.report_logo + '" style="width: 200px; height: 52px;"></img></div>\
+						</label>\
+						<div class="clear"></div>\
+					</div>';
+				}
+			}
+			str += '<div class="control-group import_logo">\
+				<label class="title col-lg-3 col-md-4 col-sm-4 col-xs-4">\
+					<span class="">Logo:</span>\
+				</label>\
+				<div class="controls col-lg-9 col-md-8 col-sm-8 col-xs-8">' +
+					loadFormField({type: 'file', id: 'import_logo', name: 'uploadfile', label: 'Logo', holder: 'import_logo', mandatory: true}) +
+					'<div class="clear"></div>\
+					<div class="help-block"></div>\
+				</div>\
+				<div class="clear"></div>\
+			</div>\
+			<div class="clear"></div>';
 			openModel({title: localization['about'], body: str, buttons: {'close': closeModel}});
+			var file_format = {type: 'png, jpg, jpeg', format: /(\.|\/)(png|jpg|jpeg)$/i};
+			uploadHandler('ImportLogo', true, settings.base_path, 'import_logo', file_format.format, true, importLogo, doNothing) +
+			$(".import_logo .file_format").html("(" + localization['allowed-format'] + ": <b>" + file_format.type + "</b>)");
+			$(".import_logo .file_format").after("<div>Recommended size: 200 X 50 px</div>");
 		}, doNothing);
 	});
 	
@@ -149,18 +177,36 @@ function updateDeploymentSettings(options) {
 	systemInfo = $.extend({}, systemInfo, options);
 }
 
+function importLogo(response) {
+	systemInfo.report_logo = response.data;
+	if($('.report_logo').length)
+		$('.report_logo').attr('src', 'static/images/' + response.data + '?t=' + Math.random());
+	else {
+		var str = '<div class="control-group">\
+			<label class="title col-lg-3 col-md-4 col-sm-4 col-xs-4"></label>\
+			<label class="controls col-lg-9 col-md-8 col-sm-8 col-xs-8">\
+				<img class="report_logo" src="static/images/' + response.data + '" style="width: 200px; height: 52px;"></img></div>\
+			</label>\
+			<div class="clear"></div>\
+		</div>';
+		$('.control-group.import_logo').before(str);
+	}
+}
 /**
   * @desc this method will generate tooltip on the given input dom element.
   * @param string $container - the container selector, for which element tooltip event should bind with.
 */
-function initTooltip(container) {
+function initTooltip(container, obj) {
+	if(typeof obj == 'undefined') obj = {};
 	var defaults = {
 		animationIn: 'bounceIn',
 		animationOut: 'bounceOut',
 		titleBackground: 'rgb(247, 124, 61)',
 		background: '#FFF',
 		color: '#454545',
-		tooltipHover: true
+		tooltipHover: true,
+		width: false,		// Dynamic width
+		maxWidth: 500
 	};
 	var obj = $.extend({}, defaults, obj);
 	$(container + ' .tipso').tipso(obj);
@@ -237,4 +283,15 @@ function initMultiSelect(dom, label, isSearch, isSelectAll, column) {
 	if(dom.hasClass('hide')) {
 		dom.next('.ms-options-wrap').addClass('hide');
 	}
+}
+
+/**
+  * @desc .
+  * @param object $response - .
+*/
+function bindTagifyEvent(selector, label, pattern) {
+	$(selector).tagsinput();
+	$(selector).on('beforeItemAdd', function(event) {
+		if(!pattern.test(event.item)) event.cancel = true;
+	});
 }

@@ -327,10 +327,11 @@ header.minimized-lpanel > .right-header {
 	float: left;
 }
 .left-navbar > li.logo {
+	margin: 8px 0;
 	color: #F26F04;
 	width: 154px;
 	height: 40px;
-	background: url(../../images/logo.png);
+	background-image: url(../../images/logo.png);
 	background-size: 100% 100%;
 	background-repeat: no-repeat;
 	background-position: 0 0;
@@ -394,7 +395,7 @@ header.minimized-lpanel > .right-header {
 
 /* SPECIFIC TO THIS PROJECT */
 header.minimized-lpanel > .right-header {
-	padding: 9px 12px;
+	padding: 0 12px;
 }
 .header-menu {
 	float: right;
@@ -1249,11 +1250,14 @@ header .header {
 	font-size: 26px;
 	color: #6A6B6B;
 	border-left: 1px solid #DDD;
-	margin: 8px 12px;
+	margin: 15px 12px;
 	line-height: 24px;
 	font-family: "ProximaNovaThin";
 }
-
+.header-menu > * {
+	vertical-align: text-bottom;
+	line-height: 40px;
+}
 .r-height {
 	line-height: initial;
 }
@@ -1467,13 +1471,29 @@ header .header {
 	padding-bottom: 8px;
 	margin-top: 4px;
 }
+.buttonCustom .dropdown-menu {
+	min-width: 100%;
+}
+.buttonCustom .dropdown-item {
+	padding: 3px 1rem;
+	font-size: 10px;
+}
+.dropup .dropdown-toggle::after {
+	display: inline-block;
+	margin-left: 6px;
+	vertical-align: 2px;
+	content: "";
+	border-top: 0;
+	border-right: .3em solid transparent;
+	border-bottom: .3em solid;
+	border-left: .3em solid transparent;
+}
 /* Setup Wizard */
 
 
 /* Toggle Switch */
 .toggle {
 	width: auto;
-	max-width: fit-content;
 	cursor: pointer;
 	height: 22px;
 	line-height: 22px;
@@ -1643,4 +1663,23 @@ tr.selected {
 .possible_stacktypes > button.active, .possible_stacktypes > button:hover {
 	background: linear-gradient(#FB5000, #b74909) !important;
 	border-color: #FB5000 !important;
+}
+.select2-container {
+	width: 100% !important;
+}
+.select2-dropdown {
+	z-index: 9999;
+}
+.bootstrap-tagsinput {
+	border: 0;
+	box-shadow: none;
+	width: 100%;
+}
+.bootstrap-tagsinput > .label-info {
+	background-color: #E46A30;
+	font-size: 85%;
+	line-height: 2.5;
+}
+h5.widget-title > span {
+	float: left;
 }

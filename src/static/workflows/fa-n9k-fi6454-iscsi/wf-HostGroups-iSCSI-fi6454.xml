@@ -11,7 +11,7 @@
         <arg mapval="0" name="hgname" value="VM-HostGroup-iSCSI"/>
       </args>
     </task>
-   <task OnSuccess="None" Onfailure="None" desc="Adding host to host group" id="FAAddISCSIHostToHostGroup" inittask="0" label="Add Host To Host Group" name="FAAddISCSIHostToHostGroup" texecid="t303">
+    <task OnSuccess="None" Onfailure="None" desc="Adding host to host group" id="FAAddISCSIHostToHostGroup" inittask="0" label="Add Host To Host Group" name="FAAddISCSIHostToHostGroup" texecid="t303">
       <outputs>
         <output name="status" tvalue="Success" value="no-op"/>
       </outputs>
@@ -19,9 +19,8 @@
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
         <arg mapval="1" name="hgname" value="__t302.FACreateHostGroup.hgname"/>
-	<arg mapval="0" name="hosts" value=""/>
+        <arg mapval="0" name="hosts" value=""/>
       </args>
     </task>
   </tasks>
 </workflow>
-

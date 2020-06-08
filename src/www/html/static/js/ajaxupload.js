@@ -26,6 +26,7 @@ function uploadHandler(url, limitToOne, basePath, container, fileFormat, autoUpl
 		autoUpload: autoUpload,
 		acceptFileTypes: fileFormat,
 		maxFileSize: 0,
+		maxChunkSize: 1000000000,       //1000 MB
 		// Enable image resizing, except for Android and Opera,
 		// which actually support image resizing, but fail to
 		// send Blob objects via XHR requests:
@@ -58,7 +59,7 @@ function uploadHandler(url, limitToOne, basePath, container, fileFormat, autoUpl
 		node.find('span').first().after($('<span class="icon pull-right red-text fa fa-trash-alt remove-file" title="' + localization['remove'] + '" alt="' + localization['remove'] + '" />'));
 		if(file.error) {
 			node.find('button').first().before($('<span class="message pull-right red-text"/>').text(file.error));
-		}
+		} else $('.control-group.import_iso .files > .error-msg').remove();
 		if(index + 1 === data.files.length) {
 			data.context.find('button')
 				.text(localization['upload'])
@@ -83,6 +84,7 @@ function uploadHandler(url, limitToOne, basePath, container, fileFormat, autoUpl
 			$(data.context.children()[index]).find('span.message').remove();
 			var error = $('<span class="message pull-right red-text"/>').text(localization['failed-upload']);
 			$(data.context.children()[index]).find('button').first().before(error);
+			$(data.context.children()[index]).find('button').attr('disabled', 'disabled');
 		});
 		errorCallback(data.result);
 	}).prop('disabled', !$.support.fileInput)

@@ -7,7 +7,7 @@
 """
 
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file, get_global_wf_config_file, get_devices_wf_config_file
 from xml.dom.minidom import parse, parseString
 import xmltodict
@@ -162,3 +162,12 @@ def get_server_type():
         if device.getAttribute('device_type') == "UCSM":
             server_type = device.getAttribute('server_type')
             return server_type
+
+
+def get_ucs_upgrade():
+    xmldoc = parse(get_devices_wf_config_file())
+    devices = xmldoc.getElementsByTagName('device')
+    for device in devices:
+        if device.getAttribute('device_type') == "UCSM":
+            ucs_upgrade = device.getAttribute('ucs_upgrade')
+            return ucs_upgrade

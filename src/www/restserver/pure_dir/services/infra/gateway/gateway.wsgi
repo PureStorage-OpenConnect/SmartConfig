@@ -7,10 +7,7 @@
 ############################################################
 
 import sys
-import fcntl
-import yaml
 import json
-import requests
 import logging
 
 # Python virtual environment for this service
@@ -19,7 +16,7 @@ activate_this = python_home + 'bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 
 # Importing Infra Code
-from pure_dir.infra.logging.logmanager import *
+from pure_dir.infra.logging.logmanager import loginfo
 
 # Importing utils code
 py_basepath = "/var/www/restserver/pure_dir/services"

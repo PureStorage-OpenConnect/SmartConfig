@@ -2180,6 +2180,12 @@ definitions:
       mandatory:
         type: boolean
         description: Mandatory state
+      prefix:
+        type: string
+        description: Field prefix in basic view
+      suffix:
+        type: string
+        description: Field suffix in basic view
 
    WFTasksInputsResponse:
         type: object

@@ -9,6 +9,11 @@ paths:
         description: MAC address of the device
         required: false
         type: string
+      - in: query
+        name: initStage
+        description: MAC address of the device
+        required: false
+        type: string
       operationId: pdt_api.fscomponents
       summary: List of flashstack components
       security: []
@@ -147,7 +152,7 @@ paths:
         description: Type of flashstack component
         required: true
         type: string
-        enum: ['UCSM', 'Nexus_5k', 'Nexus_9k', 'MDS']
+        enum: ['UCSM', 'Nexus_5k', 'Nexus_9k', 'MDS', 'PURE']
       - in: query
         name: mac
         description: List of mac_addresses
@@ -319,8 +324,6 @@ definitions:
   ComponentConfigs:
     required:
     - device_type
-    - switch_ip
-    - switch_mac
     #- domain_name
     type: object
     properties:
@@ -348,6 +351,39 @@ definitions:
       mode:
         type: string
         description: UCS mode primary/secondary if in cluster or standalone
+      array_name:
+        type: string
+        description: FlashArray Hostname
+      ct0_ip:
+        type: string
+        description: FlashArray Controller0 IP address
+      ct1_ip:
+        type: string
+        description: FlashArray Controller1 IP address
+      vir0_ip:
+        type: string
+        description: FlashArray Virtual IP address
+      timezone:
+        type: string
+        description: Timezone 
+      relay_host:
+        type: string
+        description: SMTP Relay Host address
+      sender_domain:
+        type: string
+        description: Sender Domain address
+      alert_emails:
+        type: string
+        description: Alert Email addresses
+      organization:
+        type: string
+        description: Organization Name
+      full_name:
+        type: string
+        description: Full Name 
+      job_title:
+        type: string
+        description: Job Tiltle
 
   DHCPClientsResponse:
     required:
@@ -507,6 +543,11 @@ definitions:
         items:
           type: string
         description: List of NEXUSs
+      PURE:
+        type: array
+        items:
+          type: string
+        description: List of FlashArrays
 
   DeleteDeviceResponse:
     required:

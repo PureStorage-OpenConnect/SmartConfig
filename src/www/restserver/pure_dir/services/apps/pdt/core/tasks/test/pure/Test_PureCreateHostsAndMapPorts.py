@@ -1,6 +1,6 @@
 from pure_dir.infra.apiresults import PTK_OKAY
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.components.common import *
+from pure_dir.components.common import result
 
 
 class Test_PureCreateHostsAndMapPorts:

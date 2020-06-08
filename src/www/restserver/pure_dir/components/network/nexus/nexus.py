@@ -13,9 +13,11 @@ import xmltodict
 import json
 import urllib2
 import re
+import copy
 
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_CLIERROR, PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
+from pure_dir.services.utils.miscellaneous import find_dict_val, get_value
 
 
 class Nexus:
@@ -103,6 +105,33 @@ class Nexus:
             loginfo("Error msg: " + str(e.reason))
             return None
 
+    def get_mac_address_table(self):
+        """
+        Gets the nexus switch name
+
+        :return: Returns the switch name
+        """
+        try:
+            sys_op = self.handle.show('show mac address-table', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                cdp_list = op_dict['ins_api']['outputs']['output']['body']['TABLE_mac_address']['ROW_mac_address']
+                keys_list = ['disp_mac_addr', 'disp_port', 'disp_type']
+                cdp_remote_list = [dict((k, hw[k])for k in keys_list) for hw in cdp_list]
+                return cdp_remote_list
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
     def get_model_and_serial(self):
         """
         Gets the nexus switch model and serial number
@@ -120,6 +149,47 @@ class Nexus:
                 model = "Cisco " + sys_output['productid']
                 serial_no = sys_output['serialnum']
                 return model, serial_no
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def get_cdp_neighbours(self):
+        """
+        Gets the nexus switch name
+
+        :return: Returns the switch name
+        """
+	neighbors = []
+        try:
+            sys_op = self.handle.show('show cdp neighbors', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                cdp_list = op_dict['ins_api']['outputs']['output']['body']['TABLE_cdp_neighbor_brief_info']['ROW_cdp_neighbor_brief_info']
+                keys_list = ['platform_id', 'device_id', 'intf_id', 'port_id']
+                cdp_remote_list = [dict((k, hw[k])for k in keys_list)
+                                   for hw in cdp_list if 'mgmt' not in hw['port_id']]
+
+	        for hw in cdp_remote_list:
+		    neighbor = {}
+		    port_detail = self.get_interface_details(hw['intf_id'])
+		    neighbor = {'local_interface': hw['intf_id'],
+                                'remote_interface': hw['port_id'],
+                                'remote_device': re.compile('(.+)\(').search(hw['device_id']).group(1),
+			        'type': port_detail['type'],
+			        'speed': port_detail['speed'],
+			        'pc': port_detail['pc'],
+			        'state': port_detail['state']}
+		    neighbors.append(neighbor)
+	        return neighbors
 
         except error.CLIError as e:
             loginfo("CLI Error: " + str(e.err))
@@ -156,6 +226,84 @@ class Nexus:
             return eth_intf
         except BaseException:
             return eth_intf
+
+    def get_interface_details(self, iface_id):
+        """
+        Gets the interface details
+
+        :param iface_id: Interface id
+
+        :return: Returns the interface list
+        """
+        iface_details = {}
+        try:
+            iface_op = self.handle.show(
+                'show interface %s' % iface_id, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(iface_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(iface_op[1])
+                iface_struct = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']
+		iface_details['interface'] = iface_struct['interface']
+                iface_details['speed'] = iface_struct['eth_speed']
+                iface_details['media'] = iface_struct['eth_media']
+		pc_id = iface_struct.get('eth_bundle', None)
+	        if pc_id is not None:
+		    iface_details['pc'] = [x for x in self.get_pc_list() if x['id']==pc_id][0]
+                else:
+		    iface_details['pc'] = None
+                iface_details['state'] = iface_struct['state']
+                iface_details['type'] = iface_struct['eth_hw_desc'].split(' ')[-1]
+                return iface_details
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def get_n5k_fc_interface_details(self, iface_id):
+        """
+        Gets the interface details
+
+        :param iface_id: Interface id
+
+        :return: Returns the interface list
+        """
+        iface_details = {}
+        try:
+            iface_op = self.handle.show(
+                'show interface %s' % iface_id, fmat='json', text=True)
+            cli_error = self.handle.cli_error_check(json.loads(iface_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(iface_op[1])
+                iface_struct = op_dict['ins_api']['outputs']['output']['body']
+		iface_details['interface'] = re.search('(.*) is (.*)', iface_struct.split('\n')[0]).group(1) 
+                iface_details['speed'] = re.search('.*Speed is (.*)\n', iface_struct).group(1)
+                iface_details['media'] = re.search('.*Speed is (.*)\n', iface_struct).group(1)
+		pc_id = re.search('.*Belongs to san-port-channel (.*)\n', iface_struct)
+                if pc_id is not None:
+		    iface_details['pc'] = [x for x in self.get_pc_list() if x['id']=='Po'+pc_id.group(1)][0]
+                else:
+		    iface_details['pc'] = None
+                iface_details['state'] = re.search('(.*) is (.*)', iface_struct.split('\n')[0]).group(2)
+                iface_details['type'] = re.search('.*Hardware is (.*),.*\n', iface_struct).group(1)
+                return iface_details
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
 
     def get_slot_list(self):
         """
@@ -309,6 +457,34 @@ class Nexus:
             loginfo("Error msg: " + str(e.reason))
             return None
 
+    def get_nexus_sys_ks_version(self):
+        """
+        Gets the system and kickstart version from nexus switch
+
+        :return: Returns the version
+        """
+        try:
+	    version_details = {}
+            sys_op = self.handle.show('show version', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                version_details_dict = op_dict['ins_api']['outputs']['output']['body']
+		version_details['system_version'] = version_details_dict['rr_sys_ver'] 
+		version_details['kickstart_version'] = version_details_dict['kickstart_ver_str']
+		return version_details
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+
     def configure_portchannel(self, handle, pc_id, interface_list):
         """
         Configures port-channel in nexus switch
@@ -456,10 +632,12 @@ class Nexus:
                 iface_output = op_dict['ins_api']['outputs']['output']['body']
                 for row in iface_output.split('\n'):
                     if row.startswith('san-port-channel'):
+			iface_dict = {}
                         tmp_list = [x for x in row.split(' ') if x != '']
-                        iface_dict = {}
                         iface_dict['iface_id'] = tmp_list[1].encode('utf-8')
                         iface_list.append(iface_dict)
+		    else:
+			continue
 
                 obj.setResult(iface_list, PTK_OKAY, "Success")
                 return obj
@@ -475,6 +653,48 @@ class Nexus:
             obj.setResult(iface_list, PTK_NOTEXIST,
                           "Could not connect to switch")
             return obj
+
+    def get_ether_portchannel_list(self):
+        vpc_list = []
+        try:
+            vpc_op = self.handle.show('show vpc brief', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(vpc_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(vpc_op[1])
+                vpc = op_dict['ins_api']['outputs']['output']['body']
+                vpc_interfaces = vpc['TABLE_vpc']['ROW_vpc']
+                if type(vpc_interfaces) == dict:
+                    vpc_interfaces = [vpc_interfaces]
+                for x in vpc_interfaces:
+                    if x['vpc-port-state'] in ['enabled', '1']:
+                        vpc_list.append({'id':str(x['vpc-ifindex']), 'type':'vPC'})
+
+                vpc_peer_interfaces = vpc['TABLE_peerlink']['ROW_peerlink']
+                if type(vpc_peer_interfaces) == dict:
+                    vpc_peer_interfaces = [vpc_peer_interfaces]
+                for x in vpc_peer_interfaces:
+                    if x['peer-link-port-state'] in ['enabled', '1']:
+                        vpc_list.append({'id':str(x['peerlink-ifindex']), 'type':'vPC Peer'})
+                return vpc_list
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return vpc_list
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return vpc_list
+
+    def get_pc_list(self):
+        fc_pc_list = self.get_portchannel_list().getResult() 
+        fc_pc_list = [{'id':'Po'+str(x['iface_id']), 'type':'FC PC'} for x in fc_pc_list]
+        eth_pc_list = self.get_ether_portchannel_list()
+        pc_list = fc_pc_list + eth_pc_list
+        return pc_list
+
 
     def getfc_list(self, slot, ports):
         """
@@ -533,14 +753,14 @@ class Nexus:
                             iface_notpc_list.append(iface)
                     if pc_bind:
                         loginfo(
-                            "Nexus interface list which are binded to port channel: " +
-                            str(iface_pc_list))
+                            "Nexus interface list which are binded to port channel: " + pc_bind + " are" + 
+                            str([iface['iface_id'] for iface in iface_pc_list]))
                         obj.setResult(iface_pc_list, PTK_OKAY, "Success")
                         return obj
                     elif pc_bind == False:
                         loginfo(
                             "Nexus interface list which are not binded to port channel: " +
-                            str(iface_notpc_list))
+                            str([iface['iface_id'] for iface in iface_notpc_list]))
                         obj.setResult(iface_notpc_list, PTK_OKAY, "Success")
                         return obj
                     else:
@@ -1508,3 +1728,226 @@ class Nexus:
             loginfo("Failed to set Nexus password")
             loginfo("Error msg: " + str(e.reason))
             return False
+
+    def nexus_uptime(self):
+        """
+        nexus report helper function
+        returns system uptime
+        """
+        nexus_uptime = {}
+        try:
+            nexus_out = self.handle.show('show system uptime', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(nexus_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(nexus_out[1])
+                nexus_sys = out_dict['ins_api']['outputs']['output']['body']
+                nexus_uptime['uptime'] = (str(nexus_sys['sys_up_days']) + " days," + str(nexus_sys['sys_up_hrs']) + " hrs," +
+                                           str(nexus_sys['sys_up_mins']) + " mins," + str(nexus_sys['sys_up_secs']) + " secs")
+                return nexus_uptime
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+
+    def nexus_command(self, cmd, key, **kwargs):
+        """
+        report helper function helps to execute a command on mds
+        return: value of given key
+        """
+        try:
+            nexus_out = self.handle.show(cmd, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(nexus_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(nexus_out[1])
+                dict_value = get_value(key, out_dict, **kwargs)
+                return dict_value
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def nexus_config_command(self, cmd, key, **kwargs):
+        """
+        report helper function helps to execute a command on mds
+        return: value of given key
+        """
+        try:
+            nexus_out = self.handle.config(cmd, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(nexus_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(nexus_out[1])
+                dict_value = get_value(key, out_dict, **kwargs)
+                return dict_value
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def nexus_vsan_details(self):
+        """
+        get nexus5k vsan details
+        return: vsan_name, vsan state, interoperability mode, vsan operational state
+        """
+        nexus_vsan_details = []
+        list_out = []
+        tmp_list = []
+        try:
+            nexus_out = self.handle.config('show vsan', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(nexus_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(nexus_out[1])
+                nexus_sys = out_dict['ins_api']['outputs']['output']['body']
+                nexus_val = nexus_sys.encode('utf-8').split('\n')
+                for val in nexus_val:
+                    vsan_elem = val.strip(' ')
+                    if "name" in vsan_elem:
+                        rep = vsan_elem.replace('state', 'vsan_state')
+                        [tmp_list.append(i) for i in rep.split(' ') if "" != i]
+                    else:
+                        if ":" in val:
+                            tmp_list.append(val.strip())
+ 
+                tmp_dict = {'vsan_name': [], 'vsan_interop_mode': [], 'vsan_load_balancing': [],
+                            'vsan_operational_state': [], 'vsan_state': []}
+                for elem in tmp_list:
+                    if "name" in elem:
+                        tmp_dict['vsan_name'].append(elem.split(':')[-1])
+                    elif "interoperability" in elem:
+                        tmp_dict['vsan_interop_mode'].append(elem.split(':')[-1])
+                    elif "loadbalancing" in elem:
+                        tmp_dict['vsan_load_balancing'].append(elem.split(':')[-1])
+                    elif "operational" in elem:
+                        tmp_dict['vsan_operational_state'].append(elem.split(':')[-1])
+                    elif "vsan_state" in elem:
+                        tmp_dict['vsan_state'].append(elem.split(':')[-1])
+                
+                final_dict={}
+                for i in range(len(tmp_dict['vsan_name'])):
+                    final_dict['vsan_name'] = tmp_dict['vsan_name'][i]
+                    final_dict['vsan_interop_mode'] = tmp_dict['vsan_interop_mode'][i]
+                    final_dict['vsan_load_balancing'] = tmp_dict['vsan_load_balancing'][i]
+                    final_dict['vsan_operational_state'] = tmp_dict['vsan_operational_state'][i]
+                    final_dict['vsan_state'] = tmp_dict['vsan_state'][i]
+                    nexus_vsan_details.append(copy.deepcopy(final_dict))
+                return nexus_vsan_details
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def nexus_zoneset_details(self):
+        """
+        get nexus5k vsan details
+        return: vsan_name, vsan state, interoperability mode, vsan operational state
+        """
+        zoneset_details = []
+        tmp_list = []
+        try:
+            nexus_out = self.handle.config('show zone', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(nexus_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(nexus_out[1])
+                nexus_sys = out_dict['ins_api']['outputs']['output']['body']
+                tmp_val = nexus_sys.encode('utf-8').split('\n')
+                nexus_val = [i.strip() for i in tmp_val]
+                for i in nexus_val:
+                    if 'pwwn' in i:
+                        tmp_list.append(i.split('[')[0].rstrip())
+                    elif 'vsan' in i:
+                        tmp_list.append(i.split('vsan')[0].rstrip().split('zone')[1].lstrip())
+                    else:
+                        tmp_list.append(i)
+
+                name_l = []
+                pwwn_l = []            
+                for i in tmp_list:
+                    if 'name' in i:
+                        name_l.append(i.split(' ')[1])
+                    elif 'pwwn' in i:
+                        pwwn_l.append(i.split(' ')[1])
+                    elif i == '':
+                        pwwn_l.append(' ')
+                
+                for i in range(len(name_l)):
+                    dicto = {'zone_name' : "", 'wwn' : []}
+                    dicto['zone_name'] = name_l[i]
+                    for j in range(i,i+5):
+                        dicto['wwn'].append(pwwn_l[j])
+                    zoneset_details.append(copy.deepcopy(dicto))
+                return zoneset_details
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def feature_list(self):
+        """
+        Gets the nexus feature list for nexus5k
+
+        :return: status of lacp, vpc,interface-vlan
+        """
+        nexus_sys = {}
+        tmp_list = []
+        try:
+            sys_op = self.handle.config('show feature', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                sys_output = op_dict['ins_api']['outputs']['output']['body']
+                nexus_val = sys_output.encode('utf-8').split("\n")
+                for i in nexus_val:
+                    val=i.split(" ")
+                    str_list = list(filter(None, val))
+                    tmp_list.append("".join([g for g in str_list]))
+                
+                for i in tmp_list:
+                    if "lacp" in i:
+                        nexus_sys['lacp'] = i.split('lacp')[1][1:]
+                    elif "vpc" in i:
+                        nexus_sys['vpc'] = i.split('vpc')[1][1:]
+                    elif "interface-vlan" in i:
+                        nexus_sys['interface-vlan'] = i.split('interface-vlan')[1][1:]
+                return nexus_sys
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None

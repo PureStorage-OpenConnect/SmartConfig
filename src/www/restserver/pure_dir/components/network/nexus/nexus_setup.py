@@ -3,12 +3,12 @@ from pure_dir.services.utils.miscellaneous import *
 from pure_dir.infra.logging.logmanager import *
 from pure_dir.services.utils.ipvalidator import *
 from pure_dir.components.common import *
+from pure_dir.global_config import get_settings_file, get_discovery_store
 import os
 import time
 import glob
 import json
 
-static_discovery_store = "/mnt/system/pure_dir/pdt/devices.xml"
 
 poap_n9k_py_template = "/mnt/system/pure_dir/pdt/templates/components/nexus/poap.n9k.py.template"
 poap_n5k_py_template = "/mnt/system/pure_dir/pdt/templates/components/nexus/poap.n5k.py.template"
@@ -73,7 +73,7 @@ class NEXUSSetup:
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
-        add_xml_element(static_discovery_store, data)
+        add_xml_element(get_discovery_store(), data)
 
     def _save_nexus_5k_details(
             self,
@@ -121,7 +121,7 @@ class NEXUSSetup:
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
-        add_xml_element(static_discovery_store, data)
+        add_xml_element(get_discovery_store(), data)
 
     def nexus9kconfigure(self, data):
         """
@@ -138,7 +138,7 @@ class NEXUSSetup:
         loginfo(data)
 
         update_xml_element(
-            static_discovery_store,
+            get_discovery_store(),
             matching_key="mac",
             matching_value=data['switch_mac'],
             data={
@@ -195,7 +195,7 @@ class NEXUSSetup:
         loginfo(data)
 
         update_xml_element(
-            static_discovery_store,
+            get_discovery_store(),
             matching_key="mac",
             matching_value=data['switch_mac'],
             data={
@@ -204,7 +204,7 @@ class NEXUSSetup:
                     time.time())})
 
         stacktype = get_xml_element(
-            "/mnt/system/pure_dir/pdt/settings.xml", "stacktype")[1][0]['stacktype']
+            get_settings_file(), "stacktype")[1][0]['stacktype']
         if "fc" in stacktype:
             self.createconfig(
                 data['switch_name'],
@@ -385,13 +385,17 @@ class NEXUSSetup:
         res = result()
         images = [os.path.basename(fn) for fn in glob.glob(
             '/mnt/system/uploads/nxos.*')]
-        version_lst = list(
-            set([re.search('nxos.(.+?).I', x).group(1) for x in images]))
-        version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
-        images = [ks for ver in version_lst for ks in filter(
-            lambda x: ver in x, images)]
-        res.setResult(images, PTK_OKAY, "success")
-        return res
+        try:
+            version_lst = list(
+                set([re.search('\.(.+?)\.([a-zA-Z]\d*\.|bin)', x).group(1) for x in images]))
+            version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
+            images = [ks for ver in version_lst for ks in filter(
+                lambda x: ver in x, images)]
+            res.setResult(images, PTK_OKAY, "success")
+            return res
+        except BaseException:
+            res.setResult([], PTK_OKAY, "success")
+            return res
 
     def nexus5kkickstartimages(self):
         """
@@ -402,13 +406,17 @@ class NEXUSSetup:
         res = result()
         images = [os.path.basename(fn) for fn in glob.glob(
             '/mnt/system/uploads/n5000-uk9-kickstart.*')]
-        version_lst = list(
-            set([re.search('n5000-uk9-kickstart.(.+?).N', x).group(1) for x in images]))
-        version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
-        images = [ks for ver in version_lst for ks in filter(
-            lambda x: ver in x, images)]
-        res.setResult(images, PTK_OKAY, "success")
-        return res
+        try:
+            version_lst = list(
+                set([re.search('n5000-uk9-kickstart.(.+?).N', x).group(1) for x in images]))
+            version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
+            images = [ks for ver in version_lst for ks in filter(
+                lambda x: ver in x, images)]
+            res.setResult(images, PTK_OKAY, "success")
+            return res
+        except BaseException:
+            res.setResult([], PTK_OKAY, "success")
+            return res
 
     def nexus5ksystemimages(self):
         """
@@ -419,12 +427,39 @@ class NEXUSSetup:
         res = result()
         images = [os.path.basename(fn) for fn in glob.glob(
             '/mnt/system/uploads/n5000-uk9.*')]
-        version_lst = list(
-            set([re.search('n5000-uk9.(.+?).N', x).group(1) for x in images]))
-        version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
-        images = [ks for ver in version_lst for ks in filter(
-            lambda x: ver in x, images)]
-        res.setResult(images, PTK_OKAY, "success")
+        try:
+            version_lst = list(
+                set([re.search('n5000-uk9.(.+?).N', x).group(1) for x in images]))
+            version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
+            images = [ks for ver in version_lst for ks in filter(
+                lambda x: ver in x, images)]
+            res.setResult(images, PTK_OKAY, "success")
+            return res
+        except BaseException:
+            res.setResult([], PTK_OKAY, "success")
+            return res
+
+    def nexus5kvalidateimages(self, data):
+        """
+        Validates the Nexus 5k kickstart-system images version provided for Nexus5k Configuration
+
+        :param data: Dictionary (switch_kickstart_image, switch_system_image)
+
+        :return: Returns the validation status
+        """
+        res = result()
+        if re.match(
+                re.sub(
+                    '-kickstart',
+                    '',
+                    data['switch_kickstart_image']),
+                data['switch_system_image']):
+            loginfo("Images correctly selected")
+            res.setResult(True, PTK_OKAY, "Firmware images validated")
+        else:
+            loginfo("Images incorrectly selected")
+            res.setResult(False, PTK_PRECHECKFAILURE,
+                          "Mismatch in selected firmware images")
         return res
 
     def nexusvalidate(self, data, model):
@@ -451,6 +486,16 @@ class NEXUSSetup:
                  'switch_kickstart_image': 'Kickstart image', 'switch_serial_no': 'Serial number',
                  'pri_passwd': 'Password', 'conf_passwd': 'Confirm password',
                  'switch_vendor': 'Switch vendor'}, data)
+        
+            firmware_valid = self.nexus5kvalidateimages({'switch_kickstart_image':data['switch_kickstart_image'], 'switch_system_image':data['switch_system_image']}).getResult()
+            if firmware_valid is False:
+                ret.append({"field": "switch_system_image",
+                    "msg": "Select similar system and kickstart version"})
+                ret.append({"field": "switch_kickstart_image",
+                    "msg": "Select similar system and kickstart version"})
+                res.setResult(ret, PTK_INTERNALERROR,
+                    "Make sure details are correct")
+                return res
 
         if data['pri_passwd'] != data['conf_passwd']:
             ret.append({'field': 'conf_passwd',
@@ -476,19 +521,6 @@ class NEXUSSetup:
                           "Make sure details are correct")
             return res
         else:
-            if model == "n5k":
-                system_ver = re.search(
-                    'n5000-uk9.(.+?).bin', data['switch_system_image']).group(1)
-                kickstart_ver = re.search(
-                    'n5000-uk9-kickstart.(.+?).bin', data['switch_kickstart_image']).group(1)
-                if system_ver != kickstart_ver:
-                    ret.append({"field": "switch_system_image",
-                                "msg": "Select similar system and kickstart version"})
-                    ret.append({"field": "switch_kickstart_image",
-                                "msg": "Select similar system and kickstart version"})
-                    res.setResult(ret, PTK_INTERNALERROR,
-                                  "Make sure details are correct")
-                    return res
             ipv = IpValidator()
             network_reach, ip_reach = ipv.validate_ip(
                 data['switch_ip'], data['switch_netmask'], data['switch_gateway'])

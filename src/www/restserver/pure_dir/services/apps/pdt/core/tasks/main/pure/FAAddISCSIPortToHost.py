@@ -147,8 +147,8 @@ class FAAddISCSIPortToHost:
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
         blade_len = self.ucsm_get_associated_sp_cnt(
             keys)
+        iqn_suffix = self.ucsm_get_iqn_suffix(keys)
         host_prefix = ""
-        print "iqn prefix came in prepare is ", iqn_prefix
         mdata = ""
         port_list = []
         mhosts = "{'hosts': {'ismapped': '0', 'value':'"
@@ -156,13 +156,39 @@ class FAAddISCSIPortToHost:
         for pre in range(1, blade_len + 1):
             host_prefix = "VM-Host-iSCSI-" + str(pre).zfill(2)
             port_list = []
-            port_list.append(str(iqn_prefix) + ":ucs-host:" + str(pre))
+            port_list.append(str(iqn_prefix) + ":" + iqn_suffix + ":" + str(pre))
             mdata += mhosts + host_prefix + "'}," + \
                 mports + str(port_list[0]) + "'}}|"
         job_input_save(jobid, texecid, 'host_set', mdata[:-1])
 
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
+
+    def ucsm_get_iqn_suffix(self, keys):
+        """
+        :param keys: key for fabric id value
+        :type taskinfo: str
+        :returns: count of service profiles
+        :rtype: list
+
+        """
+        fabricid = getArg(keys, 'fabric_id')
+
+        if fabricid is None:
+            return 0
+
+        res = get_ucs_login(fabricid)
+        if res.getStatus() != PTK_OKAY:
+            return 0
+
+        handle = res.getResult()
+        iqn = handle.query_classid("iqnpoolBlock")
+        ucsm_logout(handle)
+        if iqn[0] == "":
+            loginfo("IQN suffix is " + iqn)
+            return ""
+        else:
+            return iqn[0].suffix
 
     def ucsm_get_associated_sp_cnt(self, keys):
         """
@@ -216,13 +242,18 @@ class FAAddISCSIPortToHost:
             return res
 
         iqn_prefix = get_global_arg_from_jid(jobid, 'IQN-Prefix')
+        iqn_suffix = self.ucsm_get_iqn_suffix(keys)
 
         if iqn_prefix is None:
             res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
 
+        if iqn_suffix is None:
+            res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
+            return res
+
         for pre in range(1, blade_len + 1):
-            iqn = str(iqn_prefix) + ":ucs-host:" + str(pre)
+            iqn = str(iqn_prefix) + ":" + iqn_suffix + ":" + str(pre)
             mdata.append({"id": str(iqn), "selected": "0", "label": str(iqn)})
         res.setResult(mdata, PTK_OKAY, "success")
         return res

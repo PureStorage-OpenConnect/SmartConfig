@@ -138,3 +138,19 @@ msgstr "Unable to login to the Nexus"
 msgid "PDT_FA_LOGIN_FAILURE"
 msgstr "Unable to login to the FlashArray"
 
+# Global labels for csv import
+
+msgid "PDT_GL_GATEWAY"
+msgstr "Gateway Address"
+
+msgid "PDT_GL_NTP"
+msgstr "NTP address"
+
+msgid "PDT_JSON_IMPORT_INVALID_STACKTYPE"
+msgstr "Invalid JSON: Error in Stacktype"
+
+msgid "PDT_JSON_IMPORT_INVALID_VERSION"
+msgstr "Invalid JSON: Unsupported version"
+
+msgid "PDT_JSON_IMPORT_INVALID_JSON"
+msgstr "Invalid JSON"

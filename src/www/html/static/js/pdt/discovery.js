@@ -1,16 +1,12 @@
-var NEXUSForConfigure = [], MDSForConfigure = [], UCSForConfigure = [];
+var NEXUSForConfigure = [], MDSForConfigure = [], UCSForConfigure = [], FAForConfigure = [];
 $(document).ready(function() {
 	/**
 	  * @desc event registration for selecting/deselecting a device.
 	*/
-	$('body').delegate('.networkinfo.elementInfo', 'click', function(e) {
+	$('body').delegate('.networkinfo.elementInfo:not(.non-selectable)', 'click', function(e) {
 		if($(this).hasClass('In-progress')) return false;
 		selectElement($(this));
 		return false;
-	});
-	$('body').delegate('.networkinfo.elementInfo .devices', 'click', function(e) {
-		e.stopPropagation();
-		selectElement($(this).closest('.networkinfo.elementInfo'));
 	});
 
 	/**
@@ -19,7 +15,7 @@ $(document).ready(function() {
 	$('body').delegate('.iso-library', 'click', function(e) {
 		e.stopPropagation();
 		var parent = '', subtypes = {'UCSM': ['ESXi', 'ESXi-kickstart', 'UCS-infra', 'UCS-blade'], 'MDS': ['MDS', 'MDS-kickstart'],'Nexus':['Nexus 5k','Nexus 9k','Nexus 5k-kickstart']};
-		var buttons = {"close": closeModel}, file_format = {type: 'bin', format: /(\.|\/)(bin)$/i};
+		var buttons = {"close": closeModel}, file_format = {type: 'bin, gbin', format: /(\.|\/)(bin|gbin)$/i};
 		var attr = $(this).attr('type'), file = $(this).attr('file');
 		Object.keys(subtypes).some(function(key) {
 			if($.inArray(attr, subtypes[key]) > -1) {
@@ -105,6 +101,11 @@ $(document).ready(function() {
 	  * @desc event registration for importing the selected image to library.
 	*/
 	$('body').delegate('#importBtn', 'click', function(e) {
+		$('.control-group.import_iso .files > .error-msg').remove();
+		if($('.control-group.import_iso .files button:not(:disabled)').length == 0) {
+			$('.control-group.import_iso .files').prepend('<div class="red-text error-msg">Please select a file to upload</div>');
+			return false;
+		}
 		doImport('.modal-inset', '.import_iso', true, function(response) {
 			var attr = $('#list-images').attr('type');
 			loadImages('.tab-content', attr, '');
@@ -114,7 +115,7 @@ $(document).ready(function() {
 	/**
 	  * @desc event registration for selecting/deselecting an image from the library.
 	*/
-	$('body').delegate('.images-list tr', 'click', function(e) {
+	$('body').delegate('.images-list tr:not(.head)', 'click', function(e) {
 		$('.images-list tr').removeClass('selected');
 		$(this).addClass('selected');
 	});
@@ -229,7 +230,11 @@ $(document).ready(function() {
 			obj = $('.device-initialization tr.failed[type="UCSM"][mac!="' + mac + '"]');
 			mac += ',' + $('.device-initialization tr.failed[type="UCSM"][mac!="' + mac + '"]').attr('mac');
 		}
-		doAjaxRequest({url: 'Reconfigure', base_path: settings.base_path, method: 'GET', query: {hwtype: elem.find('.device-type').text().replace(' ', '_'), mac: mac}, container: '.model-inset'}, function(response) {
+		doAjaxRequest({url: 'Reconfigure', base_path: settings.base_path, method: 'GET', query: {hwtype: elem.find('.device-type').text().replace(' ', '_'), mac: mac}, container: '.smartwidget'}, function(response) {
+			$('.ucsm.ucsm-configure').remove();
+			$('.mds.block.mds_0, .mds.block.mds_1').remove();
+			$('.nexus.block.nexus_0, .nexus.block.nexus_1').remove();
+			$('.flasharray.block.fa_0').remove();
 			response.data = $.parseJSON(response.data);
 			openModel({title: 'Re-initialize Confirmation', body: str, buttons: {
 				"no": closeModel,
@@ -254,12 +259,16 @@ $(document).ready(function() {
 						case 'UCSM':
 							postUCSMForm();
 							break;
+						case 'PURE':
+							isPUREConfigured = false;
+							postFAForm(0, 0);
+							break;
 					}
 				}
 			}});
 			UCSForConfigure = [];
-			str = loadFormTemplate({type: 'ipbox', id: 'common_netmask', label: localization['mgmt-netmask'], readonly: true, maxlength: 3, holder: 'netmask switch_netmask col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) + 
-			loadFormTemplate({type: 'ipbox', id: 'common_gateway', label: localization['default-gateway'], readonly: true, maxlength: 3, holder: 'gateway switch_gateway col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true});
+			str = loadFormTemplate({id: 'common_netmask', label: localization['mgmt-netmask'], readonly: true, class: 'ipaddress', holder: 'netmask switch_netmask col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) + 
+			loadFormTemplate({id: 'common_gateway', label: localization['default-gateway'], readonly: true, class: 'ipaddress', holder: 'gateway switch_gateway col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true});
 			switch(elem.find('.device-type').text()) {
 				case 'UCSM':
 					UCSForConfigure.push({
@@ -280,9 +289,9 @@ $(document).ready(function() {
 					}
 					str += loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
-					loadFormTemplate({type: 'ipbox', id: 'ntp_server', label: localization['ntp-server'], readonly: true, maxlength: 3, holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+					loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
-					loadFormTemplate({type: 'ipbox', id: 'dns', label: localization['dns-ip'], maxlength: 3, holder: 'ucsm-primary dns nameserver col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+					loadFormTemplate({id: 'dns', label: localization['dns-ip'], class: 'ipaddress', holder: 'ucsm-primary dns nameserver col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadUCSMForm(1);
 					$('#form-body .mCSB_container').append(str);
 					break;
@@ -291,7 +300,7 @@ $(document).ready(function() {
 						str += loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
-						loadFormTemplate({type: 'ipbox', id: 'ntp_server', label: localization['ntp-server'], readonly: true, maxlength: 3, holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadMDSForm({
 							type: elem.find('.device-type').text(), 
 							serial: elem.find('.serial_no').text(), 
@@ -314,7 +323,7 @@ $(document).ready(function() {
 						str += loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
-						loadFormTemplate({type: 'ipbox', id: 'ntp_server', label: localization['ntp-server'], readonly: true, maxlength: 3, holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadNEXUSForm({
 							type: elem.find('.device-type').text(), 
 							serial: elem.find('.serial_no').text(), 
@@ -336,6 +345,23 @@ $(document).ready(function() {
 						}
 					str += '</div>';
 					$('#form-body .mCSB_container').append(str);
+					break;
+				case 'PURE':
+					str += '<div class="basic-view">';
+						str += loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
+						loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						loadFormTemplate({id: 'dns', label: localization['dns-ip'], class: 'ipaddress', holder: 'ucsm-primary dns nameserver col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						loadFAForm({
+							type: elem.find('.device-type').text(), 
+							serial: elem.find('.serial_no').text(), 
+							ip: elem.find('.ip_address').text(),
+							mac: elem.find('.mac_address').text(),
+							vendor: elem.find('.vendor').text()
+						}, 0, true, 'col-lg-12 col-md-12 col-sm-12 col-xs-12');
+					str += '</div>';
+					$('#form-body .mCSB_container').append(str);
+					bindTagifyEvent('#fa_alert_emails_0', 'Add an email', /^[a-zA-Z0-9.!#$%&â€™*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
+					loadTimezone();
 					break;
 			}
 			$.when(
@@ -371,7 +397,7 @@ $(document).ready(function() {
 								$('#form-body .ucsm-subordinate.pri_ip').removeClass('hide');
 								plotValuesByDom($('#form-body .pri_ip'), response.data[0]['pri_ip']);
 								$('#form-body .virtual_ip .task-input, #form-body .switch_name .task-input, #form-body .pri_ip .task-input').attr('readonly', 'readonly');
-								$('#form-body .virtual_ip, #form-body .pri_passwd, #form-body .conf_passwd, #form-body .esxi_file, #form-body .domain_name, #form-body .ucs_firmware, #form-body .ucs_upgrade, #form-body .dns.nameserver').remove();
+								$('#form-body .pri_passwd, #form-body .conf_passwd, #form-body .esxi_file, #form-body .esxi_kickstart, #form-body .domain_name, #form-body .ucs_firmware, #form-body .ucs_upgrade, #form-body .dns.nameserver').remove();
 							}
 							$('.toggle-select.component_type').toggles({type: 'select', on: server_type, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'Rack Server', off: 'Blade Server'}}).toggleClass('disabled', true);
 							$('.toggle-select.mode').toggles({type: 'select', on: false, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['standalone'], off: localization['cluster']}});
@@ -379,6 +405,7 @@ $(document).ready(function() {
 							break;
 						case 'MDS':
 							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							if(typeof response.data[0]['domain_name'] != 'undefined') $('#form-body #domainName').val(response.data[0]['domain_name']);
 							$('#form-body #mds_switch_name_0').val(response.data[0]['switch_name']);
 							$('#form-body #mds_switch_system_image').val(response.data[0]['switch_image']['switch_system_image']);
 							$('#form-body #mds_switch_kickstart_image').val(response.data[0]['switch_image']['switch_kickstart_image']);
@@ -389,6 +416,7 @@ $(document).ready(function() {
 						case 'Nexus 5k':
 						case 'Nexus 9k':
 							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							if(typeof response.data[0]['domain_name'] != 'undefined') $('#form-body #domainName').val(response.data[0]['domain_name']);
 							if(response.data[0]['switch_tag'] == 'B') flag = false;
 							$('#form-body #nexus_switch_name_0').val(response.data[0]['switch_name']);
 							if(elem.find('.device-type').text() == 'Nexus 9k')
@@ -399,6 +427,27 @@ $(document).ready(function() {
 							}
 							plotValuesByDom($('#form-body .switch_ip'), response.data[0]['switch_ip']);
 							$('.toggle-select.nexusSwitch_0').toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'A', off: 'B'}}).addClass('disabled');
+							break;
+						case 'PURE':
+							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							plotValuesByDom($('#form-body .dns'), response.data[0]['dns']);
+							plotValuesByDom($('#form-body .domain_name'), response.data[0]['domain_name']);
+							plotValuesByDom($('#form-body .switch_netmask'), response.data[0]['netmask']);
+							plotValuesByDom($('#form-body .switch_gateway'), response.data[0]['gateway']);
+
+							$('#form-body #fa_array_name_0').val(response.data[0]['array_name']);
+							$('#form-body #fa_vir0_ip_0').val(response.data[0]['vir0_ip']);
+							$('#form-body #fa_ct0_ip_0').val(response.data[0]['ct0_ip']);
+							$('#form-body #fa_ct1_ip_0').val(response.data[0]['ct1_ip']);
+							$('#form-body #fa_relay_host_0').val(response.data[0]['relay_host']);
+							$('#form-body #fa_sender_domain_0').val(response.data[0]['sender_domain']);
+							$('#form-body #fa_organization_0').val(response.data[0]['organization']);
+							$('#form-body #fa_full_name_0').val(response.data[0]['full_name']);
+							$('#form-body #fa_job_title_0').val(response.data[0]['job_title']);
+							$('#form-body #fa_timezone_0').val([response.data[0]['timezone']]).trigger('change');
+							$.each(response.data[0]['alert_emails'].split(","), function(i, value) {
+								$('#form-body #fa_alert_emails_0').tagsinput('add', trimChar(value, " "));
+							});
 							break;
 					}
 					toggleSwitches();
@@ -427,6 +476,16 @@ $(document).ready(function() {
 			else $('.ucsm-configure .ucs_upgrade.blade_image').removeClass('hide');
 
 			showNotification(localization['ucsm-upgrade-msg'], 10000);
+		}
+	});
+
+	/**
+	  * @desc event registration for poping the notification while enabling the upgrade option.
+	*/
+	$('body').delegate('#os_install', 'change', function(e) {
+		$('.ucsm-configure .remote_file.os_install').addClass('hide');
+		if($(this).is(':checked')) {
+			$('.ucsm-configure .remote_file.os_install').removeClass('hide');
 		}
 	});
 
@@ -481,20 +540,25 @@ $(document).ready(function() {
 	  * @desc event registration for choosing the stack type.
 	*/
 	$('body').delegate('.possible_stacktypes div.box', 'click', function(e) {
+		$('.networkinfo.elementInfo').removeClass('non-selectable');
 		$('.possible_stacktypes div.box').removeClass('active');
 		$(this).addClass('active');
 		systemInfo.stacktype = $(this).attr('stacktype');
 		systemInfo.subtype = $(this).attr('stacktype');
+		flashStackSelection([]);
+	});
 
-		$('.networkinfo.elementInfo .devices').attr('disabled', true).prop('checked', false);
-		$('.networkinfo.elementInfo').removeClass('active');
-		$.each(hardwares[systemInfo.stacktype], function(index, value) {
-			if(value > 0) {
-				$('.networkinfo.elementInfo:not(.Configured) .devices[htype="' + index + '"]').removeAttr('disabled').prop('checked', true);
-				$('.networkinfo.elementInfo:not(.Configured) .devices[htype="' + index + '"]').closest('.networkinfo').addClass('active');
-			}
+	$('body').delegate('.regenerate', 'click', function(e) {
+		var $this = $(this),
+			config = $(this).data('config'),
+			data = {},
+			query = {operation: config.name, ttype: config.tasktype};
+		$.each(config.args, function(key, value) {
+			data[value.field] = value.value;
 		});
-		checkRequiredHardwares('a');
+		doAjaxRequest({url: 'GetGlobalOptions', base_path: settings.base_path, method: 'POST', query: query, data: data, success_notify: true, container: 'div.' + $(this).parent().attr('argname')}, function(response) {
+			$this.parent().find('.task-input.reset').val(response.data[0].id);
+		}, doNothing);
 	});
 });
 
@@ -507,7 +571,10 @@ function selectElement(elem) {
 		elem.removeClass('active');
 		elem.find('.devices').prop('checked', false);
 	} else {
-		if(elem.hasClass('Unconfigured')) {
+		if(elem.attr('type') == 'PURE') {
+			$('.networkinfo.elementInfo[type="PURE"]').removeClass('active');
+			elem.addClass('active');
+		} else if(elem.hasClass('Unconfigured')) {
 			$('.networkinfo.elementInfo.Configured').removeClass('active');
 			elem.addClass('active');
 			elem.find('.devices[disabled!="disabled"]').prop('checked', true);
@@ -565,7 +632,7 @@ function disableDHCP(notify) {
 function updateUploadEvent(value) {
 	$('.iso_file').addClass('hide');
 	$('#iso_file').val('');
-	var file_format = {type: 'bin', format: /(\.|\/)(bin)$/i};
+	var file_format = {type: 'bin, gbin', format: /(\.|\/)(bin|gbin)$/i};
 	if(value == 'ESXi') file_format = {type: 'iso', format: /(\.|\/)(iso)$/i};
 	else if(value == 'ESXi-kickstart') {
 		file_format = {type: 'cfg', format: /(\.|\/)(cfg)$/i};
@@ -587,7 +654,30 @@ function selectISO() {
 		return false;
 	}
 	$('.' + options[$('#list-images').attr('type')]).val($('.images-list tr.selected').attr('primaryid'));
+	$('.' + options[$('#list-images').attr('type')]).closest('.control-group').find('.iso-library').html('<i class="fa fa-th-large"></i> ' + localization['select-iso-library']);
 	closeModel();
+}
+
+/**
+  * @desc .
+*/
+function loadFlashstackTypes() {
+	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path}, function(response) {
+		var str = '', enabled, stacktype = '';
+		str += '<div class="boxes row">\
+			<h4>' + localization['choose-flashstack'] + '</h4>';
+		$.each(response.data, function(key, value) {
+			hardwares[value.value] = value.req_hardwares;
+			value.enabled = (value.enabled == true) ? '' : 'disabled';
+			str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" hardware_id="' + value.value + '"><div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div><h4>' + value.label + '</h4></div></div>';
+		});
+		str += '</div>';
+		$('.flashstack_types').html(str);
+		initScroller($('.flashstack_types.scroller'));
+		var height = parseInt($('.stepContainer').height()) - 76;
+		$('.flashstack_types.scroller').css('height', height + 'px').css('max-height', height + 'px');
+		$('.boxes .box[hardware_id="' + systemInfo.stacktype + '"]').addClass('active');
+	}, doNothing);
 }
 
 /**
@@ -598,7 +688,7 @@ function loadDiscovery(container) {
 	clearTimeout(tout);
 	var notify = true, obj = {'PURE': 0, 'UCSM': 0, 'MDS': 0, 'Nexus 5k': 0, 'Nexus 9k': 0};
 	if(container == '') notify = false;
-	var cb_status, checked, title, device_type, selectedHost = [], device_state = {'Up': {'icon': 'online', 'title': localization['online']}, 'Down': {'icon': 'offline', 'title': localization['offline']}, 'Failed': {'icon': 'failed', 'title': localization['failed']}, 'Checking': {'icon': 'fa fa-circle faa-burst animated', 'title': localization['checking']}};
+	var cb_status, checked, title, device_type, selectedHost = [], unSelectableDevices = [], device_state = {'Up': {'icon': 'online', 'title': localization['online']}, 'Down': {'icon': 'offline', 'title': localization['offline']}, 'Failed': {'icon': 'failed', 'title': localization['failed']}, 'Checking': {'icon': 'fa fa-circle faa-burst animated', 'title': localization['checking']}};
 	if(systemInfo.dhcp_status == "enabled")
 		$('.loader-msg').html('<i class="fa fa-sync faa-spin animated active"></i> ' + localization['searching-devices'] + '...');
 	doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, container: container, notify: notify}, function(response) {
@@ -607,7 +697,8 @@ function loadDiscovery(container) {
 		str += '<table>';
 		if(response.data.length > 0) {
 			$.each(response.data, function(key, value) {
-				obj[value.device_type] += 1;
+				if($.inArray(value.config_state, ['Configured', 'Unconfigured']) > -1)
+					obj[value.device_type] += 1;
 				device_type = (value.device_type == 'UCSM') ? 'Fabric Interconnect' : value.device_type;
 				device_type = (device_type == 'PURE') ? 'FlashArray' : device_type;
 				if($.inArray(value.config_state, ['Configured', 'Unconfigured', 'In-progress', 'Failed', 'Re-validate']) > -1) {
@@ -631,13 +722,17 @@ function loadDiscovery(container) {
 							break;
 					}
 					value.reachability = (value.reachability == '') ? 'Checking' : value.reachability;
-					str += '<tr class="networkinfo elementInfo ' + value.config_state + '" primaryid="' + value.mac_address + '">\
-						<td width="50">';
+					str += '<tr class="networkinfo elementInfo ' + value.config_state + '" primaryid="' + value.mac_address + '" state="' + value.config_state + '" type="' + value.device_type + '">\
+						<td width="50" class="hide">';
 							cb_status = '';checked = ' checked = "checked"';
-							if(systemInfo.stacktype != '' && (typeof hardwares[systemInfo.stacktype] != 'undefined') && (typeof hardwares[systemInfo.stacktype][value.device_type] == 'undefined' || hardwares[systemInfo.stacktype][value.device_type] == 0))
+							if(systemInfo.stacktype != '' && (typeof hardwares[systemInfo.stacktype] != 'undefined') && (typeof hardwares[systemInfo.stacktype][value.device_type] == 'undefined' || hardwares[systemInfo.stacktype][value.device_type] == 0)) {
 								checked = ' disabled="disabled"';
+							}
 							if($.inArray(value.config_state, ['Unconfigured', 'Failed']) == -1) {
-								cb_status = 'disabled';checked = '';
+								if(value.device_type == 'PURE' && value.config_state == 'Configured') {}
+								else {
+									cb_status = 'disabled';checked = '';
+								}
 							}
 							str += '<div class="pull-left checkbox checkbox-primary">\
 								<input id="device_' + key + '" class="styled devices" htype="' + value.device_type + '" ' + cb_status + ' ' + checked + ' type="checkbox" value="' + value.ip_address + '">\
@@ -672,6 +767,11 @@ function loadDiscovery(container) {
 				selectedHost.push($(this).attr('primaryId'));
 			});
 		}
+		if($('.networkinfo.elementInfo:not(.non-selectable)').length) {
+			$('.networkinfo.elementInfo:not(.non-selectable)').each(function(index) {
+				unSelectableDevices.push($(this).attr('primaryId'));
+			});
+		}
 		if($('.networkList .scroller .mCSB_container').length)
 			$('.networkList .scroller').mCustomScrollbar("destroy");
 		initScroller($('.networkList .scroller'));
@@ -684,11 +784,15 @@ function loadDiscovery(container) {
 				$('.networkinfo.elementInfo[primaryid="' + value + '"]').find('.devices').prop('checked', false);
 			});
 		}
-
+		$('.devices[disabled]').closest('.networkinfo.elementInfo').addClass('non-selectable');
+		if(unSelectableDevices.length > 0) {
+			$.each(unSelectableDevices, function(index, value) {
+				$('.networkinfo.elementInfo[primaryid="' + value + '"]').removeClass('non-selectable');
+			});
+		}
 		getStackTypesByHardwares(obj, container);
-		var height = parseInt($('.networkList').closest('.smartwidget').height()) - 330;
+		var height = parseInt($('.networkList').closest('.smartwidget').height()) - 260;
 		$('.networkList .scroller').css('height', height + 'px').css('max-height', height + 'px');
-
 		tout = setTimeout(function () {
 			loadDiscovery('');
 		}, 10000);
@@ -704,12 +808,13 @@ function loadDiscovery(container) {
   * @param object $obj - the object contains the type of the hardware & its quantity.
 */
 function getStackTypesByHardwares(obj, container) {
+	var unSelectableDevices = [];
 	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path, method: 'POST', data: obj}, function(response) {
 		$('.possible_stacktypes').remove();
 		if(response.data.length > 0) {
 			var str = '', enabled, stacktype = '';
 			str += '<fieldset class="possible_stacktypes">' +
-				'<legend>Stacktypes:</legend>' +
+				'<legend>' + localization['configuration_options'] + ':</legend>' +
 				'<div class="boxes">';
 				$.each(response.data, function(key, value) {
 					hardwares[value.value] = value.req_hardwares;
@@ -724,31 +829,37 @@ function getStackTypesByHardwares(obj, container) {
 			$('.possible_stacktypes').remove();
 			$('.networkList.dataList').before(str);
 			$('.possible_stacktypes div.box[stacktype="' + systemInfo.stacktype + '"]').addClass('active');
+			//$('.possible_stacktypes div.box[stacktype="' + systemInfo.stacktype + '"]').trigger('click');
+			if($('.networkinfo.elementInfo:not(.active)').length) {
+				$('.networkinfo.elementInfo:not(.active)').each(function(index) {
+					unSelectableDevices.push($(this).attr('primaryId'));
+				});
+			}
+			flashStackSelection(unSelectableDevices);
 		}
 		checkRequiredHardwares(container);
 	}, doNothing);
 }
 
-/**
-  * @desc .
-*/
-function loadFlashstackTypes() {
-	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path}, function(response) {
-		var str = '', enabled, stacktype = '';
-		str += '<div class="boxes row">\
-			<h4>' + localization['choose-flashstack'] + '</h4>';
-		$.each(response.data, function(key, value) {
-			hardwares[value.value] = value.req_hardwares;
-			value.enabled = (value.enabled == true) ? '' : 'disabled';
-			str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" hardware_id="' + value.value + '"><div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div><h4>' + value.label + '</h4></div></div>';
+function flashStackSelection(unSelectableDevices) {
+	$('.networkinfo.elementInfo .devices').attr('disabled', true).prop('checked', false);
+	$('.networkinfo.elementInfo').removeClass('active');
+	if(typeof systemInfo.stacktype != 'undefined' && systemInfo.stacktype != '') {
+		$.each(hardwares[systemInfo.stacktype], function(index, value) {
+			if(value > 0) {
+				$('.networkinfo.elementInfo .devices[htype="' + index + '"]').removeAttr('disabled').prop('checked', true);
+				$('.networkinfo.elementInfo .devices[htype="' + index + '"]').closest('.networkinfo').addClass('active');
+			}
 		});
-		str += '</div>';
-		$('.flashstack_types').html(str);
-		initScroller($('.flashstack_types.scroller'));
-		var height = parseInt($('.stepContainer').height()) - 76;
-		$('.flashstack_types.scroller').css('height', height + 'px').css('max-height', height + 'px');
-		$('.boxes .box[hardware_id="' + systemInfo.stacktype + '"]').addClass('active');
-	}, doNothing);
+	}
+	if(unSelectableDevices.length > 0) {
+		$.each(unSelectableDevices, function(index, value) {
+			$('.networkinfo.elementInfo[primaryid="' + value + '"]').removeClass('active');
+			$('.networkinfo.elementInfo[primaryid="' + value + '"]').find('.devices').prop('checked', false);
+		});
+	}
+	$('.devices[disabled]').closest('.networkinfo.elementInfo').addClass('non-selectable');
+	checkRequiredHardwares('a');
 }
 
 /**
@@ -758,54 +869,58 @@ function loadFlashstackTypes() {
 function checkRequiredHardwares(container) {
 	if(systemInfo.stacktype != '') {
 		var str = '', color, display_name, flag, status, selected;
-		Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
-		        display_name = (key == 'UCSM') ? 'Fabric Interconnect' : key;
-		        display_name = (display_name == 'PURE') ? 'FlashArray': display_name;
-		        flag = false; status = 0;
-		        if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + key + '"]').length > 0)
-		                flag = true;
-		        color = 'red-text';
-		        if($('input[type="checkbox"].devices:checked').length == 0) {
-				selected = $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length;
-				if(flag == true || $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length == hardwares[systemInfo.stacktype][key]) {
-		                        color = 'green-text';status = 1;
-		                }
-		        } else {
-				selected = $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length;
-				if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + key + '"]').length > 0) selected = 1;
-		                if(flag == true || $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length == hardwares[systemInfo.stacktype][key]) {
-		                        color = 'green-text';status = 1;
-		                }
-		        }
-			str += '<div class="' + key.replace(/\s/g, "-") + ' tipso-content hardware-types" status="' + status + '" key="' + key + '" data-tipso-title="' + display_name + '" expected="' + hardwares[systemInfo.stacktype][key] + '" selected="' + selected + '"><i class="' + color + ' fa fa-circle"></i> ' + display_name + ' x ' + hardwares[systemInfo.stacktype][key] + '</div>';
+		if(systemInfo.stacktype in hardwares) {
+			Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
+				display_name = (key == 'UCSM') ? 'Fabric Interconnect' : key;
+				display_name = (display_name == 'PURE') ? 'FlashArray': display_name;
+				flag = false; status = 0;
+				color = 'red-text';
 
-		        $('.tipso-content.hardware-types[key="' + key + '"]').find('i').removeClass('red-text green-text').addClass(color);
-			if(container == '')
-				$('.tipso-content.' + key.replace(/\s/g, "-")).attr('status', status);
-		});
-		if(container != '') {
-		        $('.required-hardwares-flash').html(str);
-		        $('.tipso-content').tipso({
-		                position: 'bottom',
-		                animationIn: 'bounceIn',
-		                animationOut: 'bounceOut',
-		                titleBackground: 'rgb(247, 124, 61)',
-		                background: '#FFF',
-		                color: '#454545',
-		                tooltipHover: true,
-		                onBeforeShow: function(ele, tipso) {
-		                        var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
-		                        if(ele.attr('key') == 'PURE' && $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]').length > 0) selected = 1;
-		                        ele.tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
-		                }
-		        });
-		} else {
-		        Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
-				var ele = $('.required-hardwares-flash .hardware-types.' + key.replace(/\s/g, "-"));
-		                var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
-		                if(key == 'PURE' && $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]').length > 0) selected = 1;
-		                $('.tipso-content.' + key.replace(/\s/g, "-")).tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
-		        });
+				if(key == 'PURE') {
+					selected = $('.networkinfo.elementInfo.active[type="PURE"]').length;
+					if(selected == 1) {
+						color = 'green-text';status = 1;
+					}
+				} else if($('input[type="checkbox"].devices:checked').length == 0) {
+					selected = $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length;
+					if(flag == true || $('.networkinfo.Configured').find('input[type="checkbox"].devices[htype="' + key + '"][disabled]').length == hardwares[systemInfo.stacktype][key]) {
+				                color = 'green-text';status = 1;
+				        }
+				} else {
+					selected = $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length;
+				        if(flag == true || $('input[type="checkbox"].devices[htype="' + key + '"]:checked').length == hardwares[systemInfo.stacktype][key]) {
+				                color = 'green-text';status = 1;
+				        }
+				}
+
+				str += '<div class="' + key.replace(/\s/g, "-") + ' tipso-content hardware-types" status="' + status + '" key="' + key + '" data-tipso-title="' + display_name + '" expected="' + hardwares[systemInfo.stacktype][key] + '" selected="' + selected + '"><i class="' + color + ' fa fa-circle"></i> ' + display_name + ' x ' + hardwares[systemInfo.stacktype][key] + '</div>';
+
+				$('.tipso-content.hardware-types[key="' + key + '"]').find('i').removeClass('red-text green-text').addClass(color);
+				if(container == '')
+					$('.tipso-content.' + key.replace(/\s/g, "-")).attr('status', status);
+			});
+			if(container != '') {
+				$('.required-hardwares-flash').html(str);
+				$('.tipso-content').tipso({
+				        position: 'bottom',
+				        animationIn: 'bounceIn',
+				        animationOut: 'bounceOut',
+				        titleBackground: 'rgb(247, 124, 61)',
+				        background: '#FFF',
+				        color: '#454545',
+				        tooltipHover: true,
+				        onBeforeShow: function(ele, tipso) {
+						var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
+				                ele.tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
+				        }
+				});
+			} else {
+				Object.keys(hardwares[systemInfo.stacktype]).some(function(key) {
+					var ele = $('.required-hardwares-flash .hardware-types.' + key.replace(/\s/g, "-"));
+				        var selected = $('input[type="checkbox"].devices[htype="' + ele.attr('key') + '"]:checked').length;
+				        $('.tipso-content.' + key.replace(/\s/g, "-")).tipso('update', 'content', selected + ' selected (' + localization['expected'] + ' ' + ele.attr('expected') + ')');
+				});
+			}
 		}
 	}
 	$('.buttonNext').removeClass('disable buttonDisabled');
@@ -826,10 +941,18 @@ function postUCSMForm() {
 
 	data.pri_passwd = $('#adminPasswd').val();
 	data.conf_passwd = $('#adminPasswd1').val();
-	data.ucs_upgrade = ($('#ucs_upgrade').is(':checked')) ? "Yes" : "No";
-	if(!$('#ucs_upgrade').is(':checked')) $('#infra_image, #rack_image, #blade_image').val('');
-	data.infra_image = $('#infra_image').val();
-	data.blade_image = $('#rack_image').val();
+	if($('#ucs_upgrade').length) {
+		data.ucs_upgrade = ($('#ucs_upgrade').is(':checked')) ? "Yes" : "No";
+		if(!$('#ucs_upgrade').is(':checked')) $('#infra_image, #rack_image, #blade_image').val('');
+	}
+	if($('#os_install').length) {
+		data.os_install = ($('#os_install').is(':checked')) ? "Yes" : "No";
+		if(!$('#os_install').is(':checked')) $('#esxi_file, #esxi_kickstart').val('');
+	}
+	if($('#infra_image').length)
+		data.infra_image = $('#infra_image').val();
+	if($('#rack_image').length)
+		data.blade_image = $('#rack_image').val();
 	data.server_type = 'Rack';
 	if($('.toggle-select.component_type').length) {
 		myToggle = $('.toggle-select.component_type').data('toggles');
@@ -838,11 +961,12 @@ function postUCSMForm() {
 			data.blade_image = $('#blade_image').val();
 		}
 	}
-	data.ntp_server = ($('#ntp_server_0').val() == '') ? '' : $('#ntp_server_0').val() + '.' + $('#ntp_server_1').val() + '.' + $('#ntp_server_2').val() + '.' + $('#ntp_server_3').val();
+	data.ntp_server = $('#ntp_server').val();
+	data.virtual_ip = $('#virtualIP').val();
 	if(type == 'subordinate') {
 		data.pri_name = $('#systemName').val();
-		data.pri_ip = ($('#oobIP_0').val() == '') ? '' : $('#oobIP_0').val() + '.' + $('#oobIP_1').val() + '.' + $('#oobIP_2').val() + '.' + $('#oobIP_3').val();
-		data.sec_ip = ($('#oobIP_0_0').val() == '') ? '' : $('#oobIP_0_0').val() + '.' + $('#oobIP_0_1').val() + '.' + $('#oobIP_0_2').val() + '.' + $('#oobIP_0_3').val();
+		data.pri_ip = $('#oobIP').val();
+		data.sec_ip = $('#oobIP_0').val();
 		data.sec_id = "2";
 		data.sec_orig_ip = $('#ucsm_switch_ip_0').val();
 		data.sec_switch_mac = $('#ucsm_switch_mac_0').val();
@@ -866,23 +990,22 @@ function postUCSMForm() {
 				data.pri_switch_vendor = $('#ucsm_vendor_model_' + index).val();
 				data.pri_orig_ip = $('#ucsm_switch_ip_' + index).val();
 				data.pri_id = "1";
-				data.pri_ip = ($('#oobIP_' + index + '_0').val() == '') ? '' : $('#oobIP_' + index + '_0').val() + '.' + $('#oobIP_' + index + '_1').val() + '.' + $('#oobIP_' + index + '_2').val() + '.' + $('#oobIP_' + index + '_3').val();
+				data.pri_ip = $('#oobIP_' + index).val();
 			} else {
 				data.sec_switch_mac = $('#ucsm_switch_mac_' + index).val();
 				data.sec_switch_serial_no = $('#ucsm_switch_serial_' + index).val();
 				data.sec_switch_vendor = $('#ucsm_vendor_model_' + index).val();
 				data.sec_orig_ip = $('#ucsm_switch_ip_' + index).val();
 				data.sec_id = "2";
-				data.sec_ip = ($('#oobIP_' + index + '_0').val() == '') ? '' : $('#oobIP_' + index + '_0').val() + '.' + $('#oobIP_' + index + '_1').val() + '.' + $('#oobIP_' + index + '_2').val() + '.' + $('#oobIP_' + index + '_3').val();
+				data.sec_ip = $('#oobIP_' + index).val();
 			}
 		});
 		data.pri_name = $('#systemName').val();
 		data.ipformat = "1";
 		data.pri_setup_mode = "1";
-		data.netmask = ($('#common_netmask_0').val() == '') ? '' : $('#common_netmask_0').val() + '.' + $('#common_netmask_1').val() + '.' + $('#common_netmask_2').val() + '.' + $('#common_netmask_3').val();
-		data.gateway = ($('#common_gateway_0').val() == '') ? '' : $('#common_gateway_0').val() + '.' + $('#common_gateway_1').val() + '.' + $('#common_gateway_2').val() + '.' + $('#common_gateway_3').val();
-		data.virtual_ip = ($('#virtualIP_0').val() == '') ? '' : $('#virtualIP_0').val() + '.' + $('#virtualIP_1').val() + '.' + $('#virtualIP_2').val() + '.' + $('#virtualIP_3').val();
-		data.dns = ($('#dns_0').val() == '') ? '' : $('#dns_0').val() + '.' + $('#dns_1').val() + '.' + $('#dns_2').val() + '.' + $('#dns_3').val();
+		data.netmask = $('#common_netmask').val();
+		data.gateway = $('#common_gateway').val();
+		data.dns = $('#dns').val();
 		data.domain_name = $('#domainName').val();
 		data.esxi_file = $('#esxi_file').val();
 		data.esxi_kickstart = ($('#esxi_kickstart').val() == null) ? '' : $('#esxi_kickstart').val();
@@ -917,13 +1040,13 @@ function postMDSForm(index, isMDSPrimary) {
 	data.switch_mac = $('#mds_switch_mac_' + index).val();
 	data.switch_vendor = $('#mds_vendor_model_' + index).val();
 	data.switch_serial_no = $('#mds_switch_serial_' + index).val();
-	data.switch_ip =  ($('#mds_ipaddress_' + index + '_0').val() == '') ? '' : $('#mds_ipaddress_' + index + '_0').val() + '.' + $('#mds_ipaddress_' + index + '_1').val() + '.' + $('#mds_ipaddress_' + index + '_2').val() + '.' + $('#mds_ipaddress_' + index + '_3').val();
+	data.switch_ip =  $('#mds_ipaddress_' + index).val();
 	var formContainer = ['.initial-setup .common-inputs', '.mds_' + index, '.modal-inset'];
 
 	if(typeof isMDSPrimary == 'number') index = isMDSPrimary;
-	data.ntp_server = ($('#ntp_server_0').val() == '') ? '' : $('#ntp_server_0').val() + '.' + $('#ntp_server_1').val() + '.' + $('#ntp_server_2').val() + '.' + $('#ntp_server_3').val();
-	data.switch_gateway = ($('#common_gateway_0').val() == '') ? '' : $('#common_gateway_0').val() + '.' + $('#common_gateway_1').val() + '.' + $('#common_gateway_2').val() + '.' + $('#common_gateway_3').val();
-	data.switch_netmask =  ($('#common_netmask_0').val() == '') ? '' : $('#common_netmask_0').val() + '.' + $('#common_netmask_1').val() + '.' + $('#common_netmask_2').val() + '.' + $('#common_netmask_3').val();
+	data.ntp_server = $('#ntp_server').val();
+	data.switch_gateway = $('#common_gateway').val();
+	data.switch_netmask =  $('#common_netmask').val();
 	data.switch_kickstart_image = $('#mds_switch_kickstart_image').val();
 	data.switch_system_image = $('#mds_switch_system_image').val();
 	$('.mds.mds_' + n).data('config', data);
@@ -961,14 +1084,13 @@ function postNEXUSForm(index, isNexusPrimary) {
 	data.switch_mac = $('#nexus_switch_mac_' + index).val();
 	data.switch_serial_no = $('#nexus_switch_serial_' + index).val();
 	data.switch_vendor = $('#nexus_vendor_model_' + index).val();
-	data.switch_ip =  ($('#nexus_ipaddress_' + index + '_0').val() == '') ? '' : $('#nexus_ipaddress_' + index + '_0').val() + '.' + $('#nexus_ipaddress_' + index + '_1').val() + '.' + $('#nexus_ipaddress_' + index + '_2').val() + '.' + $('#nexus_ipaddress_' + index + '_3').val();
+	data.switch_ip =  $('#nexus_ipaddress_' + index).val();
 	var formContainer = ['.initial-setup .common-inputs', '.nexus_' + index, '.modal-inset'];
 
 	if(typeof isNexusPrimary == 'number') index = isNexusPrimary;
-	data.ntp_server = ($('#ntp_server_0').val() == '') ? '' : $('#ntp_server_0').val() + '.' + $('#ntp_server_1').val() + '.' + $('#ntp_server_2').val() + '.' + $('#ntp_server_3').val();
-	data.switch_gateway = ($('#common_gateway_0').val() == '') ? '' : $('#common_gateway_0').val() + '.' + $('#common_gateway_1').val() + '.' + $('#common_gateway_2').val() + '.' + $('#common_gateway_3').val();
-	
-	data.switch_netmask =  ($('#common_netmask_0').val() == '') ? '' : $('#common_netmask_0').val() + '.' + $('#common_netmask_1').val() + '.' + $('#common_netmask_2').val() + '.' + $('#common_netmask_3').val();
+	data.ntp_server = $('#ntp_server').val();
+	data.switch_gateway = $('#common_gateway').val();
+	data.switch_netmask =  $('#common_netmask').val();
 	if(systemInfo.stacktype.indexOf('-n5k-') > 0) {
 		model = 'n5k';
 		data.switch_system_image = $('#nexus5k_system_image').val();
@@ -992,6 +1114,46 @@ function postNEXUSForm(index, isNexusPrimary) {
 }
 
 /**
+  * @desc method for validating & configuring MDS devices. It will collect all MDS configuration values from the form & make a request.
+  * @param integer $index - .
+  * @param boolean $isMDSPrimary - .
+*/
+function postFAForm(index, isFAPrimary) {
+	var data = {}, n = index;
+	data.netmask = $('#common_netmask').val();
+	data.gateway = $('#common_gateway').val();
+	data.dns = $('#dns').val();
+	data.domain_name = $('#domainName').val();
+	data.ntp_server = $('#ntp_server').val();
+
+	data.array_name = $('#fa_array_name_' + index).val();
+	data.mac = $('#fa_switch_mac_' + index).val();
+	data.model = $('#fa_vendor_model_' + index).val();
+	data.orig_ip =  $('#fa_switch_ip_' + index).val();
+	data.serial_number = $('#fa_switch_serial_' + index).val();
+	data.ct0_ip = $('#fa_ct0_ip_' + index).val();
+	data.ct1_ip = $('#fa_ct1_ip_' + index).val();
+	data.vir0_ip = $('#fa_vir0_ip_' + index).val();
+	data.relay_host = $('#fa_relay_host_' + index).val();
+	data.sender_domain = $('#fa_sender_domain_' + index).val();
+	data.organization = $('#fa_organization_' + index).val();
+	data.full_name = $('#fa_full_name_' + index).val();
+	data.job_title = $('#fa_job_title_' + index).val();
+	data.timezone = $('#fa_timezone_' + index).val();
+	data.alert_emails = $('#fa_alert_emails_' + index).val();
+	var formContainer = ['.initial-setup .common-inputs', '.pure.fa_' + index, '.modal-inset'];
+	if(typeof isFAPrimary == 'number') index = isFAPrimary;
+	$('.pure.fa_' + n).data('config', data);
+	doAjaxRequest({url: 'FAValidate', base_path: settings.base_path, method: 'POST', data: data, isValidate: true, notify: false, formContainer: formContainer}, function(response) {
+		requestCallback.requestComplete(true);
+	}, function(response) {
+		callbackFlag = false;
+		requestCallback.requestComplete(true);
+		removeProcessingSpinner('.content-container', loaderCnt);
+	});
+}
+
+/**
   * @desc 
 */
 function validateConfiguration() {
@@ -1002,8 +1164,8 @@ function validateConfiguration() {
 		tmp = '';
 		if($(this)[0].hasAttribute("argtype") && $(this).attr("argtype") == 'ip-range') {
 			arr = $(this).find('input.task-input').val().split('-');
-			for(i = arr[0]; i <= arr[1]; i++) {
-				tmp = $(this).find('input.task-input').attr("subnet").replace(/\./g, '') + i;
+			for(i = parseInt(arr[0]); i <= parseInt(arr[1]); i++) {
+				tmp = $(this).find('input.task-input').attr("subnet") + '.' + i;
 				ips.push(tmp);
 			}
 		} else {
@@ -1040,6 +1202,9 @@ function validateConfiguration() {
 	if(!flag) return false;
 	loaderCnt = addProcessingSpinner('.content-container');
 	var requestCount = NEXUSForConfigure.length + MDSForConfigure.length + 1;
+	if(!isPUREConfigured) {
+		requestCount += FAForConfigure.length;
+	}
 	if(UCSForConfigure.length > 0) requestCount++;
 	requestCallback = new MyRequestsCompleted({
 		numRequest: requestCount,
@@ -1054,7 +1219,7 @@ function validateConfiguration() {
 	if(UCSForConfigure.length > 0)
 		postUCSMForm();
 
-	var isMDSPrimary = '', isNexusPrimary = '';
+	var isMDSPrimary = '', isNexusPrimary = '', isFAPrimary = '';
 	$.each(NEXUSForConfigure, function(index, val) {
 		postNEXUSForm(index, isNexusPrimary);
 		isNexusPrimary = index;
@@ -1063,6 +1228,12 @@ function validateConfiguration() {
 		postMDSForm(index, isMDSPrimary);
 		isMDSPrimary = index;
 	});
+	if(!isPUREConfigured) {
+		$.each(FAForConfigure, function(index, val) {
+			postFAForm(index, isFAPrimary);
+			isFAPrimary = index;
+		});
+	}
 }
 
 /**
@@ -1070,8 +1241,16 @@ function validateConfiguration() {
   * @param object $obj - .
 */
 function saveConfig(obj) {
-	var data = {}, mds = [], nexus = [];
+	var data = {}, mds = [], nexus = [], pure = [];
 	data.ucsm = JSON.stringify($('.ucsm.ucsm-configure').data('config'));
+
+	if(!isPUREConfigured) {
+		$('.basic-view .pure.block').each(function(index) {
+			pure.push($(this).data('config'));
+		});
+		data.pure = JSON.stringify(pure);
+	}
+
 	$('.basic-view .mds.block').each(function(index) {
 		mds.push($(this).data('config'));
 	});
@@ -1092,10 +1271,12 @@ function saveConfig(obj) {
 		if(myToggle.active && query.stacktype.indexOf('-rack') < 0) query.stacktype += '-rack';
 	}
 	
-	if($('#wizard').smartWizard('currentStep') == 3) query.update = 1;
 	var api = 'SaveConfiguration';
-	if($('[name="configuration-option"]:checked').val() == 'JSON')
+	if($('[name="configuration-option"]:checked').val() == 'JSON' && $('#wizard').smartWizard('currentStep') != 3)
 		api = 'RestoreConfig';
+	else {
+		if($('#wizard').smartWizard('currentStep') == 3) query.update = 1;
+	}
 	doAjaxRequest({url: api, base_path: settings.base_path, method: 'POST', data: data, query: query, isValidate: true, notify: false, formContainer: '.fs-configurations'}, function(response) {
 		if($('#wizard').smartWizard('currentStep') == 2) {
 			var deploymentData = {config_mode: $('[name="configuration-option"]:checked').val().toLowerCase(), deployment_type: 'basic'};
@@ -1145,9 +1326,21 @@ function triggerInitialization() {
 /**
   * @desc .
 */
+var isPUREConfigured = true;
 function loadInitialSetupForm() {
 	clearTimeout(tout);
 	var loadDynamicValues = {}, data_str, obj = {'UCSM': [], 'MDS': []};
+	var passwordHelp = '<span><strong>Must contain:</strong><br>\
+		Lower case letters<br>\
+		Upper case letters<br>\
+		Digits<br>\
+		Special characters - (&#33;&quot;&#37;&amp;&#39;&#40;&#41;&#92;&#42;&#43;&#44;&#45;&#46;&#47;&#58;&#59;&#60;&#62;&#64;&#91;&#93;&#94;&#95;&#96;&#123;&#124;&#125;&#126;)<br><br>\
+		<strong>Password Should satisfy below following conditions</strong><br>\
+		Must not contain a character that is repeated more than three times consecutively, such as aaabbb<br>\
+		Must not be identical to the username or the reverse of the username<br>\
+		Must pass a password dictionary check. For example, the password must not be based on a standard dictionary word<br>\
+		Must not contain the following symbols: $ (dollar sign), ? (question mark), and = (equals sign)<br>\
+		Should not be blank for local user and admin accounts</span>';
 	var fields = [], file_format = {type: 'json', format: /(\.|\/)(json)$/i};
         if(systemInfo.stacktype.indexOf('-n9k-') > 0)
              obj['NEXUS_9K'] = [];
@@ -1179,11 +1372,11 @@ function loadInitialSetupForm() {
 							<h3 class="hseperator widget-subtitle bold">' + localization['general-info'] + '</h3>\
 						</div>\
 						<div class="form col-lg-12 col-md-12 col-sm-12 col-xs-12">' +
-							loadFormTemplate({type: 'ipbox', id: 'common_netmask', label: localization['mgmt-netmask'], maxlength: 3, holder: 'netmask switch_netmask unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
-							loadFormTemplate({type: 'ipbox', id: 'common_gateway', label: localization['default-gateway'], maxlength: 3, holder: 'gateway switch_gateway unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
-							loadFormTemplate({type: 'ipbox', id: 'ntp_server', label: localization['ntp-server'], maxlength: 3, holder: 'ntp ntp_server unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) +
-							loadFormTemplate({type: 'ipbox', id: 'dns', label: localization['dns-ip'], maxlength: 3, holder: 'ucsm-primary dns nameserver unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
-							loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) +
+							loadFormTemplate({id: 'common_netmask', label: localization['mgmt-netmask'], class: 'ipaddress', holder: 'netmask switch_netmask unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							loadFormTemplate({id: 'common_gateway', label: localization['default-gateway'], class: 'ipaddress', holder: 'gateway switch_gateway unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], class: 'ipaddress', holder: 'ntp ntp_server unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) +
+							loadFormTemplate({id: 'dns', label: localization['dns-ip'], class: 'ipaddress', holder: 'ucsm-primary dns nameserver unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true, helptext: passwordHelp}) +
 							loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) +
 							loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-6 col-md-6 col-sm-6 col-xs-6'}) +
 						'</div>\
@@ -1195,7 +1388,7 @@ function loadInitialSetupForm() {
 							obj['UCSM'].push(val.mac);
 						});
 					}
-					var isMDSPrimary = true, isNexusPrimary = true;
+					var isMDSPrimary = true, isNexusPrimary = true, isFAPrimary = true;
 					if(MDSForConfigure.length > 0) {
 						string += '<div class="clear"></div>\
 						<div class="row info-section mds-container col-lg-12 col-md-12 col-sm-12 col-xs-12">\
@@ -1240,6 +1433,20 @@ function loadInitialSetupForm() {
 							'</div>';
 						}
 					}
+
+					if(FAForConfigure.length > 0 && FAForConfigure[0]['state'] == 'Unconfigured') {
+						obj['PURE'] = [];
+						isPUREConfigured = false;
+						string += '<div class="clear"></div>\
+						<div class="row info-section flasharray-container col-lg-12 col-md-12 col-sm-12 col-xs-12">\
+							<h3 class="hseperator widget-subtitle bold">FlashArray</h3>\
+						</div>';
+						$.each(FAForConfigure, function(index, val) {
+							string += loadFAForm(val, index, isFAPrimary, 'col-lg-6 col-md-6 col-sm-12 col-xs-12');
+		                                        obj['PURE'].push(val.mac);
+							isFAPrimary = false;
+						});
+					}
 					string += '<div class="clear"></div>\
 				</div>\
 				<div class="advanced-view hide">\
@@ -1274,7 +1481,7 @@ function loadInitialSetupForm() {
 	height = parseInt($('.stepContainer').height()) - 40;
 	$('.initial-setup .widget-content').css('height', height + 'px');
 
-	if(systemInfo.server_types.rack) $('.toggle-select.component_type').closest('.control-group').removeClass('hide');
+	if(typeof systemInfo.server_types != 'undefined' && typeof systemInfo.server_types.rack != 'undefined' && systemInfo.server_types.rack) $('.toggle-select.component_type').closest('.control-group').removeClass('hide');
 	$('.toggle-select.component_type').toggles({type: 'select', on: false, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {off: 'Blade Server', on: 'Rack Server'}});
 	$('.toggle-select.component_type').on('toggle', function(e, active) {
 		$('.ucsm-configure .ucs_upgrade.blade_image, .ucsm-configure .ucs_upgrade.rack_image').addClass('hide');
@@ -1296,6 +1503,12 @@ function loadInitialSetupForm() {
 			$('.initial-setup .advanced-view').removeClass('hide');
 		}
 	});
+
+	if(!isPUREConfigured) {
+		bindTagifyEvent('#fa_alert_emails_0', 'Add an email', /^[a-zA-Z0-9.!#$%&â€™*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
+		loadTimezone();
+	}
+
 	var flag = true, mdsflag = true, nexusflag = true;
 	$.each(UCSForConfigure, function(index, val) {
 		$('.toggle-select.switchFabric_' + index).toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'A', off: 'B'}});
@@ -1323,6 +1536,19 @@ function loadInitialSetupForm() {
   * @desc .
   * @param object $response - .
 */
+function loadTimezone() {
+	// Load Timezone
+	$('.timezone .task-input').html('<option value="">Select Timezone</option>');
+	$.each(timezone, function(index, val) {
+		$('.timezone .task-input').append('<option value="' + val.timezone + '">' + val.timezone + '</option>');
+	});
+	$(".timezone .task-input").select2();
+}
+
+/**
+  * @desc .
+  * @param object $response - .
+*/
 function loadImportedConfig(response) {
 	var dom, tmp;
 	$('.fs-configurations').removeClass('hide');
@@ -1338,7 +1564,58 @@ function loadImportedConfig(response) {
 			plotValuesByDom(dom, value.value);
 		});
 		loadConfigValues(response.data.devices);
-		var j, types = ['fabric', 'mds', 'nexus'];
+		var mds_index = 0, nexus_index = 0, tag;
+		$.each(response.data.devices, function(index, value) {
+			value.device_type = value.device_type.toLowerCase().replace(' ', '_');
+			var dom, slider, tmp;
+			switch(value.device_type) {
+				case 'ucsm':
+					if('mode' in value && value.mode == 'primary') {
+						$('.ucsm-configure #virtualIP.task-input').val(value.virtual_ip);
+						$('.ucsm-configure .control-group.switch_ip #oobIP_0.task-input').val(value.switch_ip);
+						$('.ucsm-configure .control-group #fabric_mapping_0.task-input option[tag="' + value.tag + '"]').attr("selected","selected");
+						if($('#fabric_mapping_0').closest('.control-group').prev().find('.fabricSwitch').length > 0) {
+							tmp = $('#fabric_mapping_0').closest('.control-group').prev().find('.fabricSwitch').data('toggles');
+							tag = (tmp.active) ? 'A' : 'B';
+							if(tag != value.tag)
+								tmp.toggle();
+						}
+						dom = $('.ucsm-configure .control-group.kvm_console_ip').find('#workflow_kvm_console_ip.range-slider');
+						tmp = value.kvm_console_ip.split('-');
+						slider = dom.data("ionRangeSlider");
+						slider.update({
+							from: parseInt(tmp[0]),
+							to: parseInt(tmp[1])
+						});
+					} else {
+						$('.ucsm-configure .control-group.switch_ip #oobIP_1.task-input').val(value.switch_ip);
+						$('.ucsm-configure .control-group #fabric_mapping_1.task-input option[tag="' + value.tag + '"]').attr("selected","selected");
+						if($('#fabric_mapping_1').closest('.control-group').prev().find('.fabricSwitch').length > 0) {
+							tmp = $('#fabric_mapping_1').closest('.control-group').prev().find('.fabricSwitch').data('toggles');
+							tag = (tmp.active) ? 'A' : 'B';
+							if(tag != value.tag)
+								tmp.toggle();
+						}
+					}
+					break;
+				case 'mds':
+					$('.block.mds.mds_' + mds_index + ' .control-group.switch_ip #mds_ipaddress_' + mds_index + '.task-input').val(value.switch_ip);
+					mds_index++;
+					break;
+				case 'nexus_5k':
+				case 'nexus_9k':
+					$('.block.nexus.nexus_' + nexus_index + ' .control-group.switch_ip #nexus_ipaddress_' + nexus_index + '.task-input').val(value.switch_ip);
+					nexus_index++;
+					break;
+				case 'pure':
+					$('.block.pure.flasharray .control-group #fa_vir0_ip_0.task-input').val(value.vir0_ip);
+					$('.block.pure.flasharray .control-group #fa_ct0_ip_0.task-input').val(value.ct0_ip);
+					$('.block.pure.flasharray .control-group #fa_ct1_ip_0.task-input').val(value.ct1_ip);
+					break;
+			}
+		});
+
+		var j, types = ['mds', 'nexus'];
 		for(i = 0; i < 2; i++) {
 			$.each(types, function(n, type) {
 				$('#' + type + '_mapping_' + i).prop('selectedIndex', i);
@@ -1431,9 +1708,24 @@ function loadGlobalFormFields() {
 			loadGlobalFormFields();
 		}
 	} else {
+		$.each(formData, function(i, v) {
+			if(v.reset) {
+				$('div[argname="' + v.name + '"]').find('.regenerate').data('config', v.api);
+			}
+		});
 		counter = 0; formData = [];
 		$('.task-input[type="multiselect-dropdown"]').each(function(index) {
 			initMultiSelect($(this), $(this).attr('label'), true, true, 1);
+		});
+
+		$('.control-group .controls span.prefix').each(function(index) {
+			var borderWidth = 15 + $(this).outerWidth();
+			$(this).next('input.prefix').css('border-left-width', borderWidth + 'px');
+		});
+
+		$('.control-group .controls span.suffix').each(function(index) {
+			var borderWidth = 15 + $(this).outerWidth();
+			$(this).prev('input.suffix').css('border-right-width', borderWidth + 'px');
 		});
 		initTooltip('.fs-configurations');
 		populateData();
@@ -1449,6 +1741,10 @@ function updateGlobalConfig() {
 	Object.keys(obj.task_input_api).some(function(key) {
 		data[key] = obj.task_input_api[key].values;
 	});
+	if(!isPUREConfigured) {
+		data["pure_id"] = $('#fa_switch_mac_0').val();
+	}
+
 	var stack = systemInfo.subtype;
 	stack = stack.replace("-rack", "");
 	var myToggle = $('.toggle-select.component_type').data('toggles');
@@ -1466,7 +1762,6 @@ function updateGlobalConfig() {
   * @desc .
 */
 function populateData() {
-	focusNextFormField('.task-input');
 	$.when(
 		loadImages('', '', '')
 	).then(function() {
@@ -1495,14 +1790,13 @@ function loadConfigValues(data) {
 				dom.attr('subnet', value[key].subnet);
 				dom.closest('[type="range-picker"]').find('.legend').find('.ip-subnet').html(value[key].subnet + '.');
 				slider = dom.data("ionRangeSlider");
-
-                                slider.update({
+                slider.update({
 					min: parseInt(value[key].min_range),
 					max: parseInt(value[key].max_range),
 					from: parseInt(tmp[0]),
 					to: parseInt(tmp[1]),
-					min_interval: parseInt(value[key].min_interval),
-					max_interval: parseInt(value[key].max_interval)
+					min_interval: (parseInt(value[key].min_interval) - 1),
+					max_interval: (parseInt(value[key].max_interval) - 1)
 				});
 			} else if(key == 'switch_image') {
 				try {
@@ -1513,16 +1807,31 @@ function loadConfigValues(data) {
 						dom = $('.' + value.device_type).find('.' + key1).closest('.control-group');
 						plotValuesByDom(dom, value[key]);
 						if($('[name="configuration-option"]:checked').val() == 'JSON') {
-							dom.find('.task-input').attr('disabled', true);
+							dom.find('.iso-library').removeClass('hide').html('<i class="fa fa-th-large"></i> Select from ISO library');
 							if(dom.find('.task-input').val() == null) {
-								dom.find('.iso-library').removeClass('hide').attr("file", value[key][key1]).html('<i class="fa fa-th-large"></i> Image(' + value[key][key1] + ') is not available. Please upload.');
-							} else dom.find('.iso-library').addClass('hide');
+								dom.find('.iso-library').attr("file", value[key][key1]).html('<i class="fa fa-th-large"></i> Image(' + value[key][key1] + ') is not available. Please upload.');
+							}
 						}
 					});
 				} else {}
 			} else {
-				dom = $('.' + value.device_type + ' input[value="' + value.switch_mac + '"]').closest('.' + value.device_type).find('.control-group.' + key);
+				if(value.device_type == 'pure')
+					dom = $('.' + value.device_type + ' input[value="' + value.mac + '"]').closest('.' + value.device_type).find('.control-group.' + key);
+				else
+					dom = $('.' + value.device_type + ' input[value="' + value.switch_mac + '"]').closest('.' + value.device_type).find('.control-group.' + key);
 				plotValuesByDom(dom, value[key]);
+				if(value.device_type == 'pure' && !isPUREConfigured) {
+					$('.control-group.pure_id[argname="pure_id"][execid="global-config"]').closest('.global.block').hide();
+					if(key == 'timezone') $('#fa_timezone_0').val([value[key]]).trigger('change');
+					if(key == 'alert_emails') {
+						$('#fa_alert_emails_0').prev('.bootstrap-tagsinput').find('span').each(function() {
+							$('#fa_alert_emails_0').tagsinput('remove', $(this).text());
+						});
+						$.each(value[key].split(","), function(i, value) {
+							$('#fa_alert_emails_0').tagsinput('add', trimChar(value, " "));
+						});
+					}
+				}
 				if(key == 'switch_name') {
 					switch(value.device_type) {
 						case 'ucsm':
@@ -1541,7 +1850,7 @@ function loadConfigValues(data) {
 							$('.mds_mapping').append('<option value="' + value[key] + '" tag="' + value.tag + '">' + value[key] + '</option>');
 							break;
 					}
-				} else if('mode' in value && value.mode == 'primary' && (key == 'domain_name' || key == 'dns')) {
+				} else if('mode' in value && value.mode == 'primary' && (key == 'domain_name' || key == 'dns' || key == 'esxi_kickstart')) {
 					dom = $('.control-group.' + key);
 					plotValuesByDom(dom, value[key]);
 				} else if('mode' in value && value.mode == 'primary' && key == 'server_type') {
@@ -1550,10 +1859,10 @@ function loadConfigValues(data) {
 				} else if(value[key] != '' && (key == 'esxi_file' || key == 'blade_image' || key == 'infra_image') && $('[name="configuration-option"]:checked').val() == 'JSON') {
 					dom = $('.control-group.' + key);
 					plotValuesByDom(dom, value[key]);
-					dom.find('.task-input').attr('disabled', true);
+					dom.find('.iso-library').removeClass('hide').html('<i class="fa fa-th-large"></i> Select from ISO library');
 					if(dom.find('.task-input').val() == null) {
-						dom.find('.iso-library').removeClass('hide').attr("file", value[key]).html('<i class="fa fa-th-large"></i> Image(' + value[key] + ') is not available. Please upload.');
-					} else dom.find('.iso-library').addClass('hide');
+						dom.find('.iso-library').attr("file", value[key]).html('<i class="fa fa-th-large"></i> Image(' + value[key] + ') is not available. Please upload.');
+					}
 					if((key == 'blade_image' || key == 'infra_image') && value[key] != '') {
 						$('#ucs_upgrade').prop('checked', true);
 						$('.ucsm-configure .ucs_upgrade.infra_image').removeClass('hide');
@@ -1562,6 +1871,12 @@ function loadConfigValues(data) {
 							if(myToggle.active) $('.ucsm-configure .ucs_upgrade.rack_image').removeClass('hide');
 							else $('.ucsm-configure .ucs_upgrade.blade_image').removeClass('hide');
 						}
+					}
+					$('#os_install').prop('checked', false);
+					$('.ucsm-configure .os_install.remote_file').addClass('hide');
+					if(key == 'esxi_file' && value[key] != '') {
+						$('#os_install').prop('checked', true);
+						$('.ucsm-configure .os_install.remote_file').removeClass('hide');
 					}
 				}
 			}
@@ -1633,9 +1948,9 @@ function loadUCSMForm(column) {
 				str += loadFormTemplate({type: 'toggle', id: 'mode', label: localization['mode'], mandatory: true, 'holder': 'hide'}) + 
 				loadFormTemplate({type: 'toggle', id: 'config_type', label: localization['type'], 'holder': 'hide'}) + 
 				loadFormTemplate({type: 'toggle', id: 'component_type dark', label: 'Compute Type', mandatory: true, 'holder': 'hide'}) +
-				loadFormTemplate({type: 'ipbox', id: 'virtualIP', label: localization['virtual-ip'], class: 'virtualIP', maxlength: 3, holder: 'ucsm-primary virtual_ip unique_ip', mandatory: true}) + 
+				loadFormTemplate({id: 'virtualIP', label: localization['virtual-ip'], class: 'virtualIP ipaddress', holder: 'ucsm-primary virtual_ip unique_ip', mandatory: true}) + 
 				loadFormTemplate({id: 'primaryName', label: localization['primary-name'], holder: 'ucsm-subordinate pri_name switch_name hide', mandatory: true}) +
-				loadFormTemplate({type: 'ipbox', id: 'oobIP', label: localization['primary-ip'], maxlength: 3, holder: 'ucsm-subordinate pri_ip hide', mandatory: true}) + 
+				loadFormTemplate({id: 'oobIP', label: localization['primary-ip'], class: 'ipaddress', holder: 'ucsm-subordinate pri_ip hide', mandatory: true}) + 
 				loadFormTemplate({id: 'systemName', label: localization['system-name'], holder: 'ucsm-primary pri_name switch_name', mandatory: true});
 				$.each(UCSForConfigure, function(index, value) {
 					var checked = false, class_name = 'sec_ip';
@@ -1644,7 +1959,7 @@ function loadUCSMForm(column) {
 						class_name = 'pri_ip';
 					}
 					str += '<div class="seperator">' +
-						loadFormTemplate({type: 'ipbox', id: 'oobIP_' + index, value: value.ip, label: localization['mgmt-ip'], maxlength: 3, mandatory: true, holder: 'switch_ip mgmt_ip unique_ip ' + class_name}) + 
+						loadFormTemplate({id: 'oobIP_' + index, value: value.ip, label: localization['mgmt-ip'], class: 'ipaddress', mandatory: true, holder: 'switch_ip mgmt_ip unique_ip ' + class_name}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_switch_serial_' + index, value: value.serial}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_switch_mac_' + index, value: value.mac}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_switch_ip_' + index, value: value.ip}) + 
@@ -1657,8 +1972,9 @@ function loadUCSMForm(column) {
 				str += '</div>\
 				<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 nopadding">';
 			}
-				str += loadFormTemplate({type: 'dropdown', id: 'esxi_file', class: 'esxi_remote_file', label: localization['operating_system'], holder: 'esxi_file remote_file', mandatory: true}) +
-				loadFormTemplate({type: 'dropdown', id: 'esxi_kickstart', class: 'esxi_kickstart_file', label: localization['kickstart'], holder: 'esxi_kickstart remote_file'}) +
+				str += loadFormTemplate({type: 'checkbox', id: 'os_install', class: 'os_install', label: 'ESXi Installation', holder: 'os_install'}) +
+				loadFormTemplate({type: 'dropdown', id: 'esxi_file', class: 'esxi_remote_file', label: localization['operating_system'], holder: 'esxi_file remote_file os_install hide', mandatory: true}) +
+				loadFormTemplate({type: 'dropdown', id: 'esxi_kickstart', class: 'esxi_kickstart_file', label: localization['kickstart'], holder: 'esxi_kickstart remote_file os_install hide'}) +
 				loadFormTemplate({type: 'checkbox', id: 'ucs_upgrade', class: 'ucs_upgrade', label: localization['ucs_firmware'], holder: 'ucs_firmware'}) +
 				loadFormTemplate({type: 'dropdown', id: 'infra_image', class: 'ucs_infra_image', label: localization['ucs-software-bundle'], holder: 'infra_image ucs_upgrade hide'}) + 
 				loadFormTemplate({type: 'dropdown', id: 'blade_image', class: 'ucs_blade_image', label: localization['blade-software'], holder: 'blade_image ucs_upgrade hide'}) + 
@@ -1685,7 +2001,7 @@ function loadMDSForm(options, index, isMDSPrimary, width) {
 			loadFormTemplate({type: 'toggle', id: 'mdsSwitch mdsSwitch_' + index, label: localization['switch-selection'] + ' <span class="small bold dark-text">(' + options.serial + ')</span>', mandatory: true, holder: 'manual-config'}) + 
 			loadFormTemplate({type: 'dropdown', id: 'mds_mapping_' + index, label: 'Map Switch <span class="small bold dark-text">(' + options.serial + ')</span>', mandatory: true, class: 'mds_mapping', holder: 'json-config hide'}) + 
 			loadFormTemplate({id: 'mds_switch_name_' + index, label: localization['switch-name'], holder: 'switch_name', mandatory: true}) +
-			loadFormTemplate({type: 'ipbox', id: 'mds_ipaddress_' + index, label: localization['ip'], maxlength: 3, holder: 'switch_ip unique_ip', mandatory: true});
+			loadFormTemplate({id: 'mds_ipaddress_' + index, label: localization['ip'], class: 'ipaddress', holder: 'switch_ip unique_ip', mandatory: true});
 			str += loadFormField({type: 'hidden', id: 'mds_switch_serial_' + index, value: options.serial}) + 
 			loadFormField({type: 'hidden', id: 'mds_switch_mac_' + index, value: options.mac}) + 
 			loadFormField({type: 'hidden', id: 'mds_switch_ip_' + index, value: options.ip}) + 
@@ -1712,11 +2028,44 @@ function loadNEXUSForm(options, index, isNexusPrimary, width) {
 			loadFormTemplate({type: 'toggle', id: 'nexusSwitch nexusSwitch_' + index, label: localization['switch-selection'] + ' <span class="small bold dark-text">(' + options.serial + ')</span>', mandatory: true, holder: 'manual-config'}) + 
 			loadFormTemplate({type: 'dropdown', id: 'nexus_mapping_' + index, label: 'Map Switch <span class="small bold dark-text">(' + options.serial + ')</span>', mandatory: true, class: 'nexus_mapping', holder: 'json-config hide'}) + 
 			loadFormTemplate({id: 'nexus_switch_name_' + index, label: localization['switch-name'], holder: 'switch_name', mandatory: true}) + 
-			loadFormTemplate({type: 'ipbox', id: 'nexus_ipaddress_' + index, label: localization['ip'], maxlength: 3, holder: 'switch_ip unique_ip', mandatory: true}) + 
+			loadFormTemplate({id: 'nexus_ipaddress_' + index, label: localization['ip'], class: 'ipaddress', holder: 'switch_ip unique_ip', mandatory: true}) + 
 			loadFormField({type: 'hidden', id: 'nexus_switch_serial_' + index, value: options.serial}) + 
 			loadFormField({type: 'hidden', id: 'nexus_switch_mac_' + index, value: options.mac}) + 
 			loadFormField({type: 'hidden', id: 'nexus_switch_ip_' + index, value: options.ip}) + 
 			loadFormField({type: 'hidden', id: 'nexus_vendor_model_' + index, value: options.vendor});
+		str += '</div>\
+		<div class="table-end"></div>\
+	</div>';
+	return str;
+}
+
+
+/**
+  * @desc .
+  * @param object $options - .
+  * @param number $index - .
+  * @param boolean $isNexusPrimary - .
+  * @param string $width - .
+*/
+function loadFAForm(options, index, isFAPrimary, width) {
+	$('.flasharray.block.fa_' + index).remove();
+	var str = '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 nopadding block pure flasharray fa_' + index + '">';
+		str += '<div class="form nopadding">' +
+			loadFormTemplate({id: 'fa_array_name_' + index, label: localization['name'], class: '', holder: 'array_name fa_name ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_vir0_ip_' + index, label: localization['virtual-ip'], class: 'ipaddress', holder: 'vir0_ip fa_virtual_ip unique_ip ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_ct0_ip_' + index, label: 'Controller0 ' + localization['ip'], class: 'ipaddress', holder: 'ct0_ip fa_controller0_ip unique_ip ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_ct1_ip_' + index, label: 'Controller1 ' + localization['ip'], class: 'ipaddress', holder: 'ct1_ip fa_controller1_ip unique_ip ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_relay_host_' + index, label: 'Relay Host', class: '', holder: 'relay_host fa_relay_host ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_sender_domain_' + index, label: 'Sender Domain', class: '', holder: 'sender_domain fa_sender_domain ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_organization_' + index, label: 'Organization', class: '', holder: 'organization fa_organization ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_full_name_' + index, label: 'Fullname', class: '', holder: 'full_name fa_full_name ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_job_title_' + index, label: 'Job Title', class: '', holder: 'job_title fa_job_title ' + width, mandatory: true}) + 
+			loadFormTemplate({type: 'dropdown', id: 'fa_timezone_' + index, label: 'Timezone', class: '', holder: 'timezone ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_alert_emails_' + index, label: 'Alert Emails', class: 'tags tagify', "dataRole": "tagsinput", holder: 'alert_emails fa_alert_emails ' + width, mandatory: true}) + 
+			loadFormField({type: 'hidden', id: 'fa_switch_serial_' + index, value: options.serial}) + 
+			loadFormField({type: 'hidden', id: 'fa_switch_mac_' + index, value: options.mac}) + 
+			loadFormField({type: 'hidden', id: 'fa_switch_ip_' + index, value: options.ip}) + 
+			loadFormField({type: 'hidden', id: 'fa_vendor_model_' + index, value: options.vendor});
 		str += '</div>\
 		<div class="table-end"></div>\
 	</div>';
@@ -1946,7 +2295,7 @@ function loadDevices(container) {
 		$('.buttonPrevious').remove();
 	}
 	var str = '', j = 1, style, icon, buttons, title, flag = false, callbackFlag = true, device_type;
-	doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, container: container, notify: notify}, function(response) {
+	doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, container: container, query: {initStage: true}, notify: notify}, function(response) {
 		str += '<table class="table new">\
 		    <thead>\
 			<tr>\
@@ -1982,7 +2331,7 @@ function loadDevices(container) {
 								if(typeof value.blade_image != 'undefined') icon += '<div class="center">' + localization['upgrading_blade'] + ' <b>' + localization['version'] + ' ' + value.blade_image + '</b></div>';
 								icon += '</span>';
 							}
-							else if(value.device_type == 'UCSM') icon += '<span class="medium">' + localization['configure-inprogress'] + '</span>';
+							else if(value.device_type == 'UCSM' || value.device_type == 'PURE') icon += '<span class="medium">' + localization['configure-inprogress'] + '</span>';
 							else icon += '<span class="medium">' + localization['upgrading'] + ' <b>' + localization['version'] + ' ' + value.image_version + '</b></span>';
 						}
 						if(value.config_state == 'Configured')
@@ -2046,7 +2395,7 @@ function loadDevices(container) {
 function loadDeviceStatus() {
 	clearTimeout(tout);
 	var icon, buttons, flag = false, callbackFlag = true, exec_status = false;
-	doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, notify: false}, function(response) {
+	doAjaxRequest({url: 'FSComponents', base_path: settings.base_path, query: {initStage: true}, notify: false}, function(response) {
 		$('.re-validate').remove();
 		$.each(response.data, function(key, value) {
 			if(value.validated) {
@@ -2069,7 +2418,7 @@ function loadDeviceStatus() {
 								if(typeof value.blade_image != 'undefined') icon += '<div class="center">' + localization['upgrading_blade'] + ' <b>' + localization['version'] + ' ' + value.blade_image + '</b></div>';
 								icon += '</span>';
 							}
-							else if(value.device_type == 'UCSM') icon += '<span class="medium">' + localization['configure-inprogress'] + '</span>';
+							else if(value.device_type == 'UCSM' || value.device_type == 'PURE') icon += '<span class="medium">' + localization['configure-inprogress'] + '</span>';
 							else icon += '<span class="medium">' + localization['upgrading'] + ' <b>' + localization['version'] + ' ' + value.image_version + '</b></span>';
 						}
 						break;

@@ -1,0 +1,4 @@
+# Settings for the apache2 daemon.
+# OPTIONS= :  any extra command-line startup arguments for 
+OPTIONS=/usr/local/apache2/conf/httpd.conf
+

@@ -44,6 +44,25 @@ paths:
           description: Return network information
           schema:
             $ref: '#/definitions/NetworkInfo'
+   
+  /ImportLogo:
+     post:
+       tags:
+       - System
+       operationId: pure_dir.services.apps.pdt.pdt_api.importlogo
+       summary: Import Application Logo
+       security: []
+       parameters:
+           - required: true
+             in: formData
+             description: The image file need to be uploaded
+             name: uploadfile
+             type: file
+       responses:
+         '200':
+           description: Return tool information
+           schema:
+             $ref: '#/definitions/ImportLogResponse'
 
   /PDTReset:
     get:
@@ -164,3 +183,15 @@ definitions:
             type: boolean
           rack:
             type: boolean
+
+  ImportLogResponse:
+    required:
+      - data
+      - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/Status'
+      data:
+        type: string
+        description: Name of the uploaded image file

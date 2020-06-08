@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<workflow desc="Configuration of Cisco UCS Servers"  htype="fa-n9k-fi-iscsi" id="configureUCSServers-iSCSI" isdeletable="0" name="Configure UCS Servers" type="UCSM" hidden="1">
+<workflow desc="Configuration of Cisco UCS Servers" hidden="1" htype="fa-n9k-fi-iscsi" id="configureUCSServers-iSCSI" isdeletable="0" name="Configure UCS Servers" type="UCSM">
   <tasks>
     <task OnSuccess="t101" Onfailure="None" desc="Configuration of anonymous reporting to Cisco" id="UCSAnonymousReporting" inittask="1" label="Anonymous Reporting" name="UCSAnonymousReporting" texecid="t100">
       <outputs>
@@ -96,8 +96,8 @@
         <arg mapval="0" name="name" value="IQN-Pool"/>
         <arg mapval="0" name="desc" value="IQN Pool"/>
         <arg mapval="3" name="prefix" value="IQN-Prefix"/>
+        <arg mapval="0" name="suffix" value="ucs-host" overwrite="False"/>
         <arg mapval="0" name="order" value="sequential"/>
-        <arg mapval="0" name="suffix" value="ucs-host"/>
         <arg mapval="0" name="suffix_from" value="1"/>
         <arg mapval="0" name="suffix_to" value="16"/>
       </args>
@@ -122,9 +122,9 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-	<arg mapval="0" name="ip_pool_name" value="iSCSI-IP-Pool-A"/>
-	<arg mapval="0" name="desc" value="iSCSI IP Pool for Fabric A"/>
-	<arg mapval="0" name="order" value="sequential"/>
+        <arg mapval="0" name="ip_pool_name" value="iSCSI-IP-Pool-A"/>
+        <arg mapval="0" name="desc" value="iSCSI IP Pool for Fabric A"/>
+        <arg mapval="0" name="order" value="sequential"/>
         <arg mapval="3" name="ip_from" value="iSCSI-IP-Pool-A"/>
         <arg mapval="0" name="size" value="12"/>
         <arg mapval="3" name="mask" value="netmask"/>
@@ -173,7 +173,7 @@
         <output name="name" tvalue="VM-Host" value="no-op"/>
       </outputs>
       <args>
-	<arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
         <arg mapval="0" name="name" value="VM-Host"/>
         <arg mapval="0" name="descr" value="Server BIOS Policy"/>
         <arg mapval="0" name="reboot" value="no"/>
@@ -197,7 +197,6 @@
         <arg mapval="0" name="direct_cache_access" value="enabled"/>
         <arg mapval="0" name="power_tech" value="performance"/>
         <arg mapval="0" name="memory_ras" value="maximum-performance"/>
-
       </args>
     </task>
     <task OnSuccess="t116" Onfailure="None" desc="Update UCS Default maintenance policy" id="UCSUpdateDefaultMaintenancePolicy" inittask="0" label="Default Maintenance Policy" name="UpdateDefaultMaintenancePolicy" texecid="t115">

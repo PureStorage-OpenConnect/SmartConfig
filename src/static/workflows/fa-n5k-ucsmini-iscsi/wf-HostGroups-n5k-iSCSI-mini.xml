@@ -18,10 +18,9 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-	<arg mapval="1" name="hgname" value="__t302.FACreateHostGroup.hgname"/>
-	<arg mapval="0" name="hosts" value=""/>
+        <arg mapval="1" name="hgname" value="__t302.FACreateHostGroup.hgname"/>
+        <arg mapval="0" name="hosts" value="" overwrite="False"/>
       </args>
     </task>
   </tasks>
 </workflow>
-

@@ -28,7 +28,7 @@
         <arg mapval="0" name="mac_name" value="MAC_Pool_A"/>
         <arg mapval="0" name="descr" value="mac pool A"/>
         <arg mapval="0" name="mac_order" value="sequential"/>
-        <arg mapval="0" name="mac_start" value="00:25:B5:91:1A:00"/>
+        <arg mapval="0" name="mac_start" value="00:25:B5:91:1A:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -42,7 +42,7 @@
         <arg mapval="0" name="mac_name" value="MAC_Pool_B"/>
         <arg mapval="0" name="descr" value="mac pool B"/>
         <arg mapval="0" name="mac_order" value="sequential"/>
-        <arg mapval="0" name="mac_start" value="00:25:B5:91:1B:00"/>
+        <arg mapval="0" name="mac_start" value="00:25:B5:91:1B:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -294,7 +294,7 @@
         <arg mapval="0" name="templ_type" value="updating-template"/>
         <arg mapval="0" name="peer_red_template" value="not-set"/>
         <arg mapval="1" name="vlans" value="__t212.UCSCreateTrafficVLAN.vlan_name|__t213.UCSCreateTrafficVLAN.vlan_name|__t214.UCSCreateTrafficVLAN.vlan_name"/>
-	<arg mapval="0" name="native_vlan" value="default"/>
+        <arg mapval="0" name="native_vlan" value="default"/>
         <arg mapval="0" name="cdn_source" value="vnic-name"/>
         <arg mapval="0" name="mtu" value="9000"/>
         <arg mapval="1" name="ident_pool_name" value="__t201.CreateMACAddressPoolsForFabricA.mac_name"/>

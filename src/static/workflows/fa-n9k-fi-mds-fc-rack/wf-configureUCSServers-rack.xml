@@ -23,7 +23,6 @@
       </args>
     </task>
     <!--
-
     <task OnSuccess="t301" Onfailure="None" desc="Edit the chassis disc policy" id="UCSChassisDiscoveryPolicy" inittask="0" label="Chassis Discovery Policy" name="ChassisDiscoveryPolicy" texecid="t300">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
@@ -64,7 +63,7 @@
         <arg mapval="0" name="ports" value="15|16"/>
       </args>
     </task>
-<!--    <task OnSuccess="t306" Onfailure="None" desc="Acknowledge All Cisco UCS Chassis" id="UCSAcknowledgeCiscoUCSChassis" inittask="0" label="Acknowledge All Cisco UCS Chassis" name="AcknowledgeCiscoUCSChassis" texecid="t303">
+    <!--    <task OnSuccess="t306" Onfailure="None" desc="Acknowledge All Cisco UCS Chassis" id="UCSAcknowledgeCiscoUCSChassis" inittask="0" label="Acknowledge All Cisco UCS Chassis" name="AcknowledgeCiscoUCSChassis" texecid="t303">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
       </outputs>

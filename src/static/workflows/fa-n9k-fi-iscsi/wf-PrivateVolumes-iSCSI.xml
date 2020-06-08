@@ -8,22 +8,21 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="0" name="name" value="VM-Vol-iSCSI-#"/>
-	<arg mapval="0" name="vol_set" value="{'size': {'ismapped': '0', 'value': '10'}, 'size_unit': {'ismapped': '0', 'value': '1073741824'}}"/>
+        <arg mapval="0" name="vol_set" value="{'size': {'ismapped': '0', 'value': '10'}, 'size_unit': {'ismapped': '0', 'value': '1073741824'}}"/>
         <arg mapval="0" name="st_no" value="1"/>
-        <arg mapval="" name="count" value="2"/>
+        <arg mapval="" name="count" value="2" overwrite="False" />
         <arg mapval="0" name="num_digits" value="2"/>
       </args>
     </task>
-   <task OnSuccess="None" Onfailure="None" desc="Mapping volume to host" id="FAConnectVolumeToISCSIHost" inittask="0" label="Connect Volume To Host" name="FAConnectVolumeToISCSIHost" texecid="t302">
+    <task OnSuccess="None" Onfailure="None" desc="Mapping volume to host" id="FAConnectVolumeToISCSIHost" inittask="0" label="Connect Volume To Host" name="FAConnectVolumeToISCSIHost" texecid="t302">
       <outputs>
         <output name="status" tvalue="Success" value="no-op"/>
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="hvmap_set" value="{'hostname': {'ismapped': '0', 'value': ''}, 'volumename': {'ismapped': '0', 'value': ''}}|{'hostname': {'ismapped': '0', 'value': ''}, 'volumename': {'ismapped': '0', 'value': ''}}|{'hostname': {'ismapped': '0', 'value': ''}, 'volumename': {'ismapped': '0', 'value': ''}}"/>
+        <arg mapval="0" name="hvmap_set" value="{'hostname': {'ismapped': '0', 'value': ''}, 'volumename': {'ismapped': '0', 'value': ''}}|{'hostname': {'ismapped': '0', 'value': ''}, 'volumename': {'ismapped': '0', 'value': ''}}|{'hostname': {'ismapped': '0', 'value': ''}, 'volumename': {'ismapped': '0', 'value': ''}}" overwrite="False"/>
       </args>
     </task>
   </tasks>
 </workflow>
-

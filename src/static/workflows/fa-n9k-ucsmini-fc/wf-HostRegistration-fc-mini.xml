@@ -9,7 +9,7 @@
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="0" name="name" value="VM-Host-FC-#"/>
         <arg mapval="0" name="st_no" value="1"/>
-        <arg mapval="0" name="count" value="1"/>
+        <arg mapval="0" name="count" value="1" overwrite="False"/>
         <arg mapval="0" name="num_digits" value="2"/>
       </args>
     </task>
@@ -20,9 +20,8 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-	<arg name="host_set" value="{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}"/>
+        <arg mapval="0" name="host_set" value="{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}" overwrite="False"/>
       </args>
     </task>
   </tasks>
 </workflow>
-

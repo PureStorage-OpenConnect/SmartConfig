@@ -1,0 +1,118 @@
+paths:
+  /FSConnectivity:
+    get:
+      tags: 
+      - Reporting
+      operationId: pdt_api.fs_connectivity
+      summary: Cabling information of Flashstack
+      security: []
+      responses:
+        '200':
+          description: Returns flashstack connectivity information
+          schema:
+            $ref: '#/definitions/FSConnectivityResponse'
+
+
+definitions:
+  FSConnectivityResponse:
+    required:
+    - data
+    - status
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/APIStatus'
+      data:
+        $ref: '#/definitions/FSConnectivity'
+
+  FSConnectivity:
+    type: object
+    required:
+    - stacktype
+    - components
+    - connections
+    properties:
+      stacktype:
+        type: string
+      components:
+        $ref: '#/definitions/FSComponents'
+      connections:
+        $ref: '#/definitions/FSConnections'
+
+  FSComponents:
+    type: object
+    additionalProperties:
+        type: array
+        items:
+          $ref: '#/definitions/ComponentInfo'
+
+  FSConnections:
+    type: object
+    additionalProperties:
+        type: array
+        items:
+          $ref: '#/definitions/InterfaceInfo'
+
+  ComponentInfo:
+    type: object
+    required:
+    - name
+    - serial_no
+    - model
+    properties:
+      name:
+        type: string
+        description: Local Interface
+      ipaddress:
+        type: string
+        description: Remote device connected to
+      mac:
+        type: string
+        description: Remote Interface in remote device
+      serial_no:
+        type: string
+        description: Interface type
+      model:
+        type: string
+        description: Interface state
+      leadership:
+        type: string
+        description: Interface speed
+      vipaddress:
+        type: string
+        description: FI Cluster virtual ip address
+
+  InterfaceInfo:
+    type: object
+    required:
+    - local_interface
+    - remote_device
+    - remote_interface
+    - state
+    - type
+    properties:
+      local_interface:
+        type: string
+        description: Local Interface
+      pc:
+        #type: object
+        # TODO: This can either be a dict object or None. Specifying type as object will fail if None is passed
+        description: Port channel if the interface is binded to
+      remote_device:
+        type: string
+        description: Remote device connected to
+      remote_interface:
+        type: string
+        description: Remote Interface in remote device
+      type:
+        type: string
+        description: Interface type
+      state:
+        type: string
+        description: Interface state
+      speed:
+        type: string
+        description: Interface speed
+      connection:
+        type: string
+        description: Connection

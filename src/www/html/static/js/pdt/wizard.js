@@ -8,8 +8,15 @@ function loadPageContent() {
 	doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
 		updateDeploymentSettings(response.data.deployment_settings);
 		systemInfo.dhcp_status = response.data.dhcp_status;
-		
+		systemInfo.version = response.data.version;
+		systemInfo.report_logo = response.data.report_logo;
+
+		if(location.pathname.indexOf('report.html') > -1) {
+			loadReportTemplate();
+			return false;
+		}
 		$('.content').html(wizardTemplate());
+
 		var mode = true;
 		if(typeof systemInfo.deployment_type != 'undefined' && systemInfo.deployment_type == 'advanced') mode = false;
 		$('.toggle-select.deployment-type').toggles({type: 'select', on: mode, width: 'auto', height: '22px', text: {on: localization['basic'], off: localization['advanced']}});
@@ -204,19 +211,19 @@ function wizardTemplate() {
 				</div>\
 				<div id="step-2" class="initial-setup nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 2: ' + localization['configuration'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 2: ' + localization['flashstack-configuration'] + '</h5>\
 						<div class="widget-content border"></div>\
 					</div>\
 				</div>\
 				<div id="step-3" class="device-initialization nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 3: ' + localization['device-initialization'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 3: ' + localization['flashstack-device-initialization'] + '</h5>\
 						<div class="widget-content border"></div>\
 					</div>\
 				</div>\
 				<div id="step-4" class="deployment nopadding">\
 					<div class="smartwidget">\
-						<h5 class="StepTitle widget-title">' + localization['step'] + ' 4: ' + localization['deployment'] + '</h5>\
+						<h5 class="StepTitle widget-title">' + localization['step'] + ' 4: ' + localization['flashstack-deployments'] + '</h5>\
 						<div class="widget-content nopadding">\
 							<div class="workflowsList dataList table">\
 								<div class="list-workflows">\
@@ -351,9 +358,9 @@ function leaveAStepCallback(obj, context) {
 			systemInfo.subtype = $('.boxes .box.active').attr('stacktype');
 
 			doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
-				updateDeploymentSettings(response.data.deployment_settings);console.log(response);
+				updateDeploymentSettings(response.data.deployment_settings);
 
-				MDSForConfigure = [], NEXUSForConfigure = [], UCSForConfigure = [];
+				MDSForConfigure = [], NEXUSForConfigure = [], UCSForConfigure = [], FAForConfigure = [];
 				$('.networkinfo.elementInfo.active').each(function(index) {
 					switch($(this).find('.device_type').text()) {
 						case 'UCSM':
@@ -392,15 +399,25 @@ function leaveAStepCallback(obj, context) {
 								vendor: $(this).find('.vendor_model').text()
 							});
 							break;
+						case 'PURE':
+							FAForConfigure.push({
+								type: $(this).find('.device_type').text(), 
+								serial: $(this).find('.serial_number').text(), 
+								ip: $(this).find('.ip_address').text(),
+								mac: $(this).find('.mac_address').text(),
+								vendor: $(this).find('.vendor_model').text(),
+								state: $(this).attr('state')
+							});
+							break;
 					}	
 				});
-				if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0) {
+				if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0 || FAForConfigure.length > 0) {
 					clearTimeout(tout);
 					var data = [];
 					$.each(UCSForConfigure, function(index, value) {
 						data.push(value.vendor);
 					});
-					doAjaxRequest({url: 'FIGenValidate', base_path: settings.base_path, method: 'POST', data: data, query: {stacktype: systemInfo.subtype}}, function(response) {
+					doAjaxRequest({url: 'FIGenValidate', base_path: settings.base_path, method: 'POST', data: data, query: {stacktype: systemInfo.subtype}, notify: false}, function(response) {
 						systemInfo.subtype = response.data;
 						loadInitialSetupForm();
 						navigateStep(2);
@@ -449,6 +466,9 @@ function onShowCallback(obj) {
 		goTo = 1;
 		$('#wizard').smartWizard('goToStep', 1);
 		return false;
+	} else if(current_step == 2) {
+		if($('[name="configuration-option"]:checked').val() == 'JSON')
+			$('.buttonNext').text(localization['init_deploy']);
 	}
 	if(current_step > 1) {
 		if(!systemInfo.stacktype) {

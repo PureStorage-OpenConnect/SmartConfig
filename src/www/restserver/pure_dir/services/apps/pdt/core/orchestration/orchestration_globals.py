@@ -26,6 +26,10 @@ from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_mds_fc import 
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_iscsi import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_mds_fc_rack import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_n9k_fi6454_iscsi_rack import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6332_mds_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6332_mds_fc_rack import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_mds_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_mds_fc_rack import *
 from pure_dir.services.utils.ipvalidator import IpValidator
 import os.path
 from xml.dom.minidom import parse
@@ -72,6 +76,10 @@ def get_globals_api(stacktype, hidden):
                 g_val['view'] = i.getAttribute('view')
                 if i.hasAttribute('additional'):
                     g_val['additional'] = i.getAttribute('additional')
+                if i.hasAttribute('prefix'):
+                    g_val['prefix'] = i.getAttribute('prefix')
+                if i.hasAttribute('suffix'):
+                    g_val['suffix'] = i.getAttribute('suffix')
                 dfhwtype = []
                 hwtype = i.getAttribute('hwtype').split("|")
                 for j in hwtype:
@@ -159,6 +167,7 @@ def set_globals_api(stacktype, input_list):
 
     """
 
+    err_check = []
     obj = result()
     if os.path.exists(get_global_wf_config_file()) == False:
         loginfo("Globals file does not exist")
@@ -169,11 +178,13 @@ def set_globals_api(stacktype, input_list):
         #kvm_err = set_globals_validate_api(input_list['kvm_console_ip'])
         kvm_err = validate_kvm_ip_range(input_list['kvm_console_ip'])
         if len(kvm_err) > 0:
-            obj.setResult(kvm_err, PTK_INTERNALERROR,
+            err_check.extend(kvm_err)
+            obj.setResult(err_check, PTK_INTERNALERROR,
                           _("PDT_INCORRECT_DETAILS_ERR_MSG"))
-            return obj
+
     err = get_value(input_list, stacktype)
     valid_err = validate_data(stacktype, input_list)
+    err.extend(err_check)
     if len(err) == 0:
         if len(valid_err) != 0:
             obj.setResult(valid_err, PTK_INTERNALERROR,

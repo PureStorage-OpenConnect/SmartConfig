@@ -1,8 +1,12 @@
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, job_input_save
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file
+import xmltodict
+import random
+import re
 
 metadata = dict(
     task_id="UCSCreateMACAddressPools",
@@ -15,7 +19,7 @@ metadata = dict(
 class UCSCreateMACAddressPools:
     def __init__(self):
         pass
-
+    
     def execute(self, taskinfo, logfile):
         loginfo("Create MAC Address Pools")
         res = get_ucs_handle(taskinfo['inputs']['fabric_id'])
@@ -42,19 +46,65 @@ class UCSCreateMACAddressPools:
         obj.release_ucs_handle()
         return res
 
+    def prepare(self, jobid, texecid, inputs):
+        res = result()
+
+        job_xml = get_job_file(jobid)
+        fd = None
+        try:
+            fd = open(job_xml, 'r')
+        except IOError:
+            loginfo("Could not read file: %s" % job_xml)
+
+        doc = xmltodict.parse(fd.read())
+
+        mac_id = [[switch['@value'] for switch in task['args']['arg'] if switch['@name'] == "mac_name"][0]
+                  for task in doc['workflow']['tasks']['task'] if task['@texecid'] == texecid][0]
+
+        mac_address = self.random_mac(mac_id)
+        loginfo("Random mac number:%s" % mac_address)
+        job_input_save(jobid, texecid, 'mac_start', mac_address)
+
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+    def gen_hex(self, length):
+        return ''.join(random.choice('0123456789ABCDEF') for _ in range(length))
+
+    def random_mac(self, mac_name):
+        if 'MAC_Pool_A' in mac_name:
+            mac_A = (
+                '00',
+                self.gen_hex(2),
+                self.gen_hex(2),
+                self.gen_hex(2),
+                self.gen_hex(1) + 'A',
+                self.gen_hex(2))
+            macA = ':'.join(mac_A)
+            return macA
+        elif 'MAC_Pool_B' in mac_name:
+            mac_B = (
+                '00',
+                self.gen_hex(2),
+                self.gen_hex(2),
+                self.gen_hex(2),
+                self.gen_hex(1) + 'B',
+                self.gen_hex(2))
+            macB = ':'.join(mac_B)
+            return macB
+
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-    def validate(self, item):
-        if item.count(":") != 5:
-            return False, "Invalid MAC Address format"
-        for i in item.split(":"):
-            for j in i:
-                if j > "F" or (j < "A" and not j.isdigit()) or len(i) != 2:
-                    return False, "Invalid MAC Address"
+    def validate(self, item, mac_name):
+        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", 
+                    item.lower()) and item[-4] == mac_name and item[:2] == "00":
+            pass
+        else:
+            return False, "Invalid MAC Address format Eg: 00:xx:xx:xx:x"+mac_name+":xx"
         return True, ""
 
 
@@ -118,7 +168,7 @@ class UCSCreateMACAddressPoolsInputs:
         mandatory='1',
         order=4)
     mac_start = Textbox(
-        validation_criteria='function',
+        validation_criteria='function_rand',
         hidden='False',
         isbasic='True',
         helptext='MAC Start Address',

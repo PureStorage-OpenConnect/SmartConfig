@@ -11,10 +11,10 @@ from pycsco.nxos import error
 import json
 import urllib2
 import re
-
-from pure_dir.infra.apiresults import *
+import xmltodict
+from pure_dir.infra.apiresults import PTK_CLIERROR, PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
-
+from pure_dir.services.utils.miscellaneous import *
 
 class MDS:
     def __init__(self, ipaddr, uname, passwd):
@@ -170,7 +170,6 @@ class MDS:
 
         :return: Returns the interface list
         """
-        obj = result()
         iface_details = {}
         try:
             iface_op = self.handle.show(
@@ -180,25 +179,29 @@ class MDS:
                 raise cli_error
             else:
                 op_dict = json.loads(iface_op[1])
-                iface_details['pwwn'] = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']['port_wwn']
-                if 'port_mode' in op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']:
-                    iface_details['descr'] = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']['port_mode']
-                else:
-                    iface_details['descr'] = ""
-                obj.setResult(iface_details, PTK_OKAY, "Success")
-                return obj
+                iface_struct = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']
+                iface_details['interface'] = iface_struct['interface_vfc']
+                hw_type = ''.join(iface_struct['hardware'].split(' ')[-2:])
+                iface_details['type'] = 'FC' if hw_type == 'FibreChannel' else hw_type
+		pc_id = iface_struct.get('bundle_if_index', None) 
+		if pc_id is not None:
+		    iface_details['pc'] = {'id':'Po'+re.search('port-channel(.+)', pc_id).group(1), 'type':'FC PC'}
+		else:
+		    iface_details['pc'] = None
+                iface_details['pwwn'] = iface_struct['port_wwn']
+                iface_details['speed'] = iface_struct.get('oper_speed', 'indeterminate')
+                iface_details['state'] = iface_struct['oper_port_state']
+                iface_details['vsan'] = iface_struct.get('vsan', None)
+                return iface_details
 
         except error.CLIError as e:
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
-            obj.setResult(iface_details, PTK_CLIERROR, str(e.err))
-            return obj
+            return None
 
         except urllib2.URLError as e:
             loginfo("Error msg: " + str(e.reason))
-            obj.setResult(iface_details, PTK_NOTEXIST,
-                          "Could not connect to switch")
-            return obj
+            return None
 
     def get_fc_list(self, pc_bind=""):
         """
@@ -1622,3 +1625,132 @@ class MDS:
             loginfo("Failed to set MDS password")
             loginfo("Error msg: " + str(e.reason))
             return False
+
+    def mds_switch_version(self):
+        """
+        md report helper function
+        return: switch name, model, serila num, hardware version, system version
+                kickstart version
+        """
+        mds_info = {}
+        try:
+            mds_out = self.handle.show('show hardware', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(mds_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(mds_out[1])
+                mds_sys = out_dict['ins_api']['outputs']['output']['body']
+                mds_info['host_name'] = mds_sys['host_name']
+                mds_info['model'] = mds_sys['chassis_id']
+                mds_info['serial_num'] = mds_sys['TABLE_slot_info'][0]['ROW_slot_info']['serial_num']
+                mds_info['hw_version'] = mds_sys['TABLE_slot_info'][0]['ROW_slot_info']['hw_ver']
+                mds_info['bios_version'] = mds_sys['bios_ver_str']
+                mds_info['system_ver'] = mds_sys['rr_sys_ver']
+                mds_info['kickstart_ver'] = mds_sys['kickstart_ver_str']
+                return mds_info
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def mds_uptime(self):
+        """
+        mds report helper function
+        returns system uptime
+        """
+        mds_uptime = {}
+        try:
+            mds_out = self.handle.show('show system uptime', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(mds_out[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                out_dict = json.loads(mds_out[1])
+                mds_sys = out_dict['ins_api']['outputs']['output']['body']
+                mds_uptime['uptime'] = (str(mds_sys['sys_up_days']) + " days," + str(mds_sys['sys_up_hrs']) + " hrs," +
+                                           str(mds_sys['sys_up_mins']) + " mins," + str(mds_sys['sys_up_secs']) + " secs")
+                return mds_uptime
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def mds_command(self, cmd, key, **kwargs):
+        """
+        report helper function helps to execute a command on mds
+        return: value of given key
+        """
+        try:
+            mds_out = self.handle.show(cmd, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(mds_out[1]))
+            if cli_error:
+                loginfo(json.loads(cli_error[1]))
+                return None
+            else:
+                out_dict = json.loads(mds_out[1])
+                dict_value = get_value(key, out_dict, **kwargs)
+                return dict_value
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def mds_cmd_cli_err(self, cmd):
+        """
+        report helper function helps to execute a command on mds and that throws cli error
+        return: value of given key
+        """
+        try:
+            mds_out = self.handle.show(cmd, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(mds_out[1]))
+            if cli_error:
+                raise cli_error
+
+        except error.CLIError as e:
+            out_dict = ((e.err).strip())
+            doc = xmltodict.parse(out_dict)
+            out = json.dumps(doc)
+            return json.loads(out)
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+
+    def mds_port_license(self):
+        """
+        report helper function: execute cmd on mds
+        return: license value
+        """
+        mds_sys = {}
+        mds_lic = []
+        try:
+            lic_cmd = self.handle.config('show port-license', fmat='json')
+            op_dict = json.loads(lic_cmd[1])
+            lic_output = op_dict['ins_api']['outputs']['output']['body']
+            for row in lic_output.split('\n'):
+                row_val = row.strip()
+                if row_val.startswith('fc'):
+                    tmp_list = [x for x in row_val.split(' ') if x != '']
+                    mds_sys['interface'] = tmp_list[0]
+                    mds_sys['licns'] = tmp_list[2]
+                    mds_lic.append(mds_sys.copy())
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+
+        except urllib2.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+        return mds_lic

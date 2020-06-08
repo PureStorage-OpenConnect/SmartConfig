@@ -256,6 +256,34 @@ $(document).ready(function() {
 	  * @param string $field - attribute name by which attribute to check the duplicate entry.
 	  * @return array - unique array of objects(attribute based).
 	*/
+	$('body').delegate('.export-report', 'click', function(e) {
+		$(this).closest('.buttonCustom').find('.dropdown-toggle').html('<i class="blue-text fa-progress"></i> Generating...');
+		$('.export-report').closest('.buttonCustom').addClass('buttonDisabled');
+		$(this).closest('.buttonCustom').find('.dropdown-toggle').trigger('click');
+		e.stopPropagation();
+		if($(this).hasClass('excel')) {
+			doAjaxRequest({url: 'GenerateReport', alt_url: 'ReportState', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, container: '.workflowsList'}, function(response) {
+				downloadReport(response.data);
+			}, function() {
+				$('.export-report').closest('.buttonCustom').find('.dropdown-toggle').html('Export Report');
+				$('.export-report').closest('.buttonCustom').removeClass('buttonDisabled');
+			}, function(response) {
+				downloadReport(response.data);
+			});
+		} else if($(this).hasClass('pdf')) {
+			if($(this).hasClass('a0'))
+				loadReportTemplate(true, 'a0');
+			else
+				loadReportTemplate(true, 'a4');
+		}
+	});
+
+	/**
+	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
+	  * @param array $array - the initial array of objects with duplicate entries.
+	  * @param string $field - attribute name by which attribute to check the duplicate entry.
+	  * @return array - unique array of objects(attribute based).
+	*/
 	$('body').delegate('.job-resume', 'click', function(e) {
 		e.stopPropagation();
 		var query = {stacktype: systemInfo.subtype};
@@ -479,6 +507,14 @@ $(document).ready(function() {
 	});
 });
 
+function downloadReport(data) {
+	if(data.report_status.toLowerCase() == 'completed') {
+		$('.export-report').closest('.buttonCustom').find('.dropdown-toggle').html('Export Report');
+		$('.export-report').closest('.buttonCustom').removeClass('buttonDisabled');
+		download(location.protocol + '//' + window.location.host + '/static/downloads/' + data.tid);
+	}
+}
+
 /**
   * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
   * @param array $array - the initial array of objects with duplicate entries.
@@ -489,16 +525,21 @@ var autoScroll = true;
 function triggerExecute() {
 	if(systemInfo.deployment_type == 'basic') {
 		autoScroll = true;
-		doAjaxRequest({url: 'BatchExecute', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, container: '.deployment'}, function(response) {
-			$('.workflowsList .scroller').addClass('shrink');
-			$('.log-container').addClass('expand').removeClass('hide');
-			getBatchStatus(true);
-		}, doNothing);
+		JobExecute();
 	} else {
 		$('.execute-workflow').first().trigger('click');
 	}
 }
 
+function JobExecute() {
+	doAjaxRequest({url: 'BatchExecute', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, container: '.deployment'}, function(response) {
+		$('.workflowsList .scroller').addClass('shrink');
+		$('.log-container').addClass('expand').removeClass('hide');
+		setTimeout(function() {
+			getBatchStatus(true);
+		}, 2000);
+	}, doNothing);
+}
 /**
   * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
   * @param array $array - the initial array of objects with duplicate entries.
@@ -746,7 +787,7 @@ function getBatchStatus(notify) {
 			$('.buttonFinish').addClass('hide');
 		$('tr.workflowinfo').removeClass('failed');
 		$('.deployment-type').toggleClass('disabled', true);
-		$('.buttonFinish, .buttonPrevious').addClass('buttonDisabled');
+		$('.buttonFinish, .buttonPrevious, .buttonCustom.export-report').addClass('buttonDisabled');
 		$('.buttonCustom.job-rollback, .buttonCustom.job-resume').remove();
 
 		if(response.data.length == 0) {
@@ -756,6 +797,7 @@ function getBatchStatus(notify) {
 				$('.workflowsList .workflowinfo').children(':last-child').first().html(icon);
 			}
 			if(systemInfo.config_mode.toLowerCase() == 'json') {
+				JobExecute();
 				$('.execute-workflow, .modify-workflow').remove();
 			} else 
 				$('.buttonFinish, .buttonPrevious').removeClass('buttonDisabled');
@@ -835,7 +877,10 @@ function getBatchStatus(notify) {
 			$('.buttonFinish, .buttonPrevious').removeClass('buttonDisabled');
 			$('.deployment-type').toggleClass('disabled', false);
 		}
-		$('.reset-config, .export-config').remove();
+		$('.reset-config, .export-config, .buttonCustom.reports').remove();
+		if(state) {
+			$('.buttonNext').addClass('hide');
+		}
 		if(flag || fcount > 0) {
 			$('.progress-bar-container .progress-bar').removeClass('orange-bar shine stripes');
 			if(fcount > 0) {
@@ -853,6 +898,14 @@ function getBatchStatus(notify) {
 				$('.buttonPrevious, .buttonFinish').addClass('hide');
 				$('.buttonFinish').before('<a href="javascript:;" class="buttonCustom reset-config" style="display: inline-block;">' + localization['finish'] + '</a>');
 				$('.reset-config').before('<a href="javascript:;" class="buttonCustom export-config" style="display: inline-block;">' + localization['export-devices'] + '</a>');
+				//$('.reset-config').before('<a href="javascript:;" class="buttonCustom export-report" style="display: inline-block;">' + localization['export-report'] + '</a>');
+				$('.reset-config').before('<div class="buttonCustom dropup reports">' +
+					'<span type="button" class="dropdown-toggle" data-toggle="dropdown">' + localization['export-report'] + '</span>' +
+					'<div class="dropdown-menu">' +
+						'<a class="dropdown-item export-report pdf a4" href="javascript:;"><i class="fa fa-file-pdf-o"></i> PDF (A4 Size)</a>' +
+						'<a class="dropdown-item export-report excel" href="javascript:;"><i class="fa fa-file-excel-o"></i> XLS</a>' +
+					'</div>' +
+				'</div>');
 			}
 		} else {
 			tout = setTimeout(function() {
@@ -1099,6 +1152,14 @@ Hook.register(
 				} else {
 					$('.form-footer #saveBtn').removeClass('hide');
 					$('.modal-body #form-body .advanced').removeClass('hide');
+					$('.control-group .controls span.prefix').each(function(index) {
+						var borderWidth = 15 + $(this).outerWidth();
+						$(this).next('input.prefix').css('border-left-width', borderWidth + 'px');
+					});
+					$('.control-group .controls span.suffix').each(function(index) {
+						var borderWidth = 15 + $(this).outerWidth();
+						$(this).prev('input.suffix').css('border-right-width', borderWidth + 'px');
+					});
 				}
 			});
 		}

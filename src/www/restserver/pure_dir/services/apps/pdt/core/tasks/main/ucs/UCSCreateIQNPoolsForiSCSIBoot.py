@@ -1,8 +1,11 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import job_input_save, parseTaskResult
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+import random
+import re
+import string
 
 metadata = dict(
     task_id="UCSCreateIQNPoolsForiSCSIBoot",
@@ -42,11 +45,34 @@ class UCSCreateIQNPoolsForiSCSIBoot:
         obj.release_ucs_handle()
         return res
 
+    def prepare(self, jobid, texecid, inputs):
+        res = result()
+        iqn_address = self.gen_iqn()
+        loginfo("Random iqn address:%s" % iqn_address)
+        job_input_save(jobid, texecid, 'suffix', iqn_address)
+
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+    def gen_hex(self, length):
+        return ''.join(random.choice('0123456789ABCDEF') for _ in range(length))
+
+    def gen_iqn(self):
+        iqn_pool = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        return iqn_pool
+
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
+
+    def validate(self, item):
+        if item != "" and re.match("^[0-9a-zA-Z\.:-]{0,64}$", item):
+            pass
+        else:
+            return False, "Invalid IQN Suffix"
+        return True, ""
 
 
 class UCSCreateIQNPoolsForiSCSIBootInputs:
@@ -125,7 +151,7 @@ class UCSCreateIQNPoolsForiSCSIBootInputs:
         mandatory='1',
         order=5)
     suffix = Textbox(
-        validation_criteria='str|min:1|max:128',
+        validation_criteria='function',
         hidden='False',
         isbasic='True',
         helptext='Suffix',

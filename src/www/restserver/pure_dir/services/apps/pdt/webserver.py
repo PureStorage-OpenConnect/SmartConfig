@@ -7,7 +7,7 @@
 ############################################################
 
 from sys import dont_write_bytecode
-from pure_dir.services.apps.pdt.core.init_service import *
+from pure_dir.services.apps.pdt.core.init_service import init_service
 dont_write_bytecode = True
 import connexion
 

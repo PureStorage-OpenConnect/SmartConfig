@@ -2,6 +2,8 @@ switchname {{switch_name}}
 
 feature nxapi
 
+nxapi http port 80
+
 feature ssh
 ssh key rsa 1024 force
 

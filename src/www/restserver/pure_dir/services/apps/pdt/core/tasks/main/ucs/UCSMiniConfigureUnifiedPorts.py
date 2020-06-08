@@ -1,14 +1,13 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.infra.apiresults import *
 from pure_dir.services.utils.miscellaneous import *
 import os
 import json
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+from pure_dir.global_config import get_discovery_store
 
 metadata = dict(
     task_id="UCSMiniConfigureUnifiedPorts",
@@ -63,8 +62,8 @@ class UCSMiniConfigureUnifiedPorts:
     def get_all_ucs_list(self, keys):
         res = result()
         info_list = []
-        if os.path.exists(static_discovery_store) is True:
-            doc = parse_xml(static_discovery_store)
+        if os.path.exists(get_discovery_store()) is True:
+            doc = parse_xml(get_discovery_store())
             for subelement in doc.getElementsByTagName("device"):
                 if subelement.getAttribute("device_type") == "UCSM":
                     details = {}

@@ -1,4 +1,4 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save, get_field_value_from_jobid
@@ -73,7 +73,7 @@ class UCSCreateServiceProfileTemplate:
 
         boot_policy = self.getbootpolicy(keys)
         boot_pol_list = [boot for boot in boot_policy.getResult() if boot.get(
-            'id') not in ['utility', 'diag', 'default']]
+            'id') not in ['utility', 'diag', 'default', 'default-UEFI']]
         self.sp_template_save_inputs(
             jobid, texecid, "boot_policy_name", boot_pol_list)
 
@@ -562,3 +562,13 @@ class UCSCreateServiceProfileTemplateOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
     serviceprofilename = Output(
         dt_type="string", name="serviceprofilename", tvalue="VM-Host-Infra-A")
+    ident_pool_name = Output(
+        dt_type="string", name="ident_pool_name", tvalue="UUID_Pool")
+    boot_policy_name = Output(
+        dt_type="string", name="boot_policy_name", tvalue="Boot-FC-X-A")
+    power_policy_name = Output(
+        dt_type="string", name="power_policy_name", tvalue="No-Power-Cap")
+    local_disk_policy_name = Output(
+        dt_type="string", name="local_disk_policy_name", tvalue="SAN-Boot")
+    biospolicy = Output(
+        dt_type="string", name="biospolicy", tvalue="VM-Host")

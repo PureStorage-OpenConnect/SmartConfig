@@ -440,6 +440,24 @@ def is_image_available_on_ucsm(handle, image):
         return True
 
 
+def image_name_ucs(handle, image):
+    """
+    checking the name of the existing image
+    :param image: image eg:ucs-k9-bundle-b-series.4.0.1d.B.bin|gbin
+    :return :name of the image
+    """
+
+    loginfo("checking image name in ucs %s" % image)
+    filter_str = '(name, %s, type="re")' % image
+    firmware_package = handle.query_classid(
+        class_id="FirmwareDistributable", filter_str=filter_str)
+    if firmware_package:
+        firmware_image_name = firmware_package[0].name
+        return firmware_image_name
+    else:
+        return ""
+
+
 def _get_blade_firmware_running(handle, blade):
     """
     Get running firmware version
@@ -490,7 +508,7 @@ def ucsbladeimages(version=''):
 
     image_list = []
     images = [os.path.basename(fn) for fn in glob.glob(
-        '/mnt/system/uploads/ucs*.B.bin')]
+        '/mnt/system/uploads/ucs*.B.*')]
 
     for image in images:
         details = {}
@@ -508,12 +526,42 @@ def ucsbladeimages(version=''):
     return image_list
 
 
+def ucsrackimages(version=''):
+    """
+    Get UCS blade images
+    :return: blade image
+    """
+
+    image_list = []
+    images = [os.path.basename(fn) for fn in glob.glob(
+        '/mnt/system/uploads/ucs*.C.*')]
+
+    for image in images:
+        details = {}
+        if version:
+            details['label'] = get_version(image) + "C"
+            details['id'] = get_version(image) + "C"
+            details['selected'] = "1"
+        else:
+            details['label'] = image
+            details['id'] = image
+            details['selected'] = "0"
+
+        image_list.append(details)
+
+    return image_list
+
+
 def get_version(image):
     """
     Compute version from the image name
     :return: version
     """
-
-    ver = image[-12:].split('.')
-    version = ver[0] + "." + ver[1] + "(" + ver[2] + ")"
+    # TODO: To handle gbin support
+    if '.gbin' not in image:
+        ver = image[-12:].split('.')
+        version = ver[0] + "." + ver[1] + "(" + ver[2] + ")"
+    else:
+        ver = image[-15:].split('.')
+        version = ver[0] + "." + ver[1] + "(" + ver[2] + "." + ver[3] + ")"
     return version

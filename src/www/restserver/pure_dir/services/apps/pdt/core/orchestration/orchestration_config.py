@@ -21,10 +21,11 @@ g_wkflow_path = "%s/workflows/" % (g_base_dir)
 g_upload_path = '/mnt/system/uploads/'
 g_job_dump_dir = "%s/jobs/dumps" % (g_base_dir)
 g_log_dir = "%s/jobs/logs" % (g_base_dir)
+g_build_xml = "%s/build.xml" % (g_base_dir)
 g_tmp_export_location = "/tmp/export/"
 g_error_log = "/usr/local/apache2/logs/error_log"
 g_message_log = "/var/log/messages"
-g_pure_log = "/mnt/system/pure_dir/pure_dir.log"
+g_pure_log = "/mnt/system/pure_dir/logs/pure_dir.log"
 
 TASK_STATUS_EXECUTING = "EXECUTING"
 TASK_STATUS_PENDING = "PENDING"
@@ -40,7 +41,7 @@ JOB_STATUS_READY = "READY"
 JOB_STATUS_COMPLETED = "COMPLETED"
 
 
-TASK_DELAY = 2
+TASK_DELAY = 1
 TASK_ROLLBACK_DELAY = 2
 
 try:
@@ -164,3 +165,13 @@ def get_job_file_pattern():
 
 def get_wk_file_pattern():
     return "%s/*/wf-*.xml" % (g_wkflow_path)
+
+
+def get_skip_flag():
+    return "%s/workflow_flag.xml" % (g_base_dir)
+
+def get_build_xml():
+    return g_build_xml
+
+def get_log():
+    return "%s/error_log" % (g_base_dir)

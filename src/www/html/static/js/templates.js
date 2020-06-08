@@ -46,6 +46,7 @@ function loadFormField(field) {
 		optional_label: '',
 		value: '',
 		maxlength: '',
+		dataRole: '',
 		holder: '',
 		checked: false,
 		readonly: false,
@@ -56,15 +57,16 @@ function loadFormField(field) {
 	field.name = (field.name == '') ? field.id : field.name;
 	field.readonly = (field.readonly == true) ? ' readonly=true' : '';
 	field.maxlength = (field.maxlength == '') ? "" : ' maxlength="' + field.maxlength + '"';
+	field.dataRole = (field.dataRole == '') ? "" : ' data-role="' + field.dataRole + '"';
 	var str = '';
 	switch(field.type) {
 		case 'label':
-			str += '<input type="text" readonly id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" value="' + field.value + '" class="task-input ' + field.class + '"></input>';
+			str += '<input type="text" readonly id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" value="' + field.value + '" class="readonly task-input ' + field.class + '"></input>';
 			break;
 		case 'text':
 		case 'hidden':
 		case 'password':
-			str += '<input type="' + field.type + '" id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" ' + field.maxlength + ' value="' + field.value + '" class="task-input ' + field.class + '" ' + field.readonly + '></input>';
+			str += '<input type="' + field.type + '" id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" ' + field.maxlength + ' value="' + field.value + '" class="task-input ' + field.class + '" ' + field.readonly + ' ' + field.dataRole + '></input>';
 			break;
 		case 'textarea':
 			str += '<textarea id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" value="' + field.value + '" class="task-input ' + field.class + '" ' + field.readonly + '></textarea>';
@@ -239,8 +241,8 @@ function populateFormData(value, execid, bind, flag) {
 	} else if(value.isstatic) {
 		data = value.dfvalues;
 		getOptionsCallback(value, data, execid, bind, flag);
-	} else if(value.iptype != 'label' && value.iptype != 'text-box' && value.iptype != 'ipbox') {
-		if(typeof value.api.name == 'string') {
+	} else if(value.iptype != 'label' && value.iptype != 'ipbox') {
+		if(typeof value.api.name == 'string' && value.api.name.length > 0) {
 			value.api.name = value.api.name.replace("()", "");
 			var api = 'GetOptions', query = {operation: value.api.name}, args = {}, container = '.modal-inset';
 			args = generateAPIargs(value, execid, bind);		
@@ -298,8 +300,8 @@ function getOptionsCallback(value, data, execid, bind, flag) {
 			}
 			if(typeof slider.min_range != 'undefined') obj.min = parseInt(slider.min_range);
 			if(typeof slider.max_range != 'undefined') obj.max = parseInt(slider.max_range);
-			if(typeof slider.min_interval != 'undefined') obj.min_interval = parseInt(slider.min_interval);
-			if(typeof slider.max_interval != 'undefined') obj.max_interval = parseInt(slider.max_interval);
+			if(typeof slider.min_interval != 'undefined') obj.min_interval = (parseInt(slider.min_interval) - 1);
+			if(typeof slider.max_interval != 'undefined') obj.max_interval = (parseInt(slider.max_interval) - 1);
 			if(typeof slider.min_fixed != 'undefined') obj.from_fixed = slider.min_fixed;
 			if(typeof slider.max_fixed != 'undefined') obj.to_fixed = slider.max_fixed;
 			if(typeof slider.from != 'undefined') obj.from = slider.from;
@@ -376,6 +378,9 @@ function getOptionsCallback(value, data, execid, bind, flag) {
 				populateFormData(arg, execid, 0, 0);
 			});
 		}
+	} else if(typeof value.api.name != 'undefined' && value.api.name.length > 0 && (value.iptype == 'label' || value.iptype == 'text-box')) {
+		if(typeof data[0] != 'undefined' && typeof data[0]['id'] != 'undefined')
+			$('#workflow_' + value.name).val(data[0]['id']);
 	} else if(value.iptype != 'label' && value.iptype != 'text-box') {
 		$.each(data, function(index, val) {
 			selected = '';
@@ -535,6 +540,8 @@ function workflowInputBasicTemplate(container, args, execid, mode) {
 				args.svalue = args.svalue.replace(/@/g, "<br>");
 				str += args.svalue.replace(/\|/g, "<br>");
 			}
+			if(args.val_prefix) str = args.val_prefix + '' + str;
+			if(args.val_suffix) str += args.val_suffix;
 		}
 	}
 	return str;
@@ -549,6 +556,15 @@ function workflowInputBasicTemplate(container, args, execid, mode) {
 */
 function loadFields(args, isGroup, execid, width, mode) {
 	var str = '', obj = {}, tmp;
+	args.additional = '';
+	if(args.reset) args.additional += ' reset';
+	if(args.prefix || args.val_prefix) args.additional += ' prefix';
+	if(args.suffix || args.val_suffix) args.additional += ' suffix';
+	if(args.iptype == 'ipbox') args.additional += ' ipaddress';
+	if(args.iptype != 'group') {
+		args.label = args.label.replace(/(<([^>]+)>)/ig, "");
+	}
+
 	if(isGroup) width += ' field-group';
 	if(mode == 'readonly') {
 		str += workflowInputBasicTemplate('.configurations', args, execid, mode);
@@ -556,9 +572,14 @@ function loadFields(args, isGroup, execid, width, mode) {
 		switch(args.iptype) {
 			case 'label':
 			case 'text-box':
+			case 'ipbox':
 				var tmp = (args.iptype == 'label') ? 'disabled' : '';
-				str += '<div class="' + width + '" argname="' + args.name + '">\
-					<input type="text" id="workflow_' + args.name + '" name="workflow_' + args.name + '" tabindex="' + tabIndex + '" ' + tmp + ' placeholder="' + args.label + '" value="' + args.svalue + '" autocomplete="off" class="task-input workflow-input-' + args.name + '"></input>';
+				args.maxlength = (typeof args.maxlength != 'undefined') ? args.maxlength : 100;
+				str += '<div class="' + width + '" argname="' + args.name + '">';
+					if(args.additional.indexOf('prefix') > -1) str += '<span class="prefix">' + (args.prefix || args.val_prefix) + '</span>';
+					str += '<input type="text" id="workflow_' + args.name + '" name="workflow_' + args.name + '" tabindex="' + tabIndex + '" ' + tmp + ' placeholder="' + args.label + '" value="' + args.svalue + '" autocomplete="off" class="task-input workflow-input-' + args.name + ' ' + args.additional + '" maxlength="' + args.maxlength + '"></input>';
+					if(args.additional.indexOf('reset') > -1) str += '<i class="fa fa-recycle regenerate" alt="Regenerate" title="Regenerate"></i>';
+					if(args.additional.indexOf('suffix') > -1) str += '<span class="suffix">' + (args.suffix || args.val_suffix) + '</span>';
 				break;
 			case 'drop-down':
 				str += '<div class="' + width + '" argname="' + args.name + '">\
@@ -566,7 +587,7 @@ function loadFields(args, isGroup, execid, width, mode) {
 						<option value="">' + localization['select'] + ' ' + args.label + '</option>\
 					</select>';
 				break;
-			case 'ipbox':
+			case 'ipbox1':
 				if(typeof args.svalue == 'string')
 					args.svalue = args.svalue.split(".");
 				for(i = 0; i < 4; i++) {
@@ -965,7 +986,15 @@ function getFormData(selector) {
 					}
 				} else if($(this).attr('argtype') == 'ipbox') {
 					value = ($('[name="' + arg_name + '_0"]').val() == '') ? '' : $('[name="' + arg_name + '_0"]').val() + '.' + $('[name="' + arg_name + '_1"]').val() + '.' + $('[name="' + arg_name + '_2"]').val() + '.' + $('[name="' + arg_name + '_3"]').val();
-				} else if($('[name="' + arg_name + '"]').attr('type') == 'text' || $('[name="' + arg_name + '"]').attr('type') == 'hidden' || $('[name="' + arg_name + '"]').attr('type') == 'dropdown') {
+				} else if($('[name="' + arg_name + '"]').attr('type') == 'text') {
+					value = (typeof $('[name="' + arg_name + '"]').val() != 'undefined' && $('[name="' + arg_name + '"]').val() != null) ? $('[name="' + arg_name + '"]').val() : '';
+					if($('[name="' + arg_name + '"].prefix').length) {
+						value = $('[name="' + arg_name + '"].prefix').parent().find('span.prefix').text() + value;
+					}
+					if($('[name="' + arg_name + '"].suffix').length) {
+						value += $('[name="' + arg_name + '"].suffix').parent().find('span.suffix').text()
+					}
+				} else if($('[name="' + arg_name + '"]').attr('type') == 'hidden' || $('[name="' + arg_name + '"]').attr('type') == 'dropdown') {
 					value = (typeof $('[name="' + arg_name + '"]').val() != 'undefined' && $('[name="' + arg_name + '"]').val() != null) ? $('[name="' + arg_name + '"]').val() : '';
 				} else if($('[name="' + arg_name + '"]').attr('type') == 'radio') {
 					value = $('input[name="' + arg_name + '"]:checked').val();
@@ -1056,6 +1085,7 @@ function openModel(options) {
 	$('.modal-overlay').addClass('state-show');
 	$('.modal-frame').removeClass('state-leave bounceOutUp bounceOutDown').addClass('state-appear animated bounceInDown');
 	var height = parseInt($(document).height()) - 300;
+	//if(options.size == 'big') height += 100;
 	$('#form-body').css('min-height', '50px').css('height', 'auto').css('max-height', height + 'px');
 	initScroller($('#form-body'));
 }

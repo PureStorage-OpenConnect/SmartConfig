@@ -55,9 +55,6 @@ table thead .sortby {
 table thead .active .sortby {
 	display: inline-block;
 }
-table tbody tr:hover {
-	background: #F7F7F7;
-}
 thead.empty-cells, thead.empty-cells th {
 	height: 0;
 	padding: 0;
@@ -81,6 +78,17 @@ thead.empty-cells, thead.empty-cells th {
 }
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
 	border-top: 0; 
+}
+table tbody tr:hover {
+	background: #F7F7F7;
+	color: initial;
+}
+.networkList.table:not(.no-border) tr.active {
+	background: #ec7c47;
+	color: #FFF;;
+}
+.non-selectable.Unconfigured {
+	opacity: 0.5;
 }
 /* Table */
 
@@ -400,9 +408,6 @@ i.fa + i.fa {
 }
 .table > thead > tr > th {
 	border-bottom: 1px solid #DDD !important;
-}
-.mCustomScrollBox {
-	height: auto;
 }
 .mCSB_outside + .mCS-minimal.mCSB_scrollTools_vertical, .mCSB_outside + .mCS-minimal-dark.mCSB_scrollTools_vertical {
 	right: -6px;

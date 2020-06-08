@@ -19,7 +19,7 @@ from xml.dom.minidom import parse
 
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.discovery import get_config_mode,get_unconfigured_device_list
+from pure_dir.services.apps.pdt.core.discovery import get_config_mode, get_unconfigured_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import*
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
@@ -37,10 +37,10 @@ from pure_dir.services.apps.pdt.core.tasks.test.mds import*
 from pure_dir.infra.common_helper import *
 
 g_flash_stack_types = [
-    {'label': 'FA//FI ', 'value': 'fa-n9k-ucsmini-fc', 'tag': 'FC', #name is wrong should be fa-fi-fc
+    {'label': 'FA//FI ', 'value': 'fa-n9k-ucsmini-fc', 'tag': 'FC',  # name is wrong should be fa-fi-fc
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
-   
-    {'label': 'FA//FI ', 'value': 'fa-fi6332-fc', 'tag': 'FC', #name is wrong should be fa-fi-fc
+
+    {'label': 'FA//FI ', 'value': 'fa-fi6332-fc', 'tag': 'FC',  # name is wrong should be fa-fi-fc
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//FI ', 'value': 'fa-n5k-ucsmini-iscsi', 'tag': 'iSCSI',
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}},
@@ -54,8 +54,18 @@ g_flash_stack_types = [
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi6454-mds-fc', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
 
-    {'label': 'FA//MDS//FI ', 'value': 'fa-mds-fi-fc', 'tag': 'FC', 'enabled': False,
-        'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}},
+    {'label': 'FA//MDS//FI ', 'value': 'fa-fi6332-mds-fc', 'tag': 'FC', 'enabled': True,
+        'req_hardwares': {'UCSM': 2, 'MDS': 2, 'PURE': 1}},
+
+    {'label': 'FA//MDS//FI ', 'value': 'fa-fi6332-mds-fc-rack', 'tag': 'FC', 'enabled': True,
+        'req_hardwares': {'UCSM': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+
+    {'label': 'FA//MDS//FI ', 'value': 'fa-fi6454-mds-fc', 'tag': 'FC', 'enabled': False,
+        'req_hardwares': {'UCSM': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+
+    {'label': 'FA//MDS//FI ', 'value': 'fa-fi6454-mds-fc-rack', 'tag': 'FC', 'enabled': False,
+        'req_hardwares': {'UCSM': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+
     {'label': 'FA//MDS//Nexus 5K//FI', 'value': 'fa-mds-n5k-fi-fc',
         'tag': 'FC', 'enabled': False, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}},
     {'label': 'FA//Nexus 5K//FI', 'value': 'fa-n5k-fi-fc',
@@ -65,22 +75,22 @@ g_flash_stack_types = [
         'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}, 'hidden': True},
 
     {'label': 'FA//Nexus 5K//FI', 'value': 'fa-n5k-figen2-iscsi',
-        'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}, 'hidden': True},
+        'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}, 'hidden': True},
 
     {'label': 'FA//Nexus 5K//FI', 'value': 'fa-n5k-fi-iscsi',
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 5k': 2, 'PURE': 1}},
     {'label': 'FA//Nexus 9K//FI ', 'value': 'fa-n9k-fi-iscsi',
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}},
     {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi6454-iscsi',
-         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+     'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//MDS//Nexus 9K//FI',
-        'value': 'fa-n9k-fi-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+        'value': 'fa-n9k-fi-mds-fc-rack', 'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi-iscsi-rack',
-         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+     'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi6454-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi6454-iscsi-rack',
-         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True}
+     'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True}
 ]
 
 
@@ -398,6 +408,23 @@ def workflow_persistant_prepare_helper(wname):
     return workflowprepare_helper_safe(wname, 1)
 
 
+def check_wf_flag(flag_name):
+    if os.path.exists(get_skip_flag()):
+        xmldoc = parse(get_skip_flag())
+        wflags = xmldoc.getElementsByTagName('wflags')
+        for wfl in wflags:
+            val = wfl.getElementsByTagName('wflag')
+            for i in val:
+                if i.getAttribute('name') == flag_name:
+                    if i.getAttribute('flag') == 'True':
+                        return True
+                    else:
+                        return False
+    else:
+        loginfo("workflow_flag.xml  doesn't exist")
+        return False
+
+
 def workflowprepare_helper_safe(wname, persistant_prepare):
     """
     Prepares job xml from workflow, prepopulate input values
@@ -420,24 +447,33 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     try:
         shutil.copyfile(get_workflow_file_path(wname), get_job_file(jobid))
         with open(get_job_file(jobid)) as td:
-            if get_config_mode() != "json":
-                prepare_tasks(jobid)
+            prepare_tasks(jobid)
             jobdoc = xmltodict.parse(td.read())
 
         if '@wtype' not in jobdoc['workflow'] or jobdoc['workflow']['@wtype'] != 'wgroup':
             # its a workflow group
             job_dict = {'jobid': jobid, 'subjobs': []}
-            obj.setResult(job_dict, PTK_OKAY, "success")
+            obj.setResult(job_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return obj
 
         for wf in getAsList(jobdoc['workflow']['wfs']['wf']):
             tuuid = str(uuid.uuid4())
+
+            copy_wf = True
+            if '@flags' in wf.keys():
+                for alter_flag in wf['@flags'].split(";"):
+                    alter_wf = alter_flag.split(":")
+                    if check_wf_flag(alter_wf[0]) == True:
+                        shutil.copyfile(get_workflow_file_path(
+                            alter_wf[1]), get_job_file(tuuid))
+                        copy_wf = False
+
             subjobs.append({'job_id': tuuid, 'wid': wf['@id']})
-            shutil.copyfile(get_workflow_file_path(
-                wf['@id']), get_job_file(tuuid))
+            if copy_wf:
+                shutil.copyfile(get_workflow_file_path(
+                    wf['@id']), get_job_file(tuuid))
             wf['@jid'] = tuuid
-            if get_config_mode() != "json":
-                prepare_tasks(tuuid)
+            prepare_tasks(tuuid)
 
         out = xmltodict.unparse(jobdoc, pretty=True)
         with open(get_job_file(jobid), 'w') as file:
@@ -663,6 +699,7 @@ def flash_stack_type_api():
     res.setResult(f_types, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
+
 def possible_fs_types(data):
     """
     Suggests Available FlashStack Types depending upon selected hardwares
@@ -672,17 +709,18 @@ def possible_fs_types(data):
     fstypes_list = []
     unconfigured_devices = get_unconfigured_device_list()
     for flash_types in g_flash_stack_types:
-	not_show_n5k = False
+        not_show_n5k = False
         not_matching = 0
         for key in flash_types['req_hardwares'].keys():
             if data.get(key) < flash_types['req_hardwares'][key]:
                 not_matching = 1
                 break
         if not_matching == 0:
-	    for device in unconfigured_devices:
-		if "n5k-fi" in flash_types.get('value') and "UCSM" in device['device_type'] and "FI-6248" not in device['vendor_model']:
-		    not_show_n5k = True
-		    break
+            for device in unconfigured_devices:
+                if "n5k-fi" in flash_types.get(
+                        'value') and "UCSM" in device['device_type'] and "FI-6248" not in device['vendor_model']:
+                    not_show_n5k = True
+                    break
             if not flash_types.get('hidden') and not not_show_n5k:
                 fstypes_list.append(flash_types)
     res.setResult(fstypes_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))

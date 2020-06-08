@@ -10,7 +10,7 @@ import threading
 from time import sleep
 from pure_dir.services.utils.exportlog import exportlog_helper
 from pure_dir.services.utils.eula_setup import eula_content, eula_agreement
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import job_status_helper_api
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_group_job_status import group_job_status_api
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_task_data import job_tasks_api, job_task_input_save_api, job_task_mandatory_input_save_api, job_task_inputs_api, task_input_value_api, job_task_outputs_api, task_suggested_inputs_api, job_task_mandatory_inputs_api, workflow_inputs_api

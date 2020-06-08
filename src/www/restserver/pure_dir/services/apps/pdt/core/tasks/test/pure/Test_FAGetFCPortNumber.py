@@ -1,8 +1,6 @@
-
-from pure_dir.infra.apiresults import *
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
+from pure_dir.infra.apiresults import PTK_OKAY, result
 
 class Test_FAGetFCPortNumber:
     def __init__(self):
@@ -28,4 +26,3 @@ class Test_FAGetFCPortNumber:
             "id": "B", "selected": "0", "label": "TestArray2"}]
         res.setResult(val, PTK_OKAY, "success")
         return res
-

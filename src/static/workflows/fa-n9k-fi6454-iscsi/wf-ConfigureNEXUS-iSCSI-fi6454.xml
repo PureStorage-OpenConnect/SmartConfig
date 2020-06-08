@@ -1,9 +1,7 @@
 <?xml version="1.0" ?>
-<workflow id="ConfigureNEXUS-iSCSI-fi6454" name="Configure Nexus Switches" desc="Initial Nexus 9K Configuration and Port Channel Setup" wtype="wgroup" type="Nexus" simulate="0" isdeletable="0" order="1" htype="fa-n9k-fi6454-iscsi" prereq="None">
-        <wfs>
-                <wf id="generalConfigurationNEXUS-iSCSI-fi6454" name="General configuration" wexecid="g210" OnSuccess="g211" OnFailure="None" initwf="1"/>
-                <wf id="configurePortchannelSetup-iSCSI-fi6454" name="Port channel setup" wexecid="g211" OnSuccess="None" OnFailure="None" initwf="0"/>
-        </wfs>
+<workflow desc="Initial Nexus 9K Configuration and Port Channel Setup" htype="fa-n9k-fi6454-iscsi" id="ConfigureNEXUS-iSCSI-fi6454" isdeletable="0" name="Configure Nexus Switches" order="1" prereq="None" simulate="0" type="Nexus" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g211" id="generalConfigurationNEXUS-iSCSI-fi6454" initwf="1" name="General configuration" wexecid="g210"/>
+    <wf OnFailure="None" OnSuccess="None" id="configurePortchannelSetup-iSCSI-fi6454" initwf="0" name="Port channel setup" wexecid="g211"/>
+  </wfs>
 </workflow>
-
-

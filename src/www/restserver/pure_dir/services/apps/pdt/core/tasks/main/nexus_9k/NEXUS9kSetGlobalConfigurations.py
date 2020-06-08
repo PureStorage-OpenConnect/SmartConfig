@@ -2,7 +2,6 @@ from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
-from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.common import get_device_list, get_device_credentials
 from pure_dir.infra.apiresults import *
 

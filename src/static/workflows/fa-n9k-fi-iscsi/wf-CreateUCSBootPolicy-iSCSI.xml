@@ -8,8 +8,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="boot_policy_name" value="Boot-iSCSI-X-A"/>
-        <arg name="boot_policy_desc" value="iSCSI Boot policy"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-iSCSI-X-A"/>
+        <arg mapval="0" name="boot_policy_desc" value="iSCSI Boot policy"/>
       </args>
     </task>
     <task OnSuccess="t401" Onfailure="None" desc="Add Remote Disk to Boot Policy" id="UCSAddRemoteDiskToBootPolicy" inittask="0" label="Add Remote disk" name="UCSAddRemoteDiskToBootPolicy" texecid="t301">
@@ -27,8 +27,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="iSCSI_A_vNIC" value="iSCSI-A-vNIC"/>
-        <arg name="iSCSI_B_vNIC" value="iSCSI-B-vNIC"/>
+        <arg mapval="0" name="iSCSI_A_vNIC" value="iSCSI-A-vNIC"/>
+        <arg mapval="0" name="iSCSI_B_vNIC" value="iSCSI-B-vNIC"/>
         <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
       </args>
     </task>

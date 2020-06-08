@@ -1,11 +1,11 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save, get_server_type
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_devices_wf_config_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from distutils.version import LooseVersion
-from pure_dir.components.compute.ucs.ucs_upgrade import ucsbladeimages
+from pure_dir.components.compute.ucs.ucs_upgrade import ucsbladeimages, ucsrackimages
 from xml.dom.minidom import parse
 
 
@@ -53,7 +53,6 @@ class UCSCreateHostFirmwarePackage:
         blade_val = ''
         rack_val = ''
 
-        
         if get_server_type() == "Blade":
             for blade_version in blade_version_list:
                 blade_val = blade_version['id']
@@ -61,14 +60,22 @@ class UCSCreateHostFirmwarePackage:
             for rack_version in rack_version_list:
                 rack_val = rack_version['id']
 
-	blade_firmware = getGlobalArg(inputs, 'firmware')
+        blade_firmware = getGlobalArg(inputs, 'firmware')
         if blade_firmware:
-            ver = blade_firmware[-12:].split('.')
-            version = ver[0] + "." + ver[1] + "(" + ver[2] + ")" + ver[3]
-            if 'b-series' in blade_firmware:
-                blade_val = version
-            elif 'c-series' in blade_firmware:
-                rack_val = version
+            if '.gbin' not in blade_firmware:
+                ver = blade_firmware[-12:].split('.')
+                version = ver[0] + "." + ver[1] + "(" + ver[2] + ")" + ver[3]
+                if 'b-series' in blade_firmware:
+                    blade_val = version
+                elif 'c-series' in blade_firmware:
+                    rack_val = version
+            else:
+                ver = blade_firmware[-15:].split('.')
+                version = ver[0] + "." + ver[1] + "(" + ver[2] + "." + ver[3] + ")" + ver[4]
+                if 'b-series' in blade_firmware:
+                    blade_val = version
+                elif 'c-series' in blade_firmware:
+                    rack_val = version
 
         job_input_save(jobid, texecid, 'blade_pkg', blade_val)
         job_input_save(jobid, texecid, 'rack_pkg', rack_val)
@@ -149,6 +156,11 @@ class UCSCreateHostFirmwarePackage:
         for bundle in bundles:
             bundle_result.append(
                 {'id': bundle.version, "selected": "1", "label": bundle.version})
+
+        bundle_result.extend(ucsrackimages(version=True))
+        bundle_result = [dict(t)
+                         for t in {tuple(d.items()) for d in bundle_result}]
+
         ucsm_logout(handle)
         res.setResult(bundle_result, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
@@ -166,7 +178,6 @@ class UCSCreateHostFirmwarePackage:
         res = get_ucs_login(fabricid)
         if res.getStatus() != PTK_OKAY:
             return parseTaskResult(res)
-
         handle = res.getResult()
 
         filter_str = None

@@ -1,10 +1,10 @@
 import os
 import glob
 
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.components.common import get_device_list
 from pure_dir.services.utils.miscellaneous import parse_xml
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
+from pure_dir.global_config import get_discovery_store
 
 
 class fa_nexus5k_ucsmini_iscsi:
@@ -50,8 +50,8 @@ class fa_nexus5k_ucsmini_iscsi:
     def get_all_ucs_list(self, keys):
         res = result()
         info_list = []
-        if os.path.exists(static_discovery_store) is True:
-            doc = parse_xml(static_discovery_store)
+        if os.path.exists(get_discovery_store()) is True:
+            doc = parse_xml(get_discovery_store())
             for subelement in doc.getElementsByTagName("device"):
                 if subelement.getAttribute("device_type") == "UCSM":
                     details = {}

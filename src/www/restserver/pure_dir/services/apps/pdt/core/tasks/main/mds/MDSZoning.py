@@ -105,6 +105,16 @@ class MDSZoning:
         cred = get_device_credentials(
             key="mac", value=taskinfo['inputs']['mds_id'])
         if cred:
+            if not taskinfo['inputs']['zones']:
+                loginfo(
+                    "Blade servers not discovered by MDS. Please check whether FI and MDS are properly mapped")
+                customlogs("Unable to perform MDS Zoning.", logfile)
+                customlogs(
+                    "Blade servers not discovered by MDS. Please check whether FI and MDS are properly mapped.",
+                    logfile)
+                res.setResult(False, PTK_NOTEXIST, _("PDT_DEVICE_NOT_REACHABLE_ERR_MSG"))
+                return parseTaskResult(res)
+
             obj = MDSTasks(cred['ipaddress'],
                            cred['username'], cred['password'])
             if obj:

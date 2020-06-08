@@ -2,13 +2,10 @@ from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
-from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.common import get_device_credentials, get_device_list
 from pure_dir.services.utils.miscellaneous import get_xml_element
 from pure_dir.infra.apiresults import *
-
-
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
+from pure_dir.global_config import get_discovery_store
 
 metadata = dict(
     task_id="NEXUS5kCreateVPCDomain",
@@ -113,7 +110,7 @@ class NEXUS5kCreateVPCDomain:
     def get_detail(self, mac, src, dst):
         nexus_list = []
         status, details = get_xml_element(
-            file_name=static_discovery_store, attribute_key="device_type", attribute_value="Nexus 5k")
+            file_name=get_discovery_store(), attribute_key="device_type", attribute_value="Nexus 5k")
 
         if status:
             for detail in details:

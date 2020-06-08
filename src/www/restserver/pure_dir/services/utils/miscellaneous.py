@@ -385,3 +385,47 @@ def findIPs(start, end):
         result.append(str(start))
         start += 1
     return result
+
+def find_dict_val(key, dictionary):
+    if isinstance(dictionary, dict):
+        for k, v in dictionary.items():
+            if k == key:
+                yield v
+            elif isinstance(v, dict):
+                for result in find_dict_val(key, v):
+                    yield result
+            elif isinstance(v, list):
+                for d in v:
+                    for result in find_dict_val(key, d):
+                        yield result
+
+def get_value(key, d, **kwargs):
+    final_dict = {}
+    for k in key:
+        if len(kwargs) != 0:
+            val = list(find_dict_val(k, d))
+            val_lst = get_list_val(val, **kwargs)
+            return val_lst
+        else:
+            val_lst = list(find_dict_val(k, d))
+	    final_dict[k]=[i for i in val_lst]
+    return final_dict
+
+def get_list_val(data, **kwargs):
+    final_list = []
+    for v in data:
+        if isinstance(v, list):
+            for c in v:
+                for k,h in kwargs.items():
+                    if isinstance(h, list):
+                        for r in h:
+                            if c[k] == r:
+				final_list.append(c)
+                    else:
+                        if c[k] == h:
+                            final_list.append(c)
+        else:
+            for k,h in kwargs.items():
+                if v[k] == h:
+                    final_list.append(v)
+    return final_list

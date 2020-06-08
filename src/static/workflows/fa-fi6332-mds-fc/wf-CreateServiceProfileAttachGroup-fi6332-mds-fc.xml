@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<workflow desc="Create UCS Service Profile Templates and apply Service Profiles to Blade Servers" htype="fa-fi6332-mds-fc" id="CreateServiceProfileAttachGroup-fi6332-mds-fc" isdeletable="0" name="Create UCS Service Profiles" order="3" prereq="ConfigureFI-fi6332-mds-fc" simulate="0" type="UCSM" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" flags="vmedia_skip:createServiceProfileAndAttach-fi6332-mds-fc-vMediaskip;" id="createServiceProfileAndAttach-fi6332-mds-fc" initwf="1" name="Create Service Profiles" wexecid="g300"/>
+  </wfs>
+</workflow>

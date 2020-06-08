@@ -7,10 +7,7 @@
 ############################################################
 
 import sys
-import fcntl
-import yaml
 import json
-import requests
 import logging
 
 # Python virtual environment for this service

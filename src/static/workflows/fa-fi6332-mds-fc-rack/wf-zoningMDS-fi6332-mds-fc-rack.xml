@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<workflow desc="Zoning in MDS Switches" hidden="1" htype="fa-fi6332-mds-fc-rack" id="zoningMDS-fi6332-mds-fc-rack" isdeletable="0" name="MDS Zoning" order="5" prereq="createServiceProfileAndAttach-fi6332-mds-fc-rack" simulate="0" type="MDS">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="MDS Zoning for switch A" desc2="Create zones and zonesets for MDS interfaces" id="MDSZoning" inittask="1" name="MDS Zoning for switch A" texecid="t300">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="mds_id" value="mds_switch_a"/>
+        <arg mapval="0" name="flogi_list" value=""/>
+        <arg mapval="3" name="vsan_id" value="vsan_a"/>
+        <arg mapval="0" name="zones" value=""/>
+        <arg mapval="0" name="zoneset" value=""/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="MDS Zoning for switch B" desc2="Create zones and zonesets for MDS interfaces" id="MDSZoning" inittask="1" name="MDS Zoning for switch B" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="mds_id" value="mds_switch_b"/>
+        <arg mapval="0" name="flogi_list" value=""/>
+        <arg mapval="3" name="vsan_id" value="vsan_b"/>
+        <arg mapval="0" name="zones" value=""/>
+        <arg mapval="0" name="zoneset" value=""/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

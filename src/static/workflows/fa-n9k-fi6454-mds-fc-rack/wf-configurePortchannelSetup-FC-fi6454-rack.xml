@@ -12,11 +12,11 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="vpc_id" value="10"/>
-        <arg name="vpc_role" value="10"/>
+        <arg mapval="0" name="vpc_id" value="10"/>
+        <arg mapval="0" name="vpc_role" value="10"/>
         <arg mapval="3" name="ip_b" value="nexus_switch_b"/>
         <arg mapval="3" name="ip_a" value="nexus_switch_a"/>
-        <arg name="delay" value="150"/>
+        <arg mapval="0" name="delay" value="150"/>
       </args>
     </task>
     <task OnSuccess="t302" Onfailure="None" desc="VPC domain for switch B" id="NEXUS9kCreateVPCDomain" inittask="0" name="VPC domain for switch B" texecid="t301">
@@ -31,7 +31,7 @@
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
         <arg mapval="1" name="vpc_id" value="__t300.VPC domain for switch A.vpc_id"/>
-        <arg name="vpc_role" value="20"/>
+        <arg mapval="0" name="vpc_role" value="20"/>
         <arg mapval="3" name="ip_b" value="nexus_switch_a"/>
         <arg mapval="3" name="ip_a" value="nexus_switch_b"/>
         <arg mapval="1" name="delay" value="__t300.VPC domain for switch A.delay"/>
@@ -47,8 +47,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="slot_chassis" value="Eth1/1|Eth1/2"/>
-        <arg name="port_channel_number" value="11"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/1|Eth1/2"/>
+        <arg mapval="0" name="port_channel_number" value="11"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
       </args>
@@ -63,7 +63,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="slot_chassis" value="Eth1/1|Eth1/2"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/1|Eth1/2"/>
         <arg mapval="1" name="port_channel_number" value="__t302.Port channel member interfaces for switch A.port_channel_number"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
@@ -82,13 +82,13 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="slot_chassis" value="Eth1/51"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/51"/>
         <arg mapval="3" name="port_channel_number" value="up_port_a"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
-        <arg name="mtu_value" value="9216"/>
-        <arg name="counter_value" value="3"/>
-        <arg name="interval_delay" value="60"/>
+        <arg mapval="0" name="mtu_value" value="9216"/>
+        <arg mapval="0" name="counter_value" value="3"/>
+        <arg mapval="0" name="interval_delay" value="60"/>
       </args>
     </task>
     <task OnSuccess="t306" Onfailure="None" desc="Virtual port channels to UCS A from switch B" id="NEXUS9kConfigureVirtualPortChannelsToUCS" inittask="0" name="Virtual port channels to UCS A from switch B" texecid="t305">
@@ -104,7 +104,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="slot_chassis" value="Eth1/51"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/51"/>
         <arg mapval="3" name="port_channel_number" value="up_port_a"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
@@ -126,13 +126,13 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="slot_chassis" value="Eth1/52"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/52"/>
         <arg mapval="3" name="port_channel_number" value="up_port_b"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
-        <arg name="mtu_value" value="9216"/>
-        <arg name="counter_value" value="3"/>
-        <arg name="interval_delay" value="60"/>
+        <arg mapval="0" name="mtu_value" value="9216"/>
+        <arg mapval="0" name="counter_value" value="3"/>
+        <arg mapval="0" name="interval_delay" value="60"/>
       </args>
     </task>
     <task OnSuccess="t308" Onfailure="None" desc="Virtual port channels to UCS B from switch B" id="NEXUS9kConfigureVirtualPortChannelsToUCS" inittask="0" name="Virtual port channels to UCS B from switch B" texecid="t307">
@@ -148,7 +148,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="slot_chassis" value="Eth1/52"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/52"/>
         <arg mapval="3" name="port_channel_number" value="up_port_b"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app1_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app2_vlan'}}|{'vlan': {'ismapped': '3', 'value': 'app3_vlan'}}"/>
@@ -167,8 +167,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="slot_chassis" value="Eth1/53"/>
-        <arg name="port_channel_number" value="153"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/53"/>
+        <arg mapval="0" name="port_channel_number" value="153"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
       </args>
@@ -183,7 +183,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="slot_chassis" value="Eth1/53"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/53"/>
         <arg mapval="1" name="port_channel_number" value="__t308.Virtual port channels to upstream switch A from switch A.port_channel_number"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
@@ -199,8 +199,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="slot_chassis" value="Eth1/54"/>
-        <arg name="port_channel_number" value="154"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/54"/>
+        <arg mapval="0" name="port_channel_number" value="154"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
       </args>
@@ -215,7 +215,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="slot_chassis" value="Eth1/54"/>
+        <arg mapval="0" name="slot_chassis" value="Eth1/54"/>
         <arg mapval="1" name="port_channel_number" value="__t310.Virtual port channels to upstream switch B from switch A.port_channel_number"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>

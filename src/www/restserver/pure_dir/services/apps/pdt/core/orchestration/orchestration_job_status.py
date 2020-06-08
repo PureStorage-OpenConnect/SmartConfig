@@ -8,7 +8,7 @@
 
 
 import xmltodict
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_FILEACCESSERROR, PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_status_file
 from time import gmtime, strftime
 from xml.dom.minidom import parse, parseString, Document
@@ -97,7 +97,7 @@ def update_workflow_status(p_jobid, jobid, status):
 
     except Exception as e:
         res.setResult(None, PTK_FILEACCESSERROR, str(e) + "failed")
-        return re
+        return res
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
@@ -123,7 +123,7 @@ def update_task_status(jobid, texecid, status):
 
     except Exception as e:
         res.setResult(None, PTK_FILEACCESSERROR, str(e) + "failed")
-        return re
+        return res
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
@@ -169,6 +169,6 @@ def clear_job_failed_status(jobid):
 
     except Exception as e:
         res.setResult(None, PTK_FILEACCESSERROR, str(e) + "failed")
-        return re
+        return res
     res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res

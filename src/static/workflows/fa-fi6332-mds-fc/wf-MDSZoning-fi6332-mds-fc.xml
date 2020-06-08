@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<workflow desc="Create and apply FC-SAN Zoning on MDS Switches" htype="fa-fi6332-mds-fc" id="MDSZoning-fi6332-mds-fc" isdeletable="0" name="Create MDS Zoning" order="4" prereq="ConfigureFI-fi6332-mds-fc" simulate="0" type="MDS" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" id="zoningMDS-fi6332-mds-fc" initwf="1" name="MDS Zoning" wexecid="g210"/>
+  </wfs>
+</workflow>

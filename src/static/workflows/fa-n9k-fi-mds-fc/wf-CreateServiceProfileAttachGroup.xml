@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<workflow id="CreateServiceProfileAttachGroup" name="Create UCS Service Profiles" desc="Create UCS Service Profile Templates and apply Service Profiles to Blade Servers" wtype="wgroup" type="UCSM" simulate="0" isdeletable="0" order="4" htype="fa-n9k-fi-mds-fc" prereq="ConfigureFI">
-	<wfs>
-		<wf id="createServiceProfileAndAttach" name="Create Service Profiles" wexecid="g300" OnSuccess="None" OnFailure="None" initwf="1"/>
-	</wfs>
+<workflow desc="Create UCS Service Profile Templates and apply Service Profiles to Blade Servers" htype="fa-n9k-fi-mds-fc" id="CreateServiceProfileAttachGroup" isdeletable="0" name="Create UCS Service Profiles" order="4" prereq="ConfigureFI" simulate="0" type="UCSM" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" flags="vmedia_skip:createServiceProfileAndAttach-vMediaskip;" id="createServiceProfileAndAttach" initwf="1" name="Create Service Profiles" wexecid="g300"/>
+  </wfs>
 </workflow>

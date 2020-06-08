@@ -886,3 +886,10 @@ a.link {
 foreignObject {
 	z-index: 99;
 }
+.mCustomScrollBox {
+	min-width: 98%;
+}
+.mCSB_container {
+	width: 100% !important;
+	padding-bottom: 20px;
+}

@@ -668,6 +668,16 @@ class PureTasks:
             loginfo(str(e))
         return model
 
+    def get_hardware_conf(self):
+        try:
+            hw_conf = self.handle.list_hardware()
+            keys_list = ["name", "speed", "status"]
+            hw_conf_list = [dict((k, hw[k]) for k in keys_list) for hw in hw_conf]
+            return hw_conf_list
+        except Exception as e:
+            loginfo("Unable to get purestorage handle")
+            return None
+
     def get_fc_port_list(self):
         """
         returns FC port list from FlashArray
@@ -685,14 +695,8 @@ class PureTasks:
 
         try:
             ports = self.handle.list_ports()
-            ports = json.loads(json.dumps(ports))
-            for mdict in ports:
-                if "FC" not in mdict['name']:
-                    continue
-                kdict = {}
-                kdict['name'] = mdict['name']
-                kdict['wwn'] = mdict['wwn']
-                data.append(kdict)
+            keys_list = ["name", "wwn"]
+            data = [dict((k, port[k]) for k in keys_list) for port in ports if "FC" in port['name']]
             obj.setResult(data, PTK_OKAY, "Success")
 
         except PureHTTPError as e:
@@ -718,14 +722,15 @@ class PureTasks:
 
         try:
             ports = self.handle.list_ports()
-            ports = json.loads(json.dumps(ports))
-            for mdict in ports:
-                kdict = {}
-                if "ETH" not in mdict['name']:
-                    continue
-                kdict['name'] = mdict['name']
-                kdict['iqn'] = mdict['iqn']
-                data.append(kdict)
+            keys_list = ["name", "iqn"]
+            eth_ports = [dict((k, port[k]) for k in keys_list)
+                         for port in ports if "ETH" in port['name']]
+            nw_ifaces = self.handle.list_network_interfaces()
+            keys_list = ["name", "hwaddr"]
+            data = [dict((k, iface[k].upper()) for k in keys_list)
+                    for iface in nw_ifaces if iface["name"].upper() in [p["name"] for p in eth_ports]]
+            [iface.update({"iqn": eth_port["iqn"]})
+             for iface in data for eth_port in eth_ports if iface["name"].upper() == eth_port["name"]]
             obj.setResult(data, PTK_OKAY, "Success")
 
         except PureHTTPError as e:
@@ -1219,10 +1224,12 @@ class PureTasks:
             for port in ethernet_ports:
                 if port['speed'] == 1000000000 and 'eth4' in port['name']:
                     return ["ETH4", "ETH5"]
+                if port['speed'] == 2500000000 and 'eth4' in port['name']:
+                    return ["ETH4", "ETH5"]
                 elif port['speed'] == 4000000000 and 'eth14' in port['name']:
                     return ["ETH14", "ETH15"]
-        elif "FI-M-6324" in fi_model:  # Workaround for UCSMini Direct connect
-            return ["ETH14", "ETH15"]
+#        elif "FI-M-6324" in fi_model:  # Workaround for UCSMini Direct connect
+#            return ["ETH14", "ETH15"]
         else:
             if fc_ports:
                 return ["ETH8", "ETH9"]

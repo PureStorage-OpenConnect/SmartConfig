@@ -8,7 +8,7 @@
 
 import json
 
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
 service_registry = "/tmp/services.json"
 

@@ -17,8 +17,7 @@ import time
 import glob
 import json
 from os.path import isfile
-
-static_discovery_store = "/mnt/system/pure_dir/pdt/devices.xml"
+from pure_dir.global_config import get_discovery_store
 
 templates_dir = "/mnt/system/pure_dir/pdt/templates/components/mds/"
 tgt_dir = "/mnt/system/pure_dir/pdt/targets/mds/"
@@ -65,6 +64,16 @@ class MDSSetup:
                                    'switch_serial_no': 'Serial number',
                                    'switch_vendor': 'Switch vendor'},
                                   data)
+
+        firmware_valid = self.mdsvalidateimages({'switch_kickstart_image':data['switch_kickstart_image'], 'switch_system_image':data['switch_system_image']}).getResult()
+        if firmware_valid is False:
+            ret.append({"field": "switch_system_image",
+                    "msg": "Select similar system and kickstart version"})
+            ret.append({"field": "switch_kickstart_image",
+                    "msg": "Select similar system and kickstart version"})
+            res.setResult(ret, PTK_INTERNALERROR,
+                    "Make sure details are correct")
+            return res
 
         if data['pri_passwd'] != data['conf_passwd']:
             ret.append({'field': 'conf_passwd',
@@ -122,7 +131,7 @@ class MDSSetup:
 
         loginfo("Serial number of mds switch is %s" % data['switch_serial_no'])
         update_xml_element(
-            static_discovery_store,
+            get_discovery_store(),
             matching_key="mac",
             matching_value=data['switch_mac'],
             data={
@@ -175,20 +184,24 @@ class MDSSetup:
         ks_images = self.mdskickstartimages().getResult()
         sys_images = self.mdssystemimages().getResult()
         mds_images = ks_images + sys_images
-        version_lst = list(
-            set([re.search('mz.(.+?).bin', x).group(1) for x in mds_images]))
-        version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
-        for ver in version_lst:
-            img_dict = {}
-            ks_list = [ks for ks in filter(lambda x: ver in x, ks_images)]
-            sys_list = [ks for ks in filter(lambda x: ver in x, sys_images)]
-            img_dict['switch_kickstart_image'] = '' if ks_list == [
-            ] else ks_list[0]
-            img_dict['switch_system_image'] = '' if sys_list == [
-            ] else sys_list[0]
-            image_list.append(img_dict)
-        res.setResult(image_list, PTK_OKAY, "Success")
-        return res
+        try:
+            version_lst = list(
+                set([re.search('\.(.+).bin', x).group(1) for x in mds_images]))
+            version_lst.sort(key=lambda s: map(int, s.split('.')), reverse=True)
+            for ver in version_lst:
+                img_dict = {}
+                ks_list = [ks for ks in filter(lambda x: ver in x, ks_images)]
+                sys_list = [ks for ks in filter(lambda x: ver in x, sys_images)]
+                img_dict['switch_kickstart_image'] = '' if ks_list == [
+                ] else ks_list[0]
+                img_dict['switch_system_image'] = '' if sys_list == [
+                ] else sys_list[0]
+                image_list.append(img_dict)
+            res.setResult(image_list, PTK_OKAY, "Success")
+            return res
+        except BaseException:
+            res.setResult([], PTK_OKAY, "Success")
+            return res
 
     def mdskickstartimages(self):
         """
@@ -225,7 +238,6 @@ class MDSSetup:
         :return: Returns the validation status
         """
         res = result()
-        res = result()
         if re.match(
                 re.sub(
                     '-kickstart',
@@ -236,7 +248,7 @@ class MDSSetup:
             res.setResult(True, PTK_OKAY, "Firmware images validated")
         else:
             loginfo("Images incorrectly selected")
-            res.setResult(False, PTK_OKAY,
+            res.setResult(False, PTK_PRECHECKFAILURE,
                           "Mismatch in selected firmware images")
         return res
 
@@ -327,7 +339,7 @@ class MDSSetup:
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
-        add_xml_element(static_discovery_store, data)
+        add_xml_element(get_discovery_store(), data)
         return
 
     def _copymdsimages(self, kickstart_img, system_img):
@@ -471,7 +483,7 @@ class MDSSetup:
         os.system(cmd)
         return
 
-    def _confcleanup(self, device_id):
+    def confcleanup(self, device_id):
         """
         Cleans up the configuration files used for MDS switch ocnfiguration, when the device goes to configured state
 

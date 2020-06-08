@@ -7,7 +7,7 @@ import os
 import os.path
 import shutil
 from pure_dir.infra.common_helper import *
-from pure_dir.components.common import * 
+from pure_dir.components.common import *
 import hashlib
 
 
@@ -33,6 +33,11 @@ def md5sum(fname):
     return file_version
 
 
+def save_file(uploadfile, filepath):
+    with open(filepath, "ab") as f:
+        f.write(uploadfile.stream.read())
+
+
 def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
     """
      Import an iso, save to iso store
@@ -53,7 +58,7 @@ def import_image(uploadfile, image_type, image_sub_type, image_os_sub_type):
         res.setResult(True, PTK_NOTEXIST, "Invalid File")
         return res
     filepath = g_upload_path + "%s" % uploadfile.filename
-    uploadfile.save(filepath)
+    save_file(uploadfile, filepath)
     if image_sub_type:
         filetype = image_sub_type
     else:
@@ -113,11 +118,11 @@ def images_validate(uploadfile, imagetype):
         return True
     elif imagetype == 'ESXi-kickstart' and ext == '.cfg':
         return True
-    elif imagetype == 'UCS-infra' and 'k9-bundle-infra' in uploadfile and 'A.bin' in uploadfile:
+    elif imagetype == 'UCS-infra' and 'k9-bundle-infra' in uploadfile and ('A.bin' in uploadfile or 'A.gbin' in uploadfile):
         return True
-    elif imagetype == 'UCS-blade' and 'ucs-k9' in uploadfile and 'B.bin' in uploadfile:
-        return True 
-    elif imagetype == 'UCS-Rack' and 'ucs-k9' in uploadfile and 'C.bin' in uploadfile:
+    elif imagetype == 'UCS-blade' and 'ucs-k9' in uploadfile and ('B.bin' in uploadfile or 'B.gbin' in uploadfile):
+        return True
+    elif imagetype == 'UCS-Rack' and 'ucs-k9' in uploadfile and ('C.bin' in uploadfile or 'C.gbin' in uploadfile):
         return True
     else:
         return False
@@ -150,7 +155,7 @@ def iso_binding(isofile, kickstart):
     os.system("mount -o rw,loop %s %s " % (isofilepath, src))
     mount_path = "/mnt/system/uploads/" + isofile[:-4]
     shutil.copytree(src, mount_path)
-    shutil.copy2(kickstartfilepath, mount_path)
+    shutil.copy2(kickstartfilepath, mount_path +"/"+ kickstart[:-4].upper()+ ".cfg")
     os.system("umount %s" % src)
     pattern = "kernelopt"
     with open(mount_path + '/boot.cfg', 'r') as infile, open(mount_path + '/boot1.cfg', 'w') as outfile:

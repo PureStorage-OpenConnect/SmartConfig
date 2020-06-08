@@ -1,0 +1,190 @@
+@CHARSET "UTF-8";
+.page-break {
+	page-break-after: always;
+	page-break-inside: avoid;
+	clear:both;
+}
+.page-break-before {
+	page-break-before: always;
+	page-break-inside: avoid;
+	clear:both;
+}
+table {  
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+	width: 100%;  
+}
+td, th {
+	border: 1px solid #dddddd;
+	text-align: left;
+	padding: 8px;
+}
+tr:nth-child(even) {
+	background-color: #dddddd;
+}
+.exclude-from-report {
+	display: block;
+}
+.content {
+	padding: 20px;
+}
+.nav-tabs > li {
+	outline: 0;
+	background: #AFAFAF;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	border-left: 1px solid #A4A4A4;
+	border-right: 1px solid #A4A4A4;
+}
+.nav-tabs > li > a {
+	color: #FFF;
+}
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+	color: #FFF;
+	background-color: inherit;
+	border: 1px solid transparent;
+}
+.nav-tabs > li.active, .nav-tabs > li:hover {
+	background: #FB5000;
+	border-left: 1px solid #e05411;
+	border-right: 1px solid #f7610a;
+}
+.nav>li>a:focus, .nav>li>a:hover, .nav-tabs>li>a:hover {
+	border-color: transparent;
+	background: transparent;
+}
+.report-section {
+	border: 1px solid #DDD;
+	border-radius: 4px;
+	min-height: 100px;
+	margin: 20px 0 50px;
+	padding: 0 16px 16px;
+	background: #EFEFEF;
+}
+.report-section:not(#report-section-cabling) {
+	max-height: 40vh;
+}
+.report-section h3 {
+	color: #999
+}
+.report-section p {
+	font-size: 13px;
+}
+.report-table li {
+	line-height: 20px;
+}
+.report-table td {
+	white-space: nowrap
+}
+.report-table thead tr td {
+	background: #FB5000;
+	color: #FFF;
+}
+.report-table thead td {
+	font-size: 14px;
+	color: #808080;
+	font-family: "ProximaNovabold";
+}
+.report-table tbody td {
+	font-family: "ProximaNovaRegular";
+	font-size: 13px;
+}
+.report-table table tbody td {
+	padding: 6px;
+}
+.report-table-container {
+	max-width: 99%;
+}
+#topology-diagram {
+	padding: 24px 0;
+}
+.dashed.active {
+	stroke-dashoffset: 1000;
+	stroke-dasharray: 5;
+}
+image, circle, path {
+	cursor: pointer;
+}
+path.move {
+	animation: move 2s linear infinite;
+	stroke-dasharray: 7;
+	stroke-dashoffset: 100;
+	stroke: #FF9873;
+}
+@keyframes move {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+html, body {
+	width: 100%;
+}
+svg {
+	max-width: 100% !important;
+	height: auto;
+  	display: block;
+}
+circle.active:hover {
+	fill: #00FF00;
+	+transition(0.3s);
+}
+.enabled {
+	cursor: pointer;
+}
+.legend {
+	height: 70px;
+	border: 1px solid #DDD;
+	border-radius: 5px;
+	margin: 0 auto;
+	padding: 6px 20px;
+	background: #ECECEC;
+}
+.description {
+	position: absolute;
+	font-size: 14px;
+	font-weight: 700;
+	text-align: center;
+	background: #ff864d;
+	letter-spacing: 0.3px;
+	padding: 10px 15px;
+	z-index: 5;
+	height: auto;
+	margin: 0 auto;
+	max-width: 106px;
+	color: #FFF;
+	border-radius: 5px;
+	box-shadow: 0 0 0 1px #f98450;
+	+transform(translateX(-50%));
+	display: none;
+}
+.description.active {
+	display: block;
+}
+.description:after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 100%;
+	width: 0;
+	height: 0;
+	margin-left: -10px;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-top: 10px solid #FB8012;
+}
+.mCustomScrollBox {
+	min-width: 98%;
+}
+.mCSB_container {
+	min-width: 100% !important;
+	padding-bottom: 20px;
+}
+#topology-diagram > .graph {
+	background: url(../../images/SmartConfig-Topology.png);
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	width: 100%;
+	height: 850px;
+}

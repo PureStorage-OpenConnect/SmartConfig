@@ -11,7 +11,7 @@
         <arg mapval="0" name="name" value="WWNN_Pool"/>
         <arg mapval="0" name="desc" value="WWNN Pool"/>
         <arg mapval="0" name="order" value="sequential"/>
-        <arg mapval="0" name="from_ip" value="20:00:00:25:B5:01:00:00"/>
+        <arg mapval="0" name="from_ip" value="20:00:00:25:B5:01:00:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -25,7 +25,7 @@
         <arg mapval="0" name="name" value="WWPN_Pool_A"/>
         <arg mapval="0" name="desc" value="WWPN Pool for Fabric A"/>
         <arg mapval="0" name="order" value="sequential"/>
-        <arg mapval="0" name="from_ip" value="20:00:00:25:B5:01:0A:00"/>
+        <arg mapval="0" name="from_ip" value="20:00:00:25:B5:01:0A:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -39,7 +39,7 @@
         <arg mapval="0" name="name" value="WWPN_Pool_B"/>
         <arg mapval="0" name="desc" value="WWPN Pool for Fabric B"/>
         <arg mapval="0" name="order" value="sequential"/>
-        <arg mapval="0" name="from_ip" value="20:00:00:25:B5:01:0B:00"/>
+        <arg mapval="0" name="from_ip" value="20:00:00:25:B5:01:0B:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -51,8 +51,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="ucs_fabric_id" value="A"/>
-        <arg name="no_of_ports" value="17-32"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="no_of_ports" value="17-32"/>
       </args>
     </task>
     <task OnSuccess="t301" Onfailure="None" desc="Configure Unified Ports for Fabric B" id="UCSGen2ConfigureUnifiedPorts" inittask="0" label="Configure Unified Ports (B)" name="UCSGen2ConfigureUnifiedPortsForFabricB" texecid="t201">
@@ -63,8 +63,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_b"/>
-        <arg name="ucs_fabric_id" value="B"/>
-        <arg name="no_of_ports" value="17-32"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="no_of_ports" value="17-32"/>
       </args>
     </task>
     <task OnSuccess="t401" Onfailure="None" desc="Create Vsans for Fabric A" id="UCSCreateVSANs" inittask="0" label="Create VSAN (A)" name="UCSCreateVSANForFabricA" texecid="t301">
@@ -134,13 +134,13 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="vhba_name" value="vHBA_template_A"/>
-        <arg name="vhba_description" value="desc"/>
+        <arg mapval="0" name="vhba_name" value="vHBA_template_A"/>
+        <arg mapval="0" name="vhba_description" value="desc"/>
         <arg mapval="1" name="ident_pool_name" value="__t310.CreateWWPNPoolForFabricA.name"/>
-        <arg name="ucs_fabric_id" value="A"/>
-        <arg name="redundancy_type" value="none"/>
-        <arg name="max_data_field_size" value="2048"/>
-        <arg name="template_type" value="initial-template"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="redundancy_type" value="none"/>
+        <arg mapval="0" name="max_data_field_size" value="2048"/>
+        <arg mapval="0" name="template_type" value="initial-template"/>
         <arg mapval="1" name="vsan_name" value="__t301.UCSCreateVSANForFabricA.vsan"/>
       </args>
     </task>
@@ -151,13 +151,13 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="vhba_name" value="vHBA_template_B"/>
-        <arg name="vhba_description" value="desc"/>
+        <arg mapval="0" name="vhba_name" value="vHBA_template_B"/>
+        <arg mapval="0" name="vhba_description" value="desc"/>
         <arg mapval="1" name="ident_pool_name" value="__t311.CreateWWPNPoolForFabricB.name"/>
-        <arg name="ucs_fabric_id" value="B"/>
-        <arg name="redundancy_type" value="none"/>
-        <arg name="max_data_field_size" value="2048"/>
-        <arg name="template_type" value="initial-template"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="redundancy_type" value="none"/>
+        <arg mapval="0" name="max_data_field_size" value="2048"/>
+        <arg mapval="0" name="template_type" value="initial-template"/>
         <arg mapval="1" name="vsan_name" value="__t401.UCSCreateVSANForFabricB.vsan"/>
       </args>
     </task>
@@ -168,8 +168,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="san_conn_policy_name" value="Infra-SAN-Policy"/>
-        <arg name="san_conn_policy_desc" value="Infra SAN Policy"/>
+        <arg mapval="0" name="san_conn_policy_name" value="Infra-SAN-Policy"/>
+        <arg mapval="0" name="san_conn_policy_desc" value="Infra SAN Policy"/>
         <arg mapval="1" name="ident_pool_name" value="__t309.CreateWWNNPool.name"/>
       </args>
     </task>
@@ -180,8 +180,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="vhba_name" value="Fabric-A"/>
-        <arg name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="vhba_name" value="Fabric-A"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
         <arg mapval="1" name="vhba_template" value="__t701.UCSCreatevHBATemplateForFabricA.vhba_name"/>
         <arg mapval="1" name="vsan_con_policy" value="__t901.UCSCreateSANConnectivityPolicy.san_conn_policy_name"/>
       </args>
@@ -193,8 +193,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="vhba_name" value="Fabric-B"/>
-        <arg name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="vhba_name" value="Fabric-B"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
         <arg mapval="1" name="vhba_template" value="__t801.UCSCreatevHBATemplateForFabricB.vhba_name"/>
         <arg mapval="1" name="vsan_con_policy" value="__t901.UCSCreateSANConnectivityPolicy.san_conn_policy_name"/>
       </args>

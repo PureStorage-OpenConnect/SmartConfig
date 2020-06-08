@@ -7,7 +7,7 @@
 """
 
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_FILEACCESSERROR, PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_group_status_file, get_job_status_file
 from time import gmtime, strftime
 from xml.dom.minidom import parse, Document, parseString

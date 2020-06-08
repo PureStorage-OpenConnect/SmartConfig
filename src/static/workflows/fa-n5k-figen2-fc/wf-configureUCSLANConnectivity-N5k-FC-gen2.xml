@@ -28,7 +28,7 @@
         <arg mapval="0" name="mac_name" value="MAC_Pool_A"/>
         <arg mapval="0" name="descr" value="mac pool A"/>
         <arg mapval="0" name="mac_order" value="sequential"/>
-        <arg mapval="0" name="mac_start" value="00:25:B5:91:1A:00"/>
+        <arg mapval="0" name="mac_start" value="00:25:B5:91:1A:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -42,7 +42,7 @@
         <arg mapval="0" name="mac_name" value="MAC_Pool_B"/>
         <arg mapval="0" name="descr" value="mac pool B"/>
         <arg mapval="0" name="mac_order" value="sequential"/>
-        <arg mapval="0" name="mac_start" value="00:25:B5:91:1B:00"/>
+        <arg mapval="0" name="mac_start" value="00:25:B5:91:1B:00" overwrite="False"/>
         <arg mapval="0" name="size" value="32"/>
       </args>
     </task>
@@ -267,7 +267,7 @@
         <arg mapval="0" name="redundancy_pair_type" value="primary"/>
         <arg mapval="0" name="templ_type" value="updating-template"/>
         <arg mapval="0" name="peer_red_template" value="not-set"/>
- 	<arg mapval="1" name="vlans" value="__t206.UCSCreateTrafficVLAN.vlan_name|__t207.UCSCreateTrafficVLAN.vlan_name|__t208.UCSCreateTrafficVLAN.vlan_name"/>
+        <arg mapval="1" name="vlans" value="__t206.UCSCreateTrafficVLAN.vlan_name|__t207.UCSCreateTrafficVLAN.vlan_name|__t208.UCSCreateTrafficVLAN.vlan_name"/>
         <arg mapval="0" name="native_vlan" value="default"/>
         <arg mapval="0" name="cdn_source" value="vnic-name"/>
         <arg mapval="0" name="mtu" value="9000"/>
@@ -288,7 +288,7 @@
         <arg mapval="0" name="redundancy_pair_type" value="secondary"/>
         <arg mapval="1" name="peer_red_template" value="__t213.UCSCreateApplicationvNiCTemplateForFabricA.application_vnic_templ_name"/>
         <arg mapval="0" name="templ_type" value="updating-template"/>
-	<arg mapval="1" name="vlans" value="__t206.UCSCreateTrafficVLAN.vlan_name|__t207.UCSCreateTrafficVLAN.vlan_name|__t208.UCSCreateTrafficVLAN.vlan_name"/>
+        <arg mapval="1" name="vlans" value="__t206.UCSCreateTrafficVLAN.vlan_name|__t207.UCSCreateTrafficVLAN.vlan_name|__t208.UCSCreateTrafficVLAN.vlan_name"/>
         <arg mapval="0" name="native_vlan" value="default"/>
         <arg mapval="0" name="cdn_source" value="vnic-name"/>
         <arg mapval="0" name="mtu" value="9000"/>

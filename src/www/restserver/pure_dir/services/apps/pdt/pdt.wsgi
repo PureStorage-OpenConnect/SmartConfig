@@ -7,12 +7,11 @@
 ############################################################
 
 import sys
-import fcntl
-import yaml
 import json
-import requests
 import time
 import logging
+import xml.etree.ElementTree as ET
+
 
 # Python virtual environment for this service
 python_home = '/var/www/restserver/venv/'
@@ -48,6 +47,12 @@ sys.stdout = sys.stderr
 logging.basicConfig(stream=sys.stderr)
 
 loginfo("Started pdt service...")
+
+try:
+    dom = ET.parse("/mnt/system/pure_dir/pdt/build.xml")
+    loginfo("SmartConfig version: " + dom.getroot().get('version'))
+except BaseException:
+    loginfo("SmartConfig version: None")
 
 
 # Function to register all public apis with the gateway for authentication

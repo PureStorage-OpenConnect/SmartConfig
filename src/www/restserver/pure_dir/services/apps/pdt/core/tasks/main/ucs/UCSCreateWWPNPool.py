@@ -1,8 +1,12 @@
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, job_input_save
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file
+import xmltodict
+import random
+import re
 
 metadata = dict(
     task_id="UCSCreateWWPNPool",
@@ -42,19 +46,70 @@ class UCSCreateWWPNPool:
         obj.release_ucs_handle()
         return res
 
+    def prepare(self, jobid, texecid, inputs):
+        res = result()
+
+        job_xml = get_job_file(jobid)
+        fd = None
+        try:
+            fd = open(job_xml, 'r')
+        except IOError:
+            loginfo("Could not read file: %s" % job_xml)
+
+        doc = xmltodict.parse(fd.read())
+
+        wwpn_name = [[switch['@value'] for switch in task['args']['arg'] if switch['@name'] == "name"][0]
+                     for task in doc['workflow']['tasks']['task'] if task['@texecid'] == texecid][0]
+
+        wwpn = self.gen_wwpn(wwpn_name)
+        loginfo("Random mac number:%s" % wwpn)
+        job_input_save(jobid, texecid, 'from_ip', wwpn)
+
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+    def gen_hex(self, length):
+        return ''.join(random.choice('0123456789ABCDEF') for _ in range(length))
+
+    def gen_wwpn(self, wwpn_name):
+        if 'WWPN_Pool_A' in wwpn_name:
+            wwpn_A = (
+                '20',
+                self.gen_hex(2),
+                '00',
+                self.gen_hex(2),
+                self.gen_hex(2),
+                self.gen_hex(2),
+                '0A',
+                '00')
+            wwpnA = ':'.join(wwpn_A)
+            return wwpnA
+        elif 'WWPN_Pool_B' in wwpn_name:
+            wwpn_B = (
+                '20',
+                self.gen_hex(2),
+                '00',
+                self.gen_hex(2),
+                self.gen_hex(2),
+                self.gen_hex(2),
+                '0B',
+                '00')
+            wwpnB = ':'.join(wwpn_B)
+            return wwpnB
+
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-    def validate(self, item):
-        if ":" in item:
-            first_octet = item.split(":")
-            if first_octet[0] != "20":
-                return False, "WWPN Prefix must start with 20"
+    def validate(self, item, pool_name):
+        wwpn = "0"+pool_name+":00"
+        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){6}$", 
+                    item.lower()) and item[-5:] == wwpn and item[:2] == "20":
+            pass
         else:
-            return False, "Invalid WWPN Prefix"
+            return False, "Invalid WWPN Address Eg:20:xx:xx:xx:xx:xx:"+wwpn
         return True, ""
 
 
@@ -118,7 +173,7 @@ class UCSCreateWWPNPoolInputs:
         mandatory='1',
         order=4)
     from_ip = Textbox(
-        validation_criteria='function',
+        validation_criteria='function_rand',
         hidden='False',
         isbasic='True',
         helptext='Starting WWPN Pool',

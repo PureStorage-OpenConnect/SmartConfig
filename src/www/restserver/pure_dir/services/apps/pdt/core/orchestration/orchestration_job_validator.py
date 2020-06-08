@@ -9,7 +9,7 @@
 import os
 from xml.dom.minidom import parse
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file
 
 

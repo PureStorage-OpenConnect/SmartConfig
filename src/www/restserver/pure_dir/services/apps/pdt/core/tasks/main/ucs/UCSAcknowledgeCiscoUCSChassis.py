@@ -1,10 +1,9 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
 
 metadata = dict(
     task_id="UCSAcknowledgeCiscoUCSChassis",

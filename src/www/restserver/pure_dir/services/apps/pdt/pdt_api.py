@@ -9,19 +9,29 @@
 
 from pure_dir.components.compute.ucs.ucs import *
 from pure_dir.components.compute.ucs.ucs_upgrade import *
+from pure_dir.components.compute.ucs.ucs_report import *
 from pure_dir.components.storage.purestorage import *
 from pure_dir.components.common import *
 
 from pure_dir.components.network.nexus.nexus_setup import *
 from pure_dir.components.storage.mds.mds_setup import *
+from pure_dir.components.storage.purestorage.fa_setup import *
 from pure_dir.infra.logging.logmanager import *
 
 from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_form_data import *
 
+from pure_dir.services.apps.pdt.core.reportmanager import *
+
 from core import *
 
+
+def log(data):
+    try:
+	loginfo(data)
+    except:
+	loginfo("failed to log")
 
 def systeminfo():
     ret = systemmanager.system_info()
@@ -29,6 +39,7 @@ def systeminfo():
 
 
 def deploymentsettings(data):
+    log(data)
     ret = systemmanager.deployment_settings(data)
     return parseResult(ret)
 
@@ -38,13 +49,19 @@ def networkinfo():
     return parseResult(ret)
 
 
+def importlogo(uploadfile):
+    ret = systemmanager.import_logo(uploadfile)
+    return parseResult(ret)
+
+
 def pdtreset():
     ret = systemmanager.pdtreset()
     return parseResult(ret)
 
 
-def fscomponents(mac=''):
-    ret = discovery.fscomponents(mac)
+def fscomponents(mac='', initStage=False):
+    log(mac)
+    ret = discovery.fscomponents(mac, initStage)
     return parseResult(ret)
 
 
@@ -64,11 +81,13 @@ def initialconfig():
 
 
 def dhcpenable(data):
+    log(data)
     ret = discovery.dhcpenable(data)
     return parseResult(ret)
 
 
 def dhcpvalidate(data):
+    log(data)
     ret = discovery.dhcpvalidate(data)
     return parseResult(ret)
 
@@ -187,6 +206,18 @@ def nexus5ksystemimages():
 def nexus5kkickstartimages():
     obj = NEXUSSetup()
     ret = obj.nexus5kkickstartimages()
+    return parseResult(ret)
+
+
+def faconfigure(data):
+    obj = FASetup()
+    ret = obj.faconfigure(data)
+    return parseResult(ret)
+
+
+def favalidate(data):
+    obj = FASetup()
+    ret = obj.favalidate(data)
     return parseResult(ret)
 
 
@@ -486,6 +517,7 @@ def importworkflow(uploadfile):
 
 
 def possiblefstypes(data):
+    log(data)
     obj = Orchestration()
     ret = obj.possiblefstypes(data)
     return parseResult(ret)
@@ -534,3 +566,34 @@ def importconfiguration(uploadfile):
 def jsonconfigdefaults(stacktype):
     ret = config_json.json_config_defaults(stacktype)
     return parseResult(ret)
+
+
+#reports 
+def sc_report(stacktype):
+    obj = SCReport()
+    ret = obj.report(stacktype)
+    return parseResult(ret)
+
+def sc_report_info(method, args):
+    obj = SCReport()
+    ret = obj.report_info(method, args)
+    return parseResult(ret)
+
+def generate_report(stacktype):
+    obj = SCReport()
+    ret = obj.generate_report(stacktype)
+    return parseResult(ret)
+
+def report_status(tid):
+    obj = SCReport()
+    ret = obj.report_status(tid)
+    return parseResult(ret)
+
+def fs_connectivity():
+    ret = topology.fs_connectivity()
+    return parseResult(ret)
+
+def release_handle():
+    ret = release_ucsm_handler()
+    return parseResult(ret)
+

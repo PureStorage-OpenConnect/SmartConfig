@@ -1,12 +1,9 @@
 <?xml version="1.0" ?>
-<workflow id="FlashArrayStorageDeployment-n5k-iSCSI-mini" name="Configure FlashArray Storage" desc="Create Hosts, Host Groups and Volumes" wtype="wgroup" type="FlashArray" simulate="0" isdeletable="0" order="4" htype="fa-n5k-ucsmini-iscsi" prereq="CreateServiceProfileAttachGroup-iSCSI-mini">
-        <wfs>
-                <wf id="HostRegistration-n5k-iSCSI-mini" name="Host Registration" wexecid="g310" OnSuccess="g311" OnFailure="None" initwf="1"/>
-                <wf id="PrivateVolumes-n5k-iSCSI-mini" name="Private Volumes" wexecid="g311" OnSuccess="g312" OnFailure="None" initwf="0"/>
-                <wf id="HostGroups-n5k-iSCSI-mini" name="Host Groups" wexecid="g312" OnSuccess="g313" OnFailure="None" initwf="0"/>
-                <wf id="PublicVolume-n5k-iSCSI-mini" name="Shared Volume" wexecid="g313" OnSuccess="None" OnFailure="None" initwf="0"/>
-        </wfs>
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-n5k-ucsmini-iscsi" id="FlashArrayStorageDeployment-n5k-iSCSI-mini" isdeletable="0" name="Configure FlashArray Storage" order="4" prereq="CreateServiceProfileAttachGroup-iSCSI-mini" simulate="0" type="FlashArray" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-n5k-iSCSI-mini" initwf="1" name="Host Registration" wexecid="g310"/>
+    <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-n5k-iSCSI-mini" initwf="0" name="Private Volumes" wexecid="g311"/>
+    <wf OnFailure="None" OnSuccess="g313" id="HostGroups-n5k-iSCSI-mini" initwf="0" name="Host Groups" wexecid="g312"/>
+    <wf OnFailure="None" OnSuccess="None" id="PublicVolume-n5k-iSCSI-mini" initwf="0" name="Shared Volume" wexecid="g313"/>
+  </wfs>
 </workflow>
-
-
-

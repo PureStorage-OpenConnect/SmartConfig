@@ -1,0 +1,142 @@
+paths:
+   /FAConfigure:
+    post:
+      tags:
+      - FA
+      parameters:
+      - required: true
+        in: body
+        description: Configure parameters
+        name: data
+        schema:
+          $ref: '#/definitions/FAConfigure'
+      operationId: pdt_api.faconfigure
+      summary: Configure FlashArray
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/FAConfigureResponse'
+
+   /FAValidate:
+    post:
+      tags:
+      - FA 
+      parameters:
+      - required: true
+        in: body
+        description: Configure parameters
+        name: data
+        schema:
+          $ref: '#/definitions/FAConfigure'
+      operationId: pdt_api.favalidate
+      summary: Validate configuration parameters
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/FAValidate'
+
+
+definitions:
+   FAConfigureResponse:
+      required:
+      - data
+      - status
+      type: object
+      properties:
+        status:
+          $ref: '#/definitions/APIStatus'
+        data:
+          type: boolean
+          description: Configuration state
+
+
+   FAValidate:
+      type: object
+      required:
+      - data
+      - status
+      properties:
+        status:
+          $ref: '#/definitions/APIStatus'
+        data:
+          type: array
+          items:
+            required:
+            - field
+            - msg
+            properties:
+              field:
+                type: string
+                description: field name
+              msg:
+                type: string
+                description: message to be displayed
+
+   FAConfigure:
+      required:
+      - model
+      - mac
+      - array_name
+      - orig_ip
+      - serial_number
+      - ct0_ip
+      - ct1_ip
+      - vir0_ip
+      - netmask
+      - gateway
+      - dns
+      - relay_host
+      - sender_domain
+      - alert_emails
+      - ntp_server
+      - timezone
+      - organization
+      - full_name
+      - job_title
+      type: object
+      properties:
+        model:
+          type: string
+        mac:
+          type: string
+        array_name:
+          type: string
+        orig_ip:
+          type: string
+        serial_number:
+          type: string
+        ct0_ip:
+          type: string
+        ct1_ip:
+          type: string
+        vir0_ip:
+          type: string
+        netmask:
+          type: string
+        gateway:
+          type: string
+        domain_name:
+          type: string
+        dns:
+          type: string
+        ntp_server:
+          type: string
+        timezone:
+          type: string
+        relay_host:
+          type: string
+        sender_domain:
+          type: string
+        alert_emails:
+          type: string
+        organization:
+          type: string
+        full_name:
+          type: string
+        job_title:
+          type: string
+

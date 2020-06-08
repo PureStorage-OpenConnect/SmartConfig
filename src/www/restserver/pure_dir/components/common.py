@@ -4,7 +4,8 @@ from pure_dir.services.utils.miscellaneous import *
 from pure_dir.infra.apiresults import *
 import time
 from ucsmsdk.ucshandle import UcsHandle
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
+from pure_dir.global_config import get_discovery_store
+
 image_dir = "/mnt/system/uploads/"
 xml_file = '/mnt/system/pure_dir/pdt/images.xml'
 
@@ -49,8 +50,8 @@ def get_ucsm_type(subelement):
 
 def get_device_list(device_type):
     info_list = []
-    if os.path.exists(static_discovery_store) is True:
-        doc = parse_xml(static_discovery_store)
+    if os.path.exists(get_discovery_store()) is True:
+        doc = parse_xml(get_discovery_store())
         for subelement in doc.getElementsByTagName("device"):
             if subelement.getAttribute("device_type") == device_type:
                 details = {}
@@ -71,7 +72,7 @@ def get_device_list(device_type):
 
 def get_device_credentials(key, value):
     status, details = get_xml_element(
-        file_name=static_discovery_store, attribute_key=key, attribute_value=value)
+        file_name=get_discovery_store(), attribute_key=key, attribute_value=value)
     device_credentials = {}
     if status and details:
         device_credentials['ipaddress'] = details[0]['ipaddress']
@@ -86,7 +87,7 @@ def get_device_credentials(key, value):
 
 def get_device_model(key, value):
     status, details = get_xml_element(
-        file_name=static_discovery_store, attribute_key=key, attribute_value=value)
+        file_name=get_discovery_store(), attribute_key=key, attribute_value=value)
     device_model = ''
     if status and details:
         device_model = details[0]['model']
@@ -139,8 +140,8 @@ class Images:
 
 
 def get_ucsm_ip(fabric_name):
-    if os.path.exists(static_discovery_store) is True:
-        doc = parse_xml(static_discovery_store)
+    if os.path.exists(get_discovery_store()) is True:
+        doc = parse_xml(get_discovery_store())
         ipaddress = ""
         for subelement in doc.getElementsByTagName("device"):
             if subelement.getAttribute("device_type") == "UCSM":

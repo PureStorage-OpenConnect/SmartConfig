@@ -1,5 +1,5 @@
 
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import g_base_dir
 import os
 from xml.dom.minidom import parse, parseString, Document

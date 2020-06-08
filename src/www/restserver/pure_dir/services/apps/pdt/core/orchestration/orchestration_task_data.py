@@ -110,6 +110,8 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
     tasks = doc.documentElement.getElementsByTagName("task")
     for task in tasks:
         task_id = task.getAttribute("texecid")
+        task_name = task.getAttribute("name")
+        print task_name
         if task_id == execid:
             if len(task._get_childNodes()) > 0:
                 inputs = task.getElementsByTagName("arg")
@@ -126,6 +128,17 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                 exec("%s = %s" %
                                      ("cl_obj", tid + "." + tid + "()"))
                                 isvalid = cl_obj.validate(tvalue)
+                                if isvalid[0]:
+                                    inp.setAttribute('value', str(tvalue))
+                                    inp.setAttribute('mapval', mapval)
+                                else:
+                                    err.append(
+                                        {"field": argname, "msg": isvalid[1], "order": order})
+                            #TODO Changes requires on **kwargs
+                            elif field.ip_type == 'text-box' and mapval == "0" and field.validation_criteria == "function_rand":
+                                exec("%s = %s" %
+                                     ("cl_obj", tid + "." + tid + "()"))
+                                isvalid = cl_obj.validate(tvalue, task_name[-1])
                                 if isvalid[0]:
                                     inp.setAttribute('value', str(tvalue))
                                     inp.setAttribute('mapval', mapval)
@@ -381,6 +394,7 @@ def job_task_inputs_api(execid, id, ttype=''):
     exec("%s = %s" % ("input_obj", tid + "." + tid + "Inputs" + "()"))
     inputs = [x for x in dir(input_obj) if not x.startswith(
         '__') and not x.endswith('__')]
+  
     for ipt in inputs:
         exec("%s = %s.%s" % ("field", "input_obj", ipt))
         if isinstance(field, list) or field.group_member == "1":
@@ -390,7 +404,7 @@ def job_task_inputs_api(execid, id, ttype=''):
                 field=field, tid=tid, doc=doc, texecid=execid)
         else:
             wftaskip = job_task_inputs(field=field, tid=tid)
-
+        
         if field.ip_type == "group":
             group_members = []
             for member in field.members:
@@ -401,13 +415,13 @@ def job_task_inputs_api(execid, id, ttype=''):
                 else:
                     group_members.append(job_task_inputs(
                         field=member_data, tid=tid))
+ 
             wftaskip['svalue'] = wftaskip['svalue'].replace('\'', '\"')
             wftaskip['addmore'] = True if field.add.lower(
             ) == 'true' or field.add.lower == '1' else False
             wftaskip['group_fields'] = group_members
         wftaskip['order'] = field.order
         wftaskip_list.append(wftaskip)
-
     obj.setResult(sorted(wftaskip_list, key=itemgetter('order')),
                   PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj

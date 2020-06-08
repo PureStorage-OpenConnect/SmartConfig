@@ -259,6 +259,8 @@ definitions:
         type: string
       sec_id:
         type: string
+      os_install:
+        type: string
       esxi_file:
         type: string
       esxi_kickstart:

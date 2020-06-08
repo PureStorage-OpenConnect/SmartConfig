@@ -1,0 +1,163 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Boot Policy" hidden="1" htype="fa-fi6454-mds-fc" id="CreateUCSBootPolicy-fi6454-mds-fc" isdeletable="0" name="Create UCS Boot Policy" type="UCSM">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="Create Boot Policy" id="UCSCreateBootPolicy" inittask="1" label="Create Boot policy" name="UCSCreateBootPolicy" texecid="t201">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="bootpolicyname" tvalue="Boot-FC-X-A" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-FC-X-A"/>
+        <arg mapval="0" name="boot_policy_desc" value="Boot policy decr"/>
+      </args>
+    </task>
+    <task OnSuccess="t401" Onfailure="None" desc="Add Remote Disk to Boot Policy" id="UCSAddRemoteDiskToBootPolicy" inittask="0" label="Add Remote disk" name="UCSAddRemoteDiskToBootPolicy" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="t408" Onfailure="None" desc="Add Primary San Boot To Boot Policy" id="UCSAddSanBootToBootPolicy" inittask="0" label="Add Primary SAN Boot" name="UCSAddSanBootToBootPolicy" texecid="t401">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="type" tvalue="primary" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vhba" value="Fabric-A"/>
+        <arg mapval="0" name="type" value="primary"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="t501" Onfailure="None" desc="Gets a pwwn associated with controller" id="FAGetFCPortNumber" inittask="0" label="Get Port Number(pwwn)-Primary" name="FAGetFCPortNumber" texecid="t408">
+      <outputs>
+        <output name="status" tvalue="Success" value="no-op"/>
+        <output name="pwwn" tvalue="Success" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="0" name="name" value="CT0.FC0"/>
+      </args>
+    </task>
+    <task OnSuccess="t508" Onfailure="None" desc="Add Primary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Primary SAN Boot target" name="UCSAddSanBootTarget" texecid="t501">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="target_lun" value="1"/>
+        <arg mapval="1" name="wwpn" value="__t408.FAGetFCPortNumber.pwwn"/>
+        <arg mapval="0" name="type" value="primary"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+        <arg mapval="0" name="san_type" value="primary"/>
+      </args>
+    </task>
+    <task OnSuccess="t601" Onfailure="None" desc="Gets a pwwn associated with controller" id="FAGetFCPortNumber" inittask="0" label="Get Port Number(pwwn)-Secondary" name="FAGetFCPortNumber" texecid="t508">
+      <outputs>
+        <output name="status" tvalue="Success" value="no-op"/>
+        <output name="pwwn" tvalue="Success" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="0" name="name" value="CT1.FC0"/>
+      </args>
+    </task>
+    <task OnSuccess="t701" Onfailure="None" desc="Add Secondary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Secondary SAN Boot target" name="UCSAddSanBootTarget" texecid="t601">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="target_lun" value="1"/>
+        <arg mapval="1" name="wwpn" value="__t508.FAGetFCPortNumber.pwwn"/>
+        <arg mapval="0" name="type" value="secondary"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+        <arg mapval="0" name="san_type" value="primary"/>
+      </args>
+    </task>
+    <task OnSuccess="t708" Onfailure="None" desc="Add Secondary San Boot To Boot Policy" id="UCSAddSanBootToBootPolicy" inittask="0" label="Add Secondary SAN Boot" name="UCSAddSanBootToBootPolicy" texecid="t701">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="type" tvalue="secondary" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vhba" value="Fabric-B"/>
+        <arg mapval="0" name="type" value="secondary"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="t801" Onfailure="None" desc="Gets a pwwn associated with controller" id="FAGetFCPortNumber" inittask="0" label="Get Port Number(pwwn)-Primary" name="FAGetFCPortNumber" texecid="t708">
+      <outputs>
+        <output name="status" tvalue="Success" value="no-op"/>
+        <output name="pwwn" tvalue="Success" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="0" name="name" value="CT0.FC1"/>
+      </args>
+    </task>
+    <task OnSuccess="t808" Onfailure="None" desc="Add Primary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Primary SAN Boot target" name="UCSAddSanBootTarget" texecid="t801">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="target_lun" value="1"/>
+        <arg mapval="1" name="wwpn" value="__t708.FAGetFCPortNumber.pwwn"/>
+        <arg mapval="0" name="type" value="primary"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+        <arg mapval="0" name="san_type" value="secondary"/>
+      </args>
+    </task>
+    <task OnSuccess="t901" Onfailure="None" desc="Gets a pwwn associated with controller" id="FAGetFCPortNumber" inittask="0" label="Get Port Number(pwwn)-Secondary" name="FAGetFCPortNumber" texecid="t808">
+      <outputs>
+        <output name="status" tvalue="Success" value="no-op"/>
+        <output name="pwwn" tvalue="Success" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="0" name="name" value="CT1.FC1"/>
+      </args>
+    </task>
+    <task OnSuccess="t1001" Onfailure="None" desc="Add Secondary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Secondary SAN Boot target" name="UCSAddSanBootTarget" texecid="t901">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="target_lun" value="1"/>
+        <arg mapval="1" name="wwpn" value="__t808.FAGetFCPortNumber.pwwn"/>
+        <arg mapval="0" name="type" value="secondary"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+        <arg mapval="0" name="san_type" value="secondary"/>
+      </args>
+    </task>
+    <task OnSuccess="t1002" Onfailure="None" desc="Add Cimc Mounted Disk" id="UCSAddCimcMountedDisk" inittask="0" label="Add CIMC Mounted Disk" name="UCSAddCimcMountedDisk" texecid="t1001">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create default host firmware package" id="UCSCreateHostFirmwarePackage" inittask="0" label="Create Host Firmware Package" name="CreateHostFirmwarePackage" texecid="t1002">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="default"/>
+        <arg mapval="0" name="desc" value="default firmware package"/>
+        <arg mapval="0" name="blade_pkg" value=""/>
+        <arg mapval="0" name="rack_pkg" value=""/>
+        <arg mapval="0" name="excluded_comp" value="local-disk"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

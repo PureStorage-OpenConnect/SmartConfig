@@ -187,6 +187,8 @@ class FAAddFCPortToHost:
                 k = k + 1
                 port_list.append(ports[k])
                 k = k + 1
+            if not port_list:
+                continue
             mdata += mhosts + host_prefix + "'}," + mports + \
                 str(port_list[0] + "," + port_list[1]) + "'}}|"
         loginfo("mdata going is : {}".format(mdata[:-1]))

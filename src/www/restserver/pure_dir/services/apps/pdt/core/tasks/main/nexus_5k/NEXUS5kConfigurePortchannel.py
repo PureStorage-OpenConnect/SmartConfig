@@ -1,5 +1,5 @@
 import xmltodict
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
 from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.common import get_device_credentials, get_device_list

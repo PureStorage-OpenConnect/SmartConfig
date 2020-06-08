@@ -1,28 +1,28 @@
 <?xml version="1.0" ?>
-<workflow desc="Zoning in MDS Switches" htype="fa-n9k-fi6454-mds-fc" id="zoningMDS-fc-fi6454" isdeletable="0" name="MDS Zoning" order="5" simulate="0" type="MDS" hidden="1">
+<workflow desc="Zoning in MDS Switches" hidden="1" htype="fa-n9k-fi6454-mds-fc" id="zoningMDS-fc-fi6454" isdeletable="0" name="MDS Zoning" order="5" simulate="0" type="MDS">
   <tasks>
-    <task OnSuccess="t301" Onfailure="None" desc2="Create zones and zonesets for MDS interfaces" id="MDSZoning" inittask="1" name="MDS Zoning for switch A" desc="MDS Zoning for switch A" texecid="t300">
+    <task OnSuccess="t301" Onfailure="None" desc="MDS Zoning for switch A" desc2="Create zones and zonesets for MDS interfaces" id="MDSZoning" inittask="1" name="MDS Zoning for switch A" texecid="t300">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
       </outputs>
       <args>
-	<arg name="mds_id" mapval="3" value="mds_switch_a"/>
-        <arg name="flogi_list" value=""/>
-        <arg name="vsan_id" mapval="3" value="vsan_a"/>
-        <arg name="zones" value=""/>
-        <arg name="zoneset" value=""/>
+        <arg mapval="3" name="mds_id" value="mds_switch_a"/>
+        <arg mapval="0" name="flogi_list" value="" overwrite="False"/>
+        <arg mapval="3" name="vsan_id" value="vsan_a"/>
+        <arg mapval="0" name="zones" value="" overwrite="False"/>
+        <arg mapval="0" name="zoneset" value="" overwrite="False"/>
       </args>
     </task>
-    <task OnSuccess="None" Onfailure="None" desc2="Create zones and zonesets for MDS interfaces" id="MDSZoning" inittask="1" name="MDS Zoning for switch B" desc="MDS Zoning for switch B" texecid="t301">
+    <task OnSuccess="None" Onfailure="None" desc="MDS Zoning for switch B" desc2="Create zones and zonesets for MDS interfaces" id="MDSZoning" inittask="1" name="MDS Zoning for switch B" texecid="t301">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
       </outputs>
       <args>
-	<arg name="mds_id" mapval="3" value="mds_switch_b"/>
-        <arg name="flogi_list" value=""/>
-        <arg name="vsan_id" mapval="3" value="vsan_b"/>
-        <arg name="zones" value=""/>
-        <arg name="zoneset" value=""/>
+        <arg mapval="3" name="mds_id" value="mds_switch_b"/>
+        <arg mapval="0" name="flogi_list" value="" overwrite="False"/>
+        <arg mapval="3" name="vsan_id" value="vsan_b"/>
+        <arg mapval="0" name="zones" value="" overwrite="False"/>
+        <arg mapval="0" name="zoneset" value="" overwrite="False"/>
       </args>
     </task>
   </tasks>

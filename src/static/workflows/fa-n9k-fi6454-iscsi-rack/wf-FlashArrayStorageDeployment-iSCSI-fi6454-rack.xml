@@ -1,12 +1,9 @@
 <?xml version="1.0" ?>
-<workflow id="FlashArrayStorageDeployment-iSCSI-fi6454-rack" name="Configure FlashArray Storage" desc="Create Hosts, Host Groups and Volumes" wtype="wgroup" type="FlashArray" simulate="0" isdeletable="0" order="6" htype="fa-n9k-fi6454-iscsi-rack" prereq="CreateServiceProfileAttachGroup-iSCSI-fi6454-rack">
-        <wfs>
-                <wf id="HostRegistration-iSCSI-fi6454-rack" name="Host Registration" wexecid="g310" OnSuccess="g311" OnFailure="None" initwf="1"/>
-                <wf id="PrivateVolumes-iSCSI-fi6454-rack" name="Private Volumes" wexecid="g311" OnSuccess="g312" OnFailure="None" initwf="0"/>
-                <wf id="HostGroups-iSCSI-fi6454-rack" name="Host Groups" wexecid="g312" OnSuccess="g313" OnFailure="None" initwf="0"/>
-                <wf id="PublicVolume-iSCSI-fi6454-rack" name="Shared Volume" wexecid="g313" OnSuccess="None" OnFailure="None" initwf="0"/>
-        </wfs>
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-n9k-fi6454-iscsi-rack" id="FlashArrayStorageDeployment-iSCSI-fi6454-rack" isdeletable="0" name="Configure FlashArray Storage" order="6" prereq="CreateServiceProfileAttachGroup-iSCSI-fi6454-rack" simulate="0" type="FlashArray" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-iSCSI-fi6454-rack" initwf="1" name="Host Registration" wexecid="g310"/>
+    <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-iSCSI-fi6454-rack" initwf="0" name="Private Volumes" wexecid="g311"/>
+    <wf OnFailure="None" OnSuccess="g313" id="HostGroups-iSCSI-fi6454-rack" initwf="0" name="Host Groups" wexecid="g312"/>
+    <wf OnFailure="None" OnSuccess="None" id="PublicVolume-iSCSI-fi6454-rack" initwf="0" name="Shared Volume" wexecid="g313"/>
+  </wfs>
 </workflow>
-
-
-

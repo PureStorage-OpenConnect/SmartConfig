@@ -10,7 +10,7 @@ import glob
 import importlib
 import os
 from os.path import dirname, basename, isfile
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_INTERNALERROR, PTK_OKAY, result
 
 tasks_path = "pure_dir.services.apps.pdt.core.tasks.main"
 

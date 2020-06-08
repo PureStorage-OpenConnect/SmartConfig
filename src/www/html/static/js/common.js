@@ -16,6 +16,18 @@ $(document).ready(function() {
 			return (elem.textContent || elem.innerText || "").toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0;
 		}
 	});
+	
+	String.prototype.fileExists = function() {
+		filename = this.trim();
+		
+		var response = jQuery.ajax({
+			url: filename,
+			type: 'HEAD',
+			async: false
+		}).status;
+		
+		return (response != "200") ? false : true;
+	}
 
 	/* Event register for closing a notification */
 	$('body').delegate('.nn-alert', 'click', function(e) {
@@ -92,6 +104,15 @@ $(document).ready(function() {
 		}
 	});
 });
+
+/** only implement if no native implementation is available
+	this method is used to identify whether the variable is a array or object
+*/
+if (typeof Array.isArray === 'undefined') {
+	Array.isArray = function(obj) {
+		return Object.prototype.toString.call(obj) === '[object Array]';
+	}
+};
 
 /**
   * @desc hide notification after a specified time interval
@@ -238,9 +259,9 @@ function doImport(container, formContainer, isValidate, successCallback, errorCa
   * @param object $errorCallback - set of commands to execute incase of failure
   * @param object $backgroundCallback - set of commands to execute when background operation successfully triggered
 */	
-function bgTaskInfo(api, successCallback, errorCallback, backgroundCallback) {
+function bgTaskInfo(api, bgSuccessCallback, bgErrorCallback, backgroundCallback) {
 	clearTimeout(autoLoad);
-	doAjaxRequest(api, successCallback, errorCallback, backgroundCallback);
+	doAjaxRequest(api, bgSuccessCallback, bgErrorCallback, backgroundCallback);
 }
 
 /**
@@ -250,10 +271,11 @@ function bgTaskInfo(api, successCallback, errorCallback, backgroundCallback) {
   * @param object $errorCallback - set of commands to execute incase of failure
   * @param object $backgroundCallback - set of commands to execute when background operation successfully triggered
 */
-function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) {
+function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, completeCallback) {
 	// Defaults for making a rest call
 	var defaults = {
 		url: 'System',
+		alt_url: '',
 		base_path: 'pure',
 		method: 'GET',
 		query: '',
@@ -304,9 +326,14 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 			if(response.status.code == '2') {		// Status code is 2 for background operations
 				successCallback(response);
 				removeProcessingSpinner(api.container, spinner_cnt);
-				if(response.status.taskid) {
-					api.data = {id: response.status.taskid};
-					autoLoad = setTimeout('bgTaskInfo(' + api + ', ' + successCallback + ', ' + errorCallback + ', ' + backgroundCallback + ');', settings.background_api_duration);
+				if(response.data.tid) {
+					api.container = '';
+					api.notify = false;
+					api.query = {'tid': response.data.tid};
+					api.url = api.alt_url;
+					autoLoad = setTimeout(function() {
+						bgTaskInfo(api, backgroundCallback, errorCallback, backgroundCallback);
+					}, settings.background_api_duration);
 				}
 			} else if(response.status.code == '1') {	// Status code is 1 to display a Confirmation popup
 				removeProcessingSpinner(api.container, spinner_cnt);
@@ -315,13 +342,17 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 				if(response.status.taskid) {
 					if(response.status.progress != '100') {
 						api.data = {id: response.status.taskid};
-						autoLoad = setTimeout('bgTaskInfo(' + api + ', ' + successCallback + ', ' + errorCallback + ', ' + backgroundCallback + ');', settings.background_api_duration);
+						autoLoad = setTimeout(function() {
+							bgTaskInfo(api, backgroundCallback, errorCallback, backgroundCallback);
+						}, settings.background_api_duration);
 					}
 				}
 				if(response.info && response.info.taskid) {
 					if(response.info.progress != '100') {
 						api.data = {id: response.info.taskid};
-						autoLoad = setTimeout('bgTaskInfo(' + api + ', ' + successCallback + ', ' + errorCallback + ', ' + backgroundCallback + ');', settings.background_api_duration);
+						autoLoad = setTimeout(function() {
+							bgTaskInfo(api, backgroundCallback, errorCallback, backgroundCallback);
+						}, settings.background_api_duration);
 					}
 				}
 				removeProcessingSpinner(api.container, spinner_cnt);	// Remove the progressing spinner since the request got successful response.
@@ -359,9 +390,14 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback) 
 			}
 		},
 		error: function(response, status) {
+			errorCallback(response);
 			if(status == 'error') {
 				//showError({title: localization['error'] + '!', text: response.statusText});
 			}
+		},
+		complete: function(response, status) {
+			if(typeof completeCallback != 'undefined')
+				completeCallback(response);
 		}
 	});
 	return ajaxRequest;
@@ -423,42 +459,6 @@ function showError(error, api) {
 }
 
 /**
-  * @desc it will change the date time format of a given date
-  * @param string $date - the date to be formated
-  * @return string - formated date
-*/
-function formatAMPM(date) {
-	var hours = date.getHours();
-	var minutes = date.getMinutes();
-	var ampm = hours >= 12 ? 'PM' : 'AM';
-	hours = hours % 12;
-	hours = hours ? hours : 12; // the hour '0' should be '12'
-	hours = (hours > 9) ? hours : '0' + hours;
-	minutes = minutes < 10 ? '0'+minutes : minutes;
-	var twoDigitsec = (date.getSeconds() > 9) ? date.getSeconds() : '0' + (date.getSeconds()+1);
-	var strTime = hours + ':' + minutes + ':' + twoDigitsec + ' ' + ampm;
-	return strTime;
-}
-
-/**
-  * @desc it will validate the given ip address format
-  * @param string $value - the ip address to be verified
-  * @return bool - validation success or failure
-*/
-function isValidIPAddress(value) {
-	var split = value.split('.');
-	if (split.length != 4) 
-		return false;
-            
-	for (var i=0; i<split.length; i++) {
-		var s = split[i];
-		if (s.length==0 || isNaN(s) || s<0 || s>255)
-			return false;
-	}
-	return true;
-}
-
-/**
   * @desc will sort an array of objects based on the key passed
   * @param array $array - the array to be sorted
   * @param string $key - the key/attribute for sorting the base array of object
@@ -500,6 +500,12 @@ function getObjectByKeyValue(array, value, base_key, field) {
 			return element[base_key] == value;
 	});
 	return array[index];
+}
+
+function findObjectByKeyValue(array, key, value) {
+	return result = array.filter(function (obj) {
+		return obj[key].toLowerCase() == value.toLowerCase();
+	})[0];
 }
 
 /**
@@ -600,18 +606,6 @@ function removeAttributeByKey(object, str) {
 }
 
 /**
-  * @desc it will force the browser's cursor to focus on the specified HTML form field.
-  * @param string $classId - the HTML element class neame to access the element dom.
-*/
-function focusNextFormField(classId) {
-	$(classId).keyup(function() {
-		if(this.value.length == this.maxLength) {
-			$(this).next(classId).focus();
-		}
-	});
-}
-
-/**
   * @desc this will take a HTML dom as a argument and generate a file with the content inside the HTML container.
   * @param string $filename - the name of the file to download
   * @param object $dom - the HTML container dom from where to get the content
@@ -641,20 +635,6 @@ function populateDropdownData(start, end, title) {
 		str += '<option value="' + i + '">' + i + '</option>';
 	}
 	return str;
-}
-
-/**
-  * @desc add number of days, months and/or years to a date
-  * @param string $date - the base date
-  * @param int $diff - the number of days, month or so on.
-  * @param string $type - whether to add/subtract a days/months/years
-  * @param string $format - the format to be returned
-  * @return string - 
-*/
-function calculateMonth(date, diff, type, format) {
-	type = (typeof type == 'undefined') ? 'months' : type;
-	format = (typeof format == 'undefined') ? 'YYYY/MM/DD' : format;
-	return moment(date, format).add(diff, type).format(format);
 }
 
 /**

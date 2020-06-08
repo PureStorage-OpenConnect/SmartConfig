@@ -1,9 +1,6 @@
 <?xml version="1.0" ?>
-<workflow id="NEXUS5kZoning-gen2" name="Create Nexus Zoning" desc="Create and apply FC-SAN Zoning on Nexus Switches" wtype='wgroup' type="Nexus 5k" simulate="0" isdeletable="0" order="4" htype="fa-n5k-figen2-fc" prereq="CreateServiceProfileAttachGroup-N5k-FC-gen2">
-        <wfs>
-                <wf id="zoningNEXUS5k-gen2" name="Nexus Zoning" wexecid="g210" OnSuccess="None" OnFailure="None" initwf="1"/>
-        </wfs>
+<workflow desc="Create and apply FC-SAN Zoning on Nexus Switches" htype="fa-n5k-figen2-fc" id="NEXUS5kZoning-gen2" isdeletable="0" name="Create Nexus Zoning" order="4" prereq="CreateServiceProfileAttachGroup-N5k-FC-gen2" simulate="0" type="Nexus 5k" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" id="zoningNEXUS5k-gen2" initwf="1" name="Nexus Zoning" wexecid="g210"/>
+  </wfs>
 </workflow>
-
-
-

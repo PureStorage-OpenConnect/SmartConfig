@@ -1,6 +1,4 @@
-import ucsmsdk
 import os
-import string
 import threading
 import requests
 import time
@@ -12,11 +10,11 @@ from pure_dir.infra.apiresults import *
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.utils.miscellaneous import *
 from pure_dir.services.utils.ipvalidator import *
-from pure_dir.components.common import static_discovery_store, decrypt
+from pure_dir.components.common import decrypt
+from pure_dir.global_config import get_discovery_store
 from pure_dir.components.compute.ucs.ucs_upgrade import ucsm_upgrade
 
 from isc_dhcp_leases import IscDhcpLeases
-from xml.dom.minidom import Document, parse
 import urllib3
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -68,8 +66,8 @@ class UCSManager:
 
         res = result()
         ucsm_list = []
-        if os.path.exists(static_discovery_store) is True:
-            doc = parse_xml(static_discovery_store)
+        if os.path.exists(get_discovery_store()) is True:
+            doc = parse_xml(get_discovery_store())
             for subelement in doc.getElementsByTagName("device"):
                 if subelement.getAttribute("device_type") == "UCSM" and subelement.getAttribute(
                         "leadership") != "subordinate":
@@ -80,6 +78,22 @@ class UCSManager:
 
         res.setResult(ucsm_list, PTK_OKAY, "success")
         return res
+
+    def is_passwd_strong(self, passwd):
+        pattern = '^.*(?=.{6,80})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!"%&\'()*+,-./:;<>@[\]^_`{|}~]).*$'
+        if not re.search(pattern, passwd):
+            return False
+        else:
+            password = passwd.lower()
+            if (re.findall(r'(([a-zA-Z0-9_])\2{1,})', password) or
+                           re.findall(r'((\d)\2{1,})', password)):
+                return False
+            else:
+                numlst = [int(num) for num in [i for i in
+                            re.split(r'[!"%&\'()*+,-./:;<>@[\]^_`{|}~]', password)
+                            if i.isdigit()][0]]
+                if sorted(numlst) == list(range(min(numlst), max(numlst)+1)):
+                    return False
 
     def requests_retry_session(self,
                                retries=100,
@@ -203,27 +217,6 @@ class UCSManager:
         res.setResult(None, PTK_RESOURCENOTAVAILABLE, "failed to get handler")
         return res
 
-    '''def _save_ucsm_login_details(self, ipaddress, username, password):
-        if os.path.exists(ucsm_credentials_store) == False:
-            o = open(ucsm_credentials_store, "w")
-            doc = Document()
-            roottag = doc.createElement("ucsmuser")
-            roottag.setAttribute("ipaddress", ipaddress)
-            roottag.setAttribute("username", username)
-            roottag.setAttribute("password", password)
-            doc.appendChild(roottag)
-            o.write(doc.toprettyxml(indent=""))
-            o.close()
-        else:
-            doc = parse(ucsm_credentials_store)
-            # users = doc.documentElement.getElementsByTagName("ucsmuser")
-            doc.childNodes[0].setAttribute("ipaddress", ipaddress)
-            doc.childNodes[0].setAttribute("username", username)
-            doc.childNodes[0].setAttribute("password", password)
-            o = open(ucsm_credentials_store, "w")
-            o.write(doc.toprettyxml(indent=""))
-            o.close()
-            doc.unlink()'''
 
     def ucsm_sp_wwpn(self, ipaddress, username, password):
         wwpn_list = []
@@ -275,6 +268,7 @@ class UCSManager:
             validated,
             esxi_file,
             esxi_kickstart,
+            os_install,
             infra_image,
             blade_image,
             ucs_upgrade,
@@ -282,7 +276,7 @@ class UCSManager:
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
-        add_xml_element(static_discovery_store, data)
+        add_xml_element(get_discovery_store(), data)
         return
 
     def _save_ucsm_subordinate_details(
@@ -315,7 +309,7 @@ class UCSManager:
         data = locals()
         data["timestamp"] = str(time.time())
         del data['self']
-        add_xml_element(static_discovery_store, data)
+        add_xml_element(get_discovery_store(), data)
         return
 
     def ucsmficonfigure(self, mode, config):
@@ -323,7 +317,7 @@ class UCSManager:
 
         if mode == "cluster":
             update_xml_element(
-                static_discovery_store,
+                get_discovery_store(),
                 matching_key="mac",
                 matching_value=config['pri_switch_mac'],
                 data={
@@ -331,7 +325,7 @@ class UCSManager:
                     "timestamp": str(
                         time.time())})
             update_xml_element(
-                static_discovery_store,
+                get_discovery_store(),
                 matching_key="mac",
                 matching_value=config['sec_switch_mac'],
                 data={
@@ -349,7 +343,7 @@ class UCSManager:
 
         elif mode == "primary":
             update_xml_element(
-                static_discovery_store,
+                get_discovery_store(),
                 matching_key="mac",
                 matching_value=config['pri_switch_mac'],
                 data={
@@ -367,7 +361,7 @@ class UCSManager:
 
         elif mode == "subordinate":
             update_xml_element(
-                static_discovery_store,
+                get_discovery_store(),
                 matching_key="mac",
                 matching_value=config['sec_switch_mac'],
                 data={
@@ -385,7 +379,7 @@ class UCSManager:
 
         elif mode == "standalone":
             update_xml_element(
-                static_discovery_store,
+                get_discovery_store(),
                 matching_key="mac",
                 matching_value=config['pri_switch_mac'],
                 data={
@@ -603,7 +597,7 @@ class UCSManager:
                                        'sec_orig_ip': 'DHCP IP of subordiate FI',
                                        'sec_cluster': 'Cluster mode for subordiate FI',
                                        'sec_id': 'ID for subordinate FI',
-                                       'esxi_file': 'Remote ESX file',
+                                      #'esxi_file': 'Remote ESX file',
                                        'dns': 'DNS IP',
                                        'server_type': 'Server type may be Rack or Blade'},
                                       config)
@@ -618,6 +612,24 @@ class UCSManager:
                     res.setResult(ret, PTK_INTERNALERROR,
                                   "Make sure details are correct")
                     return res
+
+                if 'pri_passwd' in config and config['pri_passwd']:
+                    if self.is_passwd_strong(config['pri_passwd']) == False:
+                        ret.append({'field': 'pri_passwd',
+                                    'msg': 'Password is incorrect. please refer the HelpText'})
+                        ret.append({'field': 'conf_passwd',
+                                    'msg': 'Password is incorrect. please refer the HelpText'})
+                        res.setResult(ret, PTK_INTERNALERROR,
+                                      "Make sure details are correct")
+                        return res
+                                
+                if 'os_install' in config and config['os_install'] == "Yes":
+                    if config['esxi_file'] == "":
+                        ret.append({'field': 'esxi_file',
+                                    'msg': 'Remote ESX file cannot be empty'})
+                        res.setResult(ret, PTK_INTERNALERROR, 
+                                      "Remote ESX file cannot be empty")
+                        return res
 
                 if 'ucs_upgrade' in config and config['ucs_upgrade'] == "Yes":
                     if config['infra_image'] == "" and config['blade_image'] == "":
@@ -642,7 +654,20 @@ class UCSManager:
                             res.setResult(ret, PTK_INTERNALERROR,
                                           "Select correct image")
                             return res
-
+                    if "FI-64" in config['pri_switch_vendor'] and config['infra_image'] != "":
+                        if "ucs-6400" not in config['infra_image']:
+                            ret.append({'field': 'infra_image',
+                                        'msg': 'Select an Image supported for Gen4 FI'})
+                            res.setResult(ret, PTK_INTERNALERROR,
+                                          "Select correct image")
+                            return res
+                    if "FI-632" in config['pri_switch_vendor'] and config['infra_image'] != "":
+                        if "ucs-mini-k9" not in config['infra_image']:
+                            ret.append({'field': 'infra_image',
+                                        'msg': 'Select an Image supported for Gen3 mini FI'})
+                            res.setResult(ret, PTK_INTERNALERROR,
+                                          "Select correct image")
+                            return res
                 ip_list = {
                     'pri_ip': config['pri_ip'],
                     'sec_ip': config['sec_ip'],
@@ -881,6 +906,8 @@ class UCSManager:
                     retry += 1
                 else:
                     break
+ 
+            time.sleep(300)
 
             loginfo("Triggering UCS upgrade")
             staus, msg = ucsm_upgrade(
@@ -888,7 +915,7 @@ class UCSManager:
             if not status:
                 loginfo("UCS upgrade failed. Updating device status")
                 update_xml_element(
-                    static_discovery_store,
+                    get_discovery_store(),
                     matching_key="mac",
                     matching_value=config['sec_switch_mac'],
                     data={
@@ -897,7 +924,7 @@ class UCSManager:
             else:
                 loginfo("UCS upgrade done. Updating device status")
                 update_xml_element(
-                    static_discovery_store,
+                    get_discovery_store(),
                     matching_key="mac",
                     matching_value=config['sec_switch_mac'],
                     data={
@@ -1000,10 +1027,26 @@ class UCSManager:
                 time.sleep(2)
 
         retry = 0
-        while retry < 5:
+        while retry < 15:
+            '''status = False
+            try:
+                #Bad fix, needs to upgrade paramiko
+                handle = UcsHandle(config['pri_ip'],
+                           'admin', config['pri_passwd'])
+                handle_status = handle.login()
+                if handle_status:
+                        handle.logout()
+                        break
+            except Exception as e:
+                if 'ERR-secondary-node' in str(e):
+                    loginfo(str(e))
+                    status = True
+                    break'''
+
             (error, status) = execute_remote_command(
                 config['pri_ip'], "admin", config['pri_passwd'], "show version")
             if status is False:
+                loginfo("Waiting for primary FI to be reachable...")
                 time.sleep(10)
                 retry += 1
             else:
@@ -1107,20 +1150,22 @@ class UCSManager:
                 else:
                     break
 
+            time.sleep(300)
+
             loginfo("Triggering UCS upgrade")
             staus, msg = ucsm_upgrade(
                 ip=config['virtual_ip'], username="admin", password=config['pri_passwd'], infra=config['infra_image'])
             if not status:
                 loginfo("UCS upgrade failed. Updating device status")
                 update_xml_element(
-                    static_discovery_store,
+                    get_discovery_store(),
                     matching_key="mac",
                     matching_value=config['pri_switch_mac'],
                     data={
                         "configured": "Re-validate",
                         "reval_msg": msg})
                 update_xml_element(
-                    static_discovery_store,
+                    get_discovery_store(),
                     matching_key="mac",
                     matching_value=config['sec_switch_mac'],
                     data={
@@ -1129,13 +1174,13 @@ class UCSManager:
             else:
                 loginfo("UCS upgrade done. Updating device status")
                 update_xml_element(
-                    static_discovery_store,
+                    get_discovery_store(),
                     matching_key="mac",
                     matching_value=config['pri_switch_mac'],
                     data={
                         "configured": "Configured"})
                 update_xml_element(
-                    static_discovery_store,
+                    get_discovery_store(),
                     matching_key="mac",
                     matching_value=config['sec_switch_mac'],
                     data={
@@ -1214,12 +1259,6 @@ class UCSManager:
 
     def _ucsm_handler(self, ipaddress="", username="", password=""):
         try:
-            '''if not ipaddress:
-                doc = parse(ucsm_credentials_store)
-                ipaddress = doc.childNodes[0].getAttribute("ipaddress")
-                username = doc.childNodes[0].getAttribute("username")
-                password = doc.childNodes[0].getAttribute("password")
-                doc.unlink()'''
             handle = UcsHandle(ipaddress, username, password)
             login_state = handle.login()
             if login_state:

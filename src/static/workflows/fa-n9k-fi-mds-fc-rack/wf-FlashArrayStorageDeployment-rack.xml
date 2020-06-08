@@ -1,12 +1,9 @@
 <?xml version="1.0" ?>
-<workflow id="FlashArrayStorageDeployment-rack" name="Configure FlashArray Storage" desc="Create Hosts, Host Groups and Volumes" wtype="wgroup" type="FlashArray" simulate="0" isdeletable="0" order="6" htype="fa-n9k-fi-mds-fc-rack" prereq="None">
-        <wfs>
-                <wf id="HostRegistration-rack" name="Host Registration" wexecid="g310" OnSuccess="g311" OnFailure="None" initwf="1"/>
-                <wf id="PrivateVolumes-rack" name="Private Volumes" wexecid="g311" OnSuccess="g312" OnFailure="None" initwf="0"/>
-                <wf id="HostGroups-rack" name="Host Groups" wexecid="g312" OnSuccess="g313" OnFailure="None" initwf="0"/>
-                <wf id="PublicVolume-rack" name="Shared Volume" wexecid="g313" OnSuccess="None" OnFailure="None" initwf="0"/>
-        </wfs>
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-n9k-fi-mds-fc-rack" id="FlashArrayStorageDeployment-rack" isdeletable="0" name="Configure FlashArray Storage" order="6" prereq="None" simulate="0" type="FlashArray" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-rack" initwf="1" name="Host Registration" wexecid="g310"/>
+    <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-rack" initwf="0" name="Private Volumes" wexecid="g311"/>
+    <wf OnFailure="None" OnSuccess="g313" id="HostGroups-rack" initwf="0" name="Host Groups" wexecid="g312"/>
+    <wf OnFailure="None" OnSuccess="None" id="PublicVolume-rack" initwf="0" name="Shared Volume" wexecid="g313"/>
+  </wfs>
 </workflow>
-
-
-

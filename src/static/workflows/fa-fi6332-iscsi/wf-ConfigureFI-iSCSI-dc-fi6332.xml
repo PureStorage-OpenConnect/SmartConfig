@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
-<workflow id="ConfigureFI-iSCSI-dc-fi6332" name="Configure UCS Fabric Interconnects" desc="Deploy UCS Configuration for Servers, LAN, Boot Policy" wtype="wgroup" type="UCSM" simulate="0" isdeletable="0" order="2" htype="fa-fi6332-iscsi">
-	<wfs>
-		<wf id="configureUCSServers-iSCSI-dc-fi6332" name="Configure UCS Servers" wexecid="g200" OnSuccess="g201" OnFailure="None" initwf="1"/>
-                <wf id="configureUCSLANConnectivity-iSCSI-dc-fi6332" name="Configure UCS LAN Connectivity" wexecid="g201" OnSuccess="g202" OnFailure="None" initwf="0"/>
-                <wf id="CreateUCSBootPolicy-iSCSI-dc-fi6332" name="Create Boot Policy" wexecid="g202" OnSuccess="None" OnFailure="None" initwf="0"/>
-	</wfs>
+<workflow desc="Deploy UCS Configuration for Servers, LAN, Boot Policy" htype="fa-fi6332-iscsi" id="ConfigureFI-iSCSI-dc-fi6332" isdeletable="0" name="Configure UCS Fabric Interconnects" order="2" simulate="0" type="UCSM" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g201" flags="vmedia_skip:configureUCSServers-iSCSI-dc-fi6332-vMediaskip;" id="configureUCSServers-iSCSI-dc-fi6332" initwf="1" name="Configure UCS Servers" wexecid="g200"/>
+    <wf OnFailure="None" OnSuccess="g202" id="configureUCSLANConnectivity-iSCSI-dc-fi6332" initwf="0" name="Configure UCS LAN Connectivity" wexecid="g201"/>
+    <wf OnFailure="None" OnSuccess="None" id="CreateUCSBootPolicy-iSCSI-dc-fi6332" initwf="0" name="Create Boot Policy" wexecid="g202"/>
+  </wfs>
 </workflow>

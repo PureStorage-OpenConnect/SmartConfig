@@ -9,8 +9,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="spanning" value="Yes"/>
-        <arg name="feature" value="lacp|vpc|interface-vlan"/>
+        <arg mapval="0" name="spanning" value="Yes"/>
+        <arg mapval="0" name="feature" value="lacp|vpc|interface-vlan"/>
       </args>
     </task>
     <task OnSuccess="t302" Onfailure="None" desc="Enable features for switch B" id="NEXUS5kEnableFeaturesAndSettings" inittask="0" name="Enable features for switch B" texecid="t301">
@@ -21,8 +21,8 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="spanning" value="Yes"/>
-        <arg name="feature" value="lacp|vpc|interface-vlan"/>
+        <arg mapval="0" name="spanning" value="Yes"/>
+        <arg mapval="0" name="feature" value="lacp|vpc|interface-vlan"/>
       </args>
     </task>
     <task OnSuccess="t303" Onfailure="None" desc="Global configurations for switch A" id="NEXUS5kSetGlobalConfigurations" inittask="0" name="Global configurations for switch A" texecid="t302">
@@ -35,10 +35,10 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="route" value="0.0.0.0/0"/>
+        <arg mapval="0" name="route" value="0.0.0.0/0"/>
         <arg mapval="3" name="gateway" value="gateway"/>
         <arg mapval="3" name="ntp" value="ntp"/>
-        <arg name="mtu_value" value="9216"/>
+        <arg mapval="0" name="mtu_value" value="9216"/>
       </args>
     </task>
     <task OnSuccess="t304" Onfailure="None" desc="Global configurations for switch B" id="NEXUS5kSetGlobalConfigurations" inittask="0" name="Global configurations for switch B" texecid="t303">
@@ -54,7 +54,7 @@
         <arg mapval="1" name="route" value="__t302.Global configurations for switch A.route"/>
         <arg mapval="3" name="gateway" value="gateway"/>
         <arg mapval="3" name="ntp" value="ntp"/>
-        <arg name="mtu_value" value="9216"/>
+        <arg mapval="0" name="mtu_value" value="9216"/>
       </args>
     </task>
     <task OnSuccess="t305" Onfailure="None" desc="VLAN for switch A" id="NEXUS5kCreateVLAN" inittask="0" name="VLAN for switch A" texecid="t304">
@@ -111,8 +111,8 @@
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
         <arg mapval="3" name="gateway" value="gateway"/>
         <arg mapval="1" name="route" value="__t302.Global configurations for switch A.route"/>
-        <arg name="mask_length" value="24"/>
-        <arg name="stratum_no" value="3"/>
+        <arg mapval="0" name="mask_length" value="24"/>
+        <arg mapval="0" name="stratum_no" value="3"/>
         <arg mapval="3" name="vlan_id" value="ntp_vlan"/>
       </args>
     </task>
@@ -142,7 +142,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_a"/>
-        <arg name="intf_set" value="{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/17'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}}|{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/18'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}}"/>
+        <arg mapval="0" name="intf_set" value="{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/17'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}}|{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/18'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}}"/>
       </args>
     </task>
     <task OnSuccess="None" Onfailure="None" desc="Configure iSCSI Interface for switch B" id="NEXUS5kConfigureiSCSIInterface" inittask="0" name="Configure iSCSI Interface for switch B" texecid="t311">
@@ -152,7 +152,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="nexus_id" value="nexus_switch_b"/>
-        <arg name="intf_set" value="{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/17'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}}|{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/18'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}}"/>
+        <arg mapval="0" name="intf_set" value="{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/17'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_a_vlan'}}|{'slot_chassis': {'ismapped': '0', 'value': 'Eth1/18'}, 'vlan_id': {'ismapped': '3', 'value': 'iscsi_b_vlan'}}"/>
       </args>
     </task>
   </tasks>

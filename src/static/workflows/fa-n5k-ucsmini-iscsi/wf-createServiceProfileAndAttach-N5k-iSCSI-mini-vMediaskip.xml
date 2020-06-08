@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Service Profiles" hidden="1" htype="fa-n5k-ucsmini-iscsi" id="createServiceProfileAndAttach-N5k-iSCSI-mini" isdeletable="0" name="Create Service Profile Templates and Service Profiles" order="4" prereq="ConfigureFI-N5k-iSCSI-mini" type="UCSM">
+  <tasks>
+    <task OnSuccess="t201" Onfailure="None" desc="Create Server Pool" id="UCSCreateServerPool" inittask="1" label="Create Server Pool" name="CreateServerPool" texecid="t200">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="Infra_Pool" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="Infra_Pool"/>
+        <arg mapval="0" name="desc" value="server pool create"/>
+        <arg mapval="0" name="servers" value=""/>
+      </args>
+    </task>
+    <task OnSuccess="t301" Onfailure="None" desc="Create service profile  templates" id="UCSCreateServiceProfileTemplateForiSCSI" inittask="0" label="Create Service Profile Template" name="UCSCreateServiceProfileTemplateForiSCSI" texecid="t201">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="serviceprofilename" tvalue="VM-Host-iSCSI-A" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="template_name" value="VM-Host-iSCSI-A"/>
+        <arg mapval="0" name="type" value="updating-template"/>
+        <arg mapval="0" name="template_desc" value="Service Profile template"/>
+        <arg mapval="0" name="ident_pool_name" value="UUID_Pool"/>
+        <arg mapval="0" name="lan_conn_policy_name" value="iSCSI-LAN-Policy"/>
+        <arg mapval="0" name="iqn_ident_pool_name" value="IQN-Pool"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-iSCSI-X-A"/>
+        <arg mapval="0" name="iSCSI_vNIC_A" value="iSCSI-A-vNIC"/>
+        <arg mapval="0" name="iSCSI_vNIC_B" value="iSCSI-B-vNIC"/>
+        <arg mapval="0" name="power_policy_name" value="No-Power-Cap"/>
+        <arg mapval="0" name="local_disk_policy_name" value="SAN-Boot"/>
+        <arg mapval="1" name="pool_assignment" value="__t200.CreateServerPool.name"/>
+        <arg mapval="0" name="biospolicy" value="VM-Host"/>
+      </args>
+    </task>
+    <task OnSuccess="t401" Onfailure="None" desc="Gets iSCSI target name" id="FAGetISCSIPortNumber" inittask="0" label="Get iSCSI target name" name="FAGetISCSIPortNumber" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="Success" value="no-op"/>
+        <output name="pwwn" tvalue="Success" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="0" name="name" value="CT0.ETH14"/>
+      </args>
+    </task>
+    <task OnSuccess="t501" Onfailure="None" desc="Set iSCSI Boot parameters" id="UCSSetiSCSIBootParameters" inittask="0" label="Set iSCSI Boot parameters" name="UCSSetiSCSIBootParameters" texecid="t401">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="template_name" value="VM-Host-iSCSI-A"/>
+        <arg mapval="0" name="iSCSI_Boot" value="A"/>
+        <arg mapval="0" name="iSCSI_vNIC_name" value="iSCSI-A-vNIC"/>
+        <arg mapval="0" name="init_ipaddr_policy" value="iSCSI-IP-Pool-A"/>
+        <arg mapval="1" name="iSCSI_Target_name" value="__t301.FAGetISCSIPortNumber.pwwn"/>
+        <arg mapval="3" name="iSCSI_ip_address_eth8" value="iSCSI-IP-CT0ETH8"/>
+        <arg mapval="3" name="iSCSI_ip_address_eth9" value="iSCSI-IP-CT1ETH8"/>
+        <arg mapval="0" name="lunid" value="1"/>
+      </args>
+    </task>
+    <task OnSuccess="t601" Onfailure="None" desc="Set iSCSI Boot parameters" id="UCSSetiSCSIBootParameters" inittask="0" label="Set iSCSI Boot parameters" name="UCSSetiSCSIBootParameters" texecid="t501">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="template_name" value="VM-Host-iSCSI-A"/>
+        <arg mapval="0" name="iSCSI_Boot" value="B"/>
+        <arg mapval="0" name="iSCSI_vNIC_name" value="iSCSI-B-vNIC"/>
+        <arg mapval="0" name="init_ipaddr_policy" value="iSCSI-IP-Pool-B"/>
+        <arg mapval="1" name="iSCSI_Target_name" value="__t301.FAGetISCSIPortNumber.pwwn"/>
+        <arg mapval="3" name="iSCSI_ip_address_eth8" value="iSCSI-IP-CT0ETH9"/>
+        <arg mapval="3" name="iSCSI_ip_address_eth9" value="iSCSI-IP-CT1ETH9"/>
+        <arg mapval="0" name="lunid" value="1"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create service profiles from templates" id="UCSCreateServiceProfilesFromTemplate" inittask="0" label="Create Service Profiles from template" name="UCSCreateServiceProfilesFromTemplate" texecid="t601">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="profile_prefix" value="VM-Host-iSCSI-0"/>
+        <arg mapval="0" name="suffix_starting_number" value="1"/>
+        <arg mapval="0" name="instances" value="2"/>
+        <arg mapval="1" name="template_name" value="__t201.UCSCreateServiceProfileTemplateForiSCSI.serviceprofilename"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

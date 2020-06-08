@@ -1,8 +1,10 @@
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, job_input_save
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+import random
+import re
 
 metadata = dict(
     task_id="UCSCreateWWNNPool",
@@ -42,6 +44,31 @@ class UCSCreateWWNNPool:
         obj.release_ucs_handle()
         return res
 
+    def prepare(self, jobid, texecid, inputs):
+        res = result()
+        wwnn_pool = self.gen_wwnn()
+        loginfo("Random wwnn :%s" % wwnn_pool)
+        job_input_save(jobid, texecid, 'from_ip', wwnn_pool)
+
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+    def gen_hex(self, length):
+        return ''.join(random.choice('0123456789ABCDEF') for _ in range(length))
+
+    def gen_wwnn(self):
+        wwnn = (
+            '20',
+            self.gen_hex(2),
+            '00',
+            self.gen_hex(2),
+            self.gen_hex(2),
+            self.gen_hex(2),
+            self.gen_hex(2),
+            self.gen_hex(2))
+        wwnn_pool = ':'.join(wwnn)
+        return wwnn_pool
+
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
@@ -49,12 +76,11 @@ class UCSCreateWWNNPool:
         return res
 
     def validate(self, item):
-        if ":" in item:
-            first_octet = item.split(":")
-            if first_octet[0] != "20":
-                return False, "WWNN Prefix must start with 20"
+        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){6}$", 
+                    item.lower()) and item[:2] == "20":
+            pass
         else:
-            return False, "Invalid WWNN Prefix"
+            return False, "Invalid WWNN Prefix Eg: 20:xx:xx:xx:xx:xx:xx:xx"
         return True, ""
 
 

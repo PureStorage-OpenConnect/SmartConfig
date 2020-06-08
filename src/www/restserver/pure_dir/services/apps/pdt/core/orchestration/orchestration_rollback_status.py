@@ -8,9 +8,10 @@
 """
 
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.infra.apiresults import *
+from pure_dir.infra.apiresults import PTK_FAILED, PTK_FILEACCESSERROR, PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_shelf_file, get_rollback_status_file, get_batch_status_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import g_flash_stack_types
+from pure_dir.infra.common_helper import getAsList
 from time import gmtime, strftime
 from xml.dom.minidom import Document, parse, parseString
 import xmltodict
@@ -128,7 +129,7 @@ def rollback_status_helper(jid_list):
         if doc['rollbackstatus']['tasks'] is None:
             # Workflow may have first task failed, skip
             continue
-        for task in doc['rollbackstatus']['tasks']['task']:
+        for task in getAsList(doc['rollbackstatus']['tasks']['task']):
             status_entity = {
                 'execid': task['@jid'] + "_" + task['@texecid'],
                 'status': task['@status'],

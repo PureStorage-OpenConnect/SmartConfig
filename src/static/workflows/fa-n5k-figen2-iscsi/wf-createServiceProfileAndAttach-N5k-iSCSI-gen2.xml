@@ -10,7 +10,7 @@
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
         <arg mapval="0" name="name" value="Infra_Pool"/>
         <arg mapval="0" name="desc" value="server pool create"/>
-        <arg mapval="0" name="servers" value=""/>
+        <arg mapval="0" name="servers" value="" overwrite="False"/>
       </args>
     </task>
     <task OnSuccess="t301" Onfailure="None" desc="Create service profile  templates" id="UCSCreateServiceProfileTemplateForiSCSI" inittask="0" label="Create Service Profile Template" name="UCSCreateServiceProfileTemplateForiSCSI" texecid="t201">
@@ -20,19 +20,19 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="template_name" value="VM-Host-iSCSI-A"/>
-        <arg name="type" value="updating-template"/>
-        <arg name="template_desc" value="Service Profile template"/>
-        <arg name="ident_pool_name" value="UUID_Pool"/>
-        <arg name="lan_conn_policy_name" value="iSCSI-LAN-Policy"/>
-	<arg name="iqn_ident_pool_name" value="IQN-Pool"/>
-        <arg name="boot_policy_name" value="Boot-iSCSI-X-A"/>
-        <arg name="iSCSI_vNIC_A" value="iSCSI-A-vNIC"/>
-        <arg name="iSCSI_vNIC_B" value="iSCSI-B-vNIC"/>
-        <arg name="power_policy_name" value="No-Power-Cap"/>
-        <arg name="local_disk_policy_name" value="SAN-Boot"/>
+        <arg mapval="0" name="template_name" value="VM-Host-iSCSI-A"/>
+        <arg mapval="0" name="type" value="updating-template"/>
+        <arg mapval="0" name="template_desc" value="Service Profile template"/>
+        <arg mapval="0" name="ident_pool_name" value="UUID_Pool"/>
+        <arg mapval="0" name="lan_conn_policy_name" value="iSCSI-LAN-Policy"/>
+        <arg mapval="0" name="iqn_ident_pool_name" value="IQN-Pool"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-iSCSI-X-A"/>
+        <arg mapval="0" name="iSCSI_vNIC_A" value="iSCSI-A-vNIC"/>
+        <arg mapval="0" name="iSCSI_vNIC_B" value="iSCSI-B-vNIC"/>
+        <arg mapval="0" name="power_policy_name" value="No-Power-Cap"/>
+        <arg mapval="0" name="local_disk_policy_name" value="SAN-Boot"/>
         <arg mapval="1" name="pool_assignment" value="__t200.CreateServerPool.name"/>
-        <arg name="biospolicy" value="VM-Host"/>
+        <arg mapval="0" name="biospolicy" value="VM-Host"/>
       </args>
     </task>
     <task OnSuccess="t401" Onfailure="None" desc="Gets iSCSI target name" id="FAGetISCSIPortNumber" inittask="0" label="Get iSCSI target name" name="FAGetISCSIPortNumber" texecid="t301">
@@ -42,7 +42,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
-        <arg name="name" value="CT0.ETH8"/>
+        <arg mapval="0" name="name" value="CT0.ETH8"/>
       </args>
     </task>
     <task OnSuccess="t501" Onfailure="None" desc="Set iSCSI Boot parameters" id="UCSSetiSCSIBootParameters" inittask="0" label="Set iSCSI Boot parameters" name="UCSSetiSCSIBootParameters" texecid="t401">
@@ -51,14 +51,14 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="template_name" value="VM-Host-iSCSI-A"/>
-	<arg name="iSCSI_Boot" value="A"/>
-        <arg name="iSCSI_vNIC_name" value="iSCSI-A-vNIC"/>
-        <arg name="init_ipaddr_policy" value="iSCSI-IP-Pool-A"/>
+        <arg mapval="0" name="template_name" value="VM-Host-iSCSI-A"/>
+        <arg mapval="0" name="iSCSI_Boot" value="A"/>
+        <arg mapval="0" name="iSCSI_vNIC_name" value="iSCSI-A-vNIC"/>
+        <arg mapval="0" name="init_ipaddr_policy" value="iSCSI-IP-Pool-A"/>
         <arg mapval="1" name="iSCSI_Target_name" value="__t301.FAGetISCSIPortNumber.pwwn"/>
         <arg mapval="3" name="iSCSI_ip_address_eth8" value="iSCSI-IP-CT0ETH8"/>
         <arg mapval="3" name="iSCSI_ip_address_eth9" value="iSCSI-IP-CT1ETH8"/>
-        <arg name="lunid" value="1"/>
+        <arg mapval="0" name="lunid" value="1"/>
       </args>
     </task>
     <task OnSuccess="t601" Onfailure="None" desc="Set iSCSI Boot parameters" id="UCSSetiSCSIBootParameters" inittask="0" label="Set iSCSI Boot parameters" name="UCSSetiSCSIBootParameters" texecid="t501">
@@ -67,14 +67,14 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="template_name" value="VM-Host-iSCSI-A"/>
-        <arg name="iSCSI_Boot" value="B"/>
-        <arg name="iSCSI_vNIC_name" value="iSCSI-B-vNIC"/>
-        <arg name="init_ipaddr_policy" value="iSCSI-IP-Pool-B"/>
+        <arg mapval="0" name="template_name" value="VM-Host-iSCSI-A"/>
+        <arg mapval="0" name="iSCSI_Boot" value="B"/>
+        <arg mapval="0" name="iSCSI_vNIC_name" value="iSCSI-B-vNIC"/>
+        <arg mapval="0" name="init_ipaddr_policy" value="iSCSI-IP-Pool-B"/>
         <arg mapval="1" name="iSCSI_Target_name" value="__t301.FAGetISCSIPortNumber.pwwn"/>
         <arg mapval="3" name="iSCSI_ip_address_eth8" value="iSCSI-IP-CT0ETH9"/>
         <arg mapval="3" name="iSCSI_ip_address_eth9" value="iSCSI-IP-CT1ETH9"/>
-        <arg name="lunid" value="1"/>
+        <arg mapval="0" name="lunid" value="1"/>
       </args>
     </task>
     <task OnSuccess="t701" Onfailure="None" desc="Create vMedia Service Profile Template" id="UCSCloneServiceProfileTemplate" inittask="0" label="Create vMedia Service Profile Template" name="UCSCloneServiceProfileTemplate" texecid="t601">
@@ -87,11 +87,11 @@
         <arg mapval="1" name="template_name" value="__t201.UCSCreateServiceProfileTemplateForiSCSI.serviceprofilename"/>
         <arg mapval="0" name="vmedia_template" value="VM-Host-iSCSi-A-vM"/>
         <arg mapval="0" name="vmedia_policy_name" value="ESXi-6.5U1-HTTP"/>
-        <arg mapval="0" name="ident_pool_name" value="UUID_Pool"/>
-        <arg name="boot_policy_name" value="Boot-iSCSI-X-A"/>
-        <arg name="power_policy_name" value="No-Power-Cap"/>
-        <arg name="local_disk_policy_name" value="SAN-Boot"/>
-        <arg name="biospolicy" value="VM-Host"/>
+  	<arg mapval="0" name="ident_pool_name" value="UUID_Pool"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-iSCSI-X-A"/>
+        <arg mapval="0" name="power_policy_name" value="No-Power-Cap"/>
+        <arg mapval="0" name="local_disk_policy_name" value="SAN-Boot"/>
+        <arg mapval="0" name="biospolicy" value="VM-Host"/>
       </args>
     </task>
     <task OnSuccess="None" Onfailure="None" desc="Create service profiles from templates" id="UCSCreateServiceProfilesFromTemplate" inittask="0" label="Create Service Profiles from template" name="UCSCreateServiceProfilesFromTemplate" texecid="t701">
@@ -100,9 +100,9 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg name="profile_prefix" value="VM-Host-iSCSI-0"/>
-        <arg name="suffix_starting_number" value="1"/>
-        <arg name="instances" value="2"/>
+        <arg mapval="0" name="profile_prefix" value="VM-Host-iSCSI-0"/>
+        <arg mapval="0" name="suffix_starting_number" value="1"/>
+        <arg mapval="0" name="instances" value="2" overwrite="False"/>
         <arg mapval="1" name="template_name" value="__t601.UCSCloneServiceProfileTemplate.vmedia_template"/>
       </args>
     </task>

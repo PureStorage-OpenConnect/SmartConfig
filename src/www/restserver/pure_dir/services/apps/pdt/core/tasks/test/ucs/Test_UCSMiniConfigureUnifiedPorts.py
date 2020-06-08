@@ -1,7 +1,6 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.components.compute.ucs.ucs_tasks import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-
+from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
+from pure_dir.infra.apiresults import PTK_OKAY, result
 
 class Test_UCSMiniConfigureUnifiedPorts:
     def __init__(self):
@@ -28,12 +27,7 @@ class Test_UCSMiniConfigureUnifiedPorts:
 
     def ucs_get_fc_ports(self, keys):
         res = result()
-	val=[{"id": "A", "selected": "0", "label": "Port " + "A"},{"id": "B", "selected": "0", "label": "Port " + "B"}]
-	res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        val = [{"id": "A", "selected": "0", "label": "Port " + "A"},
+               {"id": "B", "selected": "0", "label": "Port " + "B"}]
+        res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-
-
-
-
-
-

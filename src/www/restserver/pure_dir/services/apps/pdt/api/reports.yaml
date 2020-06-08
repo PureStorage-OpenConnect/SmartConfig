@@ -1,0 +1,238 @@
+paths:
+  /Report:
+    get:
+      tags: [Report]
+      operationId: pure_dir.services.apps.pdt.pdt_api.sc_report
+      summary: API to generate SamrtConfig Report
+      parameters:
+          - required: true
+            in: query
+            name: stacktype
+            description: The selected stacktype
+            required: true
+            type: string
+      responses:
+        '200':
+          description: Gives the list
+          schema:
+            $ref: '#/definitions/ReportTemplate'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /ReportInfo:
+    post:
+      tags: [Report]
+      operationId: pure_dir.services.apps.pdt.pdt_api.sc_report_info
+      summary: API to give the report infomations
+      parameters:
+          - required: true
+            in: query
+            name: method
+            description: operation
+            required: true
+            type: string
+          - in: body
+            name: args
+            description: args
+            schema:
+              properties:
+               args:
+                type: object
+                additionalProperties: true
+                #$ref: '#/definitions/ReportInfoData'
+                #type: array
+                #items:
+                #  $ref: '#/definitions/ArgsData'
+      responses:
+        '200':
+          description: Gives the list
+          schema:
+            $ref: '#/definitions/ReportInfoTemplate'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /GenerateReport:
+    get:
+      tags: [Report]
+      operationId: pure_dir.services.apps.pdt.pdt_api.generate_report
+      summary: API to start report generation
+      parameters:
+          - required: true
+            in: query
+            name: stacktype
+            description: The selected stacktype
+            required: true
+            type: string
+      responses:
+        '200':
+          description: Gives the list
+          schema:
+            $ref: '#/definitions/ReportStatus'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: "#/definitions/Status"
+
+  /ReportState:
+    get:
+      tags: [Report]
+      operationId: pure_dir.services.apps.pdt.pdt_api.report_status
+      summary: API to provide status on report gen
+      parameters:
+          - required: true
+            in: query
+            name: tid
+            description: The selected stacktype
+            required: true
+            type: string
+      responses:
+        '200':
+          description: Gives the list
+          schema:
+            $ref: "#/definitions/ReportStatus"
+        default:
+          description: Unexcepted error
+          schema:
+            $ref: "#/definitions/Status"
+
+  /ReleaseHandle:
+    get:
+      tags: [Report]
+      operationId: pure_dir.services.apps.pdt.pdt_api.release_handle
+      summary: API to release UCS Handle
+      responses:
+        '200':
+          description: Return the status
+          schema:
+            $ref: '#/definitions/HandleStatus'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: "#/definitions/Status"
+
+definitions:
+  ReportInfoTemplate:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: object
+        $ref: '#/definitions/ReportInfo'
+      status:
+        type: object
+        description: status
+        $ref: '#/definitions/Status'
+
+  ReportInfo:
+    type: object
+    required:
+      - labels
+      - list
+    properties:
+      labels:
+        type: array
+        items:
+          type: object
+          required:
+            - key
+            - label
+          properties:
+            key:
+              type: string
+            label:
+              type: string
+      list:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+  
+  ReportTemplate:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Report'
+      status:
+        type: object
+        description: status
+        $ref: '#/definitions/Status'
+
+  Report:
+    type: object
+    properties:
+        api:
+          type: string
+        args:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+        header:
+          type: object
+          properties:
+            title:
+              type: string
+            desc:
+              type: string
+        footer:
+          type: object
+          properties:
+            title:
+              type: string
+            desc:
+              type: string
+
+  ArgsData:
+        type: object
+        properties:
+          key:
+            type: string
+          value:
+            type: string
+ 
+  ReportStatus:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        items:
+          required:
+            - tid
+            - report_status
+          properties:
+            tid:
+              type: string
+              description: threadid
+            report_status:
+              type: string
+              description: status of report info api
+
+  HandleStatus:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: boolean
+        description: UCS Handle Release Status
+      status:
+        $ref: '#/definitions/Status'
+

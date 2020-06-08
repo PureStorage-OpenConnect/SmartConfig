@@ -1,7 +1,6 @@
-from pure_dir.infra.logging.logmanager import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import *
-from pure_dir.components.network.nexus.nexus_tasks import *
-
+from pure_dir.infra.logging.logmanager import loginfo
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
+from pure_dir.infra.apiresults import PTK_OKAY, result
 
 class Test_NEXUS9kEnableFeaturesAndSettings:
     def __init__(self):
@@ -25,4 +24,10 @@ class Test_NEXUS9kEnableFeaturesAndSettings:
         nexus_list = [{'label': 'nexus-a', 'id': 'AB:CD', 'selected': '0'},
                       {'label': 'nexus-b', 'id': 'EF:GH', 'selected': '0'}]
         res.setResult(nexus_list, PTK_OKAY, "success")
+        return res
+
+    def get_features_list(self, keys):
+        res = result()
+        flist = ['nxapi', 'fport-channel-trunk']
+        res.setResult(flist, PTK_OKAY, "success")
         return res

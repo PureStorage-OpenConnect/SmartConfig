@@ -1,8 +1,6 @@
 <?xml version="1.0" ?>
-<workflow id="configureFANetworkInterface" name="Configure FlashArray Network Interface" desc="Configure FlashArray Network Interface IP" wtype="wgroup" type="FlashArray" simulate="0" isdeletable="0" order="2" htype="fa-n9k-fi-iscsi" prereq="ConfigureNEXUS-iSCSI">
-        <wfs>
-                <wf id="configureFlashArray-iSCSI" name="Configure FlashArray Network Interface" wexecid="g309" OnSuccess="None" OnFailure="None" initwf="1"/>
-        </wfs>
+<workflow desc="Configure FlashArray Network Interface IP" htype="fa-n9k-fi-iscsi" id="configureFANetworkInterface" isdeletable="0" name="Configure FlashArray Network Interface" order="2" prereq="ConfigureNEXUS-iSCSI" simulate="0" type="FlashArray" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" id="configureFlashArray-iSCSI" initwf="1" name="Configure FlashArray Network Interface" wexecid="g309"/>
+  </wfs>
 </workflow>
-
-

@@ -138,11 +138,44 @@ input.success, select.success, .ms-options-wrap button.success, .multiple_emails
 	border: 1px solid #7fb754;
 }
 input.error, select.error, .ms-options-wrap button.error, .multiple_emails-container.error {
-	background-color: #ffc4bf !important;
-	border: 1px solid #f57373 !important;
+	background-color: #FFC4BF !important;
+	border-color: #F57373 !important;
 }
 textarea {
 	height: 70px;
+}
+input[type="text"].reset, input[type="password"].reset, input[type="number"].reset {
+	border-right: 36px solid #C7C7C7;
+}
+.control-group .controls span.prefix, .control-group .controls span.suffix {
+	position: absolute;
+	top: 5px;
+	right: 24px;
+	display: inline-table;
+}
+.control-group .controls span.prefix {
+	left: 24px;
+}
+input[type="text"].prefix, input[type="password"].prefix, input[type="number"].prefix {
+	border-left: 36px solid #C7C7C7;
+}
+input[type="text"].suffix, input[type="password"].suffix, input[type="number"].suffix {
+	border-right: 58px solid #C7C7C7;
+}
+input.reset + i.fa {
+	position: absolute;
+	right: 14px;
+	color: #2E8ACD;
+	font-size: 16px;
+	width: 30px;
+	height: 30px;
+	text-align: center;
+	line-height: 30px;
+}
+.control-group label > span > span {
+	font-size: 85%;
+	letter-spacing: 0.3px;
+	color: #505050;
 }
 .controls>.fa {
 	position: relative;

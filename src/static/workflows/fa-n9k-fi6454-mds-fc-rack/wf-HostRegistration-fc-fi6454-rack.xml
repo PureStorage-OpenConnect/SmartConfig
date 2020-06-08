@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<workflow desc="Create multiple hosts and map ports" hidden="1" htype="fa-n9k-fi6454-mds-fc-rack" id="HostRegistration-fc-fi6454-rack" isdeletable="0" name="Create Hosts and map Ports" order="6"  type="FlashArray">
+<workflow desc="Create multiple hosts and map ports" hidden="1" htype="fa-n9k-fi6454-mds-fc-rack" id="HostRegistration-fc-fi6454-rack" isdeletable="0" name="Create Hosts and map Ports" order="6" type="FlashArray">
   <tasks>
     <task OnSuccess="t301" Onfailure="None" desc="Creates multiple hosts" id="FACreateMultipleHosts" inittask="1" label="Create Multiple Hosts" name="FACreateMultipleHosts" texecid="t300">
       <outputs>
@@ -9,7 +9,7 @@
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="0" name="name" value="VM-Host-FC-#"/>
         <arg mapval="0" name="st_no" value="1"/>
-        <arg mapval="0" name="count" value="1"/>
+        <arg mapval="0" name="count" value="1" overwrite="False"/>
         <arg mapval="0" name="num_digits" value="2"/>
       </args>
     </task>
@@ -20,9 +20,8 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-	<arg name="host_set" value="{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}"/>
+        <arg mapval="0" name="host_set" value="{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}|{'hosts': {'ismapped': '0', 'value': ''}, 'ports': {'ismapped': '0', 'value': ''}}" overwrite="False"/>
       </args>
     </task>
   </tasks>
 </workflow>
-

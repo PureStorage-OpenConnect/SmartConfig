@@ -6,8 +6,6 @@ from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.common import get_device_credentials, get_device_list
 from pure_dir.infra.apiresults import *
 
-static_discovery_store = '/mnt/system/pure_dir/pdt/devices.xml'
-
 metadata = dict(
     task_id="NEXUS5kConfigureUnifiedPorts",
     task_name="Add NTP Distribution Interface",

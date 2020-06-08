@@ -1,10 +1,9 @@
 <?xml version="1.0" ?>
-<workflow id="ConfigureFI-fc-fi6454-rack" name="Configure UCS Fabric Interconnects" desc="Deploy UCS Configuration for Servers, LAN, SAN, Boot Policy" wtype="wgroup" type="UCSM" simulate="0" isdeletable="0" order="3" htype="fa-n9k-fi6454-mds-fc-rack">
-	<wfs>
-		<wf id="configureUCSServers-fc-fi6454-rack" name="Configure UCS Servers" wexecid="g200" OnSuccess="g201" OnFailure="None" initwf="1"/>
-		<wf id="configureUCSLANConnectivity-fc-fi6454-rack" name="Configure UCS LAN Connectivity" wexecid="g201" OnSuccess="g202" OnFailure="None" initwf="0"/> 
-		<wf id="configureSANConnectivity-fc-fi6454-rack" name="Configure UCS SAN Connectivity" wexecid="g202" OnSuccess="g203" OnFailure="None" initwf="0"/> 
-		<wf id="CreateUCSBootPolicy-fc-fi6454-rack" name="Create Boot Policy" wexecid="g203" OnSuccess="None" OnFailure="None" initwf="0"/>
-
-	</wfs>
+<workflow desc="Deploy UCS Configuration for Servers, LAN, SAN, Boot Policy" htype="fa-n9k-fi6454-mds-fc-rack" id="ConfigureFI-fc-fi6454-rack" isdeletable="0" name="Configure UCS Fabric Interconnects" order="3" simulate="0" type="UCSM" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g201" flags="vmedia_skip:configureUCSServers-fc-fi6454-rack-vMediaskip;" id="configureUCSServers-fc-fi6454-rack" initwf="1" name="Configure UCS Servers" wexecid="g200"/>
+    <wf OnFailure="None" OnSuccess="g202" id="configureUCSLANConnectivity-fc-fi6454-rack" initwf="0" name="Configure UCS LAN Connectivity" wexecid="g201"/>
+    <wf OnFailure="None" OnSuccess="g203" id="configureSANConnectivity-fc-fi6454-rack" initwf="0" name="Configure UCS SAN Connectivity" wexecid="g202"/>
+    <wf OnFailure="None" OnSuccess="None" id="CreateUCSBootPolicy-fc-fi6454-rack" initwf="0" name="Create Boot Policy" wexecid="g203"/>
+  </wfs>
 </workflow>

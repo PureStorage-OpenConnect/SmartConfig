@@ -97,7 +97,12 @@ def _map_input_args(tasks, hw_type, dicts, outputdicts, input_obj):
                 group_val = []
                 inputs = inputarg['@value'].split('|')
                 for ip in inputs:
-                    ipt = eval(ip)
+                    ipt = None
+		    try:		    
+                    	ipt = eval(ip)
+		    except SyntaxError as e:
+			loginfo(str(e) + 'Name: ' + inputarg['@name'] + ' value: '+ inputarg['@value'])
+			raise Exception('Failure while parsing group data')
                     for val in ipt:
                         if ipt[val]['ismapped'] == "3":
                             ipt[val]['value'] = get_value_from_global_list(
@@ -366,6 +371,7 @@ def jobexecute_helper(jid):
     :param jid: Job ID
 
     """
+
     try:
         jobexecute_helper_safe(jid)
     except Exception as e:

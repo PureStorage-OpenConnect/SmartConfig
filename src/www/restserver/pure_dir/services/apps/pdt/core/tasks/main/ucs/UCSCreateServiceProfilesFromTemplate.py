@@ -1,4 +1,4 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save
@@ -154,7 +154,7 @@ class UCSCreateServiceProfilesFromTemplateInputs:
         isbasic='True',
         helptext='',
         dt_type="string",
-        api="None",
+        api="",
         static="False",
         static_values="",
         label="Service Profile Prefix",
@@ -170,7 +170,7 @@ class UCSCreateServiceProfilesFromTemplateInputs:
         isbasic='True',
         helptext='Service Profile name suffix',
         dt_type="string",
-        api="None",
+        api="",
         static="False",
         static_values="",
         name="suffix_starting_number",

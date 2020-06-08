@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<workflow desc="Configuration of Cisco UCS Servers"  htype="fa-fi6332-iscsi" id="configureUCSServers-iSCSI-dc-fi6332" isdeletable="0" name="Configure UCS Servers" type="UCSM" hidden="1">
+<workflow desc="Configuration of Cisco UCS Servers" hidden="1" htype="fa-fi6332-iscsi" id="configureUCSServers-iSCSI-dc-fi6332" isdeletable="0" name="Configure UCS Servers" type="UCSM">
   <tasks>
     <task OnSuccess="t101" Onfailure="None" desc="Configuration of anonymous reporting to Cisco" id="UCSAnonymousReporting" inittask="1" label="Anonymous Reporting" name="UCSAnonymousReporting" texecid="t100">
       <outputs>
@@ -52,7 +52,7 @@
         <arg mapval="0" name="ports" value="18|17"/>
       </args>
     </task>
-  <task OnSuccess="t105" Onfailure="None" desc="Enable Server ports for Fabric B" id="UCSEnableServerPorts" inittask="0" label="Enable Server Ports (B)" name="EnableServerPortsForFabricB" texecid="t104">
+    <task OnSuccess="t105" Onfailure="None" desc="Enable Server ports for Fabric B" id="UCSEnableServerPorts" inittask="0" label="Enable Server Ports (B)" name="EnableServerPortsForFabricB" texecid="t104">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
       </outputs>
@@ -97,7 +97,7 @@
         <arg mapval="0" name="desc" value="IQN Pool"/>
         <arg mapval="3" name="prefix" value="IQN-Prefix"/>
         <arg mapval="0" name="order" value="sequential"/>
-        <arg mapval="0" name="suffix" value="ucs-host"/>
+        <arg mapval="0" name="suffix" value="ucs-host" overwrite="False"/>
         <arg mapval="0" name="suffix_from" value="1"/>
         <arg mapval="0" name="suffix_to" value="16"/>
       </args>
@@ -148,7 +148,7 @@
         <arg mapval="0" name="sec_dns" value="0.0.0.0"/>
       </args>
     </task>
-  <task OnSuccess="t114" Onfailure="None" desc="Create vMedia policy" id="UCSCreatevMediaPolicy" inittask="0" label="Create vMedia Policy" name="CreatevMediaPolicy" texecid="t113">
+    <task OnSuccess="t114" Onfailure="None" desc="Create vMedia policy" id="UCSCreatevMediaPolicy" inittask="0" label="Create vMedia Policy" name="CreatevMediaPolicy" texecid="t113">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
         <output name="name" tvalue="ESXi-6.5U1-HTTP" value="no-op"/>
@@ -167,7 +167,7 @@
         <arg mapval="0" name="image_path" value="/images"/>
       </args>
     </task>
-  <task OnSuccess="t115" Onfailure="None" desc="Create server BIOS policy" id="UCSCreateServerBIOSPolicy" inittask="0" label="Create Server BIOS Policy" name="UCSCreateServerBIOSPolicy" texecid="t114">
+    <task OnSuccess="t115" Onfailure="None" desc="Create server BIOS policy" id="UCSCreateServerBIOSPolicy" inittask="0" label="Create Server BIOS Policy" name="UCSCreateServerBIOSPolicy" texecid="t114">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
         <output name="name" tvalue="VM-Host" value="no-op"/>
@@ -197,7 +197,6 @@
         <arg mapval="0" name="direct_cache_access" value="enabled"/>
         <arg mapval="0" name="power_tech" value="performance"/>
         <arg mapval="0" name="memory_ras" value="maximum-performance"/>
-
       </args>
     </task>
     <task OnSuccess="t116" Onfailure="None" desc="Update UCS Default maintenance policy" id="UCSUpdateDefaultMaintenancePolicy" inittask="0" label="Default Maintenance Policy" name="UpdateDefaultMaintenancePolicy" texecid="t115">
@@ -212,7 +211,7 @@
         <arg mapval="0" name="trigger" value="on-next-boot"/>
       </args>
     </task>
-   <task OnSuccess="t117" Onfailure="None" desc=" UCS Local disk config policy" id="UCSCreateLocalDiskConfigurationPolicy" inittask="0" label="Local Disk Config Policy" name="CreateLocalDiskConfigurationPolicy" texecid="t116">
+    <task OnSuccess="t117" Onfailure="None" desc=" UCS Local disk config policy" id="UCSCreateLocalDiskConfigurationPolicy" inittask="0" label="Local Disk Config Policy" name="CreateLocalDiskConfigurationPolicy" texecid="t116">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
         <output name="name" tvalue="SAN-Boot" value="no-op"/>

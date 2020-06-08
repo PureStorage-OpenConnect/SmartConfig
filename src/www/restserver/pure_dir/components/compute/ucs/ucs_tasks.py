@@ -112,13 +112,14 @@ from ucsmsdk.mometa.bios.BiosVfDirectCacheAccess import BiosVfDirectCacheAccess
 from ucsmsdk.mometa.ls.LsServer import LsServer
 from ucsmsdk.mometa.callhome.CallhomeSource import CallhomeSource
 import datetime
+import glob
 from ucsmsdk.mometa.fabric.FabricSanCloud import FabricSanCloud
 from ucsmsdk.mometa.fabric.FabricFcEstcEp import FabricFcEstcEp
 from ucsmsdk.mometa.fabric.FabricFcVsanPortEp import FabricFcVsanPortEp
 from ucsmsdk.mometa.fabric.FabricEthEstcEp import FabricEthEstcEp
 from ucsmsdk.mometa.fabric.FabricEthVlanPortEp import FabricEthVlanPortEp
-from pure_dir.components.compute.ucs.ucs_upgrade import is_image_available_on_ucsm, upload_image_to_ucs
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import get_server_type
+from pure_dir.components.compute.ucs.ucs_upgrade import is_image_available_on_ucsm, upload_image_to_ucs, image_name_ucs
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import get_server_type, get_ucs_upgrade
 
 
 class UCSTasks:
@@ -1422,6 +1423,13 @@ class UCSTasks:
             customlogs("\nCreating FC Port Channels failed\n", logfile)
             return obj
 
+        #To check whether FI is swapped/not
+        fabric_mo="fabric/san/" + inputdict['ucs_fabric_id']+ "/pc-" + inputdict['port_id']
+        time.sleep(10)
+        state = self.handle.query_dn(fabric_mo).oper_state
+        if state != "up":
+            loginfo("FI might have been swapped.Please check")
+
         self.handle.logout()
         customlogs("\nCreated FC Port Channel successfully\n", logfile)
         dicts['fc_port_channel_name'] = parent_mo + \
@@ -1518,7 +1526,7 @@ class UCSTasks:
             customlogs(message, logfile)
         else:
             loginfo("Rack Package = " + inputdict['rack_pkg'])
-            message = "Rack Package: " + inputdict['blade_pkg']
+            message = "Rack Package: " + inputdict['rack_pkg']
             customlogs(message, logfile)
 
         loginfo("Excluded components = " + inputdict['excluded_comp'])
@@ -1530,9 +1538,12 @@ class UCSTasks:
             inputdict['rack_pkg'] = ""
 
         if inputdict['blade_pkg']:
-            image = "ucs-k9-bundle-b-series." + \
+            image_prefix = "ucs-k9-bundle-b-series." + \
                 inputdict['blade_pkg'].replace(
-                    '(', '.').replace(')', '.') + ".bin"
+                    '(', '.').replace(')', '.')
+
+            image = self.get_image_file(self.handle, image_prefix)
+
             if not is_image_available_on_ucsm(self.handle, image):
                 customlogs(
                     "Blade image is not present in UCS. Uploading blade image to UCS", logfile)
@@ -1552,9 +1563,12 @@ class UCSTasks:
                 self.verify_blade_discovery(self.handle, blade, logfile)
             time.sleep(60)
         if inputdict['rack_pkg']:
-            image = "ucs-k9-bundle-c-series." + \
+            image_prefix = "ucs-k9-bundle-c-series." + \
                 inputdict['rack_pkg'].replace(
-                    '(', '.').replace(')', '.') + ".bin"
+                    '(', '.').replace(')', '.')
+
+            image = self.get_image_file(self.handle, image_prefix)
+
             if not is_image_available_on_ucsm(self.handle, image):
                 customlogs(
                     "Rack image is not present in UCS. Uploading rack image to UCS", logfile)
@@ -1612,6 +1626,22 @@ class UCSTasks:
             PTK_OKAY,
             "Host Firmware Package Created Successfully")
         return obj
+
+    # TODO
+    def get_image_file(self, handle, image):
+        ucs_upgrade = get_ucs_upgrade()
+        if ucs_upgrade == "Yes":
+            path = "/mnt/system/uploads"
+            image_check = glob.glob(path + '/' + image + "*")
+            if image_check != []:
+                return image_check[0].split('/')[4]
+        else:
+            loginfo("UCS upgrade set as NO")
+            image_name = image_name_ucs(handle, image)
+            if image_name == "":
+                loginfo("image is not exist in ucs")
+            else:
+                return image_name
 
     def ucsResetHostFirmwarePackage(self, inputs, outputs, logfile):
         """
@@ -3120,10 +3150,31 @@ class UCSTasks:
                         self.handle, sp.dn, sp.pn_dn, logfile)
                 else:
                     customlogs("Failed to associate service profile " + sp.name + "\n", logfile)
+                    #fix for service profile deletion
+                    mo = self.handle.query_dn("org-root/ls-" + sp.name)
+                    self.handle.remove_mo(mo)
+                    try:
+                        self.handle.commit()
+                    except UcsException:
+                        obj.setResult(None, PTK_INTERNALERROR, "Service profile template deletion failed")   
                     sp_unassoc_cnt += 1
                     continue
         if sp_unassoc_cnt == total_sp_cnt:
             customlogs("Failed to associate all service profiles", logfile)
+            #fix for service profile deletion
+            tmp_list = []
+            mo = self.handle.query_classid("lsServer")
+            for i in mo:
+                if i.type == 'instance':
+                    if i.src_templ_name == inputdict['template_name']:
+                        tmp_list.append(ls_mo.name)
+            for j in tmp_list:
+                mo = self.handle.query_dn("org-root/ls-" + j)
+                self.handle.remove_mo(mo)
+            try:
+                self.handle.commit()
+            except UcsException:
+                obj.setResult(None, PTK_INTERNALERROR, "Service profile template deletion failed")
             obj.setResult(None, PTK_INTERNALERROR, "Service profiles association failed")
         else:
             customlogs("\nService profiles are created successfully\n", logfile)
@@ -3356,6 +3407,12 @@ class UCSTasks:
         self.handle.logout()
         customlogs("\nService profile template created successfully\n", logfile)
         dicts['serviceprofilename'] = inputdict['template_name']
+	dicts['ident_pool_name'] = inputdict['ident_pool_name']
+	dicts['boot_policy_name'] = inputdict['boot_policy_name']
+	dicts['power_policy_name'] = inputdict['power_policy_name']
+	dicts['local_disk_policy_name'] = inputdict['local_disk_policy_name']
+	dicts['biospolicy'] = inputdict['biospolicy']
+
         obj.setResult(
             dicts,
             PTK_OKAY,
@@ -4525,7 +4582,8 @@ class UCSTasks:
             'cdn_source'] + "\nIdent Pool Name: " + inputdict['ident_pool_name'] + \
             "\nNetwork Control Policy: " + \
             inputdict['nw_ctrl_policy_name'] + "\nMTU: " + \
-            inputdict['mtu'] + "\nDefault Native LAN: "
+            inputdict['mtu'] + "\nDefault Native LAN: " + \
+            inputdict['vlans']
 
         customlogs(message, logfile)
 
@@ -5104,7 +5162,7 @@ class UCSTasks:
                     slot_id="1",
                     admin_state="enabled",
                     port_id=port)
-                self.handle.add_mo(mo)
+                self.handle.add_mo(mo, True)
         try:
             self.handle.commit()
         except UcsException as e:
@@ -5151,8 +5209,9 @@ class UCSTasks:
                     inputs['ucs_fabric_id'] + \
                     "/slot-1/switch-ether/port-" + port
                 mo = self.handle.query_dn(parent_mo)
-                mo1 = self.handle.query_dn(mo.ep_dn)
-                self.handle.remove_mo(mo1)
+                if mo.ep_dn != '':
+                    mo1 = self.handle.query_dn(mo.ep_dn)
+                    self.handle.remove_mo(mo1)
 
         try:
             self.handle.commit()
@@ -5773,8 +5832,8 @@ class UCSTasks:
             return obj
 
         message = "Name: " + inputdict['name'] + "\nDescription: " + inputdict['desc'] + \
-                  "\nAssignment order: " + inputdict['order'] + "\nPrefix: " + inputdict['prefix'] + "\nIQN Suffix: " + \
-                  inputdict['suffix'] + "\nFrom: " + inputdict['suffix_from'] + \
+                  "\nAssignment order: " + inputdict['order'] + "\nPrefix: " + inputdict['prefix'].split(':')[0] + "\nIQN suffix: " + \
+                  inputdict['suffix'].split(':')[0] + "\nFrom: " + inputdict['suffix_from'] + \
                   "\nTo: " + inputdict['suffix_to']
         loginfo("Create IQN Pools for iSCSI Boot parameters: " + message)
         customlogs(message, logfile)
@@ -5782,7 +5841,7 @@ class UCSTasks:
         mo = IqnpoolPool(
             parent_mo_or_dn="org-root",
             policy_owner="local",
-            prefix=inputdict['prefix'],
+            prefix=inputdict['prefix'].split(':')[0],
             descr=inputdict['desc'],
             assignment_order=inputdict['order'],
             name=inputdict['name'])
@@ -5790,7 +5849,7 @@ class UCSTasks:
             parent_mo_or_dn=mo,
             to=inputdict['suffix_to'],
             r_from=inputdict['suffix_from'],
-            suffix=inputdict['suffix'])
+            suffix=inputdict['suffix'].split(':')[0])
         self.handle.add_mo(mo)
 
         try:
@@ -6106,7 +6165,7 @@ class UCSTasks:
                 slot_id="1",
                 admin_state="enabled",
                 port_id=i)
-            self.handle.add_mo(mo)
+            self.handle.add_mo(mo, True)
         try:
             self.handle.commit()
         except UcsException as e:
@@ -6657,7 +6716,7 @@ class UCSTasks:
                     pin_group_name="",
                     port_id=port,
                     nw_ctrl_policy_name="default")
-                self.handle.add_mo(mo)
+                self.handle.add_mo(mo, True)
 
         try:
             self.handle.commit()

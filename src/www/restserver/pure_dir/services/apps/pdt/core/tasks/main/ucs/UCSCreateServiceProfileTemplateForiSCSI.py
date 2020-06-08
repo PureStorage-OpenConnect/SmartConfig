@@ -1,4 +1,4 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg
@@ -413,7 +413,7 @@ class UCSCreateServiceProfileTemplateForiSCSIInputs:
         mandatory='1',
         mapval="0",
         order=7)
-    iqn_ident_pool_name = Textbox(
+    iqn_ident_pool_name = Dropdown(
         validation_criteria='str|min:1|max:128',
         hidden='False',
         isbasic='True',
