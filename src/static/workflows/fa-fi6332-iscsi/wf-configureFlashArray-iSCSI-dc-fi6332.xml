@@ -8,7 +8,7 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg mapval="0" name="name" value="CT0.ETH14" overwrite="False"/>
+        <arg mapval="0" name="name" value="CT0.ETH8" overwrite="False"/>
         <arg mapval="0" name="enabled" value="True"/>
         <arg mapval="3" name="address" value="iSCSI-IP-CT0ETH8"/>
         <arg mapval="3" name="netmask" value="netmask"/>
@@ -22,7 +22,7 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg mapval="0" name="name" value="CT1.ETH14" overwrite="False"/>
+        <arg mapval="0" name="name" value="CT1.ETH8" overwrite="False"/>
         <arg mapval="0" name="enabled" value="True"/>
         <arg mapval="3" name="address" value="iSCSI-IP-CT1ETH8"/>
         <arg mapval="3" name="netmask" value="netmask"/>
@@ -36,7 +36,7 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg mapval="0" name="name" value="CT0.ETH15" overwrite="False"/>
+        <arg mapval="0" name="name" value="CT0.ETH9" overwrite="False"/>
         <arg mapval="0" name="enabled" value="True"/>
         <arg mapval="3" name="address" value="iSCSI-IP-CT0ETH9"/>
         <arg mapval="3" name="netmask" value="netmask"/>
@@ -50,7 +50,7 @@
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg mapval="0" name="name" value="CT1.ETH15" overwrite="False"/>
+        <arg mapval="0" name="name" value="CT1.ETH9" overwrite="False"/>
         <arg mapval="0" name="enabled" value="True"/>
         <arg mapval="3" name="address" value="iSCSI-IP-CT1ETH9"/>
         <arg mapval="3" name="netmask" value="netmask"/>

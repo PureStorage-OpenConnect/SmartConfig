@@ -536,7 +536,11 @@ class UCSManager:
         valid = True
         if len(ip_list) == len(set(ip_list)):
             for ip in ip_list:
-                ip_val = ipvalidation(ip_list[ip])
+ 		ip_val = False
+                if ip != 'dns':
+                       ip_val = ipvalidation(ip_list[ip])
+                else:
+                       ip_val = True
                 if not ip_val:
                     err.append({"field": ip, "msg": "Please Enter Valid IP"})
                 if ip != 'dns':
@@ -788,7 +792,7 @@ class UCSManager:
             oobNM=config['netmask'],
             oobGW=config['gateway'],
             virtualIP=config['virtual_ip'],
-            dns1=config['dns'],
+            dns1=config['dns'].split(',')[0],
             domainName=config['domain_name'],
             pasadena="",
             pasadenasecret="")
@@ -948,7 +952,7 @@ class UCSManager:
             oobNM=config['netmask'],
             oobGW=config['gateway'],
             virtualIP=config['virtual_ip'],
-            dns1=config['dns'],
+            dns1=config['dns'].split(',')[0],
             domainName=config['domain_name'],
             pasadena="",
             pasadenasecret="")
@@ -997,7 +1001,7 @@ class UCSManager:
             oobNM=config['netmask'],
             oobGW=config['gateway'],
             virtualIP=config['virtual_ip'],
-            dns1=config['dns'],
+            dns1=config['dns'].split(',')[0],
             domainName=config['domain_name'],
             pasadena="",
             pasadenasecret="")

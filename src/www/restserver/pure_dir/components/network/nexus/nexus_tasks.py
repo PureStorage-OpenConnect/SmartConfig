@@ -273,16 +273,17 @@ class NEXUSTasks:
                           "Setting global configuration failed")
             return obj
         try:
-            ntp_op = self.switch.config(
-                'ntp server %s use-vrf management' % inputdict['ntp'], fmat='json')
-            cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
-            if cli_error:
-                customlogs("Failed to set global configuration", logfile)
-                customlogs("Error message is :", logfile)
-                customlogs(str(cli_error), logfile)
-                obj.setResult(dicts, PTK_INTERNALERROR,
+	    for ntp in inputdict['ntp'].split(','):
+            	ntp_op = self.switch.config(
+                	'ntp server %s use-vrf management' % ntp, fmat='json')
+            	cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
+            	if cli_error:
+                	customlogs("Failed to set global configuration", logfile)
+                	customlogs("Error message is :", logfile)
+                	customlogs(str(cli_error), logfile)
+                	obj.setResult(dicts, PTK_INTERNALERROR,
                               "Setting global configuration failed")
-                return obj
+                	return obj
         except error.CLIError as e:
             customlogs("Failed to set global configuration", logfile)
             customlogs("Error message is :", logfile)
@@ -389,16 +390,18 @@ class NEXUSTasks:
                           "Removing global configuration failed")
             return obj
         try:
-            ntp_op = self.switch.config(
-                'ntp server %s use-vrf management' % inputdict['ntp'], fmat='json')
-            cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
-            if cli_error:
-                customlogs("Failed to remove global configuration", logfile)
-                customlogs("Error message is :", logfile)
-                customlogs(str(cli_error), logfile)
-                obj.setResult(dicts, PTK_INTERNALERROR,
+
+	    for ntp in inputdict['ntp'].split(','):
+            	ntp_op = self.switch.config(
+                	'ntp server %s use-vrf management' % inputdict['ntp'], fmat='json')
+            	cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
+            	if cli_error:
+            	    	customlogs("Failed to remove global configuration", logfile)
+                	customlogs("Error message is :", logfile)
+                	customlogs(str(cli_error), logfile)
+                	obj.setResult(dicts, PTK_INTERNALERROR,
                               "Removing global configuration failed")
-                return obj
+                	return obj
         except error.CLIError as e:
             customlogs("Failed to remove global configuration", logfile)
             customlogs("Error message is :", logfile)

@@ -20,7 +20,12 @@ class FASetup:
         valid = True
         if len(ip_list) == len(set(ip_list)):
             for ip in ip_list:
-                ip_val = ipvalidation(ip_list[ip])
+ 		ip_val = False
+                if ip != 'dns':
+                       ip_val = ipvalidation(ip_list[ip])
+                else:
+                       ip_val = True
+
                 if not ip_val:
                     err.append({"field": ip, "msg": "Please Enter Valid IP"})
                 if ip != 'dns':
@@ -125,8 +130,8 @@ class FASetup:
             "address": data['vir0_ip'],
             "netmask": data['netmask'],
             "gateway": data['gateway']}
-        request_dict['dns'] = {"domain": data['domain_name'], "nameservers": [data['dns']]}
-        request_dict['ntp_servers'] = [data['ntp_server']]
+        request_dict['dns'] = {"domain": data['domain_name'], "nameservers": data['dns'].split(",")}
+        request_dict['ntp_servers'] = data['ntp_server'].split(",")
         request_dict['timezone'] = data['timezone']
         request_dict['eula_acceptance'] = {
             "accepted": True,
@@ -138,12 +143,28 @@ class FASetup:
             "sender_domain": data['sender_domain'],
             "relay_host": data['relay_host']}
         request_dict['alert_emails'] = data['alert_emails'].split(",")
+        request_dict['skip_connectivity_tests'] = True
 
         url = "http://" + data['orig_ip'] + ":8081/array-initial-config"
-        r = requests.patch(url, json=request_dict)
+        headers = {'Content-type': 'application/json'}
+
+        r = requests.get(url, headers=headers)
         if r.status_code == 200:
-            res.setResult(True, PTK_OKAY, "Successfully started configuring FlashArray")
+            response = r.json()
+            if response['status'] == "uninitialized":
+                loginfo("FA is in ZTP mode and is ready to get configured")
+                r = requests.patch(url, data=json.dumps(request_dict), headers=headers)
+                if r.status_code == 200:
+                    loginfo("FA Configuration success")
+                    res.setResult(True, PTK_OKAY, "Successfully started configuring FlashArray")
+                else:
+                    loginfo("FA Configuration failed. %s" % r.text)
+                    res.setResult(False, PTK_FAILED, "Failed to configure FlashArray")
+            else:
+                loginfo("FA is in ZTP mode but is not in a state to get configured")
+                res.setResult(False, PTK_FAILED, "Failed to configure FlashArray")
         else:
+            loginfo("FA is not in ZTP mode")
             res.setResult(False, PTK_FAILED, "Failed to configure FlashArray")
         return res
 

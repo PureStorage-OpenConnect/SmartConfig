@@ -14,6 +14,8 @@ import threading
 import ipaddress
 import string
 import copy
+from operator import itemgetter
+from itertools import *
 from itertools import chain
 from isc_dhcp_leases import IscDhcpLeases
 from pure_dir.infra.apiresults import *
@@ -53,7 +55,7 @@ max_waittime_n9k = 900
 max_waittime_n5k = 3600
 max_waittime_mds = 1200
 max_waittime_ucs = 900
-max_waittime_fa = 1200
+max_waittime_fa = 600
 
 
 def fsnetworkrange():
@@ -63,14 +65,12 @@ def fsnetworkrange():
     cur_ip = network_info()['ip']
     ip_list = [x for x in ip_list if str(x) != cur_ip]
 
-    mid = len(ip_list[11:-1]) / 2
-    dhcp_range = ip_list[11:mid]
+    nw_range['subnet'] = str(ip_list[0])
+    nw_range['start'] = str(ip_list[11])
+    nw_range['end'] = str(ip_list[-2])
+    dhcp_range = ip_list[11:32]
     nw_range['dhcp_start'] = str(dhcp_range[0])
     nw_range['dhcp_end'] = str(dhcp_range[-1])
-    static_range = ip_list[mid:-1]
-    nw_range['static_start'] = str(static_range[0])
-    nw_range['static_end'] = str(static_range[-1])
-    nw_range['subnet'] = str(ip_list[0])
 
     return nw_range
 
@@ -265,6 +265,10 @@ def check_configured_device_status(device_type, max_waittime, subelement):
             loginfo("Setting password for MDS")
             obj = MDS(subelement.getAttribute("ipaddress"), "admin", "admin")
             obj.change_password(decrypt(subelement.getAttribute("password")))
+        #elif "PURE" in device_type:
+        #    loginfo("Setting password for FlashArray")
+        #    obj = PureTasks(subelement.getAttribute("ipaddress"), "pureuser", "pureuser")
+        #    obj.change_password("pureuser", "pureuser", decrypt(subelement.getAttribute("password")))
         client['config_state'] = "Configured"
         update_device_details(key="mac", key_value=subelement.getAttribute(
             "mac"), tag="configured", tag_value="Configured")
@@ -399,7 +403,7 @@ def dhcpenable(data):
             res.setResult(ret, PTK_INTERNALERROR,
                           _("PDT_NETWORK_SETTINGS_SAVE_FAILED_ERR_MSG"))
         xml_data = dict((key, value) for key, value in data.iteritems() if key in [
-            'dhcp_start', 'dhcp_end', 'static_start', 'static_end', 'subnet'])
+            'dhcp_start', 'dhcp_end', 'start', 'end', 'subnet'])
         add_xml_element(settings, xml_data, element_name='network')
         res.setResult(ret, PTK_OKAY, _("PDT_DHCP_ENABLED_MSG"))
         return res
@@ -414,8 +418,8 @@ def dhcpvalidate(data):
     ret = []
     ret = validate_input_data({'subnet': 'Subnet', 'netmask': 'Netmask', 'gateway': 'Gateway',
                                'dhcp_start': 'DHCP Start IP', 'dhcp_end': 'DHCP End IP',
-                               'static_start': 'Static Start IP',
-                               'static_end': 'Static End IP', 'server_ip': 'IP address'}, data)
+                               'start': 'Start IP',
+                               'end': 'End IP', 'server_ip': 'IP address'}, data)
 
     if len(ret) > 0:
         return "Please fill all mandatory fields.", False, ret
@@ -423,22 +427,16 @@ def dhcpvalidate(data):
     ipv = IpValidator()
     if ipv.ip_range(data['dhcp_start'], data['netmask'], data['gateway']) == False or \
             ipv.ip_range(data['dhcp_end'], data['netmask'], data['gateway']) == False or \
-            ipv.ip_range(data['static_start'], data['netmask'], data['gateway']) == False or \
-            ipv.ip_range(data['static_end'], data['netmask'], data['gateway']) == False or \
+            ipv.ip_range(data['start'], data['netmask'], data['gateway']) == False or \
+            ipv.ip_range(data['end'], data['netmask'], data['gateway']) == False or \
             ipv.ip_range(data['subnet'], data['netmask'], data['gateway']) == False:
         return "Check the Network settings", False, ret
 
     if int(data['dhcp_start'].split('.')[3]) >= int(data['dhcp_end'].split('.')[3]):
         return "Check the DHCP range", False, ret
 
-    if int(data['static_start'].split('.')[3]) >= int(data['static_end'].split('.')[3]):
-        return "Check the Static range", False, ret
-    else:
-        if int(data['static_start'].split('.')[3]) in range(int(data['dhcp_start'].split('.')[3]),
-                                                            int(data['dhcp_end'].split('.')[3]) + 1) or \
-            int(data['static_end'].split('.')[3]) in range(int(data['dhcp_start'].split('.')[3]),
-                                                           int(data['dhcp_end'].split('.')[3]) + 1):
-            return "The given static IP range falls in your DHCP set", False, ret
+    if int(data['start'].split('.')[3]) >= int(data['end'].split('.')[3]):
+        return "Check the Network range", False, ret
 
     return "Success", True, ret
 
@@ -979,8 +977,8 @@ def save_config(stacktype, datas):
                     domain_name = data['domain_name']
                 device_data = {
                     "name": data['array_name'],
-		    "username": "pueuser",
-                    "password": encrypt("pureuser"),
+		    "username": "pureuser",
+                    "password": encrypt('pureuser'),
                     "ct0_ip": data['ct0_ip'],
                     "ct1_ip": data['ct1_ip'],
                     "vir0_ip": data['vir0_ip'],
@@ -1006,7 +1004,7 @@ def save_config(stacktype, datas):
                     "configured": "Unconfigured",
                     "reachability": "",
                     "validated": "1",
-		    "isZTP":True,
+		    "isZTP":"1",
                     "timestamp": str(time.time())}
                 add_xml_element(static_discovery_store, device_data)
 
@@ -1452,8 +1450,9 @@ def configdefaults(data):
         # consecutive range is needed
         for hw_dict in conf_defaults:
             if hw_dict['device_type'] == "UCSM" and 'kvm_console_ip' in hw_dict:
-                hw_dict['kvm_console_ip']['kvm_range'] = "" if ip_list == [] else ip_list[ip_cnt].split(
-                    '.')[-1] + "-" + str(int(ip_list[ip_cnt].split('.')[-1]) + 11)
+                kvm_ip_range = get_kvm_ip_range(ip_list[ip_cnt:])
+                hw_dict['kvm_console_ip']['kvm_range'] = "" if kvm_ip_range == [] else kvm_ip_range[0].split(
+                    '.')[-1] + "-" + str(int(kvm_ip_range[0].split('.')[-1]) + 11)
                 ip_cnt = ip_cnt + 12
                 hw_dict['kvm_console_ip'] = json.dumps(
                     hw_dict['kvm_console_ip'])
@@ -1470,6 +1469,22 @@ def configdefaults(data):
     else:
         res.setResult(conf_defaults, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
+
+
+def get_kvm_ip_range(ips):
+    free_ip_groups = []
+    ips_dict = {x.split('.')[-1]:x for x in ips}
+    hosts = [int(x) for x in ips_dict.keys()]
+    hosts.sort()
+
+    for k, g in groupby(enumerate(hosts), lambda x: x[0]-x[1]):
+        lst = list(map(itemgetter(1), g))
+        ip_lst = [ips_dict[str(x)] for x in lst]
+        free_ip_groups.append(ip_lst)
+
+    for group in free_ip_groups:
+        if len(group) >= 12:
+            return group
 
 
 def reconfigure(hwtype, mac, force):
@@ -1525,9 +1540,9 @@ def get_fa_configdefaults(item):
     hw_dict['relay_host'] = "blackhole-smtp2.dev.purestorage.com"
     hw_dict['sender_domain'] = "purestorage.com"
     hw_dict['alert_emails'] = "admin@purestorage.com"
-    hw_dict['organization'] = "Pure Storage"
-    hw_dict['full_name'] = "Flash Array"
-    hw_dict['job_title'] = "TME"
+    hw_dict['organization'] = ""
+    hw_dict['full_name'] = ""
+    hw_dict['job_title'] = ""
     hw_dict['mac'] = item
     return hw_dict
 
@@ -1538,8 +1553,8 @@ def get_ucs_configdefaults(input_count, mac_lst, conf_lst):
     res = dhcpinfo()
     info = parseTaskResult(res)
     dicts = {
-        "min_range": info['static_start'].split('.')[-1],
-        "max_range": info['static_end'].split('.')[-1],
+        "min_range": info['start'].split('.')[-1],
+        "max_range": info['end'].split('.')[-1],
         "min_interval": "12",
         "max_interval": "12",
         "subnet": '.'.join(info['subnet'].split('.', 3)[:-1]),
@@ -1797,11 +1812,14 @@ def get_latest_image(hw_type):
 
 def get_available_static_ips():
     free_static_range_ips = static_range_ips = configured_ips = []
-    status, data = get_xml_element(settings, 'static_start')
+    status, data = get_xml_element(settings, 'dhcp_start')
     if status:
+        dhcp_range_ips = [x for x in range(ipaddress.ip_address(unicode(data[0]['dhcp_start'])),
+                                  ipaddress.ip_address(unicode(data[0]['dhcp_end'])) + 1)]
+  
         static_range_ips = [str(ipaddress.ip_address((x))) for x in
-                            range(ipaddress.ip_address(unicode(data[0]['static_start'])),
-                                  ipaddress.ip_address(unicode(data[0]['static_end'])) + 1)]
+                            range(ipaddress.ip_address(unicode(data[0]['start'])),
+                                  ipaddress.ip_address(unicode(data[0]['end'])) + 1) if x not in dhcp_range_ips]
 
     status, data = get_xml_element(static_discovery_store, 'ipaddress')
     if status:

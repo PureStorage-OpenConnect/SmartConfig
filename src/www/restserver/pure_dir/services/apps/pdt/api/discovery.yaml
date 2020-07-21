@@ -431,8 +431,8 @@ definitions:
       - subnet
       - dhcp_start
       - dhcp_end
-      - static_start
-      - static_end
+      - start
+      - end
     properties:
       ip:
         type: string
@@ -450,14 +450,14 @@ definitions:
         type: string
         description: End IP for DHCP
         example: '192.168.1.50'
-      static_start:
+      start:
         type: string
-        description: Starting IP for Static
-        example: '192.168.1.51'
-      static_end:
+        description: Starting IP for the Network
+        example: '192.168.1.2'
+      end:
         type: string
-        description: End IP for Static
-        example: '192.168.1.90'
+        description: End IP for the Network
+        example: '192.168.1.254'
 
   DHCPSettings:
     required:
@@ -467,8 +467,8 @@ definitions:
     - server_ip
     - dhcp_start
     - dhcp_end
-    - static_start
-    - static_end
+    - start
+    - end
     type: object
     properties:
       subnet:
@@ -495,14 +495,14 @@ definitions:
         type: string
         description: DHCP end ip in the range
         example: '192.168.1.30'
-      static_start:
+      start:
         type: string
-        description: Static starting ip in the range
-        example: '192.168.1.40'
-      static_end:
+        description: Starting IP for the Network
+        example: '192.168.1.2'
+      end:
         type: string
-        description: Static end ip in the range
-        example: '192.168.1.60'
+        description: End IP for the Network
+        example: '192.168.1.254'
   
   AddDevice:
     required:

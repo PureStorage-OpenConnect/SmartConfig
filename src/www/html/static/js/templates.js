@@ -72,9 +72,13 @@ function loadFormField(field) {
 			str += '<textarea id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" value="' + field.value + '" class="task-input ' + field.class + '" ' + field.readonly + '></textarea>';
 			break;
 		case 'dropdown':
-			str += '<select type="dropdown" id="' + field.id + '" name="' + field.name + '" class="task-input ' + field.class + '">\
-				<option value="">' + localization['select'] + '</option>\
-			</select>';
+			str += '<select type="dropdown" id="' + field.id + '" name="' + field.name + '" class="task-input ' + field.class + '">';
+				if(typeof field.value != 'undefined' && field.value.length > 0) {
+					$.each(field.value, function(tmpI, tmpV) {
+						str += '<option value="' + tmpV.value + '" ' + tmpV.selected + '>' + tmpV.label + '</option>';
+					});
+				} else str += '<option value="">' + localization['select'] + '</option>';
+			str += '</select>';
 			break;
 		case 'multiselect':
 			str += '<select type="multiselect" label="' + field.label + '" id="' + field.id + '" name="' + field.name + '[]" multiple="multiple" class="task-input ' + field.class + '">';

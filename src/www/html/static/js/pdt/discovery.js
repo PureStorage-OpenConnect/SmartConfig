@@ -289,11 +289,15 @@ $(document).ready(function() {
 					}
 					str += loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
-					loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 					loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
+					loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+					'<div style="margin-bottom: 16px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 					loadFormTemplate({id: 'dns', label: localization['dns-ip'], class: 'ipaddress', holder: 'ucsm-primary dns nameserver col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+					'<div style="margin-bottom: 16px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 					loadUCSMForm(1);
 					$('#form-body .mCSB_container').append(str);
+					bindTagifyEvent('#ntp_server', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
+					bindTagifyEvent('#dns', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 					break;
 				case 'MDS':
 					str += '<div class="basic-view">';
@@ -301,6 +305,7 @@ $(document).ready(function() {
 						loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
 						loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						'<div style="margin-bottom: 16px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 						loadMDSForm({
 							type: elem.find('.device-type').text(), 
 							serial: elem.find('.serial_no').text(), 
@@ -316,6 +321,7 @@ $(document).ready(function() {
 						'</div>';
 					str += '</div>';
 					$('#form-body .mCSB_container').append(str);
+					bindTagifyEvent('#ntp_server', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 					break;
 				case 'Nexus 5k':
 				case 'Nexus 9k':
@@ -324,6 +330,7 @@ $(document).ready(function() {
 						loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
 						loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
 						loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						'<div style="margin-bottom: 16px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 						loadNEXUSForm({
 							type: elem.find('.device-type').text(), 
 							serial: elem.find('.serial_no').text(), 
@@ -345,12 +352,16 @@ $(document).ready(function() {
 						}
 					str += '</div>';
 					$('#form-body .mCSB_container').append(str);
+					bindTagifyEvent('#ntp_server', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 					break;
 				case 'PURE':
 					str += '<div class="basic-view">';
 						str += loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-12 col-md-12 col-sm-12 col-xs-12'}) + 
+						loadFormTemplate({id: 'workflow_host', label: 'SMTP Server Host', holder: 'relay_host col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) + 
 						loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], readonly: true, class: 'ipaddress', holder: 'ntp_server col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						'<div style="margin-bottom: 16px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 						loadFormTemplate({id: 'dns', label: localization['dns-ip'], class: 'ipaddress', holder: 'ucsm-primary dns nameserver col-lg-12 col-md-12 col-sm-12 col-xs-12', mandatory: true}) +
+						'<div style="margin-bottom: 16px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 						loadFAForm({
 							type: elem.find('.device-type').text(), 
 							serial: elem.find('.serial_no').text(), 
@@ -361,9 +372,20 @@ $(document).ready(function() {
 					str += '</div>';
 					$('#form-body .mCSB_container').append(str);
 					bindTagifyEvent('#fa_alert_emails_0', 'Add an email', /^[a-zA-Z0-9.!#$%&â€™*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
+					bindTagifyEvent('#ntp_server', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
+					bindTagifyEvent('#dns', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 					loadTimezone();
 					break;
 			}
+			$('.modal-inset .help-txt').tipso({
+				position: 'top',
+				animationIn: 'bounceIn',
+				animationOut: 'bounceOut',
+				titleBackground: 'rgb(247, 124, 61)',
+				background: '#FFF',
+				color: '#454545',
+				tooltipHover: true
+			});
 			$.when(
 				loadImages('', '', '')
 			).then(function() {
@@ -383,13 +405,19 @@ $(document).ready(function() {
 								}
 								$('#form-body #systemName').val(val['switch_name']);
 								plotValuesByDom($('#form-body .virtual_ip'), val['virtual_ip']);
-								if(typeof val['dns'] != 'undefined') plotValuesByDom($('#form-body .dns.nameserver'), val['dns']);
 								if(typeof val['domain_name'] != 'undefined') $('#form-body #domainName').val(val['domain_name']);
 								plotValuesByDom($('#form-body .' + field), val['switch_ip']);
 								$('.toggle-select.switchFabric_' + index).toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'A', off: 'B'}});
 							});
 							flag = true;
-							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							$.each(response.data[0]['ntp_server'].split(","), function(i, value) {
+								$('#form-body #ntp_server').tagsinput('add', trimChar(value, " "));
+							});
+							if(typeof response.data[0]['dns'] != 'undefined') {
+								$.each(response.data[0]['dns'].split(","), function(i, value) {
+									$('#form-body #dns').tagsinput('add', trimChar(value, " "));
+								});
+							}
 							if(response.data[0]['server_type'] != 'Rack') server_type = false;
 							if(UCSForConfigure.length == 1) {
 								flag = false;
@@ -397,14 +425,16 @@ $(document).ready(function() {
 								$('#form-body .ucsm-subordinate.pri_ip').removeClass('hide');
 								plotValuesByDom($('#form-body .pri_ip'), response.data[0]['pri_ip']);
 								$('#form-body .virtual_ip .task-input, #form-body .switch_name .task-input, #form-body .pri_ip .task-input').attr('readonly', 'readonly');
-								$('#form-body .pri_passwd, #form-body .conf_passwd, #form-body .esxi_file, #form-body .esxi_kickstart, #form-body .domain_name, #form-body .ucs_firmware, #form-body .ucs_upgrade, #form-body .dns.nameserver').remove();
+								$('#form-body .pri_passwd, #form-body .conf_passwd, #form-body .os_install, #form-body .esxi_file, #form-body .esxi_kickstart, #form-body .domain_name, #form-body .ucs_firmware, #form-body .ucs_upgrade, #form-body .dns.nameserver').remove();
 							}
 							$('.toggle-select.component_type').toggles({type: 'select', on: server_type, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'Rack Server', off: 'Blade Server'}}).toggleClass('disabled', true);
 							$('.toggle-select.mode').toggles({type: 'select', on: false, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['standalone'], off: localization['cluster']}});
 							$('.toggle-select.config_type').toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['primary'], off: localization['subordinate']}});
 							break;
 						case 'MDS':
-							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							$.each(response.data[0]['ntp_server'].split(","), function(i, value) {
+								$('#form-body #ntp_server').tagsinput('add', trimChar(value, " "));
+							});
 							if(typeof response.data[0]['domain_name'] != 'undefined') $('#form-body #domainName').val(response.data[0]['domain_name']);
 							$('#form-body #mds_switch_name_0').val(response.data[0]['switch_name']);
 							$('#form-body #mds_switch_system_image').val(response.data[0]['switch_image']['switch_system_image']);
@@ -415,7 +445,9 @@ $(document).ready(function() {
 							break;
 						case 'Nexus 5k':
 						case 'Nexus 9k':
-							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
+							$.each(response.data[0]['ntp_server'].split(","), function(i, value) {
+								$('#form-body #ntp_server').tagsinput('add', trimChar(value, " "));
+							});
 							if(typeof response.data[0]['domain_name'] != 'undefined') $('#form-body #domainName').val(response.data[0]['domain_name']);
 							if(response.data[0]['switch_tag'] == 'B') flag = false;
 							$('#form-body #nexus_switch_name_0').val(response.data[0]['switch_name']);
@@ -429,8 +461,6 @@ $(document).ready(function() {
 							$('.toggle-select.nexusSwitch_0').toggles({type: 'select', on: flag, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: 'A', off: 'B'}}).addClass('disabled');
 							break;
 						case 'PURE':
-							plotValuesByDom($('#form-body .ntp_server'), response.data[0]['ntp_server']);
-							plotValuesByDom($('#form-body .dns'), response.data[0]['dns']);
 							plotValuesByDom($('#form-body .domain_name'), response.data[0]['domain_name']);
 							plotValuesByDom($('#form-body .switch_netmask'), response.data[0]['netmask']);
 							plotValuesByDom($('#form-body .switch_gateway'), response.data[0]['gateway']);
@@ -439,14 +469,20 @@ $(document).ready(function() {
 							$('#form-body #fa_vir0_ip_0').val(response.data[0]['vir0_ip']);
 							$('#form-body #fa_ct0_ip_0').val(response.data[0]['ct0_ip']);
 							$('#form-body #fa_ct1_ip_0').val(response.data[0]['ct1_ip']);
-							$('#form-body #fa_relay_host_0').val(response.data[0]['relay_host']);
-							$('#form-body #fa_sender_domain_0').val(response.data[0]['sender_domain']);
+							$('#form-body #workflow_host').val(response.data[0]['relay_host']);
+							$('#form-body #sender_domain').val(response.data[0]['sender_domain']);
 							$('#form-body #fa_organization_0').val(response.data[0]['organization']);
 							$('#form-body #fa_full_name_0').val(response.data[0]['full_name']);
 							$('#form-body #fa_job_title_0').val(response.data[0]['job_title']);
 							$('#form-body #fa_timezone_0').val([response.data[0]['timezone']]).trigger('change');
 							$.each(response.data[0]['alert_emails'].split(","), function(i, value) {
 								$('#form-body #fa_alert_emails_0').tagsinput('add', trimChar(value, " "));
+							});
+							$.each(response.data[0]['ntp_server'].split(","), function(i, value) {
+								$('#form-body #ntp_server').tagsinput('add', trimChar(value, " "));
+							});
+							$.each(response.data[0]['dns'].split(","), function(i, value) {
+								$('#form-body #dns').tagsinput('add', trimChar(value, " "));
 							});
 							break;
 					}
@@ -484,7 +520,7 @@ $(document).ready(function() {
 	*/
 	$('body').delegate('#os_install', 'change', function(e) {
 		$('.ucsm-configure .remote_file.os_install').addClass('hide');
-		if($(this).is(':checked')) {
+		if($(this).val() == 'Yes') {
 			$('.ucsm-configure .remote_file.os_install').removeClass('hide');
 		}
 	});
@@ -600,8 +636,8 @@ function EnableDHCP() {
 	data.dhcp_start = subnet + "." + dhcp_range[0];
 	data.dhcp_end = subnet + "." + dhcp_range[1];
 	var static_start = parseInt(dhcp_range[1]) + 1;
-	data.static_start = subnet + "." + static_start;
-	data.static_end = subnet + "." + slider.options.max;
+	data.start = subnet + "." + slider.options.min;
+	data.end = subnet + "." + slider.options.max;
 	doAjaxRequest({url: 'DHCPSettings', base_path: settings.base_path, method: 'POST', data: data, success_notify: true, container: '.modal-inset', isValidate: true, formContainer: '.modal-inset'}, function(response) {
 		systemInfo.dhcp_status = 'enabled';
 		$('#enable-dhcp').prop('checked', true);
@@ -946,8 +982,8 @@ function postUCSMForm() {
 		if(!$('#ucs_upgrade').is(':checked')) $('#infra_image, #rack_image, #blade_image').val('');
 	}
 	if($('#os_install').length) {
-		data.os_install = ($('#os_install').is(':checked')) ? "Yes" : "No";
-		if(!$('#os_install').is(':checked')) $('#esxi_file, #esxi_kickstart').val('');
+		data.os_install = ($('#os_install').val() == '') ? "No" : "Yes";
+		if(data.os_install == 'No') $('#esxi_file, #esxi_kickstart').val('');
 	}
 	if($('#infra_image').length)
 		data.infra_image = $('#infra_image').val();
@@ -1125,6 +1161,7 @@ function postFAForm(index, isFAPrimary) {
 	data.dns = $('#dns').val();
 	data.domain_name = $('#domainName').val();
 	data.ntp_server = $('#ntp_server').val();
+	data.pri_passwd = ($('#adminPasswd').length) ? $('#adminPasswd').val() : '';
 
 	data.array_name = $('#fa_array_name_' + index).val();
 	data.mac = $('#fa_switch_mac_' + index).val();
@@ -1134,8 +1171,8 @@ function postFAForm(index, isFAPrimary) {
 	data.ct0_ip = $('#fa_ct0_ip_' + index).val();
 	data.ct1_ip = $('#fa_ct1_ip_' + index).val();
 	data.vir0_ip = $('#fa_vir0_ip_' + index).val();
-	data.relay_host = $('#fa_relay_host_' + index).val();
-	data.sender_domain = $('#fa_sender_domain_' + index).val();
+	data.relay_host = $('#workflow_host').val();
+	data.sender_domain = $('#sender_domain').val();
 	data.organization = $('#fa_organization_' + index).val();
 	data.full_name = $('#fa_full_name_' + index).val();
 	data.job_title = $('#fa_job_title_' + index).val();
@@ -1159,7 +1196,14 @@ function postFAForm(index, isFAPrimary) {
 function validateConfiguration() {
 	$('.control-group').find('.task-input').removeClass('error');
 	$('.control-group').find('.help-block').hide().html('');
-	var tmp, ips = [], arr, flag = true;
+	
+	var tmp, ips = [], dhcpIPs = [], arr, flag = true, dom, subnet = dhcpInfo.dhcp_start.split(".");
+	subnet.pop();
+	subnet = subnet.join(".");
+	for(var i = parseInt(dhcpInfo.dhcp_start.split(".").pop()); i <= parseInt(dhcpInfo.dhcp_end.split(".").pop()); i++) {
+		dhcpIPs.push(subnet + '.' + i);
+	}
+	
 	$('.initial-setup .control-group.unique_ip').each(function(index) {
 		tmp = '';
 		if($(this)[0].hasAttribute("argtype") && $(this).attr("argtype") == 'ip-range') {
@@ -1170,10 +1214,11 @@ function validateConfiguration() {
 			}
 		} else {
 			$(this).find('input.task-input').each(function(i) {
-				tmp += $(this).val();
+				tmp = $(this).val().split(',');
+				$.each(tmp, function(i, v) {
+					if(v.length > 0) ips.push(v);
+				});
 			});
-			if(tmp.length > 0)
-				ips.push(tmp);
 		}
 	});
 	$('.initial-setup .control-group.unique_ip').each(function(index) {
@@ -1181,24 +1226,47 @@ function validateConfiguration() {
 		if($(this)[0].hasAttribute("argtype") && $(this).attr("argtype") == 'ip-range') {
 			arr = $(this).find('input.task-input').val().split('-');
 			for(i = arr[0]; i <= arr[1]; i++) {
-				tmp = $(this).find('input.task-input').attr("subnet").replace(/\./g, '') + i;
+				tmp = $(this).find('input.task-input').attr("subnet") + '.' + i;
 				if(tmp.length > 0 && ips.filter(function(x){ return x === tmp; }).length > 1) {
 					$(this).find('.help-block').show().html(localization['duplicate-ip']);
 					$(this).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 					flag = false;
 				}
+				if(tmp.length > 0 && dhcpIPs.filter(function(x){ return x === tmp; }).length > 0) {
+					$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['ip_overlap_dhcp']);
+					$(this).find('.help-block').show().html(localization['ip_overlap_dhcp']);
+					$(this).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+					flag = false;
+				}
 			}
 		} else {
-			$(this).find('.task-input').each(function(i) {
-				tmp += $(this).val();
+			$(this).find('input.task-input').each(function(i) {
+				tmp = $(this).val().split(',');
+				dom = $(this);
+				$.each(tmp, function(i, v) {
+					if(v.length > 0) {
+						if(ips.filter(function(x){ return x === v; }).length > 1) {
+							dom.closest('.control-group').find('.help-block').show().html(localization['duplicate-ip']);
+							dom.closest('.control-group').find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+							flag = false;
+						}
+						if(dhcpIPs.filter(function(x){ return x === v; }).length > 0) {
+							$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['ip_overlap_dhcp']);
+							dom.closest('.control-group').find('.help-block').show().html(localization['ip_overlap_dhcp']);
+							dom.closest('.control-group').find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+							flag = false;
+						}
+					}
+				});
 			});
-			if(tmp.length > 0 && ips.filter(function(x){ return x === tmp; }).length > 1) {
-				$(this).find('.help-block').show().html(localization['duplicate-ip']);
-				$(this).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
-				flag = false;
-			}
 		}
 	});
+	var slider = $('.ucsm-configure .control-group.kvm_console_ip').find('#workflow_kvm_console_ip.range-slider').val();
+	slider = slider.split("-");
+	if((slider[0] >= parseInt(dhcpInfo.dhcp_start.split(".").pop()) && slider[0] <= parseInt(dhcpInfo.dhcp_end.split(".").pop())) || 
+		(slider[1] >= parseInt(dhcpInfo.dhcp_start.split(".").pop()) && slider[1] <= parseInt(dhcpInfo.dhcp_end.split(".").pop()))) {
+		$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['dhcp_kvm_overlap']);
+	}
 	if(!flag) return false;
 	loaderCnt = addProcessingSpinner('.content-container');
 	var requestCount = NEXUSForConfigure.length + MDSForConfigure.length + 1;
@@ -1214,6 +1282,7 @@ function validateConfiguration() {
 			}
 		}
 	});
+	
 	callbackFlag = true;
 	updateGlobalConfig();
 	if(UCSForConfigure.length > 0)
@@ -1326,7 +1395,7 @@ function triggerInitialization() {
 /**
   * @desc .
 */
-var isPUREConfigured = true;
+var isPUREConfigured = true, dhcpInfo;
 function loadInitialSetupForm() {
 	clearTimeout(tout);
 	var loadDynamicValues = {}, data_str, obj = {'UCSM': [], 'MDS': []};
@@ -1374,8 +1443,9 @@ function loadInitialSetupForm() {
 						<div class="form col-lg-12 col-md-12 col-sm-12 col-xs-12">' +
 							loadFormTemplate({id: 'common_netmask', label: localization['mgmt-netmask'], class: 'ipaddress', holder: 'netmask switch_netmask unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
 							loadFormTemplate({id: 'common_gateway', label: localization['default-gateway'], class: 'ipaddress', holder: 'gateway switch_gateway unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
-							loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'], class: 'ipaddress', holder: 'ntp ntp_server unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) +
-							loadFormTemplate({id: 'dns', label: localization['dns-ip'], class: 'ipaddress', holder: 'ucsm-primary dns nameserver unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'] + '(s)**', class: 'tags tagify', "dataRole": "tagsinput", holder: 'ntp ntp_server unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							loadFormTemplate({id: 'dns', label: localization['dns-ip'] + '(s)**', class: 'tags tagify', "dataRole": "tagsinput", holder: 'ucsm-primary dns nameserver unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							'<div style="margin-bottom: 10px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
 							loadFormTemplate({id: 'adminPasswd', type: 'password', label: localization['admin-password'], holder: 'ucsm-primary pri_passwd col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true, helptext: passwordHelp}) +
 							loadFormTemplate({id: 'adminPasswd1', type: 'password', label: localization['confirm-password'], holder: 'ucsm-primary conf_passwd col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) +
 							loadFormTemplate({id: 'domainName', label: localization['domain'], holder: 'ucsm-primary domain_name col-lg-6 col-md-6 col-sm-6 col-xs-6'}) +
@@ -1439,7 +1509,7 @@ function loadInitialSetupForm() {
 						isPUREConfigured = false;
 						string += '<div class="clear"></div>\
 						<div class="row info-section flasharray-container col-lg-12 col-md-12 col-sm-12 col-xs-12">\
-							<h3 class="hseperator widget-subtitle bold">FlashArray</h3>\
+							<h3 class="hseperator widget-subtitle bold">FlashArray <span class="bold dark-text" style="font-size: 75%;">(' + FAForConfigure[0].serial + ')</span></h3>\
 						</div>';
 						$.each(FAForConfigure, function(index, val) {
 							string += loadFAForm(val, index, isFAPrimary, 'col-lg-6 col-md-6 col-sm-12 col-xs-12');
@@ -1452,6 +1522,7 @@ function loadInitialSetupForm() {
 				<div class="advanced-view hide">\
 				</div>\
 				<div class="clear"></div>\
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-right">**Comma separated</div>\
 			</div>\
 			<div class="clear"></div>\
 		</div>\
@@ -1474,7 +1545,10 @@ function loadInitialSetupForm() {
 	$('.ucs_blade_image').after('<div type="UCS-blade" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	$('.ucs_rack_image').after('<div type="UCS-Rack" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 
-	loadGlobalConfigForm();
+	doAjaxRequest({url: 'DHCPInfo', base_path: settings.base_path}, function(response) {
+		dhcpInfo = response.data;
+		loadGlobalConfigForm();
+	}, doNothing);
 	initScroller($('.initial-setup>.smartwidget .scroller'));
 	var height = parseInt($('.stepContainer').height()) - 100;
 	$('.initial-setup>.smartwidget .scroller').css('height', height + 'px').css('max-height', height + 'px');
@@ -1504,6 +1578,8 @@ function loadInitialSetupForm() {
 		}
 	});
 
+	bindTagifyEvent('#ntp_server', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
+	bindTagifyEvent('#dns', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 	if(!isPUREConfigured) {
 		bindTagifyEvent('#fa_alert_emails_0', 'Add an email', /^[a-zA-Z0-9.!#$%&â€™*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
 		loadTimezone();
@@ -1560,8 +1636,17 @@ function loadImportedConfig(response) {
 
 	doAjaxRequest({url: 'JSONConfig', base_path: settings.base_path, query: {stacktype: stacktype}}, function(response) {
 		$.each(response.data.global_config, function(index, value) {
-			dom = $('.fs-configurations .control-group.' + value.name);
-			plotValuesByDom(dom, value.value);
+			if(value.name == 'ntp') {
+				$('#ntp_server').prev('.bootstrap-tagsinput').find('span').each(function() {
+					$('#ntp_server').tagsinput('remove', $(this).text());
+				});
+				$.each(value.value.split(","), function(i, v) {
+					$('#ntp_server').tagsinput('add', trimChar(v, " "));
+				});
+			} else {
+				dom = $('.fs-configurations .control-group.' + value.name);
+				plotValuesByDom(dom, value.value);
+			}
 		});
 		loadConfigValues(response.data.devices);
 		var mds_index = 0, nexus_index = 0, tag;
@@ -1587,6 +1672,12 @@ function loadImportedConfig(response) {
 							from: parseInt(tmp[0]),
 							to: parseInt(tmp[1])
 						});
+						updateDHCPIPs($(".control-group.kvm_console_ip #workflow_kvm_console_ip.range-slider"));
+						
+						if((parseInt(tmp[0]) > parseInt(dhcpInfo.dhcp_start.split(".").pop()) && parseInt(tmp[0]) < parseInt(dhcpInfo.dhcp_end.split(".").pop())) || 
+							(parseInt(tmp[1]) > parseInt(dhcpInfo.dhcp_start.split(".").pop()) && parseInt(tmp[1]) < parseInt(dhcpInfo.dhcp_end.split(".").pop()))) {
+							$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['dhcp_kvm_overlap']);
+						}
 					} else {
 						$('.ucsm-configure .control-group.switch_ip #oobIP_1.task-input').val(value.switch_ip);
 						$('.ucsm-configure .control-group #fabric_mapping_1.task-input option[tag="' + value.tag + '"]').attr("selected","selected");
@@ -1611,6 +1702,12 @@ function loadImportedConfig(response) {
 					$('.block.pure.flasharray .control-group #fa_vir0_ip_0.task-input').val(value.vir0_ip);
 					$('.block.pure.flasharray .control-group #fa_ct0_ip_0.task-input').val(value.ct0_ip);
 					$('.block.pure.flasharray .control-group #fa_ct1_ip_0.task-input').val(value.ct1_ip);
+					
+					$('.block.pure.flasharray .control-group #fa_array_name_0.task-input').val(value.array_name);
+					$('.block.pure.flasharray .control-group #fa_sender_domain_0.task-input').val(value.domain_name);
+					$('.block.pure.flasharray .control-group #fa_full_name_0.task-input').val(value.full_name);
+					$('.block.pure.flasharray .control-group #fa_job_title_0.task-input').val(value.job_title);
+					$('.block.pure.flasharray .control-group #fa_organization_0.task-input').val(value.organization);
 					break;
 			}
 		});
@@ -1693,15 +1790,20 @@ function loadGlobalFormFields() {
 		if(!formData[counter].hidden) {
 			if(formData[counter].view == 'basic') {
 				container = 'common-inputs';
-				$.each(formData[counter].hwtype, function(i, v) {
-					if($('.initial-setup .' + v + ' > .form').length) {
-						container = v;
-						return false;
-					}
-				});
+				if(typeof formData[counter].hwtype != 'undefined' && formData[counter].hwtype.length > 0) {
+					$.each(formData[counter].hwtype, function(i, v) {
+						if(typeof v != 'undefined' && v.length > 0) {
+							if($('.initial-setup .' + v + ' > .form').length) {
+								container = v;
+								return false;
+							}
+						}
+					});
+				}
 				$('.initial-setup .' + container + ' > .form').first().append('<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 nopadding global block">' + loadWorkflowInputForm(formData[counter], 'global-config').advanced + '</div>');
 			} else 
 				$('.initial-setup .advanced-view').append('<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 nopadding global block">' + loadWorkflowInputForm(formData[counter], 'global-config').advanced + '</div>');
+			
 			populateFormData(formData[counter], 'global-config', 0, 1);
 		} else {
 			counter++;
@@ -1772,12 +1874,23 @@ function populateData() {
 	});
 }
 
+function updateDHCPIPs(dom) {
+	dom.closest('[type="range-picker"]').find('.showcase__mark').remove();
+	let html = '<span class="showcase__mark help-txt tipso tipso_style" data-tipso-title="DHCP Range/Reserved IPs" data-tipso="These IP address ranges are used for device discovery." data-html="true" data-toggle="tooltip" style="left: ' + dhcpLeft + '; width: ' + dhcpWidth + ';">' + dhcpInfo.dhcp_start.split(".").pop() + '-' + dhcpInfo.dhcp_end.split(".").pop() + '</span>';
+	dom.closest('[type="range-picker"]').find('span.irs').find('span.irs').after(html);
+	
+	initTooltip('[type="range-picker"]');
+}
+
 /**
   * @desc .
   * @param array $data - .
 */
+var dhcpLeft, dhcpWidth;
 function loadConfigValues(data) {
-	var dom, slider, tmp;
+	var marks = [], dom, slider, tmp;
+	marks.push(parseInt(dhcpInfo.dhcp_start.split(".").pop()));
+	marks.push(parseInt(dhcpInfo.dhcp_end.split(".").pop()));
 	$('.fabric_mapping, .mds_mapping, .nexus_mapping').html('');
 	$('.ucsm-configure .ucs_upgrade:not(#ucs_upgrade)').addClass('hide');
 	$.each(data, function(index, value) {
@@ -1785,19 +1898,43 @@ function loadConfigValues(data) {
 		Object.keys(value).some(function(key) {
 			if(value.device_type == 'ucsm' && key == 'kvm_console_ip' && $('.' + value.device_type + ' input[value="' + value.switch_mac + '"]').length > 0) {
 				dom = $('.' + value.device_type + ' input[value="' + value.switch_mac + '"]').closest('.' + value.device_type).find('.control-group.' + key).find('#workflow_' + key + '.range-slider');
+				slider = dom.data("ionRangeSlider");
 				value[key] = $.parseJSON(value[key]);
 				tmp = value[key].kvm_range.split('-');
+				diff = parseInt(tmp[1]) - parseInt(tmp[0]);
 				dom.attr('subnet', value[key].subnet);
 				dom.closest('[type="range-picker"]').find('.legend').find('.ip-subnet').html(value[key].subnet + '.');
-				slider = dom.data("ionRangeSlider");
-                slider.update({
+				slider.update({
 					min: parseInt(value[key].min_range),
 					max: parseInt(value[key].max_range),
-					from: parseInt(tmp[0]),
-					to: parseInt(tmp[1]),
+					from: parseInt(dhcpInfo.dhcp_start.split(".").pop()), 
+					to: parseInt(dhcpInfo.dhcp_end.split(".").pop()),
 					min_interval: (parseInt(value[key].min_interval) - 1),
 					max_interval: (parseInt(value[key].max_interval) - 1)
 				});
+				dhcpLeft = $('.irs-bar').css('left');
+				dhcpWidth = $('.irs-bar').css('width');
+				
+				slider.update({
+					from: parseInt(tmp[0]),
+					to: parseInt(tmp[1]),
+					onChange: function(data) {
+						if(data.from >= marks[0] && data.from <= marks[1]) {
+							slider.update({from: (marks[0] - diff - 1), to: (marks[0] - 1)});
+							updateDHCPIPs($(".control-group.kvm_console_ip #workflow_kvm_console_ip.range-slider"));
+							return false;
+						} else if(data.to >= marks[0] && data.to <= marks[1]) {
+							slider.update({from: (marks[1] + 1), to: (marks[1] + diff + 1)});
+							updateDHCPIPs($(".control-group.kvm_console_ip #workflow_kvm_console_ip.range-slider"));
+							return false;
+						} else {
+							diff = parseInt(data.to) - parseInt(data.from);
+							if(diff < parseInt(value[key].min_interval)) diff = parseInt(value[key].min_interval);
+							else if(diff > parseInt(value[key].max_interval)) diff = parseInt(value[key].max_interval);
+						}
+					}
+				});
+				updateDHCPIPs(dom, marks, dhcpLeft, dhcpWidth);
 			} else if(key == 'switch_image') {
 				try {
 					value[key] = $.parseJSON(value[key]);
@@ -1823,13 +1960,15 @@ function loadConfigValues(data) {
 				if(value.device_type == 'pure' && !isPUREConfigured) {
 					$('.control-group.pure_id[argname="pure_id"][execid="global-config"]').closest('.global.block').hide();
 					if(key == 'timezone') $('#fa_timezone_0').val([value[key]]).trigger('change');
-					if(key == 'alert_emails') {
+					else if(key == 'alert_emails') {
 						$('#fa_alert_emails_0').prev('.bootstrap-tagsinput').find('span').each(function() {
 							$('#fa_alert_emails_0').tagsinput('remove', $(this).text());
 						});
 						$.each(value[key].split(","), function(i, value) {
 							$('#fa_alert_emails_0').tagsinput('add', trimChar(value, " "));
 						});
+					} else if(key == 'sender_domain') {
+						$('#sender_domain').val(value['sender_domain']);
 					}
 				}
 				if(key == 'switch_name') {
@@ -1850,9 +1989,16 @@ function loadConfigValues(data) {
 							$('.mds_mapping').append('<option value="' + value[key] + '" tag="' + value.tag + '">' + value[key] + '</option>');
 							break;
 					}
-				} else if('mode' in value && value.mode == 'primary' && (key == 'domain_name' || key == 'dns' || key == 'esxi_kickstart')) {
+				} else if('mode' in value && value.mode == 'primary' && (key == 'domain_name' || key == 'esxi_kickstart')) {
 					dom = $('.control-group.' + key);
 					plotValuesByDom(dom, value[key]);
+				} else if('mode' in value && value.mode == 'primary' && (key == 'ntp_server' || key == 'dns')) {
+					$('#' + key).prev('.bootstrap-tagsinput').find('span').each(function() {
+						$('#' + key).tagsinput('remove', $(this).text());
+					});
+					$.each(value[key].split(","), function(i, value) {
+						$('#' + key).tagsinput('add', trimChar(value, " "));
+					});
 				} else if('mode' in value && value.mode == 'primary' && key == 'server_type') {
 					var server_type = (value[key] == 'Blade') ? false : true;
 					$('.toggle-select.component_type').toggles(server_type);
@@ -1872,10 +2018,10 @@ function loadConfigValues(data) {
 							else $('.ucsm-configure .ucs_upgrade.blade_image').removeClass('hide');
 						}
 					}
-					$('#os_install').prop('checked', false);
+					$('#os_install').val('');
 					$('.ucsm-configure .os_install.remote_file').addClass('hide');
 					if(key == 'esxi_file' && value[key] != '') {
-						$('#os_install').prop('checked', true);
+						$('#os_install').val('Yes');
 						$('.ucsm-configure .os_install.remote_file').removeClass('hide');
 					}
 				}
@@ -1934,52 +2080,53 @@ function plotValuesByDom(dom, value) {
   * @param integer $column - .
 */
 function loadUCSMForm(column) {
+	var widthCls = ' col-lg-12 col-md-12 col-sm-12 col-xs-12';
 	$('.ucsm.ucsm-configure').remove();
 	var str = '<div class="row ucsm ucsm-configure">';
 		if(column == '2') {
+			widthCls = ' col-lg-6 col-md-6 col-sm-6 col-xs-12';
 			str += '<div class="info-section col-lg-12 col-md-12 col-sm-12 col-xs-12">\
 				<h3 class="hseperator widget-subtitle bold">Fabric Interconnect</h3>\
 			</div>';
 		}
 		str += '<div class="form col-lg-12 col-md-12 col-sm-12 col-xs-12">';
-			if(column == '2')
-				str += '<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 nopadding">';
-				
-				str += loadFormTemplate({type: 'toggle', id: 'mode', label: localization['mode'], mandatory: true, 'holder': 'hide'}) + 
-				loadFormTemplate({type: 'toggle', id: 'config_type', label: localization['type'], 'holder': 'hide'}) + 
-				loadFormTemplate({type: 'toggle', id: 'component_type dark', label: 'Compute Type', mandatory: true, 'holder': 'hide'}) +
-				loadFormTemplate({id: 'virtualIP', label: localization['virtual-ip'], class: 'virtualIP ipaddress', holder: 'ucsm-primary virtual_ip unique_ip', mandatory: true}) + 
-				loadFormTemplate({id: 'primaryName', label: localization['primary-name'], holder: 'ucsm-subordinate pri_name switch_name hide', mandatory: true}) +
-				loadFormTemplate({id: 'oobIP', label: localization['primary-ip'], class: 'ipaddress', holder: 'ucsm-subordinate pri_ip hide', mandatory: true}) + 
-				loadFormTemplate({id: 'systemName', label: localization['system-name'], holder: 'ucsm-primary pri_name switch_name', mandatory: true});
-				$.each(UCSForConfigure, function(index, value) {
+			str += loadFormTemplate({type: 'toggle', id: 'mode', label: localization['mode'], mandatory: true, 'holder': 'hide'}) + 
+			loadFormTemplate({type: 'toggle', id: 'config_type', label: localization['type'], 'holder': 'hide'}) + 
+			loadFormTemplate({type: 'toggle', id: 'component_type dark', label: 'Compute Type', mandatory: true, 'holder': 'hide ' + widthCls});
+			str += '<div class="clear"></div>';
+			$.each(UCSForConfigure, function(index, value) {
+				str += '<div class="' + widthCls + ' nopadding">';
 					var checked = false, class_name = 'sec_ip';
 					if(index == 0 && UCSForConfigure.length > 1) {
 						checked = true;
 						class_name = 'pri_ip';
 					}
 					str += '<div class="seperator">' +
-						loadFormTemplate({id: 'oobIP_' + index, value: value.ip, label: localization['mgmt-ip'], class: 'ipaddress', mandatory: true, holder: 'switch_ip mgmt_ip unique_ip ' + class_name}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_switch_serial_' + index, value: value.serial}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_switch_mac_' + index, value: value.mac}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_switch_ip_' + index, value: value.ip}) + 
 						loadFormField({type: 'hidden', id: 'ucsm_vendor_model_' + index, value: value.vendor}) + 
 						loadFormTemplate({type: 'toggle', id: 'fabricSwitch switchFabric_' + index, label: localization['fabric-setup'] + ' <span class="small bold dark-text">(' + value.serial + ')</span>', mandatory: true, holder: 'manual-config'}) + 
 						loadFormTemplate({type: 'dropdown', id: 'fabric_mapping_' + index, label: 'Map Switch <span class="small bold dark-text">(' + value.serial + ')</span>', mandatory: true, class: 'fabric_mapping', holder: 'json-config hide'}) +
-					'</div>';
-				});
-			if(column == '2') {
-				str += '</div>\
-				<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 nopadding">';
-			}
-				str += loadFormTemplate({type: 'checkbox', id: 'os_install', class: 'os_install', label: 'ESXi Installation', holder: 'os_install'}) +
-				loadFormTemplate({type: 'dropdown', id: 'esxi_file', class: 'esxi_remote_file', label: localization['operating_system'], holder: 'esxi_file remote_file os_install hide', mandatory: true}) +
-				loadFormTemplate({type: 'dropdown', id: 'esxi_kickstart', class: 'esxi_kickstart_file', label: localization['kickstart'], holder: 'esxi_kickstart remote_file os_install hide'}) +
-				loadFormTemplate({type: 'checkbox', id: 'ucs_upgrade', class: 'ucs_upgrade', label: localization['ucs_firmware'], holder: 'ucs_firmware'}) +
-				loadFormTemplate({type: 'dropdown', id: 'infra_image', class: 'ucs_infra_image', label: localization['ucs-software-bundle'], holder: 'infra_image ucs_upgrade hide'}) + 
-				loadFormTemplate({type: 'dropdown', id: 'blade_image', class: 'ucs_blade_image', label: localization['blade-software'], holder: 'blade_image ucs_upgrade hide'}) + 
-				loadFormTemplate({type: 'dropdown', id: 'rack_image', class: 'ucs_rack_image', label: localization['rack-software'], holder: 'rack_image ucs_upgrade hide'});
-			if(column == '2') str += '</div>';
+						loadFormTemplate({id: 'oobIP_' + index, value: value.ip, label: localization['mgmt-ip'], class: 'ipaddress', mandatory: true, holder: 'switch_ip mgmt_ip unique_ip ' + class_name}) +
+					'</div>' +
+				'</div>';
+			});
+			str += loadFormTemplate({id: 'virtualIP', label: localization['virtual-ip'], class: 'virtualIP ipaddress', holder: 'ucsm-primary virtual_ip unique_ip nopadding ' + widthCls, mandatory: true}) + 
+			loadFormTemplate({id: 'primaryName', label: localization['primary-name'], holder: 'ucsm-subordinate pri_name switch_name hide nopadding ' + widthCls, mandatory: true}) +
+			loadFormTemplate({id: 'oobIP', label: localization['primary-ip'], class: 'ipaddress', holder: 'ucsm-subordinate pri_ip hide nopadding ' + widthCls, mandatory: true}) + 
+			loadFormTemplate({id: 'systemName', label: localization['system-name'], holder: 'ucsm-primary pri_name switch_name ' + widthCls, mandatory: true});
+			str += '<div class="' + widthCls + ' nopadding">' +
+				loadFormTemplate({type: 'dropdown', id: 'os_install', class: 'os_install', label: localization['operating_system'], holder: 'os_install nopadding', value: [{label: 'None', value: '', selected: 'selected'}, {label: 'ESXi', value: 'Yes', selected: ''}]}) +
+				loadFormTemplate({type: 'dropdown', id: 'esxi_file', class: 'esxi_remote_file', label: 'ISO File', holder: 'esxi_file remote_file os_install hide nopadding', mandatory: true}) +
+				loadFormTemplate({type: 'dropdown', id: 'esxi_kickstart', class: 'esxi_kickstart_file', label: localization['kickstart'], holder: 'esxi_kickstart remote_file os_install hide nopadding'}) +
+			'</div>' +
+			'<div class="' + widthCls + ' nopadding">' +
+				loadFormTemplate({type: 'checkbox', id: 'ucs_upgrade', class: 'ucs_upgrade', label: localization['ucs_firmware'], holder: 'ucs_firmware nopadding'}) +
+				loadFormTemplate({type: 'dropdown', id: 'infra_image', class: 'ucs_infra_image', label: localization['ucs-software-bundle'], holder: 'infra_image ucs_upgrade hide nopadding'}) + 
+				loadFormTemplate({type: 'dropdown', id: 'blade_image', class: 'ucs_blade_image', label: localization['blade-software'], holder: 'blade_image ucs_upgrade hide nopadding'}) + 
+				loadFormTemplate({type: 'dropdown', id: 'rack_image', class: 'ucs_rack_image', label: localization['rack-software'], holder: 'rack_image ucs_upgrade hide nopadding'}) +
+			'</div>';
 		str += '</div>\
 		<div class="table-end"></div>\
 	</div>\
@@ -2051,17 +2198,16 @@ function loadFAForm(options, index, isFAPrimary, width) {
 	$('.flasharray.block.fa_' + index).remove();
 	var str = '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 nopadding block pure flasharray fa_' + index + '">';
 		str += '<div class="form nopadding">' +
-			loadFormTemplate({id: 'fa_array_name_' + index, label: localization['name'], class: '', holder: 'array_name fa_name ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_array_name_' + index, label: 'FlashArray Name', class: '', holder: 'array_name fa_name ' + width, mandatory: true}) + 
 			loadFormTemplate({id: 'fa_vir0_ip_' + index, label: localization['virtual-ip'], class: 'ipaddress', holder: 'vir0_ip fa_virtual_ip unique_ip ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_ct0_ip_' + index, label: 'Controller0 ' + localization['ip'], class: 'ipaddress', holder: 'ct0_ip fa_controller0_ip unique_ip ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_ct1_ip_' + index, label: 'Controller1 ' + localization['ip'], class: 'ipaddress', holder: 'ct1_ip fa_controller1_ip unique_ip ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_relay_host_' + index, label: 'Relay Host', class: '', holder: 'relay_host fa_relay_host ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_sender_domain_' + index, label: 'Sender Domain', class: '', holder: 'sender_domain fa_sender_domain ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_organization_' + index, label: 'Organization', class: '', holder: 'organization fa_organization ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_full_name_' + index, label: 'Fullname', class: '', holder: 'full_name fa_full_name ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_job_title_' + index, label: 'Job Title', class: '', holder: 'job_title fa_job_title ' + width, mandatory: true}) + 
-			loadFormTemplate({type: 'dropdown', id: 'fa_timezone_' + index, label: 'Timezone', class: '', holder: 'timezone ' + width, mandatory: true}) + 
-			loadFormTemplate({id: 'fa_alert_emails_' + index, label: 'Alert Emails', class: 'tags tagify', "dataRole": "tagsinput", holder: 'alert_emails fa_alert_emails ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_ct0_ip_' + index, label: 'Controller 0 ' + localization['ip'], class: 'ipaddress', holder: 'ct0_ip fa_controller0_ip unique_ip ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_ct1_ip_' + index, label: 'Controller 1 ' + localization['ip'], class: 'ipaddress', holder: 'ct1_ip fa_controller1_ip unique_ip ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_organization_' + index, label: 'Organization Name', class: '', holder: 'fa_eula organization fa_organization ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_full_name_' + index, label: 'Your Name', class: '', holder: 'fa_eula full_name fa_full_name ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'fa_job_title_' + index, label: 'Your Title', class: '', holder: 'fa_eula job_title fa_job_title ' + width, mandatory: true}) + 
+			loadFormTemplate({id: 'sender_domain', label: 'Sender Domain', holder: 'sender_domain fa_sender_domain ' + width, mandatory: true, helptext: 'Email Domain Name (Example: flashstack.cisco.com)'}) + 
+			loadFormTemplate({id: 'fa_alert_emails_' + index, label: 'Alert Email Address(s)**', class: 'tags tagify', "dataRole": "tagsinput", holder: 'alert_emails fa_alert_emails ' + width}) + 
+			loadFormTemplate({id: 'fa_timezone_' + index, type: 'dropdown', label: 'Timezone', class: '', holder: 'timezone ' + width, mandatory: true}) + 
 			loadFormField({type: 'hidden', id: 'fa_switch_serial_' + index, value: options.serial}) + 
 			loadFormField({type: 'hidden', id: 'fa_switch_mac_' + index, value: options.mac}) + 
 			loadFormField({type: 'hidden', id: 'fa_switch_ip_' + index, value: options.ip}) + 
@@ -2093,34 +2239,46 @@ function loadDHCPSettingsForm() {
 			loadFormTemplate({id: 'dhcp_netmask', label: localization['netmask'], value: response.data.netmask, readonly: true, class: 'disabled ipaddress', holder: 'dhcp netmask'}) +
 			loadFormTemplate({id: 'dhcp_gateway', label: localization['gateway'], value: response.data.gateway, readonly: true, class: 'disabled ipaddress', holder: 'dhcp gateway'}) +
 			loadFormTemplate({id: 'dhcp_ipaddress', label: localization['ip'], value: response.data.ip, readonly: true, class: 'disabled ipaddress', holder: 'dhcp server_ip'}) +
-			loadFormTemplate({id: 'dhcp_ranges', label: localization['dhcp-static-range'], holder: 'dhcp ranges range-slider', mandatory: true}) +
+			loadFormTemplate({id: 'dhcp_ranges', label: localization['dhcp-static-range'], holder: 'dhcp ranges range-slider', helptext: localization['static-range-info']}) +
 		'</div>';
 		$('.modal-body #form-body .mCSB_container').html(str);
 		$('#dhcp_ranges').after('<div class="legend">\
 			<span><i class="orange-text fa fa-square"></i>' + localization['dhcp_range'] + '</span>\
 			<span class="pull-right"><i class="light-grey-text fa fa-square"></i>' + localization['static_range'] + '</span>\
 		</div>');
-		var max = response.data.static_end.split(".").pop();
-		var avg = (max / 2);
+		var max = response.data.end.split(".").pop();
 		$("#dhcp_ranges").ionRangeSlider({
 			type: "double",
 			grid: true,
 			force_edges: true,
-			min: response.data.dhcp_start.split(".").pop(),
+			min: response.data.start.split(".").pop(),
 			max: max,
 			from: parseInt(response.data.dhcp_start.split(".").pop()),
 			//from_min: parseInt(response.data.dhcp_start.split(".").pop()),
-			from_fixed: true,
+			//from_fixed: true,
 			//from_shadow: true,
-			min_interval: 30,
+			min_interval: 20,
+			max_interval: 40,
 			to: response.data.dhcp_end.split(".").pop(),
-			to_max: (max - 30),
+			//to_max: (max - 30),
 			drag_interval: true
 		});
 		if(systemInfo.dhcp_status == "enabled") {
 			$('#enable-dhcp').prop('checked', true);
 			$('div.control-group.dhcp').removeClass('hide');
 		}
+		$('.modal-inset .help-txt').tipso({
+			position: 'top',
+			animationIn: 'bounceIn',
+			animationOut: 'bounceOut',
+			titleBackground: 'rgb(247, 124, 61)',
+			background: '#FFF',
+			color: '#454545',
+			tooltipHover: true,
+			onBeforeShow: function(ele, tipso) {
+				
+			}
+		});
 	});
 }
 
@@ -2146,13 +2304,13 @@ function loadISOLibraryForm(attr) {
 		style = 'active'; display = '';
 	}
 	fields.push({type: 'radio', id: 'iso_image_mds', optional_label: 'NXOS MDS', value: 'MDS', name: 'image_type', class: 'iso_image ' + style, checked: true});
-	subtype.push({type: 'radio', id: 'iso_image_mds_kickstart', optional_label: 'Kick Start', value: 'MDS-kickstart', class: 'sub_image MDS ' + style, name: 'image_sub_type', checked: true});
+	subtype.push({type: 'radio', id: 'iso_image_mds_kickstart', optional_label: 'Kickstart', value: 'MDS-kickstart', class: 'sub_image MDS ' + style, name: 'image_sub_type', checked: true});
 	subtype.push({type: 'radio', id: 'iso_image_mds_image', optional_label: 'System Software', value: 'MDS', name: 'image_sub_type', class: 'sub_image MDS ' + style});
 
 	fields.push({type: 'radio', id: 'iso_image_nexus', optional_label: 'NXOS NEXUS', value: 'Nexus', name: 'image_type', class: 'iso_image ' + style});
 	subtype.push({type: 'radio', id: 'iso_image_nexus9k_image', optional_label: 'Nexus 9k System Software', value: 'Nexus 9k', name: 'image_sub_type', class: 'sub_image Nexus ' + style, holder: 'hide'});
 	subtype.push({type: 'radio', id: 'iso_image_nexus5k_image', optional_label: 'Nexus 5k System Software', value: 'Nexus 5k', name: 'image_sub_type', class: 'sub_image Nexus ' + style, holder: 'hide'});
-	subtype.push({type: 'radio', id: 'iso_image_nexus5k_kickstart', optional_label: 'Nexus 5k Kick Start', value: 'Nexus 5k-kickstart', class: 'sub_image Nexus ' + style, name: 'image_sub_type', holder: 'hide'});
+	subtype.push({type: 'radio', id: 'iso_image_nexus5k_kickstart', optional_label: 'Nexus 5k Kickstart', value: 'Nexus 5k-kickstart', class: 'sub_image Nexus ' + style, name: 'image_sub_type', holder: 'hide'});
 
 	fields.push({type: 'radio', id: 'iso_image_ucsm', optional_label: 'NXOS UCS', value: 'UCSM', name: 'image_type', class: 'iso_image ' + style});
 	subtype.push({type: 'radio', id: 'iso_image_ucs_infra', optional_label: 'Infrastructure Image', value: 'UCS-infra', name: 'image_sub_type', class: 'sub_image UCSM ' + style, holder: 'hide'});

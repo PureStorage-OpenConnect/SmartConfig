@@ -54,7 +54,7 @@ def system_info():
     sysinfo = {
         'name': 'FlashStack&trade; | SmartConfig',
         'version': get_smartconfig_version(),
-        'copyright': '&copy; 2018 Pure Storage Inc',
+        'copyright': '&copy; 2019 Pure Storage Inc',
         'info': info_file
     }
     status, details = get_xml_element(settings, 'name')

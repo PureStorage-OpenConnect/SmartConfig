@@ -13,7 +13,10 @@ ip route 0.0.0.0/0 {{switch_gateway}}
 no telnet server enable
 terminal dont-ask persist
 
-ntp server {{ntp_server}} use-vrf management
+{% set ntp_list = ntp_server.split(',') -%}
+{% for server in ntp_list -%}
+ntp server {{server}} use-vrf management
+{% endfor %}
 
 no password strength-check
 

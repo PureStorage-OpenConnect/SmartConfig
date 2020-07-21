@@ -119,7 +119,7 @@
 	"static_range": "Static Range",
 	"hardware-type": "Hardware Type",
 	"import-image": "Import Image",
-	"kickstart": "Kick Start",
+	"kickstart": "Kickstart",
 	"esxi-kickstart": "ESXi Kickstart",
 	"select-iso": "Select ISO",
 	"select-file": "Select File",
@@ -194,7 +194,8 @@
 	"reset-wf-state-confirm": "Are you sure you want to reset the workflows execution status?",
 	"delete-image-confirm": "Are you sure you want to delete this image?",
 	"ssh-enable-msg": "Make sure SSH is enabled for the device",
-	"dhcp-settings-msg": "Make sure static range do not conflict with used IP Addresses",
+	"dhcp-settings-msg": "Make sure static IP range does not conflict with the used IP address range.",
+	"static-range-info": "DHCP Range will only be used at the time of device discovery. Static range will be  used to suggest actual IP addresses to the hardware during initialization.",
 	"ucsm-upgrade-msg": "UCS upgrade will take around 30 min to complete.",
 	"delete-devices-confirm": "Are you sure you want to delete the selected devices?",
 	"delete-device-confirm": "Are you sure you want to delete this device?",
@@ -210,7 +211,6 @@
 	"select-flashstack": "Please select a FlashStack&trade; deployment",
 	"reset-config-confirm": "Are you sure you want to reset the configuration?",
 	"rollback-confirm": "Are you sure you want to Rollback the workflow configuration?",
-	"duplicate-ip": "Same IP Address should not be used",
 	"firmware": "Firmware",
 	"operating_system": "Operating System",
 	"ucs_firmware": "UCS Firmware",
@@ -219,5 +219,8 @@
 	"rack-software": "UCS C-Series Rack Server Software Bundle",
 	"page_error_mgs": "An error has occurred",
 	"page_error_desc": "Please wait. Server is currently under rebooting state - it will reload automatically or hit \"reload\" on your browser in a minute to try again.",
-	"file_not_found": "File not available. Please try again later."
+	"file_not_found": "File not available. Please try again later.",
+	"duplicate-ip": "Same IP Address should not be used.",
+	"ip_overlap_dhcp": "Make sure static IP does not conflict with the DHCP range.",
+	"dhcp_kvm_overlap": "KVM console range should not overlap DHCP range."
 }

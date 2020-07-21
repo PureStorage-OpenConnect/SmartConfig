@@ -40,7 +40,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
-        <arg mapval="0" name="name" value="CT0.FC2"/>
+        <arg mapval="0" name="name" value="CT0.FC0"/>
       </args>
     </task>
     <task OnSuccess="t508" Onfailure="None" desc="Add Primary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Primary SAN Boot target" name="UCSAddSanBootTarget" texecid="t501">
@@ -63,7 +63,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
-        <arg mapval="0" name="name" value="CT1.FC2"/>
+        <arg mapval="0" name="name" value="CT1.FC0"/>
       </args>
     </task>
     <task OnSuccess="t701" Onfailure="None" desc="Add Secondary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Secondary SAN Boot target" name="UCSAddSanBootTarget" texecid="t601">
@@ -98,7 +98,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
-        <arg mapval="0" name="name" value="CT0.FC3"/>
+        <arg mapval="0" name="name" value="CT0.FC1"/>
       </args>
     </task>
     <task OnSuccess="t808" Onfailure="None" desc="Add Primary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Primary SAN Boot target" name="UCSAddSanBootTarget" texecid="t801">
@@ -121,7 +121,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
-        <arg mapval="0" name="name" value="CT1.FC3"/>
+        <arg mapval="0" name="name" value="CT1.FC1"/>
       </args>
     </task>
     <task OnSuccess="t1001" Onfailure="None" desc="Add Secondary San Boot Target To San Boot" id="UCSAddSanBootTarget" inittask="0" label="Add Secondary SAN Boot target" name="UCSAddSanBootTarget" texecid="t901">

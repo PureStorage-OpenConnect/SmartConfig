@@ -3,6 +3,8 @@ from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save, get_field_value_from_jobid
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
+from ucsmsdk.mometa.compute.ComputeRackUnit import ComputeRackUnit
+from ucsmsdk.mometa.compute.ComputeBlade import ComputeBlade
 
 metadata = dict(
     task_id="UCSCreateServiceProfileTemplate",
@@ -49,6 +51,22 @@ class UCSCreateServiceProfileTemplate:
         print ucs_list, res
         return res
 
+    def list_server_disks(self, handle):
+	blades = handle.query_classid(class_id="ComputeBlade")
+	all_disks = []
+	for serv in blades:
+	    chassis = serv.chassis_id
+	    slot_id = serv.slot_id
+	    cquery = "(dn, \"sys/chassis-{0}/blade-{1}/board.*\", type=\"re\")".format(chassis, slot_id)
+            controllers = handle.query_classid("StorageController", cquery)
+        # Get the disks of each controller.
+            for c in controllers:
+                dquery = "(dn, \"{0}\", type=\"re\")".format(c.dn)
+                disks = handle.query_classid("StorageLocalDisk", dquery)
+                for d in disks:
+                    all_disks.append(d)
+	return all_disks
+	
     def prepare(self, jobid, texecid, inputs):
         loginfo(
             "preparing to save values for creating service profile template input params")
@@ -57,6 +75,18 @@ class UCSCreateServiceProfileTemplate:
         val = getGlobalArg(inputs, 'ucs_switch_a')
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
+
+	fabricid = getArg(keys, 'fabric_id')
+        if fabricid is None:
+            res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
+            return res
+
+        res = get_ucs_login(fabricid)
+        if res.getStatus() != PTK_OKAY:
+            return parseTaskResult(res)
+
+        handle = res.getResult()
+
         res = self.getuuidpool(keys)
         uuid_list = [uuid for uuid in res.getResult() if uuid.get('id')
                      != 'default']
@@ -84,9 +114,15 @@ class UCSCreateServiceProfileTemplate:
             jobid, texecid, "power_policy_name", power_pol_list)
 
         local_disk_policy = self.getlocaldiskpolicy(keys)
-        localdisk_pol_list = [localdisk_pol for localdisk_pol in local_disk_policy.getResult(
-        ) if localdisk_pol.get('id') != 'default']
-        self.sp_template_save_inputs(
+	
+	disks = self.list_server_disks(handle)
+	loginfo("Local disk policy is default when there are local disks in server")
+	if disks:
+	    job_input_save(jobid, texecid, "local_disk_policy_name", "default")
+	else:
+	    localdisk_pol_list = [localdisk_pol for localdisk_pol in local_disk_policy.getResult(
+	) if localdisk_pol.get('id') != 'default']
+            self.sp_template_save_inputs(
             jobid, texecid, "local_disk_policy_name", localdisk_pol_list)
 
         bios_policy = self.getbiospolicy(keys)

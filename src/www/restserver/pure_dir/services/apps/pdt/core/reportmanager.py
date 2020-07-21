@@ -561,33 +561,24 @@ class SCReport:
         '''
         res = result()
         resObj = {'tid':'', 'report_status':''}
-        if os.path.exists(generated_report):
-            loginfo("SmartConfig report already exists")
-            resObj['tid'] = generated_report.split("/")[-1]
-            resObj['report_status'] = 'Completed'
-            code = PTK_OKAY
+        try:
+            self.alter_san_type(stacktype)
+            thread = threading.Thread(target=self.generate_excel, args=(stacktype,))
+            thread.start()
+            loginfo("Thread has been initiated to generate report")
+            thread.join()
+            resObj['tid']= str(thread.ident)
+            resObj['report_status'] = 'started'
+            code = PTK_BACKGROUND_OPER
             msg = "Success"
             res.setResult(resObj, code, msg)
             return res
-        else:
-            try:
-                self.alter_san_type(stacktype)
-                thread = threading.Thread(target=self.generate_excel, args=(stacktype,))
-                thread.start()
-                loginfo("Thread has been initiated to generate report")
-                thread.join()
-                resObj['tid']= str(thread.ident)
-                resObj['report_status'] = 'started'
-                code = PTK_BACKGROUND_OPER
-                msg = "Success"
-                res.setResult(resObj, code, msg)
-                return res
-            except Exception as e:
-                loginfo("Unexcepted Error" +str(e))
-                code = PTK_INTERNALERROR
-                msg = "Failed"
-                res.setResult(resObj, code, msg)
-                return res
+        except Exception as e:
+            loginfo("Unexcepted Error" +str(e))
+            code = PTK_INTERNALERROR
+            msg = "Failed"
+            res.setResult(resObj, code, msg)
+            return res
     
     def report_status(self, tid):
         '''

@@ -639,7 +639,7 @@
 			<label key="uptime">uptime</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_vsan_info" header_title="Nexus5k A VSANs" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_vsan_info" header_title="Nexus5k A VSANs" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -651,7 +651,7 @@
 			<label key="vsan_operational_state">Operational</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_vsan_info" header_title="Nexus5k B VSANs" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_vsan_info" header_title="Nexus5k B VSANs" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -663,7 +663,7 @@
 			<label key="vsan_operational_state">Operational</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_flogi" header_title="Nexus5k A Flogi" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_flogi" header_title="Nexus5k A Flogi" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -674,7 +674,7 @@
 			<label key="wwnn">WWNN</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_flogi" header_title="Nexus5k B Flogi" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_flogi" header_title="Nexus5k B Flogi" belongsTo="Nexus5k-SAN1" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -685,7 +685,7 @@
 			<label key="wwnn">WWNN</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_zoneset" header_title="Nexus5k Switch A Zone Information" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_zoneset" header_title="Nexus5k Switch A Zone Information" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -694,7 +694,7 @@
 			<label key="zoneset_vsan_id">VSAN</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_zoneset" header_title="Nexus5k Switch B Zone Information" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_zoneset" header_title="Nexus5k Switch B Zone Information" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -703,7 +703,7 @@
 			<label key="zoneset_vsan_id">VSAN</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_zone" header_title="Nexus5k A Zoning" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_zone" header_title="Nexus5k A Zoning" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -713,7 +713,7 @@
 			<label key="logged">Logged IN</label>
 		</labels>
 	</section>
-	<section api="get_nexus5k_zone" header_title="Nexus5k B Zoning" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n5k-fi-fc|fa-n5k-fi-iscsi" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus5k_zone" header_title="Nexus5k B Zoning" belongsTo="Nexus5k-SAN1-Zones" stacktypes="fa-n5k-figen2-fc|fa-n5k-fi-fc" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>

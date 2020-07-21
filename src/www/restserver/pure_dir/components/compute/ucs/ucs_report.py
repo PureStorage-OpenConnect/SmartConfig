@@ -152,7 +152,7 @@ def get_ucs_system_cluster_info(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_cluster_list, str(ue)
+        return PTK_INTERNALERROR, ucs_cluster_list, str(ue)
     finally:
         lock.release()
 
@@ -201,7 +201,7 @@ def get_ucs_system_fi_info(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_fiinfo_list, str(ue)
+        return PTK_INTERNALERROR, ucs_fiinfo_list, str(ue)
     finally:
         lock.release()
 
@@ -246,7 +246,7 @@ def get_ucs_system_fi_inventory(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_fiinventory_list, str(ue)
+        return PTK_INTERNALERROR, ucs_fiinventory_list, str(ue)
     finally:
         lock.release()
 
@@ -320,7 +320,7 @@ def get_ucs_system_fi_globalsettings(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_figlobalset_list, str(ue)
+        return PTK_INTERNALERROR, ucs_figlobalset_list, str(ue)
     finally:
         lock.release()
 
@@ -357,7 +357,7 @@ def get_ucs_system_organizations(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_sysorg_list, str(ue)
+        return PTK_INTERNALERROR, ucs_sysorg_list, str(ue)
     finally:
         lock.release()
 
@@ -418,7 +418,7 @@ def get_ucs_system_callhomebase(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_callhome_list, str(ue)
+        return PTK_INTERNALERROR, ucs_callhome_list, str(ue)
     finally:
         lock.release()
 
@@ -461,7 +461,7 @@ def get_ucs_system_callhome_profiles(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_callhome_profiles_list, str(ue)
+        return PTK_INTERNALERROR, ucs_callhome_profiles_list, str(ue)
     finally:
         lock.release()
 
@@ -509,7 +509,7 @@ def get_ucs_system_licenseinfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_licenseinfo_list, str(ue)
+        return PTK_INTERNALERROR, ucs_licenseinfo_list, str(ue)
     finally:
         lock.release()
 
@@ -578,7 +578,7 @@ def get_ucs_system_chassisinfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_chassisinfo_list, str(ue)
+        return PTK_INTERNALERROR, ucs_chassisinfo_list, str(ue)
     finally:
         lock.release()
 
@@ -646,7 +646,7 @@ def get_ucs_system_serverinfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_serverinfo_list, str(ue)
+        return PTK_INTERNALERROR, ucs_serverinfo_list, str(ue)
     finally:
         lock.release()
 
@@ -715,7 +715,7 @@ def get_ucs_system_server_config_info(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_serverinfo_list, str(ue)
+        return PTK_INTERNALERROR, ucs_serverinfo_list, str(ue)
     finally:
         lock.release()
 
@@ -754,7 +754,7 @@ def get_ucs_system_faultinfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_faultinfo_list, str(ue)
+        return PTK_INTERNALERROR, ucs_faultinfo_list, str(ue)
     finally:
         lock.release()
 
@@ -803,7 +803,7 @@ def get_ucs_system_syslog(args={}):
 
     except UcsException as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_syslog_list, str(ue)
+        return PTK_INTERNALERROR, ucs_syslog_list, str(ue)
     finally:
         lock.release()
 
@@ -843,7 +843,7 @@ def get_ucsm_cluster(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_cluster_list, str(ue)
+        return PTK_INTERNALERROR, ucs_cluster_list, str(ue)
     finally:
         lock.release()
 
@@ -892,7 +892,7 @@ def get_ucsm_systemclass(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_sysclass_list, str(ue)
+        return PTK_INTERNALERROR, ucs_sysclass_list, str(ue)
     finally:
     	lock.release()
 
@@ -934,11 +934,11 @@ def get_ucs_system_qospol(args={}):
                 return PTK_NOTEXIST, ucs_qospol_list, "Unable to get " + method
         else:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, ucs_qospol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, ucs_qospol_list, "failed to get handler for UCS Report Generation"
 
     except UcsException as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_qospol_list, str(ue)
+        return PTK_INTERNALERROR, ucs_qospol_list, str(ue)
     finally:
         lock.release()
 
@@ -960,7 +960,7 @@ def get_ucs_system_nwctlpol(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, ucs_nwctlpol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, ucs_nwctlpol_list, "failed to get handler for UCS Report Generation"
         for ucs_nwctrlpolicies in handle.query_classid(class_id="NwctrlDefinition"):
             ucs_ini = {'dn' : "", 'name' : "", 'cdp' : "", 'mac_register' : "", 'uplink_fail_policy' : ""}
             ucs_nwctlpol = copy.deepcopy(ucs_ini)
@@ -978,7 +978,7 @@ def get_ucs_system_nwctlpol(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_nwctlpol_list, str(ue)
+        return PTK_INTERNALERROR, ucs_nwctlpol_list, str(ue)
     finally:
    	lock.release()
 
@@ -1000,7 +1000,7 @@ def get_ucs_system_vlaninfo(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, ucs_vlan_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, ucs_vlan_list, "failed to get handler for UCS Report Generation"
         for ucs_vlans in handle.query_classid(class_id="FabricVlan"): 
             ucs_ini = {'vlan_id' : "", 'vlan_name' : "", 'fabric_member' : "", 'vlan_role' : ""}
             ucs_vlan = copy.deepcopy(ucs_ini)
@@ -1017,7 +1017,7 @@ def get_ucs_system_vlaninfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_vlan_list, str(ue)
+        return PTK_INTERNALERROR, ucs_vlan_list, str(ue)
     finally:
         lock.release()
 
@@ -1039,7 +1039,7 @@ def get_ucs_system_vsaninfo(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, ucs_vsan_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, ucs_vsan_list, "failed to get handler for UCS Report Generation"
         for ucs_vsans in handle.query_classid(class_id="FabricVsan"):
             ucs_ini = {'vsan_id' : "", 'vsan_name' : "", 'fabric_member' : "", 'vlan_role' : ""}
             ucs_vsan = copy.deepcopy(ucs_ini)
@@ -1061,7 +1061,7 @@ def get_ucs_system_vsaninfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, ucs_vsan_list, str(ue)
+        return PTK_INTERNALERROR, ucs_vsan_list, str(ue)
     finally:
 	lock.release()
 
@@ -1083,7 +1083,7 @@ def get_fi_portchlinfo(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_portchl_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_portchl_list, "failed to get handler for UCS Report Generation"
         for fi_ethportchls in handle.query_classid(class_id="FabricEthLanPc"):
             ucs_ini = {'name' : "", 'state' : "", 'speed' : "", 'role' : "", 'type' : "", 'port_id'  : "",
                        'switch_id' : "", 'transport' : "", 'description' : ""}
@@ -1130,7 +1130,7 @@ def get_fi_portchlinfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_portchl_list, str(ue)
+        return PTK_INTERNALERROR, fi_portchl_list, str(ue)
     finally:
 	lock.release()
 
@@ -1152,7 +1152,7 @@ def get_ucs_system_ethinterconnectinfo(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_etherintercon_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_etherintercon_list, "failed to get handler for UCS Report Generation"
         for ethernet_ports in handle.query_classid(class_id="EtherPIo"):
             ucs_ini = {'port' : "", 'mac' : "", 'type' : "", 'lic_state' : "", 'mode' : "", 'state' : "", 'speed' : "", 
                        'connected_device' : "", 'connected_port' : ""}
@@ -1194,7 +1194,7 @@ def get_ucs_system_ethinterconnectinfo(args={}):
 
     except UcsException as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_etherintercon_list, str(ue)
+        return PTK_INTERNALERROR, fi_etherintercon_list, str(ue)
     finally:
  	lock.release()
 
@@ -1216,7 +1216,7 @@ def get_ucs_system_fcinterconnectinfo(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_fcintercon_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_fcintercon_list, "failed to get handler for UCS Report Generation"
         for fc_ports in handle.query_classid(class_id="FcPIo"):
             ucs_ini = {'port' : "", 'wwn' : "", 'type' : "", 'lic_state' : "", 'mode' : "", 'state' : "", 'speed' : "", 
                        'connected_device' : "", 'connected_port' : ""}
@@ -1247,7 +1247,7 @@ def get_ucs_system_fcinterconnectinfo(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_fcintercon_list, str(ue)
+        return PTK_INTERNALERROR, fi_fcintercon_list, str(ue)
     finally:
 	lock.release()
 
@@ -1271,7 +1271,7 @@ def get_ucs_system_uuid_pool(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_uuidpool_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_uuidpool_list, "failed to get handler for UCS Report Generation"
         for fi_uuids in handle.query_classid(class_id="UuidpoolPool"):
             ucs_ini = {'name' : "", 'assignment_order' : "", 'size' : "", 'used' : "", 'prefix' : "", 
                        'from' : "", 'to' : ""}
@@ -1297,7 +1297,7 @@ def get_ucs_system_uuid_pool(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_fcintercon_list, str(ue)
+        return PTK_INTERNALERROR, fi_fcintercon_list, str(ue)
     finally:
 	lock.release()
 
@@ -1319,7 +1319,7 @@ def get_ucs_system_wwn_pool(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_wwnpool_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_wwnpool_list, "failed to get handler for UCS Report Generation"
         for fi_wwns in handle.query_classid(class_id="FcpoolInitiators"):
             ucs_ini = {'name' : "", 'assignment_order' : "", 'size' : "", 'used' : "", 'prefix' : "", 
                        'from' : "", 'to' : ""}
@@ -1345,7 +1345,7 @@ def get_ucs_system_wwn_pool(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_wwnpool_list, str(ue)
+        return PTK_INTERNALERROR, fi_wwnpool_list, str(ue)
     finally:
 	lock.release()
 
@@ -1367,7 +1367,7 @@ def get_ucs_system_iqn_pool(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_iqnpool_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_iqnpool_list, "failed to get handler for UCS Report Generation"
         for fi_iqns in handle.query_classid(class_id="IqnpoolPool"):
             ucs_ini = {'name' : "", 'assignment_order' : "", 'size' : "", 'used' : "", 'prefix' : "", 'suffix' : "", 
                        'from' : "", 'to' : ""}
@@ -1394,7 +1394,7 @@ def get_ucs_system_iqn_pool(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_iqnpool_list, str(ue)
+        return PTK_INTERNALERROR, fi_iqnpool_list, str(ue)
     finally:
 	lock.release()
 
@@ -1416,7 +1416,7 @@ def get_ucs_system_mac_pool(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_macpool_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_macpool_list, "failed to get handler for UCS Report Generation"
         for fi_macs in handle.query_classid(class_id="MacpoolPool"):
             ucs_ini = {'name' : "", 'assignment_order' : "", 'size' : "", 'used' : "", 
                        'from' : "", 'to' : ""}
@@ -1441,7 +1441,7 @@ def get_ucs_system_mac_pool(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_macpool_list, str(ue)
+        return PTK_INTERNALERROR, fi_macpool_list, str(ue)
     finally:
 	lock.release()
 
@@ -1463,7 +1463,7 @@ def get_ucs_system_ip_pool(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_ippool_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_ippool_list, "failed to get handler for UCS Report Generation"
         for fi_ippools in handle.query_classid(class_id="IppoolPool"):
             ucs_ini = {'name' : "", 'assignment_order' : "", 'size' : "", 'used' : "", 'dns': [], 'from' : "", 'to' : "", 
                        'subnet' : "", 'gateway' : ""}
@@ -1492,7 +1492,7 @@ def get_ucs_system_ip_pool(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_ippool_list, str(ue)
+        return PTK_INTERNALERROR, fi_ippool_list, str(ue)
     finally:
 	lock.release()
 
@@ -1514,7 +1514,7 @@ def get_ucs_system_fault_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_fault_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_fault_pol_list, "failed to get handler for UCS Report Generation"
         for fi_faultpol in handle.query_classid(class_id="FaultPolicy"):
             ucs_ini = {'rn' : "", 'ack_action' : "", 'clear_action' : "", 'clear_interval' : "", 'flap_interval' : "", 
                        'retn_interval' : ""}
@@ -1534,7 +1534,7 @@ def get_ucs_system_fault_policy(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_fault_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_fault_pol_list, str(ue)
     finally:
  	lock.release()
 
@@ -1556,7 +1556,7 @@ def get_ucs_system_backup_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_bkup_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_bkup_pol_list, "failed to get handler for UCS Report Generation"
         for fi_bkuppol in handle.query_classid(class_id="MgmtBackupPolicy"):
             ucs_ini = {'descr' : "", 'host' : "", 'last_backup' : "", 'proto' : "", 'schedule' : "", 'admin_state' : ""}
             fi_bkup_pol = copy.deepcopy(ucs_ini)
@@ -1575,7 +1575,7 @@ def get_ucs_system_backup_policy(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_bkup_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_bkup_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1597,7 +1597,7 @@ def get_ucs_system_ipmi_access_profiles(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_ipmi_access_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_ipmi_access_pol_list, "failed to get handler for UCS Report Generation"
         for fi_ipmi in handle.query_classid(class_id="AaaEpAuthProfile"):
             ucs_ini = {'ipmi_profile' : "", 'users' : "", 'role' : ""}
             fi_ipmi_access_pol = copy.deepcopy(ucs_ini)
@@ -1617,7 +1617,7 @@ def get_ucs_system_ipmi_access_profiles(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_ipmi_access_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_ipmi_access_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1639,7 +1639,7 @@ def get_ucs_system_local_disk_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_localdisk_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_localdisk_pol_list, "failed to get handler for UCS Report Generation"
         for fi_ldpol in handle.query_classid(class_id="StorageLocalDiskConfigPolicy"):
             ucs_ini = {'name' : "", 'mode' : "", 'protect_cfg' : ""}
             fi_localdisk_pol = copy.deepcopy(ucs_ini)
@@ -1655,7 +1655,7 @@ def get_ucs_system_local_disk_policy(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_localdisk_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_localdisk_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1677,7 +1677,7 @@ def get_ucs_system_bios_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_bios_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_bios_pol_list, "failed to get handler for UCS Report Generation"
         for fi_biospol in handle.query_classid(class_id="BiosVProfile"):
             ucs_ini = {'name' : "", 'reboot_on_update' : "", 'quiet_boot' : "", 'cie_setting' : ""}
             fi_bios_pol = copy.deepcopy(ucs_ini)
@@ -1699,7 +1699,7 @@ def get_ucs_system_bios_policy(args={}):
 
     except UcsException as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_bios_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_bios_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1721,7 +1721,7 @@ def get_ucs_system_maint_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_maint_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_maint_pol_list, "failed to get handler for UCS Report Generation"
         for fi_maintpol in handle.query_classid(class_id="LsmaintMaintPolicy"):
             ucs_ini = {'name' : "", 'reboot_pol' : ""}
             fi_maint_pol = copy.deepcopy(ucs_ini)
@@ -1736,7 +1736,7 @@ def get_ucs_system_maint_policy(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_maint_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_maint_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1758,7 +1758,7 @@ def get_ucs_system_boot_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_boot_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_boot_pol_list, "failed to get handler for UCS Report Generation"
         for fi_bootpol in handle.query_classid(class_id="LsbootPolicy"):
             ucs_ini = {'name' : "", 'enforce_vnic' : "", 'reboot_on_chg' : "", 'virtual_media_order' : "", 
                        'lan_order' : ""}
@@ -1805,7 +1805,7 @@ def get_ucs_system_boot_policy(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_boot_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_boot_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1827,7 +1827,7 @@ def get_ucs_system_san_boot_config_policy(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_boot_pol_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_boot_pol_list, "failed to get handler for UCS Report Generation"
         for fi_bootpol in handle.query_classid(class_id="LsbootPolicy"):
             ucs_ini = {'name' : "", 'san_order' : "", 'sanpri_targetpri' : "", 'sanpri_targetsec' : "",
                        'sansec_targetpri' : "", 'sansec_targetsec' : ""}
@@ -1880,7 +1880,7 @@ def get_ucs_system_san_boot_config_policy(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_boot_pol_list, str(ue)
+        return PTK_INTERNALERROR, fi_boot_pol_list, str(ue)
     finally:
 	lock.release()
 
@@ -1902,7 +1902,7 @@ def get_ucs_system_lan_template(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_lan_temp_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_lan_temp_list, "failed to get handler for UCS Report Generation"
         for fi_lantemp in handle.query_classid(class_id="VnicLanConnTempl"):
             ucs_ini = {'name' : "", 'template_type' : "", 'fabric' : "", 'qos' : "", 'mtu' : "", 'network_control' : "", 
                        'networks_allowed' : []}
@@ -1937,7 +1937,7 @@ def get_ucs_system_lan_template(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_lan_temp_list, str(ue)
+        return PTK_INTERNALERROR, fi_lan_temp_list, str(ue)
     finally:
 	lock.release()
 
@@ -1959,7 +1959,7 @@ def get_ucs_system_san_template(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_san_temp_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_san_temp_list, "failed to get handler for UCS Report Generation"
         for fi_santemp in handle.query_classid(class_id="VnicSanConnTempl"):
             ucs_ini = {'name' : "", 'template_type' : "", 'fabric' : "", 'qos' : "", 'max_data' : "", 'vsan' : ""}
             fi_san_temp = copy.deepcopy(ucs_ini)
@@ -1983,7 +1983,7 @@ def get_ucs_system_san_template(args={}):
 
     except UcsException as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_san_temp_list, str(ue)
+        return PTK_INTERNALERROR, fi_san_temp_list, str(ue)
     finally:
 	lock.release()
 
@@ -2005,7 +2005,7 @@ def get_ucs_system_host_fwpkg(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_host_fw_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_host_fw_list, "failed to get handler for UCS Report Generation"
         for fi_hostfw in handle.query_classid(class_id="FirmwareComputeHostPack"):
             ucs_ini = {'name' : "", 'ignore_compat_check' : "", 'hardware' : "", 'type' : "", 'version' : ""}
             fi_host_fw = copy.deepcopy(ucs_ini)
@@ -2029,7 +2029,7 @@ def get_ucs_system_host_fwpkg(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_host_fw_list, str(ue)
+        return PTK_INTERNALERROR, fi_host_fw_list, str(ue)
     finally:
 	lock.release()
 
@@ -2051,7 +2051,7 @@ def get_ucs_system_server_pol_information(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_info_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_info_list, "failed to get handler for UCS Report Generation"
         for fi_serverinfo in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'oper_state' : "", 'profile_type' : "", 'location' : "", 'maint_policy_name' : "", 
                        'maintenance_policy' : "", 'bios_profile' : "", 'boot_policy' : ""}
@@ -2074,7 +2074,7 @@ def get_ucs_system_server_pol_information(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_info_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_info_list, str(ue)
     finally:
 	lock.release()
 
@@ -2096,7 +2096,7 @@ def get_ucs_system_server_information(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_info_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_info_list, "failed to get handler for UCS Report Generation"
         for fi_serverinfo in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'location' : "", 'local_disk_policy' : "", 'host_fw_pkg' : "", 'kvm_ip_pool' : "", 
                        'uuid_pool' : "", 'uuid' : "", 'source_template' : ""}
@@ -2119,7 +2119,7 @@ def get_ucs_system_server_information(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_info_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_info_list, str(ue)
     finally:
 	lock.release()
 
@@ -2141,7 +2141,7 @@ def get_ucs_system_server_interface_information(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
         for fi_serverinterf in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'location' : "", 'veth_interf_name': [],'vnic_fabric': [], 'vnic_templ_name': [], 
                        'mac' : [], 'mtu' : [], 'vnic_adaptor_profile' : []}
@@ -2168,7 +2168,7 @@ def get_ucs_system_server_interface_information(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_interface_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_interface_list, str(ue)
     finally:
 	lock.release()
 
@@ -2190,7 +2190,7 @@ def get_ucs_system_server_eth_adaptor_pol_information(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
         for fi_serverinterf in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'location' : "", 'vnic_qos_pol' : [], 'virtual_ext_lan' : [], 'tcp_large_receive' : [], 
                        'interrupt_timer' : [], 'nw_ctl_pol' : [], 'vnic_ident_pool' : [], 'vnic_order' : []}
@@ -2225,7 +2225,7 @@ def get_ucs_system_server_eth_adaptor_pol_information(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_interface_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_interface_list, str(ue)
     finally:
 	lock.release()
 
@@ -2247,7 +2247,7 @@ def get_ucs_system_server_fc_interface_information(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
         for fi_serverinterf in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'location' : "", 'vlans' : [], 'vhba_interfaces' : [], 'vhba_fabric' : [], 
                        'vhba_templ_name' : [], 'wwpn' : [],'max_data' : []}
@@ -2279,7 +2279,7 @@ def get_ucs_system_server_fc_interface_information(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_interface_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_interface_list, str(ue)
     finally:
 	lock.release()
 
@@ -2301,7 +2301,7 @@ def get_ucs_system_server_fc_interface_config(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
         for fi_serverinterf in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'location' : "", 'vhba_adaptor_profile' : [], 'vhba_qos_pol' : [], 
                        'vhba_ident_pool' : [], 'vhba_order' : [], 'io_throttle_cnt' : [], 'luns_per_target' : []}
@@ -2333,7 +2333,7 @@ def get_ucs_system_server_fc_interface_config(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_interface_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_interface_list, str(ue)
     finally:
 	lock.release()
 
@@ -2355,7 +2355,7 @@ def get_ucs_system_server_iscsi_interface_information(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_server_interface_list, "failed to get handler for UCS Report Generation"
         for fi_serverinterf in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'name' : "", 'location' : "", 'vlans' : [], 'iqn' : "", 'iqn_ident_pool' : "", 
                        'iscsi_interfaces' : [], 'iscsi_fabric' : [], 'iscsi_templ_name' : [], 
@@ -2391,7 +2391,7 @@ def get_ucs_system_server_iscsi_interface_information(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_server_interface_list, str(ue)
+        return PTK_INTERNALERROR, fi_server_interface_list, str(ue)
     finally:
 	lock.release()
 
@@ -2413,7 +2413,7 @@ def get_ucs_system_iscsi_bootparams_primary(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_iscsi_boot_params_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_iscsi_boot_params_list, "failed to get handler for UCS Report Generation"
         for fi_service_profiles in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'service_profile' : "", 'iscsi_primary' : "", 'iscsi_primary_initiator_address' : "", 
                        'iscsi_primary_initiator_subnet' : "", 'iscsi_primary_initiator_def_gw' : "", 
@@ -2484,7 +2484,7 @@ def get_ucs_system_iscsi_bootparams_primary(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_iscsi_boot_params_list, str(ue)
+        return PTK_INTERNALERROR, fi_iscsi_boot_params_list, str(ue)
     finally:
 	lock.release()
 
@@ -2506,7 +2506,7 @@ def get_ucs_system_iscsi_bootparams_secondary(args={}):
         handle = _ucs_handler()
         if handle is None:
             loginfo("failed to get handler for UCS Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fi_iscsi_boot_params_list, "failed to get handler for UCS Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fi_iscsi_boot_params_list, "failed to get handler for UCS Report Generation"
         for fi_service_profiles in handle.query_classid(class_id="LsServer"):
             ucs_ini = {'service_profile' : "", 'iscsi_secondary' : "", 'iscsi_secondary_initiator_address' : "", 
                        'iscsi_secondary_initiator_subnet' : "", 'iscsi_secondary_initiator_def_gw' : "", 
@@ -2581,7 +2581,7 @@ def get_ucs_system_iscsi_bootparams_secondary(args={}):
 
     except Exception as ue:
         loginfo("UcsException has occured while fetching " + method + str(ue))
-        return PTK_INTERNAL_ERROR, fi_iscsi_boot_params_list, str(ue)
+        return PTK_INTERNALERROR, fi_iscsi_boot_params_list, str(ue)
     finally:
 	lock.release()
 

@@ -505,7 +505,12 @@ class NEXUSSetup:
             return res
 
         ip_valid = ipvalidation(data['switch_ip'])
-        ntp_valid = ipvalidation(data['ntp_server'])
+
+        ntp_valid= False
+	for ip in data['ntp_server'].split(','):
+        	ntp_valid = ipvalidation(ip)
+		if not ntp_valid:
+			break
         if len(ret) > 0:
             res.setResult(ret, PTK_INTERNALERROR,
                           "Please fill all mandatory fields.")

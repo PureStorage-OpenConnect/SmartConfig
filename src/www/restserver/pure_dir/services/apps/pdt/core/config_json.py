@@ -211,10 +211,10 @@ def export_configuration(stacktype, path=None):
                     'server_type')
             elif device.getAttribute('device_type') == 'PURE':
 		if device.hasAttribute('isZTP'):
-                    #discovery_dict['ct0_ip'] = device.getAttribute('ct0_ip')
-                    #discovery_dict['ct1_ip'] = device.getAttribute('ct1_ip')
-                    #discovery_dict['vir0_ip'] = device.getAttribute('vir0_ip')
-                    #discovery_dict['orig_ip'] = device.getAttribute('orig_ip')
+                    discovery_dict['ZTP'] = True
+                    discovery_dict['ct0_ip'] = device.getAttribute('ct0_ip')
+                    discovery_dict['ct1_ip'] = device.getAttribute('ct1_ip')
+                    discovery_dict['vir0_ip'] = device.getAttribute('vir0_ip')
                     discovery_dict['domain_name'] = device.getAttribute('domain_name')
                     discovery_dict['relay_host'] = device.getAttribute('relay_host')
                     discovery_dict['sender_domain'] = device.getAttribute('sender_domain')
@@ -224,8 +224,6 @@ def export_configuration(stacktype, path=None):
                     discovery_dict['full_name'] = device.getAttribute('full_name')
                     discovery_dict['job_title'] = device.getAttribute('job_title')
                     discovery_dict['timezone'] = device.getAttribute('timezone')
-                    discovery_dict['username'] = device.getAttribute('username')
-                    #discovery_dict['password'] = device.getAttribute('password')
 		else:
                     discovery_dict['array_ip'] = device.getAttribute('ipaddress')
 	    
@@ -275,6 +273,8 @@ def get_component_description(tag, device_type, field):
 		return "Nexus-A name"  + editable_str
 	if device_type == 'Nexus 5k' and tag == 'B':
 		return "Nexus-B name"  + editable_str
+	if device_type == 'FlashArray':
+		return "FlashArray name "  + editable_str
 
    	return "name "+ editable_str
    if field == 'switch_ip':
@@ -311,6 +311,26 @@ def get_component_description(tag, device_type, field):
    if field == 'esxi_kickstart':
 	return "Option to perform automated installation of ESX, specify kickstart filename " + editable_str
 
+   if field == 'ct0_ip':
+	return "FlashArray CT0 IP Address " + editable_str
+   if field == 'ct1_ip':
+	return "FlashArray CT1 IP Address " + editable_str
+   if field == 'vir0_ip':
+	return "FlashArray vir0 IP Address " + editable_str
+   if field == 'alert_emails':
+	return "Alert Emails " + editable_str
+   if field == 'full_name':
+	return "Full Name " + editable_str
+   if field == 'job_title':
+	return "Job Title " + editable_str
+   if field == 'organization':
+	return "Organization " + editable_str
+   if field == 'relay_host':
+	return "Relay Host " + editable_str
+   if field == 'sender_domain':
+	return "Sender Domain " + editable_str
+   if field == 'timezone':
+	return "Timezone " + editable_str
    return " "+ read_only_str
 
 def get_global_description(field, desr):
@@ -480,9 +500,9 @@ def undo_json_pretty(import_dict):
 
 
     	if k == 'Nexus 5k_B':
-    		del tmp_dict['components']['Nexus 5k_B']['image_version']
-		tmp_dict['system_image']   = import_dict['components']['Nexus 5k_A']['system_image']['value']
-        	tmp_dict['kickstart_image']= import_dict['components']['Nexus 5k_A']['kickstart_image']['value']
+    		#del tmp_dict['components']['Nexus 5k_B']['image_version']
+		tmp_comp['system_image']   = import_dict['components']['Nexus 5k_A']['system_image']['value']
+        	tmp_comp['kickstart_image']= import_dict['components']['Nexus 5k_A']['kickstart_image']['value']
 	tmp_dict ['components'].append(tmp_comp)
 
     return tmp_dict
@@ -703,25 +723,21 @@ def json_config_defaults(stacktype):
 		#probable read from globls
                 component['server_type'] = comp['server_type']
             elif comp['device_type'] == 'PURE':
-                #component['name'] = comp['array_name']
-		 #component['name'] = comp['name']
-                #component['ct0_ip'] = comp['ct0_ip']
-                #component['ct1_ip'] = comp['ct1_ip']
-                #component['vir0_ip'] = comp['vir0_ip']
-                #component['orig_ip'] = comp['orig_ip']
-                #component['dns'] = comp['dns']
-                #component['domain_name'] = comp['domain_name']
-                #component['relay_host'] = comp['relay_host']
-                #component['sender_domain'] = comp['sender_domain']
-                #component['alert_emails'] = comp['alert_emails']
-                #component['organization'] = comp['organization']
-                #component['full_name'] = comp['full_name']
-                #component['job_title'] = comp['job_title']
-                #component['timezone'] = comp['timezone']
-                #component['ntp_server'] = comp['ntp_server']
-                #component['username'] = comp['username']
-                #component['password'] = comp['password']
-                continue
+                if comp.get('ZTP', False) is False:
+                    continue
+                component['array_name'] = comp['name']
+                component['ct0_ip'] = comp['ct0_ip']
+                component['ct1_ip'] = comp['ct1_ip']
+                component['vir0_ip'] = comp['vir0_ip']
+                component['dns'] = comp['dns']
+                component['domain_name'] = comp['domain_name']
+                component['relay_host'] = comp['relay_host']
+                component['sender_domain'] = comp['sender_domain']
+                component['alert_emails'] = comp['alert_emails']
+                component['organization'] = comp['organization']
+                component['full_name'] = comp['full_name']
+                component['job_title'] = comp['job_title']
+                component['timezone'] = comp['timezone']
 
             comp_list.append(component)
         for conf in data['global_config']:

@@ -261,6 +261,9 @@ function initRangeSlider(dom, options) {
 		max_interval: options.max_limit
 	}); */
 }
+function convertToPercent(num, min, max) {
+	return (num - min) / (max - min) * 100;
+}
 
 /**
   * @desc initiate/bind multiselect dropdown event on the given html dom element

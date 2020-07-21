@@ -108,11 +108,11 @@ def get_fa_system_info(args={}):
                 return PTK_NOTEXIST, fa_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_info_list, str(e)
+        return PTK_INTERNALERROR, fa_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -153,11 +153,11 @@ def get_fa_controller_info(args={}):
                 return PTK_NOTEXIST, fa_controller_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_controller_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_controller_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_controller_info_list, str(e)
+        return PTK_INTERNALERROR, fa_controller_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -197,11 +197,11 @@ def get_fa_global_settings_info(args={}):
                 return PTK_NOTEXIST, fa_global_info_list, "Unable to get " + method
         else:
             #loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_global_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_global_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_global_info_list, str(e)
+        return PTK_INTERNALERROR, fa_global_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -249,11 +249,11 @@ def get_fa_nw_interfaces(args={}):
                 return PTK_NOTEXIST, fa_nw_interf_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_nw_interf_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_nw_interf_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_nw_interf_info, str(e)
+        return PTK_INTERNALERROR, fa_nw_interf_info, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -304,11 +304,11 @@ def get_fa_host_group(args={}):
                 return PTK_NOTEXIST, fa_hgroup_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_hgroup_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_hgroup_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_hgroup_info_list, str(e)
+        return PTK_INTERNALERROR, fa_hgroup_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -367,11 +367,11 @@ def get_fa_volumes(args={}):
                 return PTK_NOTEXIST, fa_volumes_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_volumes_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_volumes_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_volumes_info_list, str(e)
+        return PTK_INTERNALERROR, fa_volumes_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -415,11 +415,11 @@ def get_fa_ports(args={}):
                 return PTK_NOTEXIST, fa_ports_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_ports_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_ports_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_ports_info_list, str(e)
+        return PTK_INTERNALERROR, fa_ports_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
@@ -468,11 +468,11 @@ def get_fa_hosts(args={}):
                 return PTK_NOTEXIST, fa_hosts_info_list, "Unable to get " + method
         else:
             loginfo("failed to get Pure Handler for FlashArray Report Generation " + method)
-            return PTK_RESOURCENOTAVAIABLE, fa_hosts_info_list, "failed to get Pure Handler for FlashArray Report Generation"
+            return PTK_RESOURCENOTAVAILABLE, fa_hosts_info_list, "failed to get Pure Handler for FlashArray Report Generation"
 
     except Exception as e:
         loginfo("Exception has occured while fetching " + method + str(e))
-        return PTK_INTERNAL_ERROR, fa_hosts_info_list, str(e)
+        return PTK_INTERNALERROR, fa_hosts_info_list, str(e)
 
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)

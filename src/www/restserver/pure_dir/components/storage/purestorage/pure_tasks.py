@@ -59,6 +59,28 @@ class PureTasks:
 
         return switch
 
+    def change_password(self, username, old_password, new_password):
+        """
+        Returns the username as a dict
+
+        :param username: User whose password is to be changed
+        :param old_password: Old password of the user
+        :param new_password: New password of the user
+        :return: Returns username
+        """
+
+        if self.handle is None:
+            loginfo("Unable to Connect to FlashArray")
+            return False
+
+        try:
+            op_dict = self.handle.set_password(username, new_password, old_password)
+            if op_dict['name'] == username:
+                return True
+        except PureHTTPError as e:
+            loginfo(str(e))
+            return False
+
     def release_pure_handle(self):
         """
         Release handler

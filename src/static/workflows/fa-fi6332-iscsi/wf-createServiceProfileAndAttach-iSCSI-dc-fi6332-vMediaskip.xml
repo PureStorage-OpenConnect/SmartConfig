@@ -42,7 +42,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="pure_id" value="pure_id"/>
-        <arg mapval="0" name="name" value="CT0.ETH14"/>
+        <arg mapval="0" name="name" value="CT0.ETH8"/>
       </args>
     </task>
     <task OnSuccess="t501" Onfailure="None" desc="Set iSCSI Boot parameters" id="UCSSetiSCSIBootParameters" inittask="0" label="Set iSCSI Boot parameters" name="UCSSetiSCSIBootParameters" texecid="t401">

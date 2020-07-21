@@ -314,6 +314,8 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 			url += sep + key + '=' + api.query[key];
 		});
 	}
+	//sep = (url.indexOf('?') > -1) ? '&' : '?';
+	//url += sep + 't=' + $.now();
 	var ajaxRequest = $.ajax({
 		type: api.method,
 		url: url,
@@ -381,7 +383,7 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 							} else {
 								container = api.formContainer + ' .control-group.' + value.field;
 							}
-							$(container).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+							$(container).find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 							$(container).find('.help-block').show().html(ucfirst(value.msg));
 						});
 					}

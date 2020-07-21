@@ -657,8 +657,8 @@ def _get_parent_output_list(
                     break
                 inputs_dict = {
                     'input': generate_field_key(task['@texecid'], task['@name'], output['@name'])}
-
-                inputs_list.append(inputs_dict)
+		if output['@name'] != 'status':
+                	inputs_list.append(inputs_dict)
                 processedtasks[texecid] = texecid
                 _get_parent_output_list(
                     inputs_list,

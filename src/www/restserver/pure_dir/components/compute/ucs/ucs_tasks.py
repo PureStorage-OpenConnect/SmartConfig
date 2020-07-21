@@ -5511,11 +5511,12 @@ class UCSTasks:
             return obj
         customlogs("\nChanged the Time Zone successfully", logfile)
 
-        mo = CommNtpProvider(
-            parent_mo_or_dn="sys/svc-ext/datetime-svc",
-            name=inputdict['ntp'],
-            descr="")
-        self.handle.add_mo(mo)
+	for ip in inputdict['ntp'].split(','): 
+            mo = CommNtpProvider(
+                parent_mo_or_dn="sys/svc-ext/datetime-svc",
+                name=ip,
+                descr="")
+            self.handle.add_mo(mo)
         try:
             self.handle.commit()
         except UcsException as e:
@@ -5554,9 +5555,10 @@ class UCSTasks:
         mo = self.handle.query_dn("sys/svc-ext/datetime-svc")
         mo.timezone = ""
 
-        mo_1 = self.handle.query_dn(
-            "sys/svc-ext/datetime-svc/ntp-" + inputs['ntp'])
-        self.handle.remove_mo(mo_1)
+	for ip in inputs['ntp'].split(','):
+            mo_1 = self.handle.query_dn(
+                "sys/svc-ext/datetime-svc/ntp-" + ip)
+            self.handle.remove_mo(mo_1)
         self.handle.set_mo(mo)
 
         try:
