@@ -1,0 +1,277 @@
+#README: Please do not edit fields, which are marked as [type: readonly] in description, Also please do not edit workflow section
+{
+    "system_info": {
+        "stacktype": {
+            "description": "FlashStack deployment type [type: read-only]", 
+            "value": "fa-n9k-fi6454-mds-fc"
+        }, 
+        "version": {
+            "description": "Document version [type: read-only]", 
+            "value": "1.0"
+        }, 
+        "flags": {
+            "description": "flags [type: read-only]", 
+            "value": ""
+        }, 
+        "tool_version": {
+            "description": "Generated Tool version [type: read-only]", 
+            "value": "1.4.202007300523"
+        }
+    }, 
+    "global_config": {
+        "native_vlan": {
+            "description": "VLAN for untagged frames (Example: 2) supports any value up to 3967. [type: editable]", 
+            "value": "2"
+        }, 
+        "esxi_kickstart": {
+            "description": "Option to perform automated installation of ESX, specify kickstart filename [type: editable]", 
+            "value": "KS.cfg"
+        }, 
+        "app3_vlan": {
+            "description": "Application network VLAN ID (Example: 203) supports any value up to 3967 [type: editable]", 
+            "value": "203"
+        }, 
+        "gateway": {
+            "description": "Out-of-band management network gateway (Example: 192.168.164.254) [type: editable]", 
+            "value": "192.168.10.1"
+        }, 
+        "up_port_b": {
+            "description": "Uplink Port-Channel for Fabric B between NEXUS and FI (Example: 152) [type: editable]", 
+            "value": "152"
+        }, 
+        "up_port_a": {
+            "description": "Uplink Port-Channel for Fabric A between NEXUS and FI (Example: 151) [type: editable]", 
+            "value": "151"
+        }, 
+        "upgrade": {
+            "description": "Option to perform UCS Infra and Server firmware upgrade Yes/No [type: editable]", 
+            "value": "No"
+        }, 
+        "mgmt_vlan": {
+            "description": "In-band management network VLAN ID (Example: 115) supports any value up to 3967 [type: editable]", 
+            "value": "115"
+        }, 
+        "firmware": {
+            "description": "Use B-Series bundle for Blade servers and C-Series bundle for Rack Servers [type: editable]", 
+            "value": ""
+        }, 
+        "domain_name": {
+            "description": "DNS domain name (Example: flashstack.cisco.com)[type: editable]", 
+            "value": ""
+        }, 
+        "app1_vlan": {
+            "description": "Application network VLAN ID (Example: 201) supports any value up to 3967 [type: editable]", 
+            "value": "201"
+        }, 
+        "app2_vlan": {
+            "description": "Application network VLAN ID (Example: 202) supports any value up to 3967 [type: editable]", 
+            "value": "202"
+        }, 
+        "dns": {
+            "description": "Name server IP: DNS server IP(s) (Example: 10.1.164.9) [type: editable]", 
+            "value": "192.168.10.7,192.168.10.8,192.168.10.9"
+        }, 
+        "fc_portchannel_b": {
+            "description": "SAN Port-Channel for Fabric B between MDS and FI (Example: 2)supports any value between 1 and 256 [type: editable]", 
+            "value": "2"
+        }, 
+        "fc_portchannel_a": {
+            "description": "SAN Port-Channel for Fabric A between MDS and FI (Example: 1)supports any value between 1 and 256 [type: editable]", 
+            "value": "1"
+        }, 
+        "server_type": {
+            "description": "UCS server type Blade/Rack [type: read-only]", 
+            "value": "Blade"
+        }, 
+        "ntp": {
+            "description": "NTP IP Address (Example: 192.168.1.1) supports any IPv4 value up to 255.255.255.255 [type: editable]", 
+            "value": "192.168.10.1,192.168.10.5,192.168.10.6"
+        }, 
+        "kvm_console_ip": {
+            "description": "KVM Console IP Address Range[type: editable]", 
+            "value": "119-130"
+        }, 
+        "vsan_a": {
+            "description": "VSAN used for Fabric A between FlashArray and MDS and FI [type: editable]", 
+            "value": "101"
+        }, 
+        "ntp_vlan": {
+            "description": "VLAN for in-band management interfaces (Example: 215) supports any value upto 3967 [type: editable]", 
+            "value": "115"
+        }, 
+        "vsan_b": {
+            "description": "VSAN used for Fabric B between FlashArray and MDS and FI [type: editable]", 
+            "value": "102"
+        }, 
+        "host": {
+            "description": "Email Relay Server IP Address supports any IPv4 value value upto 255.255.255.255 [type: editable]", 
+            "value": "192.168.10.199"
+        }, 
+        "vmotion_vlan": {
+            "description": "VLAN for vMotion (Example: 200) supports any value up to 3967 [type: editable]", 
+            "value": "200"
+        }, 
+        "esxi_file": {
+            "description": "VMware vSphere ESXi Cisco Custom ISO (Eg:VMware_ESXi_6.7.0_10302608_Custom_Cisco_6.7.1.1) [type: editable]", 
+            "value": "Vmware-ESXi-6.5.0-5969303-Custom-Cisco-6.5.1.1.iso"
+        }, 
+        "netmask": {
+            "description": "Out-of-band management network netmask (Example: 255.255.255.0) [type: editable]", 
+            "value": "255.255.255.0"
+        }
+    }, 
+    "components": {
+        "UCSM_B": {
+            "name": {
+                "description": "Cisco UCS Fabric Interconnect Name (Example:fi-6332-B) [type: editable]", 
+                "value": "fi-fc6454-B"
+            }, 
+            "switch_ip": {
+                "description": "UCSM Management IP address [type: editable]", 
+                "value": "192.168.10.112"
+            }
+        }, 
+        "UCSM_A": {
+            "name": {
+                "description": "Cisco UCS Fabric Interconnect Name (Example:fi-6332-A) [type: editable]", 
+                "value": "fi-fc6454-A"
+            }, 
+            "leadership": {
+                "description": "leadership primary/subordinate [type: editable]", 
+                "value": "primary"
+            }, 
+            "virtual_ip": {
+                "description": "UCSM Virtual IP Address [type: editable]", 
+                "value": "192.168.10.114"
+            }, 
+            "switch_ip": {
+                "description": "UCSM Management IP address [type: editable]", 
+                "value": "192.168.10.113"
+            }, 
+            "infra_image": {
+                "description": "UCS Infrastructure Software Bundle [type: read-only]", 
+                "value": ""
+            }
+        }, 
+        "FlashArray": {
+            "name": {
+                "description": "FlashArray name [type: editable]", 
+                "value": "sn1-m70-d11-27"
+            }, 
+            "array_ip": {
+                "description": "FlashArray IP Address [type: editable]", 
+                "value": "192.168.10.41"
+            }
+        }, 
+        "MDS_B": {
+            "switch_ip": {
+                "description": "MDS Management IP address [type: editable]", 
+                "value": "192.168.10.115"
+            }, 
+            "name": {
+                "description": "Cisco MDS hostname (Example: mds-9132T-B) [type: editable]", 
+                "value": "mds-b"
+            }
+        }, 
+        "MDS_A": {
+            "system_image": {
+                "description": "MDS System Image for MDS-A and MDS-B", 
+                "value": "m9100-s5ek9-mz.8.2.1.bin"
+            }, 
+            "switch_ip": {
+                "description": "MDS Management IP address [type: editable]", 
+                "value": "192.168.10.116"
+            }, 
+            "name": {
+                "description": "Cisco MDS hostname (Example: mds-9132T-A) [type: editable]", 
+                "value": "mds-a"
+            }, 
+            "kickstart_image": {
+                "description": "MDS kickstart image for MDS-A [type: editable]", 
+                "value": "m9100-s5ek9-kickstart-mz.8.2.1.bin"
+            }
+        }, 
+        "Nexus 9k_A": {
+            "system_image": {
+                "description": "Nexus 9k System Image for Nexus-A and Nexus-B [type: editable]", 
+                "value": "nxos.7.0.3.I6.1.bin"
+            }, 
+            "name": {
+                "description": "Nexus-A name[type: editable]", 
+                "value": "nexus-a"
+            }, 
+            "switch_ip": {
+                "description": "Nexus 9k Management IP address [type: editable]", 
+                "value": "192.168.10.118"
+            }
+        }, 
+        "Nexus 9k_B": {
+            "name": {
+                "description": "Nexus-B name[type: editable]", 
+                "value": "nexus-b"
+            }, 
+            "switch_ip": {
+                "description": "Nexus 9k Management IP address [type: editable]", 
+                "value": "192.168.10.117"
+            }
+        }
+    }, 
+    "workflows": [
+        {
+            "subworkflows": [
+                {
+                    "wfname": "Configure UCS Servers", 
+                    "wid": "configureUCSServers-fc-fi6454", 
+                    "tasks": [
+                        {
+                            "name": "Enable Server Ports (A)", 
+                            "texecid": "t301", 
+                            "taskid": "UCSEnableServerPorts", 
+                            "input": [
+                                {
+                                    "mapval": "0", 
+                                    "name": "ports", 
+                                    "value": "14|13|12|11|10|9|4|3|2|1"
+                                }
+                            ]
+                        }, 
+                        {
+                            "name": "Enable Server Ports (B)", 
+                            "texecid": "t302", 
+                            "taskid": "UCSEnableServerPorts", 
+                            "input": [
+                                {
+                                    "mapval": "0", 
+                                    "name": "ports", 
+                                    "value": "14|13|12|11|10|9|4|3|2|1"
+                                }
+                            ]
+                        }
+                    ], 
+                    "desc": "Configuration of Cisco UCS Servers"
+                }, 
+                {
+                    "wfname": "Create UCS Boot Policy", 
+                    "wid": "CreateUCSBootPolicy-fc-fi6454", 
+                    "tasks": [
+                        {
+                            "name": "Create Host Firmware Package", 
+                            "texecid": "t1002", 
+                            "taskid": "UCSCreateHostFirmwarePackage", 
+                            "input": [
+                                {
+                                    "mapval": "0", 
+                                    "name": "blade_pkg", 
+                                    "value": "4.1(1c)B"
+                                }
+                            ]
+                        }
+                    ], 
+                    "desc": "Create Boot Policy"
+                }
+            ], 
+            "grp_workflow_id": "ConfigureFI-fc-fi6454", 
+            "grp_workflow_name": "Configure UCS Fabric Interconnects"
+        }
+    ]
+}
