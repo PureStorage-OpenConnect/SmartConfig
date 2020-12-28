@@ -116,6 +116,9 @@ input[type="text"], input[type="password"], input[type="number"], select, textar
 	outline: 0;
 	overflow: hidden;
 }
+input[type="text"][readonly], input[type="password"][readonly], input[type="number"][readonly], select[readonly], textarea[readonly] {
+	background: #ECECEC;
+}
 .ms-options-wrap button {
 	margin: 0;
 }

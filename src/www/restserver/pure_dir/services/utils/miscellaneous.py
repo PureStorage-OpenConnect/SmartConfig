@@ -14,11 +14,11 @@ import struct
 import shlex
 import re
 import paramiko
-import netinfo
+from . import netinfo
 import fnmatch
 import ipaddress
 
-from confparser import setConfValue, CONFSTRING
+from .confparser import setConfValue, CONFSTRING
 from time import sleep
 from subprocess import Popen, PIPE
 from lxml import etree
@@ -69,6 +69,30 @@ def get_xml_element(file_name, attribute_key, attribute_value=''):
             return False, None
 
     return False, None
+
+
+def get_xml_childelements(file_name, child_root, child_element, child_element_params, childroot_match_key='', childroot_match_value=''):
+    if os.path.exists(file_name) is True:
+        try:
+            doc = parse_xml(file_name)
+            childRoot = doc.getElementsByTagName(child_root)
+            for node in childRoot:
+                op_data = []
+                if childroot_match_key != '':
+                    matchFound = node.getAttribute(childroot_match_key) == childroot_match_value if childroot_match_value != '' else node.hasAttribute(childroot_match_key)
+                    if matchFound in [False, '']:
+                        continue
+
+                child_nodes = node.getElementsByTagName(child_element)
+                for child in child_nodes:
+                    data = {param:child.getAttribute(param) if child.hasAttribute(param) else '' for param in child_element_params}
+                    op_data.append(data)
+                return True, op_data
+            return False, op_data
+        except Exception as e:
+            return False, None
+    else:
+        return False, None
 
 
 def add_xml_element(file_name, data, element_name=''):
@@ -163,7 +187,7 @@ def get_ip_address(ifname):
     return socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
         0x8915,  # SIOCGIFADDR
-        struct.pack('256s', ifname[:15])
+        struct.pack('256s', bytes(ifname[:15], 'utf-8'))
     )[20:24])
 
 
@@ -176,7 +200,7 @@ def render(tpl_path, context):
 
 def gen_from_template(template, data, outfile):
     result = render(template, data)
-    with open(outfile, "wb") as fh:
+    with open(outfile, 'w') as fh:
         fh.write(result)
     return True
 
@@ -186,6 +210,8 @@ def execute_local_command(command):
         command_arg_split = shlex.split(command)
         process = Popen(command_arg_split, stdout=PIPE, stderr=PIPE)
         output, error = process.communicate()
+        output = output.decode('utf-8')
+        error = error.decode('utf-8')
         pattern = re.compile('.+')
         if ((pattern.match(output) or output is '') and error is ''):
             status = process.returncode
@@ -368,7 +394,7 @@ def deleteusers(application):
 
 def get_oui(wwnn):
     wwnn_string = ''.join(wwnn.split(':'))
-    if wwnn_string[0] == '1'or wwnn_string[0] == '2':
+    if wwnn_string[0] == '1' or wwnn_string[0] == '2':
         oui = wwnn_string[4:10].upper()
     elif wwnn_string[0] == '5' or wwnn_string[0] == '6':
         oui = wwnn_string[1:7].upper()
@@ -386,6 +412,7 @@ def findIPs(start, end):
         start += 1
     return result
 
+
 def find_dict_val(key, dictionary):
     if isinstance(dictionary, dict):
         for k, v in dictionary.items():
@@ -399,6 +426,7 @@ def find_dict_val(key, dictionary):
                     for result in find_dict_val(key, d):
                         yield result
 
+
 def get_value(key, d, **kwargs):
     final_dict = {}
     for k in key:
@@ -408,24 +436,25 @@ def get_value(key, d, **kwargs):
             return val_lst
         else:
             val_lst = list(find_dict_val(k, d))
-	    final_dict[k]=[i for i in val_lst]
+            final_dict[k] = [i for i in val_lst]
     return final_dict
+
 
 def get_list_val(data, **kwargs):
     final_list = []
     for v in data:
         if isinstance(v, list):
             for c in v:
-                for k,h in kwargs.items():
+                for k, h in kwargs.items():
                     if isinstance(h, list):
                         for r in h:
                             if c[k] == r:
-				final_list.append(c)
+                                final_list.append(c)
                     else:
                         if c[k] == h:
                             final_list.append(c)
         else:
-            for k,h in kwargs.items():
+            for k, h in kwargs.items():
                 if v[k] == h:
                     final_list.append(v)
     return final_list

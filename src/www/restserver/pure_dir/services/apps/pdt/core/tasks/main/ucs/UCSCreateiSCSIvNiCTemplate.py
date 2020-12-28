@@ -209,7 +209,7 @@ class UCSCreateiSCSIvNiCTemplateInputs:
         static_values="",
         order=3)
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='',
         api="getfis()",

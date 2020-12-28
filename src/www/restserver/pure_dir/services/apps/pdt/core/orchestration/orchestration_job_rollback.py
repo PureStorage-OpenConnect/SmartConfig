@@ -13,24 +13,26 @@ import os
 import time
 import xmltodict
 
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_rollback_status import update_rollback_task_status, prepare_rollback_status_file
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_status import update_task_status, clear_job_failed_status
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import g_flash_stack_types
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_batch_status import update_batch_job_status, clear_group_job_status
 
-from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
-from pure_dir.services.apps.pdt.core.tasks.test.ucs import*
+from pure_dir.services.apps.pdt.core.tasks.main.ucs import *
+from pure_dir.services.apps.pdt.core.tasks.test.ucs import *
 
 from pure_dir.services.apps.pdt.core.tasks.main.pure import *
 from pure_dir.services.apps.pdt.core.tasks.test.pure import *
 
-from pure_dir.services.apps.pdt.core.tasks.main.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.main.mds import*
-from pure_dir.services.apps.pdt.core.tasks.test.mds import*
+from pure_dir.services.apps.pdt.core.tasks.main.flashblade import *
+
+from pure_dir.services.apps.pdt.core.tasks.main.nexus_5k import *
+from pure_dir.services.apps.pdt.core.tasks.test.nexus_5k import *
+from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import *
+from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import *
+from pure_dir.services.apps.pdt.core.tasks.main.mds import *
+from pure_dir.services.apps.pdt.core.tasks.test.mds import *
 
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
 from pure_dir.infra.apiresults import *
@@ -374,14 +376,16 @@ def get_field_name(jobid, field_id, texecid):
             exec("%s = %s" %
                  ("input_obj", task['@id'] + "." + task['@id'] + "Inputs" + "()"))
             exec("%s = %s.%s" % ("field", "input_obj", field_id))
+            field = locals()['field']
             if field.name == field_id:
                 group_members = []
                 if field.ip_type == "group":
                     for member in field.members:
                         exec("%s = %s.%s" %
                              ("member_data", "input_obj", member))
+                        member_data = locals()['member_data']
                         gmember = {'label': member_data.label,
-                                   'name': member_data.name}
+                                   'name':  member_data.name}
                         group_members.append(gmember)
 
            # is a group field

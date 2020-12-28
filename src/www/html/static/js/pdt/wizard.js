@@ -413,14 +413,25 @@ function leaveAStepCallback(obj, context) {
 				});
 				if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0 || FAForConfigure.length > 0) {
 					clearTimeout(tout);
-					var data = [];
-					$.each(UCSForConfigure, function(index, value) {
-						data.push(value.vendor);
-					});
-					doAjaxRequest({url: 'FIGenValidate', base_path: settings.base_path, method: 'POST', data: data, query: {stacktype: systemInfo.subtype}, notify: false}, function(response) {
+					var data = {'UCSM': []};
+					if(UCSForConfigure.length > 0) {
+						$.each(UCSForConfigure, function(index, value) {
+							data['UCSM'].push(value.vendor);
+						});
+					}
+					if(NEXUSForConfigure.length > 0) {
+						data['NEXUS'] = [];
+						$.each(NEXUSForConfigure, function(index, value) {
+							data['NEXUS'].push(value.vendor);
+						});
+					}
+					doAjaxRequest({url: 'GenValidate', base_path: settings.base_path, method: 'POST', data: data, query: {stacktype: systemInfo.subtype}, notify: false}, function(response) {
 						systemInfo.subtype = response.data;
-						loadInitialSetupForm();
-						navigateStep(2);
+						doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
+							systemInfo.server_types = response.data.deployment_settings.server_types;
+							loadInitialSetupForm();
+							navigateStep(2);
+						}, doNothing);
 					}, function(response) {
 						removeProcessingSpinner('.content-container', loaderCnt);
 						showNotification(response.status.message, 5000);

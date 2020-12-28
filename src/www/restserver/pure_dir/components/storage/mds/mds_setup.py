@@ -65,14 +65,17 @@ class MDSSetup:
                                    'switch_vendor': 'Switch vendor'},
                                   data)
 
-        firmware_valid = self.mdsvalidateimages({'switch_kickstart_image':data['switch_kickstart_image'], 'switch_system_image':data['switch_system_image']}).getResult()
+        firmware_valid = self.mdsvalidateimages(
+            {
+                'switch_kickstart_image': data['switch_kickstart_image'],
+                'switch_system_image': data['switch_system_image']}).getResult()
         if firmware_valid is False:
             ret.append({"field": "switch_system_image",
-                    "msg": "Select similar system and kickstart version"})
+                        "msg": "Select similar system and kickstart version"})
             ret.append({"field": "switch_kickstart_image",
-                    "msg": "Select similar system and kickstart version"})
+                        "msg": "Select similar system and kickstart version"})
             res.setResult(ret, PTK_INTERNALERROR,
-                    "Make sure details are correct")
+                          "Make sure details are correct")
             return res
 
         if data['pri_passwd'] != data['conf_passwd']:
@@ -83,11 +86,11 @@ class MDSSetup:
             return res
 
         ip_valid = ipvalidation(data['switch_ip'])
-        ntp_valid= False
-	for ip in data['ntp_server'].split(','):
-        	ntp_valid = ipvalidation(ip)
-		if not ntp_valid:
-			break
+        ntp_valid = False
+        for ip in data['ntp_server'].split(','):
+            ntp_valid = ipvalidation(ip)
+            if not ntp_valid:
+                break
 
         if len(ret) > 0:
             res.setResult(ret, PTK_INTERNALERROR,
@@ -105,8 +108,7 @@ class MDSSetup:
             return res
         else:
             ipv = IpValidator()
-            network_reach, ip_reach = ipv.validate_ip(
-                data['switch_ip'], data['switch_netmask'], data['switch_gateway'])
+            network_reach, ip_reach = ipv.validate_ip(data['switch_ip'])
             if network_reach:
                 if not ip_reach:
                     res.setResult(ret, PTK_OKAY, "Success")

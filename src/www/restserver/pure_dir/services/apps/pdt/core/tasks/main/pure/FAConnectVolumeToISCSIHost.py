@@ -149,9 +149,14 @@ class FAConnectVolumeToISCSIHost:
         blade_len = self.ucsm_get_associated_sp_cnt(keys)
         mdata = []
         for pre in range(1, blade_len + 1):
-            host = 'VM-Host-iSCSI-' + str(pre).zfill(2)
-            mdata.append(
-                {"id": str(host), "selected": "0", "label": str(host)})
+            if pre < 10:
+                host = 'VM-Host-iSCSI-' + str(pre).zfill(2)
+                mdata.append(
+                    {"id": str(host), "selected": "0", "label": str(host)})
+            else:
+                host = 'VM-Host-iSCSI-' + str(pre).zfill(3)
+                mdata.append(
+                    {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

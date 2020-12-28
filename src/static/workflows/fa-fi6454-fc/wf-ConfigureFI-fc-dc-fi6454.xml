@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<workflow desc="Deploy UCS Configuration for Servers, LAN, SAN, Boot Policy" htype="fa-fi6454-fc" id="ConfigureFI-fc-dc-fi6454" isdeletable="0" name="Configure UCS Fabric Interconnects" order="1" prereq="None" simulate="0" type="UCSM" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g201" flags="vmedia_skip:configureUCSServers-fc-dc-fi6454-vMediaskip;" id="configureUCSServers-fc-dc-fi6454" initwf="1" name="Configure UCS Servers" wexecid="g200"/>
+    <wf OnFailure="None" OnSuccess="g202" id="configureUCSLANConnectivity-fc-dc-fi6454" initwf="0" name="Configure UCS LAN Connectivity" wexecid="g201"/>
+    <wf OnFailure="None" OnSuccess="g203" id="configureSANConnectivity-fc-dc-fi6454" initwf="0" name="Configure UCS SAN Connectivity" wexecid="g202"/>
+    <wf OnFailure="None" OnSuccess="None" id="CreateUCSBootPolicy-fc-dc-fi6454" initwf="0" name="Create Boot Policy" wexecid="g203"/>
+  </wfs>
+</workflow>

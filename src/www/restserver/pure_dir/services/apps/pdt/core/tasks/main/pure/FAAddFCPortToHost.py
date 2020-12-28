@@ -180,7 +180,10 @@ class FAAddFCPortToHost:
         mhosts = "{'hosts': {'ismapped': '0', 'value':'"
         mports = "'ports': {'ismapped': '0', 'value':'"
         for pre in range(1, blade_len + 1):
-            host_prefix = "VM-Host-FC-" + str(pre).zfill(2)
+            if pre < 10:
+                host_prefix = "VM-Host-FC-" + str(pre).zfill(2)
+            else:
+                host_prefix = "VM-Host-FC-" + str(pre).zfill(3)
             port_list = []
             if k < len(ports) - 1:
                 port_list.append(ports[k])
@@ -253,9 +256,14 @@ class FAAddFCPortToHost:
         blade_len = self.ucsm_get_associated_sp_cnt(keys)
         mdata = []
         for pre in range(1, blade_len + 1):
-            host = 'VM-Host-FC-' + str(pre).zfill(2)
-            mdata.append(
-                {"id": str(host), "selected": "0", "label": str(host)})
+            if pre < 10:
+                host = 'VM-Host-FC-' + str(pre).zfill(2)
+                mdata.append(
+                    {"id": str(host), "selected": "0", "label": str(host)})
+            else:
+                host = 'VM-Host-FC-' + str(pre).zfill(3)
+                mdata.append(
+                    {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
@@ -302,7 +310,7 @@ class FAAddFCPortToHost:
                 k = k + 1
             mdata.append({"id": str(port_list[0] + "," + port_list[1]),
                           "selected": "0", "label": str(port_list[0] + "," + port_list[1])})
-        print "port list goin in advanced ", mdata
+        print("port list goin in advanced ", mdata)
         res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 

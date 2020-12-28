@@ -6,7 +6,6 @@ paths:
       - Users
       operationId: service_mgr_api.users
       summary: Get the list of users
-      security: []
       responses:
         '200':
           description: Return the list of users
@@ -18,9 +17,6 @@ paths:
       - Users
       operationId: service_mgr_api.usercreate
       summary: Add a new user
-      security: 
-        - basic: []
-        - apiKey: []
       parameters:
         - name: user
           in: body
@@ -46,9 +42,6 @@ paths:
       tags:
       - Users
       operationId: service_mgr_api.userinfo
-      security: 
-        - basic: []
-        - apiKey: []
       summary: Get the user information based on id
       responses:
         '200':
@@ -60,9 +53,6 @@ paths:
       tags:
       - Users
       operationId: core.usermanager.userdelete
-      security: 
-        - basic: []
-        - apiKey: []
       summary: Deletes the user information based on id
       parameters:
        - name: username
@@ -88,7 +78,6 @@ paths:
       - Users
       operationId: service_mgr_api.userlogin
       summary: Login to flashstack application
-      security: []
       parameters:
        - name: user
          in: body
@@ -108,7 +97,6 @@ paths:
       - Users
       operationId: service_mgr_api.sessionuser
       summary: Return the user login info for the corresponding loginkey
-      security: []
       parameters:
        - name: loginkey
          in: query
@@ -126,9 +114,6 @@ paths:
       tags:
       - Users
       operationId: service_mgr_api.sessionlogout
-      security: 
-        - basic: []
-        - apiKey: []
       summary: Logout the user session
       parameters:
        - name: loginkey
@@ -148,7 +133,6 @@ paths:
       - Users
       operationId: service_mgr_api.userverify
       summary: Verify the user whether present or not
-      security: []
       parameters:
        - name: user
          in: body

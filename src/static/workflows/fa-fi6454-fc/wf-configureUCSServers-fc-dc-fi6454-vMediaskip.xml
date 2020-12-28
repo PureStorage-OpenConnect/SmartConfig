@@ -1,0 +1,177 @@
+<?xml version="1.0" ?>
+<workflow desc="Configuration of Cisco UCS Servers" hidden="1" htype="fa-fi6454-fc" id="configureUCSServers-fc-dc-fi6454" isdeletable="0" name="Configure UCS Servers" simulate="0" type="UCSM">
+  <tasks>
+    <task OnSuccess="t299" Onfailure="None" desc="Configuration of anonymous reporting to Cisco" id="UCSAnonymousReporting" inittask="1" label="Anonymous Reporting" name="UCSAnonymousReporting" texecid="t298">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="admin" value="on"/>
+        <arg mapval="3" name="host" value="host"/>
+        <arg mapval="0" name="port" value="25"/>
+      </args>
+    </task>
+    <task OnSuccess="t300" Onfailure="None" desc="Synchronize Cisco UCS to NTP" id="UCSSynchronizeUCStoNTP" inittask="0" label="Synchronize UCS to NTP" name="UCSSynchronizeUCStoNTP" texecid="t299">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="3" name="zone" value="zone"/>
+        <arg mapval="3" name="ntp" value="ntp"/>
+      </args>
+    </task>
+    <task OnSuccess="t301" Onfailure="None" desc="Edit the chassis disc policy" id="UCSChassisDiscoveryPolicy" inittask="0" label="Chassis Discovery Policy" name="ChassisDiscoveryPolicy" texecid="t300">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="fex_action" value="2-link"/>
+        <arg mapval="0" name="agg_pref" value="port-channel"/>
+        <arg mapval="0" name="speed_pref" value="40G"/>
+        <arg mapval="0" name="rack_action" value="immediate"/>
+        <arg mapval="0" name="scrub" value="default"/>
+        <arg mapval="0" name="mgmt_action" value="auto-acknowledged"/>
+        <arg mapval="0" name="redundancy" value="n+1"/>
+        <arg mapval="0" name="mac_aging" value="mode-default"/>
+        <arg mapval="0" name="style" value="intelligent-policy-driven"/>
+        <arg mapval="0" name="sync_state" value="No Actions"/>
+        <arg mapval="0" name="profiling" value="no"/>
+        <arg mapval="0" name="info_enable" value="disabled"/>
+      </args>
+    </task>
+    <task OnSuccess="t302" Onfailure="None" desc="Enable Server ports for Fabric A" id="UCSEnableServerPorts" inittask="0" label="Enable Server Ports (A)" name="EnableServerPortsForFabricA" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="ports" value="18|17"/>
+      </args>
+    </task>
+    <task OnSuccess="t303" Onfailure="None" desc="Enable Server ports for Fabric B" id="UCSEnableServerPorts" inittask="0" label="Enable Server Ports (B)" name="EnableServerPortsForFabricB" texecid="t302">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="ports" value="18|17"/>
+      </args>
+    </task>
+    <task OnSuccess="t306" Onfailure="None" desc="Acknowledge All Cisco UCS Chassis" id="UCSAcknowledgeCiscoUCSChassis" inittask="0" label="Acknowledge All Cisco UCS Chassis" name="AcknowledgeCiscoUCSChassis" texecid="t303">
+      <outputs>
+        <!--				<output dt_type="string" name="chassis_id" tvalue="1" value="no-op"/>-->
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <!--				<arg api="ucsmchassis()|[fabric_id:1:fabric_id.value]" dt_type="string" ip_type="multi-select" label="Chassis Id" mapval="0" name="chassis_id" static="False" svalue="1" value="4"/>-->
+        <arg mapval="0" name="state" value="re-acknowledge"/>
+      </args>
+    </task>
+    <task OnSuccess="t307" Onfailure="None" desc="Create UUID Suffix Pools" id="UCSCreateUUIDSuffixPool" inittask="0" label="Create UUID Suffix Pools" name="CreateUUIDSuffixPool" texecid="t306">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="UUID_Pool" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="UUID_Pool"/>
+        <arg mapval="0" name="desc" value="uuid pool"/>
+        <arg mapval="0" name="prefix" value="derived"/>
+        <arg mapval="0" name="order" value="sequential"/>
+        <arg mapval="0" name="uuid_from" value="0000-000000000001"/>
+        <arg mapval="0" name="size" value="32"/>
+      </args>
+    </task>
+    <task OnSuccess="t313" Onfailure="None" desc="Add Block Of IP Addresses for KVM Access" id="UCSAddBlockofIPAddressesforKVMAccess" inittask="0" label="Add Block of IP for KVM Access" name="AddBlockofIPAddressesforKVMAccess" texecid="t307">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="3" name="kvm_console_ip" value="kvm_console_ip"/>
+        <arg mapval="0" name="size" value="12"/>
+        <arg mapval="3" name="mask" value="netmask"/>
+        <arg mapval="3" name="gateway" value="gateway"/>
+        <arg mapval="0" name="pri_dns" value="0.0.0.0"/>
+        <arg mapval="0" name="sec_dns" value="0.0.0.0"/>
+      </args>
+    </task>
+    <task OnSuccess="t314" Onfailure="None" desc="Create server BIOS policy" id="UCSCreateServerBIOSPolicy" inittask="0" label="Server BIOS Policy" name="CreateServerBIOSPolicy" texecid="t313">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="VM-Host" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="VM-Host"/>
+        <arg mapval="0" name="descr" value="Server BIOS Policy"/>
+        <arg mapval="0" name="reboot" value="no"/>
+        <arg mapval="0" name="boot" value="disabled"/>
+        <arg mapval="0" name="device_naming" value="enabled"/>
+        <arg mapval="0" name="dram_clock" value="performance"/>
+        <arg mapval="0" name="freq_floor" value="enabled"/>
+        <arg mapval="0" name="proc_c_state" value="disabled"/>
+        <arg mapval="0" name="proc_c1e" value="disabled"/>
+        <arg mapval="0" name="proc_c3_report" value="disabled"/>
+        <arg mapval="0" name="proc_c7_report" value="disabled"/>
+        <arg mapval="0" name="energy_perf" value="performance"/>
+        <arg mapval="0" name="lv_ddr_mode" value="performance-mode"/>
+        <arg mapval="0" name="intel_turbo" value="enabled"/>
+        <arg mapval="0" name="intel_speedstep" value="enabled"/>
+        <arg mapval="0" name="hyper_threading" value="enabled"/>
+        <arg mapval="0" name="intel_vt" value="enabled"/>
+        <arg mapval="0" name="intel_vtd" value="enabled"/>
+        <arg mapval="0" name="intel_vtd" value="enabled"/>
+        <arg mapval="0" name="cpu_perf" value="enterprise"/>
+        <arg mapval="0" name="direct_cache_access" value="enabled"/>
+        <arg mapval="0" name="power_tech" value="performance"/>
+        <arg mapval="0" name="memory_ras" value="maximum-performance"/>
+      </args>
+    </task>
+    <task OnSuccess="t315" Onfailure="None" desc="Update UCS Default maintenance policy" id="UCSUpdateDefaultMaintenancePolicy" inittask="1" label="Default Maintenance Policy" name="UpdateDefaultMaintenancePolicy" texecid="t314">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="descr" value="Default maintenance policy"/>
+        <arg mapval="0" name="timer" value="150-Secs"/>
+        <arg mapval="0" name="uptime" value="user-ack"/>
+        <arg mapval="0" name="trigger" value="on-next-boot"/>
+      </args>
+    </task>
+    <task OnSuccess="t316" Onfailure="None" desc=" UCS Local disk config policy" id="UCSCreateLocalDiskConfigurationPolicy" inittask="0" label="Local Disk Config Policy" name="CreateLocalDiskConfigurationPolicy" texecid="t315">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="SAN-Boot" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="SAN-Boot"/>
+        <arg mapval="0" name="descr" value="Local disk config policy"/>
+        <arg mapval="0" name="mode" value="no-local-storage"/>
+        <arg mapval="0" name="flash_state" value="disable"/>
+        <arg mapval="0" name="raid_state" value="disable"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create power control policy" id="UCSCreatePowerControlPolicy" inittask="0" label="Power Control Policy" name="CreatePowerControlPolicy" texecid="t316">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="No-Power-Cap" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="No-Power-Cap"/>
+        <arg mapval="0" name="descr" value="Power control policy"/>
+        <arg mapval="0" name="speed" value="any"/>
+        <arg mapval="0" name="cap" value="no-cap"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

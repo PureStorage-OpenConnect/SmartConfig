@@ -48,16 +48,16 @@ class UCSCreateServiceProfileTemplate:
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        print ucs_list, res
+        print(ucs_list, res)
         return res
 
     def list_server_disks(self, handle):
-	blades = handle.query_classid(class_id="ComputeBlade")
-	all_disks = []
-	for serv in blades:
-	    chassis = serv.chassis_id
-	    slot_id = serv.slot_id
-	    cquery = "(dn, \"sys/chassis-{0}/blade-{1}/board.*\", type=\"re\")".format(chassis, slot_id)
+        blades = handle.query_classid(class_id="ComputeBlade")
+        all_disks = []
+        for serv in blades:
+            chassis = serv.chassis_id
+            slot_id = serv.slot_id
+            cquery = "(dn, \"sys/chassis-{0}/blade-{1}/board.*\", type=\"re\")".format(chassis, slot_id)
             controllers = handle.query_classid("StorageController", cquery)
         # Get the disks of each controller.
             for c in controllers:
@@ -65,8 +65,8 @@ class UCSCreateServiceProfileTemplate:
                 disks = handle.query_classid("StorageLocalDisk", dquery)
                 for d in disks:
                     all_disks.append(d)
-	return all_disks
-	
+        return all_disks
+
     def prepare(self, jobid, texecid, inputs):
         loginfo(
             "preparing to save values for creating service profile template input params")
@@ -76,7 +76,7 @@ class UCSCreateServiceProfileTemplate:
         keys = {"keyvalues": [
             {"key": "fabric_id", "ismapped": "3", "value": val}]}
 
-	fabricid = getArg(keys, 'fabric_id')
+        fabricid = getArg(keys, 'fabric_id')
         if fabricid is None:
             res.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
@@ -114,16 +114,16 @@ class UCSCreateServiceProfileTemplate:
             jobid, texecid, "power_policy_name", power_pol_list)
 
         local_disk_policy = self.getlocaldiskpolicy(keys)
-	
-	disks = self.list_server_disks(handle)
-	loginfo("Local disk policy is default when there are local disks in server")
-	if disks:
-	    job_input_save(jobid, texecid, "local_disk_policy_name", "default")
-	else:
-	    localdisk_pol_list = [localdisk_pol for localdisk_pol in local_disk_policy.getResult(
-	) if localdisk_pol.get('id') != 'default']
+
+        disks = self.list_server_disks(handle)
+        loginfo("Local disk policy is default when there are local disks in server")
+        if disks:
+            job_input_save(jobid, texecid, "local_disk_policy_name", "default")
+        else:
+            localdisk_pol_list = [localdisk_pol for localdisk_pol in local_disk_policy.getResult(
+            ) if localdisk_pol.get('id') != 'default']
             self.sp_template_save_inputs(
-            jobid, texecid, "local_disk_policy_name", localdisk_pol_list)
+                jobid, texecid, "local_disk_policy_name", localdisk_pol_list)
 
         bios_policy = self.getbiospolicy(keys)
         bios_pol_list = [bios_pol for bios_pol in bios_policy.getResult(

@@ -11,7 +11,9 @@ from pycsco.nxos import error
 from pycsco.nxos.utils.nxapi_lib import get_feature_list
 import xmltodict
 import json
-import urllib2
+#import urllib2
+# For Python3
+import urllib.error
 import re
 import copy
 
@@ -74,7 +76,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -101,7 +103,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -128,7 +130,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -155,7 +157,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -165,7 +167,7 @@ class Nexus:
 
         :return: Returns the switch name
         """
-	neighbors = []
+        neighbors = []
         try:
             sys_op = self.handle.show('show cdp neighbors', fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
@@ -178,25 +180,27 @@ class Nexus:
                 cdp_remote_list = [dict((k, hw[k])for k in keys_list)
                                    for hw in cdp_list if 'mgmt' not in hw['port_id']]
 
-	        for hw in cdp_remote_list:
-		    neighbor = {}
-		    port_detail = self.get_interface_details(hw['intf_id'])
-		    neighbor = {'local_interface': hw['intf_id'],
-                                'remote_interface': hw['port_id'],
-                                'remote_device': re.compile('(.+)\(').search(hw['device_id']).group(1),
-			        'type': port_detail['type'],
-			        'speed': port_detail['speed'],
-			        'pc': port_detail['pc'],
-			        'state': port_detail['state']}
-		    neighbors.append(neighbor)
-	        return neighbors
+                for hw in cdp_remote_list:
+                    neighbor = {}
+                    port_detail = self.get_interface_details(hw['intf_id'])
+                    neighbor = {
+                        'local_interface': hw['intf_id'],
+                        'remote_interface': hw['port_id'],
+                        'remote_device': re.compile(r'(.+)\(').search(
+                            hw['device_id']).group(1),
+                        'type': port_detail['type'],
+                        'speed': port_detail['speed'],
+                        'pc': port_detail['pc'],
+                        'state': port_detail['state']}
+                    neighbors.append(neighbor)
+                return neighbors
 
         except error.CLIError as e:
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -245,14 +249,14 @@ class Nexus:
             else:
                 op_dict = json.loads(iface_op[1])
                 iface_struct = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']
-		iface_details['interface'] = iface_struct['interface']
+                iface_details['interface'] = iface_struct['interface']
                 iface_details['speed'] = iface_struct['eth_speed']
                 iface_details['media'] = iface_struct['eth_media']
-		pc_id = iface_struct.get('eth_bundle', None)
-	        if pc_id is not None:
-		    iface_details['pc'] = [x for x in self.get_pc_list() if x['id']==pc_id][0]
+                pc_id = iface_struct.get('eth_bundle', None)
+                if pc_id is not None:
+                    iface_details['pc'] = [x for x in self.get_pc_list() if x['id'] == pc_id][0]
                 else:
-		    iface_details['pc'] = None
+                    iface_details['pc'] = None
                 iface_details['state'] = iface_struct['state']
                 iface_details['type'] = iface_struct['eth_hw_desc'].split(' ')[-1]
                 return iface_details
@@ -262,7 +266,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -284,15 +288,19 @@ class Nexus:
             else:
                 op_dict = json.loads(iface_op[1])
                 iface_struct = op_dict['ins_api']['outputs']['output']['body']
-		iface_details['interface'] = re.search('(.*) is (.*)', iface_struct.split('\n')[0]).group(1) 
+                iface_details['interface'] = re.search(
+                    '(.*) is (.*)', iface_struct.split('\n')[0]).group(1)
                 iface_details['speed'] = re.search('.*Speed is (.*)\n', iface_struct).group(1)
                 iface_details['media'] = re.search('.*Speed is (.*)\n', iface_struct).group(1)
-		pc_id = re.search('.*Belongs to san-port-channel (.*)\n', iface_struct)
+                pc_id = re.search('.*Belongs to san-port-channel (.*)\n', iface_struct)
                 if pc_id is not None:
-		    iface_details['pc'] = [x for x in self.get_pc_list() if x['id']=='Po'+pc_id.group(1)][0]
+                    iface_details['pc'] = [
+                        x for x in self.get_pc_list() if x['id'] == 'Po' +
+                        pc_id.group(1)][0]
                 else:
-		    iface_details['pc'] = None
-                iface_details['state'] = re.search('(.*) is (.*)', iface_struct.split('\n')[0]).group(2)
+                    iface_details['pc'] = None
+                iface_details['state'] = re.search(
+                    '(.*) is (.*)', iface_struct.split('\n')[0]).group(2)
                 iface_details['type'] = re.search('.*Hardware is (.*),.*\n', iface_struct).group(1)
                 return iface_details
 
@@ -301,7 +309,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -412,7 +420,7 @@ class Nexus:
                 op_dict = json.loads(feat_op[1])
                 feat_output = op_dict['ins_api']['outputs']['output']['body']
                 for row in feat_output.split('\n')[2:-1]:
-                    tmp_list.append(row.partition(' ')[0].encode('utf-8'))
+                    tmp_list.append(row.partition(' ')[0])
                 feat_list = list(set(tmp_list))
                 flist = []
                 for feature in feat_list:
@@ -428,7 +436,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return flist
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return flist
 
@@ -453,7 +461,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -464,7 +472,7 @@ class Nexus:
         :return: Returns the version
         """
         try:
-	    version_details = {}
+            version_details = {}
             sys_op = self.handle.show('show version', fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
             if cli_error:
@@ -472,18 +480,17 @@ class Nexus:
             else:
                 op_dict = json.loads(sys_op[1])
                 version_details_dict = op_dict['ins_api']['outputs']['output']['body']
-		version_details['system_version'] = version_details_dict['rr_sys_ver'] 
-		version_details['kickstart_version'] = version_details_dict['kickstart_ver_str']
-		return version_details
+                version_details['system_version'] = version_details_dict['rr_sys_ver']
+                version_details['kickstart_version'] = version_details_dict['kickstart_ver_str']
+                return version_details
         except error.CLIError as e:
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
-
 
     def configure_portchannel(self, handle, pc_id, interface_list):
         """
@@ -520,7 +527,7 @@ class Nexus:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -563,7 +570,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -604,7 +611,7 @@ class Nexus:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -632,12 +639,12 @@ class Nexus:
                 iface_output = op_dict['ins_api']['outputs']['output']['body']
                 for row in iface_output.split('\n'):
                     if row.startswith('san-port-channel'):
-			iface_dict = {}
+                        iface_dict = {}
                         tmp_list = [x for x in row.split(' ') if x != '']
-                        iface_dict['iface_id'] = tmp_list[1].encode('utf-8')
+                        iface_dict['iface_id'] = tmp_list[1]
                         iface_list.append(iface_dict)
-		    else:
-			continue
+                    else:
+                        continue
 
                 obj.setResult(iface_list, PTK_OKAY, "Success")
                 return obj
@@ -648,7 +655,7 @@ class Nexus:
             obj.setResult(iface_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(iface_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -665,18 +672,18 @@ class Nexus:
                 op_dict = json.loads(vpc_op[1])
                 vpc = op_dict['ins_api']['outputs']['output']['body']
                 vpc_interfaces = vpc['TABLE_vpc']['ROW_vpc']
-                if type(vpc_interfaces) == dict:
+                if isinstance(vpc_interfaces, dict):
                     vpc_interfaces = [vpc_interfaces]
                 for x in vpc_interfaces:
-                    if x['vpc-port-state'] in ['enabled', '1']:
-                        vpc_list.append({'id':str(x['vpc-ifindex']), 'type':'vPC'})
+                    if x['vpc-port-state'] in ['enabled', '1', 1]:
+                        vpc_list.append({'id': str(x['vpc-ifindex']), 'type': 'vPC'})
 
                 vpc_peer_interfaces = vpc['TABLE_peerlink']['ROW_peerlink']
-                if type(vpc_peer_interfaces) == dict:
+                if isinstance(vpc_peer_interfaces, dict):
                     vpc_peer_interfaces = [vpc_peer_interfaces]
                 for x in vpc_peer_interfaces:
-                    if x['peer-link-port-state'] in ['enabled', '1']:
-                        vpc_list.append({'id':str(x['peerlink-ifindex']), 'type':'vPC Peer'})
+                    if x['peer-link-port-state'] in ['enabled', '1', 1]:
+                        vpc_list.append({'id': str(x['peerlink-ifindex']), 'type': 'vPC Peer'})
                 return vpc_list
 
         except error.CLIError as e:
@@ -684,17 +691,16 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return vpc_list
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return vpc_list
 
     def get_pc_list(self):
-        fc_pc_list = self.get_portchannel_list().getResult() 
-        fc_pc_list = [{'id':'Po'+str(x['iface_id']), 'type':'FC PC'} for x in fc_pc_list]
+        fc_pc_list = self.get_portchannel_list().getResult()
+        fc_pc_list = [{'id': 'Po' + str(x['iface_id']), 'type':'FC PC'} for x in fc_pc_list]
         eth_pc_list = self.get_ether_portchannel_list()
         pc_list = fc_pc_list + eth_pc_list
         return pc_list
-
 
     def getfc_list(self, slot, ports):
         """
@@ -733,11 +739,10 @@ class Nexus:
                     if row.startswith('fc'):
                         tmp_list = [x for x in row.split(' ') if x != '']
                         iface_dict = {}
-                        iface_dict['iface_id'] = tmp_list[0].encode('utf-8')
-                        iface_dict['iface_status'] = tmp_list[4].encode(
-                            'utf-8')
-                        iface_dict['iface_vsan'] = tmp_list[1].encode('utf-8')
-                        iface_dict['iface_pc'] = tmp_list[-1].encode('utf-8')
+                        iface_dict['iface_id'] = tmp_list[0]
+                        iface_dict['iface_status'] = tmp_list[4]
+                        iface_dict['iface_vsan'] = tmp_list[1]
+                        iface_dict['iface_pc'] = tmp_list[-1]
                         iface_list.append(iface_dict)
 
                 if pc_bind == "":
@@ -752,9 +757,8 @@ class Nexus:
                         else:
                             iface_notpc_list.append(iface)
                     if pc_bind:
-                        loginfo(
-                            "Nexus interface list which are binded to port channel: " + pc_bind + " are" + 
-                            str([iface['iface_id'] for iface in iface_pc_list]))
+                        loginfo("Nexus interface list which are binded to port channel: " + \
+                                pc_bind + " are" + str([iface['iface_id'] for iface in iface_pc_list]))
                         obj.setResult(iface_pc_list, PTK_OKAY, "Success")
                         return obj
                     elif pc_bind == False:
@@ -776,7 +780,7 @@ class Nexus:
             obj.setResult(iface_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(iface_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -813,7 +817,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -848,7 +852,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -891,7 +895,7 @@ class Nexus:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -933,7 +937,7 @@ class Nexus:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -980,7 +984,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1016,7 +1020,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1078,7 +1082,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1113,7 +1117,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1148,7 +1152,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1189,7 +1193,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllibe.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1231,7 +1235,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1291,7 +1295,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1313,11 +1317,11 @@ class Nexus:
                 if row.startswith('fc') or row.startswith('San-po'):
                     tmp_list = [x for x in row.split(' ') if x != '']
                     flogi_dict = {}
-                    flogi_dict['iface_id'] = tmp_list[0].encode('utf-8')
-                    flogi_dict['vsan_id'] = tmp_list[1].encode('utf-8')
-                    flogi_dict['fcid'] = tmp_list[2].encode('utf-8')
-                    flogi_dict['pwwn'] = tmp_list[3].encode('utf-8')
-                    flogi_dict['nwwn'] = tmp_list[4].encode('utf-8')
+                    flogi_dict['iface_id'] = tmp_list[0]
+                    flogi_dict['vsan_id'] = tmp_list[1]
+                    flogi_dict['fcid'] = tmp_list[2]
+                    flogi_dict['pwwn'] = tmp_list[3]
+                    flogi_dict['nwwn'] = tmp_list[4]
                     flogi_sessions.append(flogi_dict)
 
         except error.CLIError as e:
@@ -1326,7 +1330,7 @@ class Nexus:
             obj.setResult(flogi_sessions, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(flogi_sessions, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -1352,7 +1356,7 @@ class Nexus:
             else:
                 op_dict = json.loads(vsan_op[1])
                 vsan_output = op_dict['ins_api']['outputs']['output']['body']
-                vsan_list = [lst.split(':')[1].encode('utf-8').split(',')
+                vsan_list = [lst.split(':')[1].split(',')
                              for lst in vsan_output.split('\n') if 'configured vsans:' in lst][0]
                 loginfo("Nexus vsan list: " + str(vsan_list))
                 obj.setResult(vsan_list, PTK_OKAY, "Success")
@@ -1364,7 +1368,7 @@ class Nexus:
             obj.setResult(vsan_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(vsan_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -1432,7 +1436,7 @@ class Nexus:
             obj.setResult(zone_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(zone_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -1470,7 +1474,7 @@ class Nexus:
             obj.setResult(zoneset_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(zoneset_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -1515,7 +1519,7 @@ class Nexus:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -1566,7 +1570,7 @@ class Nexus:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -1618,7 +1622,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1665,7 +1669,7 @@ class Nexus:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1724,7 +1728,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return False
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Failed to set Nexus password")
             loginfo("Error msg: " + str(e.reason))
             return False
@@ -1743,18 +1747,23 @@ class Nexus:
             else:
                 out_dict = json.loads(nexus_out[1])
                 nexus_sys = out_dict['ins_api']['outputs']['output']['body']
-                nexus_uptime['uptime'] = (str(nexus_sys['sys_up_days']) + " days," + str(nexus_sys['sys_up_hrs']) + " hrs," +
-                                           str(nexus_sys['sys_up_mins']) + " mins," + str(nexus_sys['sys_up_secs']) + " secs")
+                nexus_uptime['uptime'] = (str(nexus_sys['sys_up_days']) +
+                                          " days," +
+                                          str(nexus_sys['sys_up_hrs']) +
+                                          " hrs," +
+                                          str(nexus_sys['sys_up_mins']) +
+                                          " mins," +
+                                          str(nexus_sys['sys_up_secs']) +
+                                          " secs")
                 return nexus_uptime
         except error.CLIError as e:
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
-
 
     def nexus_command(self, cmd, key, **kwargs):
         """
@@ -1776,7 +1785,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1800,7 +1809,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1820,7 +1829,7 @@ class Nexus:
             else:
                 out_dict = json.loads(nexus_out[1])
                 nexus_sys = out_dict['ins_api']['outputs']['output']['body']
-                nexus_val = nexus_sys.encode('utf-8').split('\n')
+                nexus_val = nexus_sys.split('\n')
                 for val in nexus_val:
                     vsan_elem = val.strip(' ')
                     if "name" in vsan_elem:
@@ -1829,7 +1838,7 @@ class Nexus:
                     else:
                         if ":" in val:
                             tmp_list.append(val.strip())
- 
+
                 tmp_dict = {'vsan_name': [], 'vsan_interop_mode': [], 'vsan_load_balancing': [],
                             'vsan_operational_state': [], 'vsan_state': []}
                 for elem in tmp_list:
@@ -1843,8 +1852,8 @@ class Nexus:
                         tmp_dict['vsan_operational_state'].append(elem.split(':')[-1])
                     elif "vsan_state" in elem:
                         tmp_dict['vsan_state'].append(elem.split(':')[-1])
-                
-                final_dict={}
+
+                final_dict = {}
                 for i in range(len(tmp_dict['vsan_name'])):
                     final_dict['vsan_name'] = tmp_dict['vsan_name'][i]
                     final_dict['vsan_interop_mode'] = tmp_dict['vsan_interop_mode'][i]
@@ -1858,7 +1867,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1877,7 +1886,7 @@ class Nexus:
             else:
                 out_dict = json.loads(nexus_out[1])
                 nexus_sys = out_dict['ins_api']['outputs']['output']['body']
-                tmp_val = nexus_sys.encode('utf-8').split('\n')
+                tmp_val = nexus_sys.split('\n')
                 nexus_val = [i.strip() for i in tmp_val]
                 for i in nexus_val:
                     if 'pwwn' in i:
@@ -1888,7 +1897,7 @@ class Nexus:
                         tmp_list.append(i)
 
                 name_l = []
-                pwwn_l = []            
+                pwwn_l = []
                 for i in tmp_list:
                     if 'name' in i:
                         name_l.append(i.split(' ')[1])
@@ -1896,11 +1905,11 @@ class Nexus:
                         pwwn_l.append(i.split(' ')[1])
                     elif i == '':
                         pwwn_l.append(' ')
-                
+
                 for i in range(len(name_l)):
-                    dicto = {'zone_name' : "", 'wwn' : []}
+                    dicto = {'zone_name': "", 'wwn': []}
                     dicto['zone_name'] = name_l[i]
-                    for j in range(i,i+5):
+                    for j in range(i, i + 5):
                         dicto['wwn'].append(pwwn_l[j])
                     zoneset_details.append(copy.deepcopy(dicto))
                 return zoneset_details
@@ -1909,7 +1918,7 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1929,12 +1938,12 @@ class Nexus:
             else:
                 op_dict = json.loads(sys_op[1])
                 sys_output = op_dict['ins_api']['outputs']['output']['body']
-                nexus_val = sys_output.encode('utf-8').split("\n")
+                nexus_val = sys_output.split("\n")
                 for i in nexus_val:
-                    val=i.split(" ")
+                    val = i.split(" ")
                     str_list = list(filter(None, val))
                     tmp_list.append("".join([g for g in str_list]))
-                
+
                 for i in tmp_list:
                     if "lacp" in i:
                         nexus_sys['lacp'] = i.split('lacp')[1][1:]
@@ -1948,6 +1957,59 @@ class Nexus:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def get_lacp_list(self):
+        """
+        Gets the nexus lacp neighbors list for Nexus 9K
+
+        :return: list of lacp neighbors
+        """
+        lacp_list = []
+        try:
+            sys_op = self.handle.show('show lacp neighbor', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(sys_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                op_dict = json.loads(sys_op[1])
+                sys_output = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']
+                for pc in sys_output:
+                    lacp_dict = {}
+                    lacp_dict['pc_id'] = pc['interface']
+                    lacp_dict['pc_ifaces'] = []
+                    lacp_mem_op = pc['TABLE_member']['ROW_member']
+                    if isinstance(lacp_mem_op, dict):
+                        lacp_mem_op = [lacp_mem_op]
+                    for lacp_port in lacp_mem_op:
+                        port = {}
+                        port['local_interface'] = lacp_port['port']
+                        port['remote_interface'] = lacp_port['partner-system-id'].split(',')[-1].replace('-',':')
+                        port['remote_interface_state'] = 'active' if lacp_port['partner-flags'][-1] == 'A' else 'passive'
+                        lacp_dict['pc_ifaces'].append(port)
+                    lacp_list.append(lacp_dict)
+                return lacp_list
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            return None
+
+        except urllib.error.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            return None
+
+    def get_speed(self, cmd):
+        g = 1000
+        try:
+            sys = self.nexus_command(cmd, ['eth_speed', 'eth_media'])
+            speed = re.findall('\d+', sys['eth_media'][0])
+            if 'g' in sys['eth_media'][0].lower():
+                eth_speed=int(speed[0])*g
+                return eth_speed
+
+        except Exception as e:
+            loginfo("Error msg: " + str(e))
             return None

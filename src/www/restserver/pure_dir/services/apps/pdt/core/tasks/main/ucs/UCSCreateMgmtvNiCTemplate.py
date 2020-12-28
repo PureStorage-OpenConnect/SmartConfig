@@ -30,7 +30,7 @@ class UCSCreateMgmtvNiCTemplate:
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
-        print "create Management vNIC Template rollback"
+        loginfo("create Management vNIC Template rollback")
         res = get_ucs_handle(inputs['fabric_id'])
         if res.getStatus() != PTK_OKAY:
             return res
@@ -209,7 +209,7 @@ class UCSCreateMgmtvNiCTemplateInputs:
         static_values="",
         order=3)
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='Fabric ID',
         api="getfis()",

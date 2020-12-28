@@ -133,7 +133,7 @@ class UCSCreatevHBAInputs:
         order=2,
         recommended="1")
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='Primary Or Secondary FI',
         dt_type="string",

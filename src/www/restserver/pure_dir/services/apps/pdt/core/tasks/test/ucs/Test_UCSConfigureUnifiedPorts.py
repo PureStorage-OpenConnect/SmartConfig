@@ -1,6 +1,7 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
+
 
 class Test_UCSConfigureUnifiedPorts:
     def __init__(self):
@@ -13,7 +14,7 @@ class Test_UCSConfigureUnifiedPorts:
         return res.getResult()
 
     def rollback(self, inputs, outputs, logfile):
-        print "configure unified ports rollback"
+        print("configure unified ports rollback")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

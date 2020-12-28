@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<workflow desc="Initial MDS Configuration and Port Channel, VSAN Setup" htype="fa-n9k-fi6454-mds-fc" id="MDSGeneralConfiguration-fc-fi6454" isdeletable="0" name="Configure MDS Switches" order="2" simulate="0" type="MDS" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" id="generalConfigurationMDS-fc-fi6454" initwf="1" name="General configuration" wexecid="g210"/>
+  </wfs>
+</workflow>

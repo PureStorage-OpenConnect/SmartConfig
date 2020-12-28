@@ -19,7 +19,7 @@ Limitations:
 
             try
                 dir(object._object)
-    
+
 Usage:
 
     class A:
@@ -87,7 +87,7 @@ def test():
         def __init__(self, name):
             self.name = name
 
-            print "initializing Name(%s)" % name
+            print("initializing Name(%s)" % name)
 
         def val(self):
             return self.name
@@ -97,19 +97,19 @@ def test():
 
     LazyName = lazyclass(Name)
 
-    print "before regular initialization"
+    print("before regular initialization")
     n = Name("notlazy")
-    print "after regular initialization"
+    print("after regular initialization")
 
-    print "n.name = " + n.name
+    print("n.name = " + n.name)
 
-    print "----------"
+    print("----------")
 
-    print "before lazy initialization"
+    print("before lazy initialization")
     ln = LazyName("lazy")
-    print "after lazy initialization"
+    print("after lazy initialization")
 
-    print "ln.name = " + ln.name
+    print("ln.name = " + ln.name)
 
     return ln
 

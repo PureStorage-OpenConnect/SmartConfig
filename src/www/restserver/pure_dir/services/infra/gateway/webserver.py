@@ -20,7 +20,7 @@ service_registry = "/tmp/services.json"
 sessions_registry = "/tmp/sessions.xml"
 cookie_name = "pure-storage"
 
-gateway_app = connexion.App(__name__, swagger_ui=False)
+gateway_app = connexion.App(__name__, options={"swagger_ui": False})
 
 # For rendering index.html page when http://<ip> is accessed
 
@@ -155,8 +155,9 @@ def call_api(new_path, request):
     elif request.method == "POST":
         if request.files:
             filestorage_dict = {}
-            filestorage_dict[request.files.keys()[0]] = (
-                request.files.values()[0].filename, request.files.values()[0])
+            file_attr = next(request.files.keys())
+            filestorage_obj = next(request.files.values())
+            filestorage_dict[file_attr] = (filestorage_obj.filename, filestorage_obj)
             if request.form:
                 # TODO: Have to check the combination of form data and query string/post data
                 r = requests.post(

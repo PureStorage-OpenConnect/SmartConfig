@@ -45,14 +45,14 @@ def setConfValue(pathFile, confName, newValue, typeData):
 
     try:
         CURRENT_FILE = open(pathFile, 'r')
-    except IOError, reason:
-        print "cannot find config file: {0}\n{1}".format(pathFile, reason)
+    except IOError as reason:
+        print("cannot find config file: {0}\n{1}".format(pathFile, reason))
         sys.exit(-1)
 
     try:
         NEW_FILE = open(newConfFile, 'w')
-    except IOError, reason:
-        print "cannot create config file: {0}\n{1}".format(pathFile, reason)
+    except IOError as reason:
+        print("cannot create config file: {0}\n{1}".format(pathFile, reason))
         sys.exit(-1)
 
     while True:
@@ -131,8 +131,8 @@ def getConfValue(pathFile, confName):
 
     try:
         FILE = open(pathFile).readlines()
-    except IOError, reason:
-        print "cannot locate configuration file: %s" % pathFile
+    except IOError as reason:
+        print("cannot locate configuration file: %s" % pathFile)
         sys.exit(-1)
 
     for line in [l.strip() for l in FILE]:
@@ -170,9 +170,9 @@ def confToDict(pathFile):
 
     try:
         FILE = open(pathFile, 'r+')
-    except IOError, reason:
-        print "cannot find configuration" \
-            "file: {0}\n{1}".format(pathFile, reason)
+    except IOError as reason:
+        print("cannot find configuration"
+              "file: {0}\n{1}".format(pathFile, reason))
         sys.exit(-1)
 
     while True:
@@ -208,8 +208,8 @@ def confToDict(pathFile):
 
             # Cleaning the confValue - removing " or spaces
             sizeString = len(conf[1])
-            print "sizeString ->" + str(sizeString)
-            print "conf[1] -> " + conf[1]
+            print("sizeString ->" + str(sizeString))
+            print("conf[1] -> " + conf[1])
             for i in range(0, sizeString):
 
                 if (i == 0) and (confValue[i] == "\"") or \
@@ -257,7 +257,7 @@ def confToDict(pathFile):
         if len(line) == 0:
             break
 
-    print str(var)
+    print(str(var))
     FILE.close()
     return var
 
@@ -265,7 +265,7 @@ def confToDict(pathFile):
 def getNumberOfElementsInDict(var):
     # multiple of 4, since we create for each element three
     # additional keys (type, key, status)
-    return len(var.keys()) / 4
+    return len(list(var.keys())) / 4
 
 
 def getConfParserVersion():
@@ -294,16 +294,16 @@ def writeDictToFile(pathFile, var):
 
     try:
         CURRENT_FILE = open(pathFile, 'r')
-    except IOError, reason:
-        print "cannot find configuration" \
-            " file: {0}\n{1}".format(pathFile, reason)
+    except IOError as reason:
+        print("cannot find configuration"
+              " file: {0}\n{1}".format(pathFile, reason))
         sys.exit(-1)
 
     try:
         NEW_FILE = open(newConfFile, 'w')
-    except IOError, reason:
-        print "cannot create new configuration" \
-            "file: {0}\n{1}".format(pathFile, reason)
+    except IOError as reason:
+        print("cannot create new configuration"
+              "file: {0}\n{1}".format(pathFile, reason))
         sys.exit(-1)
 
     while True:
@@ -341,7 +341,7 @@ def writeDictToFile(pathFile, var):
                         confValue[i] == " ") or (confValue[i] == "\n"):
                     continue
                 cleanConfValue += confValue[i]
-                print cleanConfValue
+                print(cleanConfValue)
 
             if lineType != "string":
                 lineType = "no string"

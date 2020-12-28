@@ -18,7 +18,7 @@
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
-        <arg mapval="0" name="zone" value="America/New_York"/>
+        <arg mapval="3" name="zone" value="zone"/>
         <arg mapval="3" name="ntp" value="ntp"/>
       </args>
     </task>

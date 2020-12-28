@@ -114,7 +114,7 @@ class UCSApplyPoliciesToAppliancePortInputs:
         mandatory="1",
         order=1)
     ucs_fabric_id = Radiobutton(
-        hidden='',
+        hidden='True',
         isbasic='True',
         helptext='Primary or Subordinate FI',
         dt_type="string",

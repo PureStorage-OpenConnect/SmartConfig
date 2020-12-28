@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Service Profiles" hidden="1" htype="fa-fi6454-fc" id="createServiceProfileAndAttach-fc-dc-fi6454" isdeletable="0" name="Create Service Profile Templates and Service Profiles" order="4" prereq="ConfigureFI-fc-dc-fi6454" type="UCSM">
+  <tasks>
+    <task OnSuccess="t201" Onfailure="None" desc="Create Server Pool" id="UCSCreateServerPool" inittask="1" label="Create Server Pool" name="CreateServerPool" texecid="t200">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="Infra_Pool" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="Infra_Pool"/>
+        <arg mapval="0" name="desc" value="server pool for Cisco UCS environment"/>
+        <arg mapval="0" name="servers" value="" overwrite="False"/>
+      </args>
+    </task>
+    <task OnSuccess="t301" Onfailure="None" desc="Create service profile  templates" id="UCSCreateServiceProfileTemplate" inittask="0" label="Create Service Profile Template" name="UCSCreateServiceProfileTemplate" texecid="t201">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="serviceprofilename" tvalue="VM-Host-FC-A" value="no-op"/>
+	<output name="ident_pool_name" tvalue="UUID_Pool" value="no-op"/>
+        <output name="boot_policy_name" tvalue="Boot-FC-X-A" value="no-op"/>
+        <output name="power_policy_name" tvalue="No-Power-Cap" value="no-op"/>
+        <output name="local_disk_policy_name" tvalue="SAN-Boot" value="no-op"/>
+        <output name="biospolicy" tvalue="VM-Host" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="template_name" value="VM-Host-FC-A"/>
+        <arg mapval="0" name="template_desc" value="Service Profile template"/>
+        <arg mapval="0" name="type" value="updating-template"/>
+        <arg mapval="0" name="ident_pool_name" value="UUID_Pool" overwrite="False"/>
+        <arg mapval="0" name="lan_conn_policy_name" value="FC-LAN-Policy" overwrite="False"/>
+        <arg mapval="0" name="san_conn_policy_name" value="Infra-SAN-Policy" overwrite="False"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-FC-X-A" overwrite="False"/>
+        <arg mapval="0" name="power_policy_name" value="No-Power-Cap" overwrite="False"/>
+        <arg mapval="0" name="local_disk_policy_name" value="SAN-Boot" overwrite="False"/>
+        <arg mapval="1" name="pool_assignment" value="__t200.CreateServerPool.name"/>
+        <arg mapval="0" name="biospolicy" value="VM-Host" overwrite="False"/>
+        <arg mapval="0" name="maint_policy_name" value="default"/>
+      </args>
+    </task>
+    <task OnSuccess="t401" Onfailure="None" desc="Create vMedia Service Profile Template" id="UCSCloneServiceProfileTemplate" inittask="0" label="Create vMedia Service Profile Template" name="UCSCloneServiceProfileTemplate" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vmedia_template" tvalue="VM-Host-FC-A-vM" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="template_name" value="__t201.UCSCreateServiceProfileTemplate.serviceprofilename"/>
+        <arg mapval="0" name="vmedia_template" value="VM-Host-FC-A-vM"/>
+        <arg mapval="0" name="vmedia_policy_name" value="ESXi-6.5U1-HTTP"/>
+        <arg mapval="1" name="ident_pool_name" value="__t201.UCSCreateServiceProfileTemplate.ident_pool_name"/>
+        <arg mapval="1" name="boot_policy_name" value="__t201.UCSCreateServiceProfileTemplate.boot_policy_name"/>
+        <arg mapval="1" name="power_policy_name" value="__t201.UCSCreateServiceProfileTemplate.power_policy_name"/>
+        <arg mapval="1" name="local_disk_policy_name" value="__t201.UCSCreateServiceProfileTemplate.local_disk_policy_name"/>
+        <arg mapval="1" name="biospolicy" value="__t201.UCSCreateServiceProfileTemplate.biospolicy"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create service profiles from templates" id="UCSCreateServiceProfilesFromTemplate" inittask="0" label="Create Service Profiles from template" name="UCSCreateServiceProfilesFromTemplate" texecid="t401">
+      <outputs>
+        <output dt_type="integer" name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="profile_prefix" value="VM-Host-FC-0"/>
+        <arg mapval="0" name="suffix_starting_number" value="1"/>
+        <arg mapval="0" name="instances" value="2" overwrite="False"/>
+        <arg mapval="1" name="template_name" value="__t301.UCSCloneServiceProfileTemplate.vmedia_template"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

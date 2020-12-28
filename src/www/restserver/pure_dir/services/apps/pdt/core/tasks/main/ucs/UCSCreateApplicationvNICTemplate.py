@@ -196,7 +196,7 @@ class UCSCreateApplicationvNICTemplateInputs:
         static_values="",
         order=3)
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='Fabric ID',
         api="getfis()",

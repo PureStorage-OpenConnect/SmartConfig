@@ -28,7 +28,7 @@ def generate_request(api, query_payload, body_payload, mod_name, method):
                 url, data=bdata, headers=headers, params=pdata)
 
         if response.status_code != 200:
-            print "request failed"
+            print("request failed")
             obj.setResult(None, PTK_NOTEXIST,
                           "Request Failed with code" + str(response.status_code))
             return obj
@@ -38,7 +38,7 @@ def generate_request(api, query_payload, body_payload, mod_name, method):
                       "Response received successfully")
 
     except requests.exceptions.RequestException as e:
-        print str(e)
+        print(str(e))
         obj.setResult(None, PTK_NOTEXIST, "Request Failed with code" + str(e))
         return obj
 

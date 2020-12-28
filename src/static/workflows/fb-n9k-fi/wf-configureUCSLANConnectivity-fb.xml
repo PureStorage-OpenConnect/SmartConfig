@@ -1,0 +1,360 @@
+<?xml version="1.0" ?>
+<workflow desc="Configuration of LAN Connectivity in UCS" hidden="1" htype="fb-n9k-fi" id="configureUCSLANConnectivity-fb" isdeletable="0" name="Configure UCS LAN Connectivity" type="UCSM">
+  <tasks>
+    <task OnSuccess="t197" Onfailure="None" desc="Create Network Control policy" id="UCSCreateNetworkControlPolicy" inittask="1" label="Network Control policy" name="CreateNetworkControlPolicy" texecid="t196">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="Enable-LLDP" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="Enable-LLDP"/>
+        <arg mapval="0" name="descr" value="Network Control Policy"/>
+        <arg mapval="0" name="cdp" value="disabled"/>
+        <arg mapval="0" name="mac_mode" value="only-native-vlan"/>
+        <arg mapval="0" name="uplink_fail" value="link-down"/>
+        <arg mapval="0" name="forge" value="allow"/>
+        <arg mapval="0" name="lldp_tra" value="enabled"/>
+        <arg mapval="0" name="lldp_rec" value="enabled"/>
+      </args>
+    </task>
+    <task OnSuccess="t198" Onfailure="None" desc="Create MAC Address Pools for Fabric A" id="UCSCreateMACAddressPools" inittask="0" label="Create MAC Address Pools (A)" name="CreateMACAddressPoolsForFabricA" texecid="t197">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="mac_name" tvalue="MAC_Pool_A" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="mac_name" value="MAC_Pool_A"/>
+        <arg mapval="0" name="descr" value="mac pool A"/>
+        <arg mapval="0" name="mac_order" value="sequential"/>
+        <arg mapval="0" name="mac_start" value="00:25:B5:91:1A:00" overwrite="False"/>
+        <arg mapval="0" name="size" value="32"/>
+      </args>
+    </task>
+    <task OnSuccess="t199" Onfailure="None" desc="Create MAC Address Pools for Fabric B" id="UCSCreateMACAddressPools" inittask="0" label="Create MAC Address Pools (B)" name="CreateMACAddressPoolsForFabricB" texecid="t198">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="mac_name" tvalue="MAC_Pool_B" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="mac_name" value="MAC_Pool_B"/>
+        <arg mapval="0" name="descr" value="mac pool B"/>
+        <arg mapval="0" name="mac_order" value="sequential"/>
+        <arg mapval="0" name="mac_start" value="00:25:B5:91:1B:00" overwrite="False"/>
+        <arg mapval="0" name="size" value="32"/>
+      </args>
+    </task>
+    <task OnSuccess="t200" Onfailure="None" desc="Enable uplink ports for Fabric A" id="UCSEnableUplinkPorts" inittask="0" label="Enable Uplink Ports (A)" name="EnableUplinkPortsForFabricA" texecid="t199">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="ports" tvalue="53|54" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="ports" value="53|54"/>
+      </args>
+    </task>
+    <task OnSuccess="t201" Onfailure="None" desc="Enable uplink ports for Fabric B" id="UCSEnableUplinkPorts" inittask="0" label="Enable Uplink Ports (B)" name="EnableUplinkPortsForFabricB" texecid="t200">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="ports" tvalue="53|54" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="ports" value="53|54"/>
+      </args>
+    </task>
+    <task OnSuccess="t202" Onfailure="None" desc="Create UDLD Link Policy" id="UCSCreateUDLDLinkPolicy" inittask="0" label="Create UDLD Link Policy" name="UCSCreateUDLDLinkPolicy" texecid="t201">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="UDLD-Pol" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="UDLD-Pol"/>
+        <arg mapval="0" name="admin_state" value="enabled"/>
+        <arg mapval="0" name="mode" value="normal"/>
+      </args>
+    </task>
+    <task OnSuccess="t203" Onfailure="None" desc="Create a Link Profile" id="UCSCreateLinkProfile" inittask="0" label="Create Link Profile" name="UCSCreateLinkProfile" texecid="t202">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="Link-Profile" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="Link-Profile"/>
+        <arg mapval="1" name="udld_pol" value="__t201.UCSCreateUDLDLinkPolicy.name"/>
+      </args>
+    </task>
+    <task OnSuccess="t204" Onfailure="None" desc="Configure Up Link Port Channels for A" id="UCSCreateUplinkPortChannels" inittask="0" label="Create Uplink Port Channel(A) " name="UCSCreateUplinkPortChannelsForFabricA" texecid="t203">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="vPC-151-Nexus" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="3" name="id" value="up_port_a"/>
+        <arg mapval="0" name="name" value="vPC-151-Nexus"/>
+        <arg mapval="1" name="ports" value="__t199.EnableUplinkPortsForFabricA.ports"/>
+      </args>
+    </task>
+    <task OnSuccess="t205" Onfailure="None" desc="Configure Up Link Port Channels for B" id="UCSCreateUplinkPortChannels" inittask="0" label="Create Uplink Port Channel(B)" name="UCSCreateUplinkPortChannelsForFabricB" texecid="t204">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="name" tvalue="vPC-152-Nexus" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="3" name="id" value="up_port_b"/>
+        <arg mapval="0" name="name" value="vPC-152-Nexus"/>
+        <arg mapval="1" name="ports" value="__t200.EnableUplinkPortsForFabricB.ports"/>
+      </args>
+    </task>
+    <task OnSuccess="t206" Onfailure="None" desc="Configure UDLD on Uplink Port Channels for A" id="UCSConfigureUDLDUplinkPortChannel" inittask="0" label="Configure UDLD on Uplink Port Channel(A) " name="UCSConfigureUDLDUplinkPortChannelForFabricA" texecid="t205">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="3" name="id" value="up_port_a"/>
+        <arg mapval="1" name="name" value="__t202.UCSCreateLinkProfile.name"/>
+        <arg mapval="1" name="portchl_name" value="__t203.UCSCreateUplinkPortChannelsForFabricA.name"/>
+        <arg mapval="1" name="ports" value="__t199.EnableUplinkPortsForFabricA.ports"/>
+      </args>
+    </task>
+    <task OnSuccess="t207" Onfailure="None" desc="Configure UDLD on Uplink Port Channels for B" id="UCSConfigureUDLDUplinkPortChannel" inittask="0" label="Configure UDLD on Uplink Port Channel(B)" name="UCSConfigureUDLDUplinkPortChannelForFabricB" texecid="t206">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="3" name="id" value="up_port_b"/>
+        <arg mapval="1" name="name" value="__t202.UCSCreateLinkProfile.name"/>
+        <arg mapval="1" name="portchl_name" value="__t204.UCSCreateUplinkPortChannelsForFabricB.name"/>
+        <arg mapval="1" name="ports" value="__t200.EnableUplinkPortsForFabricB.ports"/>
+      </args>
+    </task>
+    <task OnSuccess="t208" Onfailure="None" desc="Create VLAN Native" id="UCSCreateNativeVLAN" inittask="0" label="Create Native VLAN" name="UCSCreateNativeVLAN" texecid="t207">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vlan_name" tvalue="Native-VLAN" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vlan_name" value="Native-VLAN"/>
+        <arg mapval="3" name="vlan_id" value="native_vlan"/>
+        <arg mapval="0" name="vlan_type" value="fabric/lan"/>
+        <arg mapval="0" name="sharing" value="none"/>
+      </args>
+    </task>
+    <task OnSuccess="t209" Onfailure="None" desc="Create VLAN IB Mgmt" id="UCSCreateVLAN" inittask="0" label="Create Management VLAN " name="UCSCreateIBMgmtVLAN" texecid="t208">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vlan_name" tvalue="IB-MGMT-VLAN" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vlan_name" value="IB-MGMT-VLAN"/>
+        <arg mapval="3" name="vlan_id" value="mgmt_vlan"/>
+        <arg mapval="0" name="vlan_type" value="fabric/lan"/>
+        <arg mapval="0" name="sharing" value="none"/>
+      </args>
+    </task>
+    <task OnSuccess="t210" Onfailure="None" desc="Create AI ML NFS VLAN" id="UCSCreateVLAN" inittask="0" label="Create NFS VLAN" name="UCSCreateAIMLNFSVLAN" texecid="t209">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vlan_name" tvalue="AI-ML-NFS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vlan_name" value="AI-ML-NFS"/>
+        <arg mapval="3" name="vlan_id" value="ai_ml_nfs_vlan"/>
+        <arg mapval="0" name="vlan_type" value="fabric/lan"/>
+        <arg mapval="0" name="sharing" value="none"/>
+      </args>
+    </task>
+    <task OnSuccess="t211" Onfailure="None" desc="Create Data traffic VLAN" id="UCSCreateVLAN" inittask="0" label="Create Data Traffic VLAN" name="UCSCreateDataTrafficVLAN" texecid="t210">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vlan_name" tvalue="Data-Traffic" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vlan_name" value="Data-Traffic"/>
+        <arg mapval="3" name="vlan_id" value="data_traffic_vlan"/>
+        <arg mapval="0" name="vlan_type" value="fabric/lan"/>
+        <arg mapval="0" name="sharing" value="none"/>
+      </args>
+    </task>
+    <task OnSuccess="t212" Onfailure="None" desc="Create Management vNIC template for fabric A" id="UCSCreateMgmtvNICTemplateFB" inittask="0" label="Create Management vNIC Template (A)" name="UCSCreateMgmtvNiCTemplateForFabricA" texecid="t211">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_templ_name" tvalue="BM-Mgmt" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vnic_templ_name" value="BM-Mgmt"/>
+        <arg mapval="0" name="vnic_templ_desc" value="Mgmt vNIC Template for Fabric A"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="switch_id" value="True"/>
+        <arg mapval="0" name="redundancy_pair_type" value="none"/>
+        <arg mapval="0" name="templ_type" value="updating-template"/>
+        <arg mapval="0" name="peer_red_template" value="not-set"/>
+        <arg mapval="1" name="vlans" value="__t208.UCSCreateIBMgmtVLAN.vlan_name"/>
+        <arg mapval="1" name="native_vlan" value="__t208.UCSCreateIBMgmtVLAN.vlan_name"/>
+        <arg mapval="0" name="cdn_source" value="vnic-name"/>
+        <arg mapval="0" name="mtu" value="1500"/>
+        <arg mapval="1" name="ident_pool_name" value="__t197.CreateMACAddressPoolsForFabricA.mac_name"/>
+        <arg mapval="1" name="nw_ctrl_policy_name" value="__t196.CreateNetworkControlPolicy.name"/>
+      </args>
+    </task>
+    <task OnSuccess="t213" Onfailure="None" desc="Create NFS vNIC template for fabric A" id="UCSCreateNFSvNICTemplate" inittask="0" label="Create NFS vNIC Template (A)" name="UCSCreateNFSvNiCTemplateForFabricA" texecid="t212">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_templ_name" tvalue="BM-NFS-A" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vnic_templ_name" value="BM-NFS-A"/>
+        <arg mapval="0" name="vnic_templ_desc" value="NFS vNIC Template for Fabric A"/>
+        <arg mapval="0" name="ucs_fabric_id" value="A"/>
+        <arg mapval="0" name="switch_id" value="True"/>
+        <arg mapval="0" name="redundancy_pair_type" value="none"/>
+        <arg mapval="0" name="templ_type" value="updating-template"/>
+        <arg mapval="0" name="peer_red_template" value="not-set"/>
+        <arg mapval="1" name="vlans" value="__t209.UCSCreateAIMLNFSVLAN.vlan_name"/>
+        <arg mapval="1" name="native_vlan" value="__t209.UCSCreateAIMLNFSVLAN.vlan_name"/>
+        <arg mapval="0" name="cdn_source" value="vnic-name"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+        <arg mapval="1" name="ident_pool_name" value="__t197.CreateMACAddressPoolsForFabricA.mac_name"/>
+        <arg mapval="1" name="nw_ctrl_policy_name" value="__t196.CreateNetworkControlPolicy.name"/>
+      </args>
+    </task>
+    <task OnSuccess="t214" Onfailure="None" desc="Create NFS vNIC template for fabric B" id="UCSCreateNFSvNICTemplate" inittask="0" label="Create NFS vNIC Template (B)" name="UCSCreateNFSvNiCTemplateForFabricB" texecid="t213">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_templ_name" tvalue="BM-NFS-B" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vnic_templ_name" value="BM-NFS-B"/>
+        <arg mapval="0" name="vnic_templ_desc" value="NFS vNIC Template for Fabric B"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="switch_id" value="True"/>
+        <arg mapval="0" name="redundancy_pair_type" value="none"/>
+        <arg mapval="0" name="templ_type" value="updating-template"/>
+        <arg mapval="0" name="peer_red_template" value="not-set"/>
+        <arg mapval="1" name="vlans" value="__t209.UCSCreateAIMLNFSVLAN.vlan_name"/>
+        <arg mapval="1" name="native_vlan" value="__t209.UCSCreateAIMLNFSVLAN.vlan_name"/>
+        <arg mapval="0" name="cdn_source" value="vnic-name"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+        <arg mapval="1" name="ident_pool_name" value="__t198.CreateMACAddressPoolsForFabricB.mac_name"/>
+        <arg mapval="1" name="nw_ctrl_policy_name" value="__t196.CreateNetworkControlPolicy.name"/>
+      </args>
+    </task>
+    <task OnSuccess="t215" Onfailure="None" desc="Create Traffic vNIC template for fabric B" id="UCSCreateTrafficvNICTemplate" inittask="0" label="Create Traffic vNIC Template (B)" name="UCSCreateTrafficvNiCTemplateForFabricB" texecid="t214">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_templ_name" tvalue="BM-Traffic-B" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="vnic_templ_name" value="BM-Traffic-B"/>
+        <arg mapval="0" name="vnic_templ_desc" value="Traffic vNIC template for fabric B"/>
+        <arg mapval="0" name="ucs_fabric_id" value="B"/>
+        <arg mapval="0" name="switch_id" value="True"/>
+        <arg mapval="0" name="redundancy_pair_type" value="none"/>
+        <arg mapval="0" name="templ_type" value="updating-template"/>
+        <arg mapval="0" name="peer_red_template" value="not-set"/>
+        <arg mapval="1" name="vlans" value="__t210.UCSCreateDataTrafficVLAN.vlan_name"/>
+        <arg mapval="0" name="native_vlan" value="__t210.UCSCreateDataTrafficVLAN.vlan_name"/>
+        <arg mapval="0" name="cdn_source" value="vnic-name"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+        <arg mapval="1" name="ident_pool_name" value="__t198.CreateMACAddressPoolsForFabricB.mac_name"/>
+        <arg mapval="1" name="nw_ctrl_policy_name" value="__t196.CreateNetworkControlPolicy.name"/>
+      </args>
+    </task>
+    <task OnSuccess="t216" Onfailure="None" desc="Set Jumbo Frames in UCS fabric" id="UCSSetJumboFrames" inittask="0" label="Set Jumbo Frames" name="UCSSetJumboFrames" texecid="t215">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="mtu" tvalue="9216" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="mtu" value="9216"/>
+      </args>
+    </task>
+    <task OnSuccess="t217" Onfailure="None" desc="Create LAN Connectivity Policy" id="UCSCreateLANConnectivityPolicy" inittask="0" label="Create LAN Connectivity Policy" name="UCSCreateLANConnectivityPolicy" texecid="t216">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="lan_conn_policy_name" tvalue="BM-NFS-FabA" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="lan_conn_policy_name" value="BM-NFS-FabA"/>
+        <arg mapval="0" name="lan_conn_policy_desc" value="lan-policy"/>
+      </args>
+    </task>
+    <task OnSuccess="t218" Onfailure="None" desc="Create Management vNIC for A" id="UCSCreatevNIC" inittask="0" label="Create Management vNIC (A)" name="UCSCreatevNICMgmtA " texecid="t217">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_name" tvalue="00-MGMT" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="policy_name" value="__t216.UCSCreateLANConnectivityPolicy.lan_conn_policy_name"/>
+        <arg mapval="0" name="vnic_name" value="00-MGMT"/>
+        <arg mapval="0" name="adaptor_policy_name" value="linux"/>
+        <arg mapval="1" name="nw_templ_name" value="__t211.UCSCreateMgmtvNiCTemplateForFabricA.vnic_templ_name"/>
+      </args>
+    </task>
+    <task OnSuccess="t219" Onfailure="None" desc="Create NFS vNIC for A" id="UCSCreatevNIC" inittask="0" label="Create NFS vNIC (A)" name="UCSCreatevNICNFS_A" texecid="t218">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_name" tvalue="01-NFS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="policy_name" value="__t216.UCSCreateLANConnectivityPolicy.lan_conn_policy_name"/>
+        <arg mapval="0" name="vnic_name" value="01-NFS"/>
+        <arg mapval="0" name="adaptor_policy_name" value="linux"/>
+        <arg mapval="1" name="nw_templ_name" value="__t212.UCSCreateNFSvNiCTemplateForFabricA.vnic_templ_name"/>
+      </args>
+    </task>
+    <task OnSuccess="t220" Onfailure="None" desc="Create NFS vNIC for B" id="UCSCreatevNIC" inittask="0" label="Create NFS vNIC (B)" name="UCSCreatevNICNFS_B" texecid="t219">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_name" tvalue="02-NFS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="policy_name" value="__t216.UCSCreateLANConnectivityPolicy.lan_conn_policy_name"/>
+        <arg mapval="0" name="vnic_name" value="02-NFS"/>
+        <arg mapval="0" name="adaptor_policy_name" value="linux"/>
+        <arg mapval="1" name="nw_templ_name" value="__t213.UCSCreateNFSvNiCTemplateForFabricB.vnic_templ_name"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create Traffic vNIC for B" id="UCSCreatevNIC" inittask="0" label="Create Traffic vNIC (B)" name="UCSCreatevNICTraffic_B" texecid="t220">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="vnic_name" tvalue="02-Traffic" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="policy_name" value="__t216.UCSCreateLANConnectivityPolicy.lan_conn_policy_name"/>
+        <arg mapval="0" name="vnic_name" value="02-Traffic"/>
+        <arg mapval="0" name="adaptor_policy_name" value="linux"/>
+        <arg mapval="1" name="nw_templ_name" value="__t214.UCSCreateTrafficvNiCTemplateForFabricB.vnic_templ_name"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

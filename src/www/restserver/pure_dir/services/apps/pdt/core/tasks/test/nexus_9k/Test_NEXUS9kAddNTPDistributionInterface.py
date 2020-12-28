@@ -2,6 +2,7 @@ from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
 
+
 class Test_NEXUS9kAddNTPDistributionInterface:
     def __init__(self):
         pass
@@ -13,7 +14,7 @@ class Test_NEXUS9kAddNTPDistributionInterface:
         return res.getResult()
 
     def rollback(self, inputs, outputs, logfile):
-        print "Test NEXUS Add NTP Distribution Interface"
+        print("Test NEXUS Add NTP Distribution Interface")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

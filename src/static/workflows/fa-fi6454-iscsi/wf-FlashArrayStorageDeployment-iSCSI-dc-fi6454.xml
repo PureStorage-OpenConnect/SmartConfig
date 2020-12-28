@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-fi6454-iscsi" id="FlashArrayStorageDeployment-iSCSI-dc-fi6454" isdeletable="0" name="Configure FlashArray Storage" order="4" simulate="0" type="FlashArray" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-iSCSI-dc-fi6454" initwf="1" name="Host Registration" wexecid="g310"/>
+    <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-iSCSI-dc-fi6454" initwf="0" name="Private Volumes" wexecid="g311"/>
+    <wf OnFailure="None" OnSuccess="g313" id="HostGroups-iSCSI-dc-fi6454" initwf="0" name="Host Groups" wexecid="g312"/>
+    <wf OnFailure="None" OnSuccess="None" id="PublicVolume-iSCSI-dc-fi6454" initwf="0" name="Shared Volume" wexecid="g313"/>
+  </wfs>
+</workflow>

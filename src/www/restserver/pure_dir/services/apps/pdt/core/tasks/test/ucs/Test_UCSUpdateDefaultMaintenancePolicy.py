@@ -1,4 +1,4 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
 
@@ -14,7 +14,7 @@ class Test_UCSUpdateDefaultMaintenancePolicy:
         return res.getResult()
 
     def rollback(self, inputs, outputs, logfile):
-        print "Update Default Maintenance Policy rollback"
+        print("Update Default Maintenance Policy rollback")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

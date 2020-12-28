@@ -1,0 +1,12 @@
+diff -urN ucsmsdk-0.9.10.orig/ucsmsdk/ucsfilter.py ucsmsdk-0.9.10/ucsmsdk/ucsfilter.py
+--- ucsmsdk-0.9.10.orig/ucsmsdk/ucsfilter.py	2020-09-09 10:22:46.310940927 -0400
++++ ucsmsdk-0.9.10/ucsmsdk/ucsfilter.py	2020-09-09 10:23:19.471774402 -0400
+@@ -146,7 +146,7 @@
+             self.parse_filter_obj).setResultsName("semi_expression")
+ 
+         expr = pp.Forward()
+-        expr << pp.operatorPrecedence(semi_expression, [
++        expr << pp.infixNotation(semi_expression, [
+             ("not", 1, pp.opAssoc.RIGHT, self.not_operator),
+             ("and", 2, pp.opAssoc.LEFT, self.and_operator),
+             ("or", 2, pp.opAssoc.LEFT, self.or_operator)

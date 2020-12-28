@@ -1,0 +1,765 @@
+diff -purN a/pycsco/lib/ipaddr.py b/pycsco/lib/ipaddr.py
+--- a/pycsco/lib/ipaddr.py	2015-06-23 21:05:41.000000000 +0530
++++ b/pycsco/lib/ipaddr.py	2020-07-27 17:13:21.000000000 +0530
+@@ -513,7 +513,7 @@ class _BaseIP(_IPAddrBase):
+         return  '%s' % self._string_from_ip_int(self._ip)
+ 
+     def __hash__(self):
+-        return hash(hex(long(self._ip)))
++        return hash(hex(int(self._ip)))
+ 
+     def _get_address_key(self):
+         return (self._version, self)
+@@ -1132,7 +1132,7 @@ class _BaseV4(object):
+ 
+         """
+         octets = []
+-        for _ in xrange(4):
++        for _ in range(4):
+             octets.insert(0, str(ip_int & 0xFF))
+             ip_int >>= 8
+         return '.'.join(octets)
+@@ -1240,7 +1240,7 @@ class IPv4Address(_BaseV4, _BaseIP):
+         _BaseV4.__init__(self, address)
+ 
+         # Efficient constructor from integer.
+-        if isinstance(address, (int, long)):
++        if isinstance(address, int):
+             self._ip = address
+             if address < 0 or address > self._ALL_ONES:
+                 raise AddressValueError(address)
+@@ -1319,7 +1319,7 @@ class IPv4Network(_BaseV4, _BaseNet):
+         _BaseV4.__init__(self, address)
+ 
+         # Constructing from an integer or packed bytes.
+-        if isinstance(address, (int, long, Bytes)):
++        if isinstance(address, (int, Bytes)):
+             self.ip = IPv4Address(address)
+             self._ip = self.ip._ip
+             self._prefixlen = self._max_prefixlen
+@@ -1413,7 +1413,7 @@ class _BaseV6(object):
+         # This indicates that a run of zeroes has been skipped.
+         try:
+             skip_index, = (
+-                [i for i in xrange(1, len(parts) - 1) if not parts[i]] or
++                [i for i in range(1, len(parts) - 1) if not parts[i]] or
+                 [None])
+         except ValueError:
+             # Can't have more than one '::'
+@@ -1447,12 +1447,14 @@ class _BaseV6(object):
+ 
+         try:
+             # Now, parse the hextets into a 128-bit integer.
+-            ip_int = 0L
+-            for i in xrange(parts_hi):
++            #ip_int = 0L
++
++            ip_int = 0
++            for i in range(parts_hi):
+                 ip_int <<= 16
+                 ip_int |= self._parse_hextet(parts[i])
+             ip_int <<= 16 * parts_skipped
+-            for i in xrange(-parts_lo, 0):
++            for i in range(-parts_lo, 0):
+                 ip_int <<= 16
+                 ip_int |= self._parse_hextet(parts[i])
+             return ip_int
+@@ -1573,7 +1575,7 @@ class _BaseV6(object):
+ 
+         ip_int = self._ip_int_from_string(ip_str)
+         parts = []
+-        for i in xrange(self._HEXTET_COUNT):
++        for i in range(self._HEXTET_COUNT):
+             parts.append('%04x' % (ip_int & 0xFFFF))
+             ip_int >>= 16
+         parts.reverse()
+@@ -1753,7 +1755,7 @@ class IPv6Address(_BaseV6, _BaseIP):
+         _BaseV6.__init__(self, address)
+ 
+         # Efficient constructor from integer.
+-        if isinstance(address, (int, long)):
++        if isinstance(address, int):
+             self._ip = address
+             if address < 0 or address > self._ALL_ONES:
+                 raise AddressValueError(address)
+@@ -1828,7 +1830,7 @@ class IPv6Network(_BaseV6, _BaseNet):
+         _BaseV6.__init__(self, address)
+ 
+         # Constructing from an integer or packed bytes.
+-        if isinstance(address, (int, long, Bytes)):
++        if isinstance(address, (int, Bytes)):
+             self.ip = IPv6Address(address)
+             self._ip = self.ip._ip
+             self._prefixlen = self._max_prefixlen
+diff -purN a/pycsco/nxos/device.py b/pycsco/nxos/device.py
+--- a/pycsco/nxos/device.py	2016-01-12 00:22:10.000000000 +0530
++++ b/pycsco/nxos/device.py	2020-07-27 17:13:21.000000000 +0530
+@@ -20,12 +20,12 @@ try:
+     import yaml
+     import json
+     from os.path import expanduser
+-    from nxapi import NXAPI
+-    from error import CLIError
++    from .nxapi import NXAPI
++    from .error import CLIError
+ except ImportError as e:
+-    print '***************************'
+-    print e
+-    print '***************************'
++    print ('***************************')
++    print (e)
++    print ('***************************')
+ 
+ 
+ class Auth():
+diff -purN a/pycsco/nxos/nxapi.py b/pycsco/nxos/nxapi.py
+--- a/pycsco/nxos/nxapi.py	2016-01-11 20:46:14.000000000 +0530
++++ b/pycsco/nxos/nxapi.py	2020-07-27 17:13:21.000000000 +0530
+@@ -2,17 +2,23 @@
+ # Copyright (C) 2013 Cisco Systems Inc.
+ # All rights reserved
+ try:
+-    import urllib2
++    import urllib3
+     import contextlib
+     import base64
+     import socket
+-    import httplib
+-    from httplib import HTTPConnection, HTTPS_PORT
++    import http.client
++    import urllib.request
++    from urllib.request import urlopen, Request
++    from http.client import HTTPConnection, HTTPS_PORT
+     import ssl
++    import io
++    import json
++    import requests
++
+ except ImportError as e:
+-    print '***************************'
+-    print e
+-    print '***************************'
++    print ('***************************')
++    print (e)
++    print ('***************************')
+ 
+ 
+ class HTTPSConnection(HTTPConnection):
+@@ -123,8 +129,8 @@ class RespFetcher:
+         self.username = username
+         self.password = password
+         self.url = url
+-        self.base64_str = base64.encodestring('%s:%s' % (username,
+-                                              password)).replace('\n', '')
++        self.base64_str = base64.encodestring(('%s:%s' % (username,
++                                              password)).encode()).decode('utf-8').replace('\n','')
+ 
+     def get_resp(
+         self,
+@@ -132,18 +138,17 @@ class RespFetcher:
+         cookie,
+         timeout,
+     ):
+-
+-        req = urllib2.Request(self.url, req_str)
++        req_str = req_str.encode('utf8')
++        req = Request(self.url, req_str)
+         req.add_header('Authorization', 'Basic %s' % self.base64_str)
+         req.add_header('Cookie', '%s' % cookie)
+         try:
+-            with contextlib.closing(urllib2.urlopen(req,
+-                                    timeout=timeout)) as resp:
+-                resp_str = resp.read()
+-                resp_headers = resp.info()
+-                return (resp_headers, resp_str)
+-        except socket.timeout, e:
+-            print 'Req timeout'
++                with contextlib.closing(urlopen(req, timeout=timeout)) as resp:
++                        resp_str = resp.read()
++                        resp_headers = resp.info()
++                        return (resp_headers, resp_str)
++        except socket.timeout as e:
++            print('Req timeout')
+             raise
+ 
+ 
+@@ -169,17 +174,17 @@ class RespFetcherHttps:
+         timeout,
+     ):
+ 
+-        req = urllib2.Request(self.url, req_str)
++        req = urllib.request.Request(self.url, req_str)
+         req.add_header('Authorization', 'Basic %s' % self.base64_str)
+         req.add_header('Cookie', '%s' % cookie)
+         try:
+-            with contextlib.closing(urllib2.urlopen(req,
++            with contextlib.closing(urllib.request.urlopen(req,
+                                     timeout=timeout)) as resp:
+                 resp_str = resp.read()
+                 resp_headers = resp.info()
+                 return (resp_headers, resp_str)
+-        except socket.timeout, e:
+-            print 'Req timeout'
++        except socket.timeout as e:
++            print ('Req timeout')
+             raise
+ 
+ 
+diff -purN a/pycsco/nxos/utils/aaa.py b/pycsco/nxos/utils/aaa.py
+--- a/pycsco/nxos/utils/aaa.py	2015-08-14 17:42:21.000000000 +0530
++++ b/pycsco/nxos/utils/aaa.py	2020-07-27 17:13:21.000000000 +0530
+@@ -2,9 +2,9 @@ try:
+     import xmltodict
+     import re
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = ['get_aaa_server_info', 'config_aaa_server',
+            'default_aaa_server', 'get_aaa_host_info',
+diff -purN a/pycsco/nxos/utils/fhrp.py b/pycsco/nxos/utils/fhrp.py
+--- a/pycsco/nxos/utils/fhrp.py	2015-06-24 21:09:25.000000000 +0530
++++ b/pycsco/nxos/utils/fhrp.py	2020-07-27 17:13:21.000000000 +0530
+@@ -28,9 +28,9 @@ try:
+     import xmltodict
+     from pycsco.nxos.device import Device
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = []
+ 
+@@ -181,4 +181,4 @@ if __name__ == "__main__":
+     test = get_vrrp_existing(device, interface)
+ 
+     import json
+-    print json.dumps(test, indent=4)
++    print((json.dumps(test, indent=4)))
+diff -purN a/pycsco/nxos/utils/mcast.py b/pycsco/nxos/utils/mcast.py
+--- a/pycsco/nxos/utils/mcast.py	2015-06-24 07:00:19.000000000 +0530
++++ b/pycsco/nxos/utils/mcast.py	2020-07-27 17:13:22.000000000 +0530
+@@ -21,9 +21,9 @@ from pycsco.nxos.error import CLIError
+ try:
+     import xmltodict
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = ['get_igmp_defaults', 'get_igmp_global', 'get_igmp_snooping',
+            'get_igmp_snooping_defaults', 'get_igmp_interface',
+@@ -44,7 +44,7 @@ def get_igmp_defaults():
+     args = dict(flush_routes=flush_routes,
+                 enforce_rtr_alert=enforce_rtr_alert)
+ 
+-    default = dict((param, value) for (param, value) in args.iteritems()
++    default = dict((param, value) for (param, value) in args.items()
+                    if value is not None)
+ 
+     return default
+@@ -65,7 +65,7 @@ def config_igmp(delta):
+         'enforce_rtr_alert': 'ip igmp enforce-router-alert'
+     }
+     commands = []
+-    for key, value in delta.iteritems():
++    for key, value in delta.items():
+         if value:
+             command = CMDS.get(key)
+         else:
+@@ -159,7 +159,7 @@ def get_igmp_snooping(device):
+ 
+     existing2.update(existing)
+ 
+-    for k, v in existing2.iteritems():
++    for k, v in existing2.items():
+         if v in ['true', 'enabled']:
+             existing2[k] = True
+         elif v in ['false', 'disabled']:
+@@ -187,7 +187,7 @@ def get_igmp_snooping_defaults():
+                 report_supp=report_supp, v3_report_supp=v3_report_supp,
+                 group_timeout=group_timeout)
+ 
+-    default = dict((param, value) for (param, value) in args.iteritems()
++    default = dict((param, value) for (param, value) in args.items()
+                    if value is not None)
+ 
+     return default
+@@ -213,7 +213,7 @@ def config_igmp_snooping(delta, existing
+ 
+     commands = []
+     command = None
+-    for k, v in delta.iteritems():
++    for k, v in delta.items():
+         if v:
+             # this next check is funky & used when defaulting the group timeout
+             # funky because there is technically no default, so we just need to
+@@ -303,7 +303,7 @@ def get_igmp_interface(device, interface
+     new_staticoif = []
+     temp = {}
+     for counter, data in enumerate(staticoif):
+-        for k, v in data.iteritems():
++        for k, v in data.items():
+             if v:
+                 temp[k] = v
+         if temp:
+@@ -353,7 +353,7 @@ def config_igmp_interface(delta, found_b
+     commands = []
+     command = None
+ 
+-    for k, v in delta.iteritems():
++    for k, v in delta.items():
+         if k in ['source', 'oif_source'] or found_both or found_prefix:
+             pass
+         elif k == 'prefix':
+@@ -389,7 +389,7 @@ def config_default_igmp_interface(existi
+ 
+     commands = []
+     proposed = get_igmp_interface_defaults()
+-    delta = dict(set(proposed.iteritems()).difference(existing.iteritems()))
++    delta = dict(set(proposed.items()).difference(iter(existing.items())))
+     if delta:
+         command = config_igmp_interface(delta, found_both, found_prefix)
+ 
+@@ -428,7 +428,7 @@ def get_igmp_interface_defaults():
+                 group_timeout=group_timeout, report_llg=report_llg,
+                 immediate_leave=immediate_leave)
+ 
+-    default = dict((param, value) for (param, value) in args.iteritems()
++    default = dict((param, value) for (param, value) in args.items()
+                    if value is not None)
+ 
+     return default
+@@ -498,7 +498,7 @@ def get_pim_interface(device, interface)
+         get_data = result['ins_api']['outputs']['output']['body'].get(
+             'TABLE_iod')['ROW_iod']
+ 
+-        if isinstance(get_data.get('dr-priority'), unicode) or \
++        if isinstance(get_data.get('dr-priority'), str) or \
+                 isinstance(get_data.get('dr-priority'), str):
+             pim_interface['dr_prio'] = get_data.get('dr-priority')
+         else:
+@@ -527,7 +527,7 @@ def get_pim_interface(device, interface)
+         if jp_in_policy == 'none configured':
+             pim_interface['jp_policy_in'] = None
+ 
+-        if isinstance(get_data.get('jp-out-policy-name'), unicode) or \
++        if isinstance(get_data.get('jp-out-policy-name'), str) or \
+                 isinstance(get_data.get('jp-out-policy-name'), str):
+             pim_interface['jp_policy_out'] = get_data.get('jp-out-policy-name')
+         else:
+@@ -655,7 +655,7 @@ def config_pim_interface(delta, existing
+             if command:
+                 commands.append(command)
+ 
+-    for k, v in delta.iteritems():
++    for k, v in delta.items():
+         if k in ['dr_prio', 'hello_interval', 'hello_auth_key', 'border',
+                  'sparse']:
+             if v:
+@@ -733,7 +733,7 @@ def get_pim_interface_defaults():
+                 hello_interval=hello_interval,
+                 hello_auth_key=hello_auth_key)
+ 
+-    default = dict((param, value) for (param, value) in args.iteritems()
++    default = dict((param, value) for (param, value) in args.items()
+                    if value is not None)
+ 
+     return default
+@@ -765,7 +765,7 @@ def default_pim_interface_policies(exist
+ 
+     elif not jp_bidir:
+         command = None
+-        for k, v in existing.iteritems():
++        for k, v in existing.items():
+             if k == 'jp_policy_in':
+                 if existing.get('jp_policy_in'):
+                     if existing.get('jp_type_in') == 'prefix':
+@@ -816,8 +816,8 @@ def config_pim_interface_defaults(existi
+ 
+     # returns a dict
+     defaults = get_pim_interface_defaults()
+-    delta = dict(set(defaults.iteritems()).difference(
+-                                                     existing.iteritems()))
++    delta = dict(set(defaults.items()).difference(
++                                                     iter(existing.items())))
+     if delta:
+         # returns a list
+         command = config_pim_interface(delta, existing,
+diff -purN a/pycsco/nxos/utils/ntp.py b/pycsco/nxos/utils/ntp.py
+--- a/pycsco/nxos/utils/ntp.py	2015-06-29 17:56:06.000000000 +0530
++++ b/pycsco/nxos/utils/ntp.py	2020-07-27 17:13:22.000000000 +0530
+@@ -2,9 +2,9 @@ try:
+     import xmltodict
+     from pycsco.nxos.utils import legacy
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = ['get_ntp_existing', 'config_ntp', 'disable_ntp_server_peer',
+            'get_ntp_auth_info', 'set_ntp_auth_key', 'remove_ntp_auth_key',
+diff -purN a/pycsco/nxos/utils/nxapi_lib.py b/pycsco/nxos/utils/nxapi_lib.py
+--- a/pycsco/nxos/utils/nxapi_lib.py	2016-01-11 20:41:15.000000000 +0530
++++ b/pycsco/nxos/utils/nxapi_lib.py	2020-07-27 17:13:22.000000000 +0530
+@@ -29,9 +29,9 @@ try:
+     import re
+     from pycsco.nxos.error import CLIError
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = ['cmd_list_to_string', 'create_dir', 'feature_enabled',
+            'get_active_vpc_peer_link', 'get_interface_running_config',
+@@ -188,6 +188,8 @@ def interface_range_to_list(interfaces):
+             # Ethernet186/1/1-5
+             if '/' in each:
+                 if_name, _, if_range = each.rpartition('/')
++                if_range = if_range.replace("'","")
++                if_range = if_range.replace("]","")
+                 low = int(if_range.split('-')[0])
+                 high = int(if_range.split('-')[1])
+                 for num in range(low, high+1):
+@@ -280,7 +282,7 @@ def get_vlan_config_commands(device, vla
+     """
+     vlan = dict(vlan)
+ 
+-    if 'admin_state' in vlan.keys():
++    if 'admin_state' in list(vlan.keys()):
+         vlan['admin_state'] = _modify_admin_state(vlan['admin_state'])
+ 
+     VLAN_ARGS = {
+@@ -292,7 +294,7 @@ def get_vlan_config_commands(device, vla
+ 
+     commands = []
+ 
+-    for param, value in vlan.iteritems():
++    for param, value in vlan.items():
+         # The value check is needed, otherwise 'null' is used as a
+         # value for 'name'
+         # Other option is to pop null/none values from vlan
+@@ -616,7 +618,7 @@ def get_interface_config_commands(device
+ 
+     commands = []
+     interface = dict(interface)
+-    for attribute, value in interface.iteritems():
++    for attribute, value in interface.items():
+         command = None
+         if attribute == 'admin_state':
+             if value == 'up':
+@@ -756,7 +758,7 @@ def get_config_ipv4_commands(delta, inte
+     # loop used in the situation that just an IP address or just a
+     # mask is changing, not both.
+     for each in ['ip_addr', 'mask']:
+-        if each not in delta.keys():
++        if each not in list(delta.keys()):
+             delta[each] = existing[each]
+ 
+     command = 'ip address {ip_addr}/{mask}'.format(**delta)
+@@ -922,7 +924,7 @@ def get_switchport_config_commands(devic
+ 
+     commands = []
+     switchport = dict(switchport)
+-    for param, value in switchport.iteritems():
++    for param, value in switchport.items():
+         command = CONFIG_ARGS.get(param, 'DNE').format(**switchport)
+         if command and command != 'DNE':
+             commands.append(command)
+@@ -1019,7 +1021,7 @@ def remove_switchport_config(device, swi
+ 
+     commands = []
+ 
+-    for param, value in switchport.iteritems():
++    for param, value in switchport.items():
+         if param == 'mode' and value == 'access':
+             # this is making it so that 'no switchport mode access' is added
+             # to command list
+@@ -1143,7 +1145,7 @@ def get_portchannel(device, group):
+         # Each member should have the same mode
+         # This is just to verify that.
+         modes = set()
+-        for each, value in member_dictionary.iteritems():
++        for each, value in member_dictionary.items():
+             modes.update([value['mode']])
+         if len(modes) == 1:
+             portchannel['mode'] = value['mode']
+@@ -1311,7 +1313,7 @@ def get_commands_if_mode_change(proposed
+     members_dict = existing['members_detail']
+     members_with_mode_change = []
+ 
+-    for interface, values in members_dict.iteritems():
++    for interface, values in members_dict.items():
+         if interface in proposed_members \
+                 and (interface not in members_to_remove_list):
+             # Could probabaly make an assumption after checking one instead
+@@ -1641,7 +1643,7 @@ def get_commands_to_config_vpc(vpc, doma
+         'auto_recovery': '{ar} auto-recovery',
+         }
+ 
+-    for param, value in vpc.iteritems():
++    for param, value in vpc.items():
+         command = CONFIG_ARGS.get(param, 'DNE').format(**vpc)
+         if command and command != 'DNE':
+             commands.append(command.strip())
+@@ -1804,7 +1806,7 @@ def get_portchannel_vpc_config(device, p
+             return 'peer-link'
+ 
+     mapping = get_existing_portchannel_to_vpc_mappings(device)
+-    for vpc, port_channel in mapping.iteritems():
++    for vpc, port_channel in mapping.items():
+         port_ch = str(port_channel[2:])
+         if port_ch == portchannel:
+             return str(vpc)
+@@ -2187,7 +2189,7 @@ def get_commands_config_hsrp(delta, inte
+ 
+     commands = []
+ 
+-    for param, value in delta.iteritems():
++    for param, value in delta.items():
+ 
+         command = CONFIG_ARGS.get(param, 'DNE').format(**delta)
+         if command and command != 'DNE':
+@@ -2823,7 +2825,7 @@ def get_commands_config_udld_global(delt
+         'reset': 'udld reset'
+     }
+     commands = []
+-    for param, value in delta.iteritems():
++    for param, value in delta.items():
+         if param == 'aggressive':
+             if value == 'enabled':
+                 command = 'udld aggressive'
+@@ -2855,7 +2857,7 @@ def get_commands_remove_udld_global(delt
+         'msg_time': 'no udld message-time {msg_time}',
+     }
+     commands = []
+-    for param, value in delta.iteritems():
++    for param, value in delta.items():
+         command = CONFIG_ARGS.get(param, 'DNE').format(**delta)
+         if command and command != 'DNE':
+             commands.append(command)
+@@ -2935,7 +2937,7 @@ def get_commands_config_mtu(delta, inter
+     }
+ 
+     commands = []
+-    for param, value in delta.iteritems():
++    for param, value in delta.items():
+         command = CONFIG_ARGS.get(param, 'DNE').format(**delta)
+         if command and command != 'DNE':
+             commands.append(command)
+@@ -2965,7 +2967,7 @@ def get_commands_remove_mtu(delta, inter
+         'sysmtu': 'no system jumbomtu {sysmtu}',
+     }
+     commands = []
+-    for param, value in delta.iteritems():
++    for param, value in delta.items():
+         command = CONFIG_ARGS.get(param, 'DNE').format(**delta)
+         if command and command != 'DNE':
+             commands.append(command)
+@@ -3003,7 +3005,7 @@ def get_feature_list(device):
+             tmp = {}
+             split_line = line.split(' ')
+             feat = split_line[0].strip()
+-            print feat
++            print (feat)
+             tmp['cfcFeatureCtrlName2'] = feat
+             features.append(tmp)
+     except:
+diff -purN a/pycsco/nxos/utils/routing.py b/pycsco/nxos/utils/routing.py
+--- a/pycsco/nxos/utils/routing.py	2015-06-29 17:56:06.000000000 +0530
++++ b/pycsco/nxos/utils/routing.py	2020-07-27 17:13:22.000000000 +0530
+@@ -4,9 +4,9 @@ from pycsco.lib import ipaddr
+ try:
+     import xmltodict
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ 
+ __all__ = ['normalize_prefix', 'get_static_routes']
+diff -purN a/pycsco/nxos/utils/security.py b/pycsco/nxos/utils/security.py
+--- a/pycsco/nxos/utils/security.py	2016-01-15 03:40:24.000000000 +0530
++++ b/pycsco/nxos/utils/security.py	2020-07-27 17:13:22.000000000 +0530
+@@ -21,9 +21,9 @@ try:
+     from pycsco.nxos.error import CLIError
+     from pycsco.nxos.utils import legacy
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = []
+ 
+@@ -108,13 +108,13 @@ def get_acl(device, acl_name, seq_number
+                 options['time_range'] = each.get('timerange')
+ 
+                 options_no_null = {}
+-                for k, v in options.iteritems():
++                for k, v in options.items():
+                     if v is not None:
+                         options_no_null[k] = v
+ 
+                 keep['options'] = options_no_null
+ 
+-            for k, v in temp.iteritems():
++            for k, v in temp.items():
+                 if v:
+                     keep[k] = v
+ 
+@@ -166,13 +166,13 @@ def get_acl(device, acl_name, seq_number
+             options['time_range'] = each.get('timerange')
+ 
+             options_no_null = {}
+-            for k, v in options.iteritems():
++            for k, v in options.items():
+                 if v:
+                     options_no_null[k] = v
+ 
+             keep['options'] = options_no_null
+ 
+-        for k, v in temp.iteritems():
++        for k, v in temp.items():
+             if v:
+                 keep[k] = v
+ 
+@@ -264,7 +264,7 @@ def config_acl_options(options):
+         options.pop('time_range')
+ 
+     command = ''
+-    for option, value in options.iteritems():
++    for option, value in options.items():
+         if option in ENABLE_ONLY:
+             if value == 'enable':
+                 command += ' ' + option
+@@ -393,7 +393,7 @@ if __name__ == "__main__":
+     seq_number = '40'
+ 
+     data = get_acl_interface(device, 'MYACL')
+-    print json.dumps(data, indent=4)
++    print((json.dumps(data, indent=4)))
+     # print json.dumps(ace, indent=4)
+ 
+     '''
+diff -purN a/pycsco/nxos/utils/snmp.py b/pycsco/nxos/utils/snmp.py
+--- a/pycsco/nxos/utils/snmp.py	2015-10-26 04:31:16.000000000 +0530
++++ b/pycsco/nxos/utils/snmp.py	2020-07-27 17:13:22.000000000 +0530
+@@ -22,9 +22,9 @@ import json
+ try:
+     import xmltodict
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = []
+ 
+@@ -86,7 +86,7 @@ def config_snmp_community(delta, communi
+         'acl': 'snmp-server community {0} use-acl {acl}'
+     }
+     commands = []
+-    for k, v in delta.iteritems():
++    for k, v in delta.items():
+         cmd = CMDS.get(k).format(community, **delta)
+         if cmd:
+             commands.append(cmd)
+@@ -386,7 +386,7 @@ def config_snmp_host(delta, proposed, ex
+         'src_intf': 'snmp-server host {0} source-interface {src_intf}'
+     }
+ 
+-    for key, value in delta.iteritems():
++    for key, value in delta.items():
+         if key in ['vrf_filter', 'vrf', 'udp', 'src_intf']:
+             command = CMDS.get(key, None)
+             if command:
+diff -purN a/pycsco/nxos/utils/vtp.py b/pycsco/nxos/utils/vtp.py
+--- a/pycsco/nxos/utils/vtp.py	2015-06-23 21:05:41.000000000 +0530
++++ b/pycsco/nxos/utils/vtp.py	2020-07-27 17:13:22.000000000 +0530
+@@ -1,9 +1,9 @@
+ try:
+     import xmltodict
+ except ImportError as e:
+-    print '*' * 30
+-    print e
+-    print '*' * 30
++    print(('*' * 30))
++    print (e)
++    print(('*' * 30))
+ 
+ __all__ = ['get_vtp_current_cfg', 'get_vtp_password']
+ 
+diff -purN a/pycsco.egg-info/requires.txt b/pycsco.egg-info/requires.txt
+--- a/pycsco.egg-info/requires.txt	2016-05-22 18:40:55.000000000 +0530
++++ b/pycsco.egg-info/requires.txt	2020-07-27 17:13:21.000000000 +0530
+@@ -1,4 +1,5 @@
+ xmltodict>=0.9.2
+-gtextfsm==0.2.1
++textfsm==1.1.0
+ scp
+ paramiko
++pyyaml
+diff -purN a/pycsco.egg-info/SOURCES.txt b/pycsco.egg-info/SOURCES.txt
+--- a/pycsco.egg-info/SOURCES.txt	2016-05-22 18:40:55.000000000 +0530
++++ b/pycsco.egg-info/SOURCES.txt	2020-07-27 17:13:20.000000000 +0530
+@@ -1,4 +1,5 @@
+ MANIFEST.in
++README.md
+ setup.cfg
+ setup.py
+ pycsco/__init__.py
+diff -purN a/setup.cfg b/setup.cfg
+--- a/setup.cfg	2016-05-22 18:40:55.000000000 +0530
++++ b/setup.cfg	2020-07-27 17:13:18.000000000 +0530
+@@ -1,8 +1,2 @@
+ [metadata]
+-description-file = README.md
+-
+-[egg_info]
+-tag_build = 
+-tag_date = 0
+-tag_svn_revision = 0
+-
++description-file = README.md
+\ No newline at end of file
+diff -purN a/setup.py b/setup.py
+--- a/setup.py	2016-05-22 18:39:07.000000000 +0530
++++ b/setup.py	2020-07-27 17:13:18.000000000 +0530
+@@ -12,8 +12,11 @@ setup(
+   package_data={'pycsco': ['nxos/utils/textfsm_templates/*.tmpl']},
+   install_requires=[
+       'xmltodict>=0.9.2',
+-      'gtextfsm==0.2.1',
++      'textfsm==1.1.0',
+       'scp',
+-      'paramiko'
++      'paramiko',
++      'pyyaml',
++      'urllib3',
++      'requests'
+   ],
+ )

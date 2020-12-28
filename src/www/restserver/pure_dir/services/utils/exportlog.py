@@ -26,6 +26,7 @@ def zip(src, dst):
                 zf.write(absname, arcname)
     zf.close()
 
+
 def modify_apachelog(error_file):
     edit_file = "/var/www/restserver/apache_log"
     error_log = "/mnt/system/pure_dir/pdt/error_log"
@@ -35,16 +36,20 @@ def modify_apachelog(error_file):
         if os.path.exists(error_log):
             os.remove(error_log)
         shutil.copy2(error_file, edit_file)
-        cmd = "sed 's/\[:error\]//g' " + edit_file + " >> " + error_log
-        execute_cmd = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.PIPE)
+        cmd = r"sed 's/\[:error\]//g' " + edit_file + " >> " + error_log
+        execute_cmd = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            shell=True,
+            stderr=subprocess.PIPE)
         (output, err) = execute_cmd.communicate()
         os.remove(edit_file)
         if err != '':
-            loginfo("error: failed to edit apache logs", err)
+            loginfo("error: failed to edit apache logs. %s" % err)
             return False
         else:
             return True
-                
+
 
 def exportlog_helper():
     res = result()
@@ -56,7 +61,7 @@ def exportlog_helper():
         error_log = get_error_log()
         if os.path.exists(error_log):
             err_log = modify_apachelog(error_log)
-            if err_log == True:
+            if err_log:
                 error_log = get_log()
                 shutil.copy2(error_log, dest)
 
@@ -77,7 +82,7 @@ def exportlog_helper():
         pure_log = get_pure_log()
         if os.path.exists(pure_log):
             shutil.copy2(pure_log, dest)
-        
+
         build_xml = get_build_xml()
         if os.path.exists(build_xml):
             shutil.copy2(build_xml, dest)

@@ -1,4 +1,4 @@
-import netaddr
+import ipaddress
 import subprocess
 
 from pure_dir.services.utils.miscellaneous import *
@@ -9,6 +9,32 @@ class IpValidator:
 
     def __init__(self):
         pass
+
+    def subnet_calc(self):
+        nw_info = network_info()
+        nw_details = ipaddress.ip_network(f"{nw_info['ip']}/{nw_info['netmask']}", strict=False)
+        subnet = str(nw_details.network_address)
+        host_range = [str(x) for x in list(nw_details.hosts())]
+        broadcast = str(nw_details.broadcast_address)
+        num_addr = nw_details.num_addresses
+        num_hosts = len(host_range)
+        nw_with_maskbit = ipaddress.IPv4Network(nw_details.with_netmask)
+        mask_bits = str(nw_with_maskbit).split('/')[1]
+
+        subnet_info = dict(subnet = subnet, host_range = host_range, broadcast = broadcast,
+                           num_addr = num_addr, num_hosts = num_hosts, nw_with_maskbit = nw_with_maskbit,
+                           mask_bits = mask_bits)
+        return subnet_info
+
+    def get_ips_in_range(self):
+        subnet_info = self.subnet_calc()
+        return subnet_info['host_range']
+
+    def is_ip_in_network(self, ip):
+        subnet_info = self.subnet_calc()
+        if ipaddress.IPv4Address(ip) in subnet_info['nw_with_maskbit']:
+            return True
+        return False
 
     def is_ip_up(self, ip):
         loginfo("Pinging IP %s" % ip)
@@ -32,48 +58,12 @@ class IpValidator:
         else:
             result[ip] = False
 
-    def netmask_range(self, netmask):
-        netmask_range = sum([bin(int(x)).count("1")
-                             for x in netmask.split(".")])
-        return netmask_range
-
-    def ip_range(self, ip, netmask, gateway):
-        network_ip = ""
-        ip_lt = gateway.split(".")[:-1]
-        for gt in ip_lt:
-            network_ip += gt + "."
-        netmask_range = self.netmask_range(netmask)
-        for ipaddr in netaddr.IPNetwork(str(network_ip) + "0/" + str(netmask_range)):
-            if str(ipaddr) == ip:
-                return True
-        return False
-
-    def get_ips_in_range(self):
-        network_ip = ""
-        nw_info = network_info()
-        ip_lt = nw_info['gateway'].split(".")[:-1]
-        for gt in ip_lt:
-            network_ip += gt + "."
-        netmask_range = self.netmask_range(nw_info['netmask'])
-        ip_range = netaddr.IPNetwork(
-            str(network_ip) + "0/" + str(netmask_range))
-        ip_list = list(netaddr.IPNetwork(ip_range))
-        return ip_list
-
-    def validate_network(self, ip, netmask, gateway):
-        details = verify_network_info()
-        for info in details:
-            if info['netmask'] == netmask and info['gateway'] == gateway:
-                return self.ip_range(ip, netmask, gateway)
-        return False
-
-    def validate_ip(self, ip, netmask, gateway):
-        if self.validate_network(ip, netmask, gateway):
+    def validate_ip(self, ip):
+        if self.is_ip_in_network(ip):
             isUp = self.is_ip_up(ip)
             if isUp:
                 # Returning Network status, Ip reachability
                 return True, True
             else:
                 return True, False
-
         return False, False

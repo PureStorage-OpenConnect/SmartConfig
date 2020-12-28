@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<workflow desc="Bind and Unbind Template" hidden="1" htype="fa-n9k-fi6454-mds-fc" id="unbindandbindtemplate-fc-fi6454" isdeletable="0" name="Bind and Unbind Template" order="4" type="UCSM">
+  <tasks>
+    <task OnSuccess="" Onfailure="None" class="UCSUnbindFromtheTemplate" desc="UCS Unbind from the templates" id="UCSUnbindFromtheTemplate" inittask="0" label="UCS Unbind from the templates" name="UCSUnbindFromtheTemplate" texecid="t201">
+      <outputs>
+        <output dt_type="integer" name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="0" name="vmedia_policy_name" value="ESXi-6.0U2-HTTP"/>
+        <arg mapval="0" name="biospolicy" value="VM-Host"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-FC-X-A"/>
+        <arg mapval="0" name="power_policy_name" value="No-Power-Cap"/>
+        <arg mapval="0" name="local_disk_policy_name" value="SAN-Boot"/>
+        <arg mapval="0" name="service_profile_name" value="VM-Host-FC-01"/>
+      </args>
+    </task>
+    <task OnSuccess="" Onfailure="None" class="UCSBindToATemplate" desc="UCS bind to the templates" id="UCSBindToATemplate" inittask="0" label="UCS bind to the templates" name="UCSBindToATemplate" texecid="t301">
+      <outputs>
+        <output dt_type="integer" name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="0" name="vmedia_policy_name" value="ESXi-6.0U2-HTTP"/>
+        <arg mapval="0" name="biospolicy" value="VM-Host"/>
+        <arg mapval="0" name="boot_policy_name" value="Boot-FC-X-A"/>
+        <arg mapval="0" name="power_policy_name" value="No-Power-Cap"/>
+        <arg mapval="0" name="local_disk_policy_name" value="SAN-Boot"/>
+        <arg mapval="0" name="service_profile_name" value="VM-Host-FC-01"/>
+        <arg mapval="0" name="service_profile_template" value="VM-Host-FC-A"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

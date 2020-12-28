@@ -80,7 +80,7 @@ class UCSAddBlockofIPAddressesforKVMAccessInputs:
         order=2)
     size = Textbox(
         validation_criteria='int|min:1|max:1000',
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='Size',
         api="",

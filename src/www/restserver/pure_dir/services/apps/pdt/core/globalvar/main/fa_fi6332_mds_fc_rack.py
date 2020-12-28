@@ -1,5 +1,6 @@
 import os
 import glob
+from pytz import common_timezones
 
 from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.components.common import get_device_list
@@ -35,7 +36,7 @@ class fa_fi6332_mds_fc_rack:
                     selected = "0"
                 img_list.append(
                     {"id": img, "selected": selected, "label": img})
-            print img_list
+            print(img_list)
             res.setResult(img_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
         res.setResult(img_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -62,7 +63,7 @@ class fa_fi6332_mds_fc_rack:
         res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-    """def gen_hex(self, length):
+    '''def gen_hex(self, length):
         return ''.join(random.choice('0123456789ABCDEF') for _ in range(length))
 
     def get_ucs_mac_address_A(self, keys):
@@ -108,4 +109,13 @@ class fa_fi6332_mds_fc_rack:
         wwpn_pool_B = ':'.join(wwpn_B)[3:-6]
         wwpn_list_B.append({"id": wwpn_pool_B, "label": wwpn_pool_B, "selected": "0"})
         res.setResult(wwpn_list_B, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        return res"""
+        return res'''
+
+    def get_timezones(self, keys):
+        res = result()
+        tzlist = []
+        for tz in common_timezones:
+            tz_entity = {"id": tz, "label": tz, "selected": "0"}
+            tzlist.append(tz_entity)
+        res.setResult(tzlist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res

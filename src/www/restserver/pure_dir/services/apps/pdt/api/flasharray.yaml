@@ -93,7 +93,7 @@ definitions:
       - sender_domain
       - alert_emails
       - ntp_server
-      - timezone
+      #- timezone
       - organization
       - full_name
       - job_title

@@ -23,8 +23,9 @@ PTK_RESOURCENOTAVAILABLE = -10  # resource not available
 PTK_PARTIAL_SUCCESS = -11  # partialy successfull operation
 PTK_FAILED = -12  # operation failed
 PTK_UNSUPPORTED = -13  # unsupported operation
-PTK_BACKGROUND_OPER = 2 # Background Operation
-
+PTK_BANNER_ERROR = -14 #banner for DHCP page
+PTK_BACKGROUND_OPER = 2  # Background Operation
+PTK_WARNING = 5 # Warning messages
 
 def parseResult(obj):
     return {"data": obj.result, "status": obj.status}

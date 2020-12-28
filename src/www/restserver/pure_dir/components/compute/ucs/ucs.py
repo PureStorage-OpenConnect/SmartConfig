@@ -18,11 +18,13 @@ from isc_dhcp_leases import IscDhcpLeases
 import urllib3
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from pure_dir.services.utils.miscellaneous import get_xml_element
+from pure_dir.global_config import get_settings_file
 
 #ucsm_credentials_store = "/mnt/system/pure_dir/pdt/ucsmlogin.xml"
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+settings = get_settings_file()
 
 class UCSManager:
     dhcp_lease_file = '/var/lib/dhcpd/dhcpd.leases'
@@ -80,20 +82,38 @@ class UCSManager:
         return res
 
     def is_passwd_strong(self, passwd):
-        pattern = '^.*(?=.{6,80})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!"%&\'()*+,-./:;<>@[\]^_`{|}~]).*$'
-        if not re.search(pattern, passwd):
-            return False
+        if (not re.findall(r'^.{6,80}$', passwd) or
+            not re.findall(r'^.*(?=.{6,80})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$', passwd) or
+            re.findall(r'[$?=#]', passwd)):
+            return False, "Does not meet complexity"
         else:
             password = passwd.lower()
-            if (re.findall(r'(([a-zA-Z0-9_])\2{1,})', password) or
-                           re.findall(r'((\d)\2{1,})', password)):
-                return False
+            if (re.findall(r'(([a-zA-Z0-9_])\2{2,})', password) or
+                           re.findall(r'((\d)\2{2,})', password)):
+                return False, "Must not contain consecutive characters"
             else:
-                numlst = [int(num) for num in [i for i in
-                            re.split(r'[!"%&\'()*+,-./:;<>@[\]^_`{|}~]', password)
-                            if i.isdigit()][0]]
-                if sorted(numlst) == list(range(min(numlst), max(numlst)+1)):
-                    return False
+                num = re.findall(r'[0-9]{3,}', password)
+                is_consecutive = False
+                no_of_times = 0
+                word = []
+                alpha = [i for i in password if re.findall(r'[a-z]', i)]
+                for i in range(len(alpha)):
+                    if i+4 < len(alpha)+1:
+                        word = alpha[i:i+4]
+                        for val in range(len(word)):
+                            if val+1 < len(word):
+                                if ord(word[val+1]) == ord(word[val])+1:
+                                    no_of_times+=1
+                        if no_of_times > 3:
+                            is_consecutive = True
+                if is_consecutive:
+                    return False, "Must not have characters in alphabetical order"
+                for val in num:
+                    numlst = [int(i) for i in val]
+                    if len(numlst) >= 3:
+                        if sorted(numlst) == list(range(min(numlst), max(numlst)+1)):
+                            return False, "Must not contain consecutive numbers"
+        return True, ""
 
     def requests_retry_session(self,
                                retries=100,
@@ -216,7 +236,6 @@ class UCSManager:
 
         res.setResult(None, PTK_RESOURCENOTAVAILABLE, "failed to get handler")
         return res
-
 
     def ucsm_sp_wwpn(self, ipaddress, username, password):
         wwpn_list = []
@@ -521,6 +540,10 @@ class UCSManager:
             conf_status = self.ucsmficonfigure(mode, input_dict).getStatus()
             if conf_status == PTK_OKAY:
                 loginfo("FI Reconfigure: FI Configuration success")
+                ##TODO check if fabric B is properly up for DC
+                status, details = get_xml_element(settings, "stacktype")
+                if status and 'ucsmini' in details[0]['stacktype']:
+                    time.sleep(30)
                 return True, 0
             else:
                 loginfo("FI Reconfigure: FI Configuration failure")
@@ -536,16 +559,15 @@ class UCSManager:
         valid = True
         if len(ip_list) == len(set(ip_list)):
             for ip in ip_list:
- 		ip_val = False
+                ip_val = False
                 if ip != 'dns':
-                       ip_val = ipvalidation(ip_list[ip])
+                    ip_val = ipvalidation(ip_list[ip])
                 else:
-                       ip_val = True
+                    ip_val = True
                 if not ip_val:
                     err.append({"field": ip, "msg": "Please Enter Valid IP"})
                 if ip != 'dns':
-                    network_reach, ip_reach = ipv.validate_ip(
-                        ip_list[ip], netmask, gateway)
+                    network_reach, ip_reach = ipv.validate_ip(ip_list[ip])
                     if network_reach:
                         if ip_reach:
                             err.append(
@@ -601,7 +623,7 @@ class UCSManager:
                                        'sec_orig_ip': 'DHCP IP of subordiate FI',
                                        'sec_cluster': 'Cluster mode for subordiate FI',
                                        'sec_id': 'ID for subordinate FI',
-                                      #'esxi_file': 'Remote ESX file',
+                                       # 'esxi_file': 'Remote ESX file',
                                        'dns': 'DNS IP',
                                        'server_type': 'Server type may be Rack or Blade'},
                                       config)
@@ -618,20 +640,21 @@ class UCSManager:
                     return res
 
                 if 'pri_passwd' in config and config['pri_passwd']:
-                    if self.is_passwd_strong(config['pri_passwd']) == False:
+                    password_check = self.is_passwd_strong(config['pri_passwd'])
+                    if password_check[0] == False:
                         ret.append({'field': 'pri_passwd',
-                                    'msg': 'Password is incorrect. please refer the HelpText'})
+                                    'msg': '{}. Refer helptext.'.format(password_check[1])})
                         ret.append({'field': 'conf_passwd',
-                                    'msg': 'Password is incorrect. please refer the HelpText'})
+                                    'msg': '{}. Refer helptext.'.format(password_check[1])})
                         res.setResult(ret, PTK_INTERNALERROR,
                                       "Make sure details are correct")
                         return res
-                                
+
                 if 'os_install' in config and config['os_install'] == "Yes":
                     if config['esxi_file'] == "":
                         ret.append({'field': 'esxi_file',
                                     'msg': 'Remote ESX file cannot be empty'})
-                        res.setResult(ret, PTK_INTERNALERROR, 
+                        res.setResult(ret, PTK_INTERNALERROR,
                                       "Remote ESX file cannot be empty")
                         return res
 
@@ -910,7 +933,7 @@ class UCSManager:
                     retry += 1
                 else:
                     break
- 
+
             time.sleep(300)
 
             loginfo("Triggering UCS upgrade")
@@ -1088,7 +1111,8 @@ class UCSManager:
                     payload,
                     headers={
                         'Content-Type': payload.content_type},
-                    verify=False)
+                    verify=False,
+                    timeout=180)
                 break
             except Exception as e:
                 loginfo(str(e))
@@ -1138,6 +1162,11 @@ class UCSManager:
                 retry += 1
                 time.sleep(2)
 
+        ##TODO check if fabric B is properly up for DC
+        status, details = get_xml_element(settings, "stacktype")       
+        if status and 'ucsmini' in details[0]['stacktype']:
+            time.sleep(30)
+  
         loginfo(
             "Successfully configured subordinate FI %s. Cluster configuration done" %
             config['sec_ip'])

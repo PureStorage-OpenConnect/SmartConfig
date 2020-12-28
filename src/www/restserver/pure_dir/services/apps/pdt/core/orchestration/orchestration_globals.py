@@ -30,7 +30,12 @@ from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6332_mds_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6332_mds_fc_rack import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_mds_fc import *
 from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_mds_fc_rack import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fi_nexus9k_fb import *
 from pure_dir.services.utils.ipvalidator import IpValidator
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_fc import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_iscsi import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_fc_rack import *
+from pure_dir.services.apps.pdt.core.globalvar.main.fa_fi6454_iscsi_rack import *
 import os.path
 from xml.dom.minidom import parse
 import threading
@@ -337,27 +342,20 @@ def get_global_options(operation, realm, keys):
     """
 
     ret = result()
-    # TODO Ensure such a class exist, can exploit
     try:
         if g_simulated == 1:
             exec("%s = %s" % ("obj", ".Test_" + realm + "()"))
             loginfo("simulated mode")
         else:
             exec("%s = %s" % ("obj", str(realm) + "()"))
+            method = getattr(locals()['obj'], operation)
+            res = method(keys)
+            return res
 
     except Exception as e:
         ret.setResult([], PTK_INTERNALERROR, str(e) + "failed")
         return ret
 
-    try:
-        method = getattr(obj, operation)
-        res = method(keys)
-        return res
-
-    except Exception as e:
-        ret = result()
-        ret.setResult([], PTK_INTERNALERROR, str(e) + "failed")
-        return ret
 
 
 def reset_global_config():

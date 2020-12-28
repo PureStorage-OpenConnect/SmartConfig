@@ -6,6 +6,9 @@
 # version         :1.0
 ############################################################
 
+from core.services import *
+from pure_dir.services.utils.register import *
+from pure_dir.infra.logging.logmanager import *
 import sys
 import json
 import logging
@@ -13,15 +16,13 @@ import logging
 # Python virtual environment for this service
 python_home = '/var/www/restserver/venv/'
 activate_this = python_home + 'bin/activate_this.py'
-execfile(activate_this, dict(__file__=activate_this))
+exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict(__file__=activate_this))
 
 # Importing Infra Code
-from pure_dir.infra.logging.logmanager import *
 
 # Importing utils code
 py_basepath = "/var/www/restserver/pure_dir/services"
 sys.path.insert(0, py_basepath)
-from utils.register import *
 
 loginfo("Starting service manager...")
 
@@ -63,5 +64,4 @@ data = {}
 data['service_name'] = config_data['name']
 data['service_details'] = config_data
 
-from core.services import *
 service_register(data)

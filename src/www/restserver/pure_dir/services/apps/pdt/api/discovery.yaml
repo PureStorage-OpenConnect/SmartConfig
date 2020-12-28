@@ -152,7 +152,7 @@ paths:
         description: Type of flashstack component
         required: true
         type: string
-        enum: ['UCSM', 'Nexus_5k', 'Nexus_9k', 'MDS', 'PURE']
+        enum: ['UCSM', 'Nexus_5k', 'Nexus_9k', 'MDS', 'PURE', 'FlashBlade']
       - in: query
         name: mac
         description: List of mac_addresses
@@ -246,7 +246,7 @@ paths:
           schema:
             $ref: '#/definitions/DeleteDeviceResponse'
 
-  /FIGenValidate:
+  /GenValidate:
     post:
       tags:
       - Discovery
@@ -257,16 +257,14 @@ paths:
         required: true
         type: string
       - in : body
-        name: filist 
-        description: FI list
+        name: data 
+        description: Hardware list
         required: true
         schema:
-          type: array
-          items:
-           type: string
+          $ref: '#/definitions/ComponentList'
 
-      operationId: pdt_api.figenvalidate
-      summary: Check whether both are FI's are same gen and gen type
+      operationId: pdt_api.genvalidate
+      summary: Check whether both hardwares are same gen and gen type
       security: []
       responses:
         '200':
@@ -458,6 +456,19 @@ definitions:
         type: string
         description: End IP for the Network
         example: '192.168.1.254'
+      notifications:
+        type: array
+        items:
+          required:
+          - field
+          - msg
+          properties:
+            field:
+              type: string
+              description: Field name for which warning is thrown
+            msg:
+              type: string
+              description: Warning message
 
   DHCPSettings:
     required:
@@ -548,6 +559,11 @@ definitions:
         items:
           type: string
         description: List of FlashArrays
+      FlashBlade:
+        type: array
+        items:
+          type: string
+        description: List of FlashBlades
 
   DeleteDeviceResponse:
     required:

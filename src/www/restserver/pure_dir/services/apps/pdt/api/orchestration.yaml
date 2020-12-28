@@ -1356,6 +1356,7 @@ definitions:
            - MDS
            - Nexus 5k
            - Nexus 9k
+           - FlashBlade
         properties:
            UCSM:
              type: integer
@@ -1366,6 +1367,8 @@ definitions:
            Nexus 5k:
              type: integer
            Nexus 9k:
+             type: integer
+           FlashBlade:
              type: integer
 
    ReqHardwareData:
@@ -1380,7 +1383,8 @@ definitions:
              type: integer
            Nexus 9k:
              type: integer
-
+           FlashBlade:
+             type: integer
 
    GetOptionsData:
         #type: object

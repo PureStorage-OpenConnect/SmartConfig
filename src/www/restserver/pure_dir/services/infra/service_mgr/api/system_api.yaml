@@ -5,7 +5,6 @@ paths:
       - System
       operationId: service_mgr_api.systeminfo
       summary: System Info
-      security: []
       responses:
         '200':
           description: Return tool information
@@ -18,7 +17,6 @@ paths:
       - Gateway
       operationId: service_mgr_api.serviceregister
       summary: API to register a service to the service_mgr
-      security: []
       parameters:
         - name: data
           in: body
@@ -39,7 +37,6 @@ paths:
       - Gateway
       operationId: service_mgr_api.applicationinit
       summary: API to start a application and its associated services
-      security: []
       parameters:
         - name: name
           in: query
@@ -59,7 +56,6 @@ paths:
       - Gateway
       operationId: service_mgr_api.applicationuninit
       summary: API to stop a application and its associated services
-      security: []
       parameters:
         - name: name
           in: query
@@ -79,7 +75,6 @@ paths:
       - Gateway
       operationId: service_mgr_api.applicationreset
       summary: API to reset the application
-      security: []
 
       responses:
         '200':
@@ -162,7 +157,7 @@ definitions:
       service_name:
         type: string
         description: Unique identifier
-        readOnly: true
+        #readOnly: true
       service_details:
         type: object
         description: Service details

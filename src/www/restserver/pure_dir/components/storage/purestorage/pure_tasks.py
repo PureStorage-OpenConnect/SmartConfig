@@ -100,7 +100,7 @@ class PureTasks:
         return res
 
     def get_multiple_host_names(self, name, st_no, count, num_digits):
-        old_num_digit = num_digits
+        old_num_digit = int(num_digits)
         result = []
         name = ("-").join(name.split("-")[:-1]) + "-"
         if count == 1 and num_digits == 0 and st_no == 0:  # for single host
@@ -119,7 +119,7 @@ class PureTasks:
 
     def get_multiple_vol_names(self, name, st_no, count, num_digits):
         name = name.replace("Host", "Vol")
-        old_num_digit = num_digits
+        old_num_digit = int(num_digits)
         result = []
         name = ("-").join(name.split("-")[:-1]) + "-"
         if count == 1 and num_digits == 0 and st_no == 0:  # for single host
@@ -662,7 +662,7 @@ class PureTasks:
             stdin.close()
 
             data = ' '
-            data = stdout.read().splitlines()[1]
+            data = stdout.read().splitlines()[1].decode("utf-8")
             res = data.split(' ')
             serial_no = str(res[-3])
 

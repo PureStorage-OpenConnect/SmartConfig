@@ -47,7 +47,7 @@ class UCSCreateServiceProfilesFromTemplate:
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        print ucs_list, res
+        print(ucs_list, res)
         return res
 
     def gettemplate(self, keys):

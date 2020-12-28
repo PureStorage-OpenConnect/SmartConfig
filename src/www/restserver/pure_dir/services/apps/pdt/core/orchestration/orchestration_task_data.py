@@ -26,6 +26,7 @@ from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
 from pure_dir.services.apps.pdt.core.tasks.test.mds import*
+from pure_dir.services.apps.pdt.core.tasks.main.flashblade import *
 from xml.dom.minidom import parse, parseString
 from pure_dir.infra.common_helper import getAsList
 
@@ -111,7 +112,7 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
     for task in tasks:
         task_id = task.getAttribute("texecid")
         task_name = task.getAttribute("name")
-        print task_name
+        print(task_name)
         if task_id == execid:
             if len(task._get_childNodes()) > 0:
                 inputs = task.getElementsByTagName("arg")
@@ -119,14 +120,19 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                     for inp in inputs:
                         if argname == inp.getAttribute('name'):
                             tid = task.getAttribute("id")
-                            exec("%s = %s" % ("input_obj", tid +
-                                              "." + tid + "Inputs" + "()"))
-                            exec("%s = %s.%s" %
-                                 ("field", "input_obj", argname))
+                            #exec("%s = %s" % ("input_obj", tid +
+                            #                  "." + tid + "Inputs" + "()"))
+                            input_obj= get_obj(tid +  "." + tid + "Inputs" + "()")
+                            #exec("%s = %s.%s" %
+                            #     ("field", "input_obj", argname))
+                            #field = locals()['field']
+                            field = get_obj(argname,input_obj)
                             tvalue, mapval = form_value(input_args, argname)
                             if field.ip_type == 'text-box' and mapval == "0" and field.validation_criteria == "function":
-                                exec("%s = %s" %
-                                     ("cl_obj", tid + "." + tid + "()"))
+                                #exec("%s = %s" %
+                                #     ("cl_obj", tid + "." + tid + "()"))
+                                #cl_obj = locals()['cl_obj']
+                                cl_obj = get_obj(tid + "." + tid + "()")
                                 isvalid = cl_obj.validate(tvalue)
                                 if isvalid[0]:
                                     inp.setAttribute('value', str(tvalue))
@@ -134,10 +140,12 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                 else:
                                     err.append(
                                         {"field": argname, "msg": isvalid[1], "order": order})
-                            #TODO Changes requires on **kwargs
+                            # TODO Changes requires on **kwargs
                             elif field.ip_type == 'text-box' and mapval == "0" and field.validation_criteria == "function_rand":
-                                exec("%s = %s" %
-                                     ("cl_obj", tid + "." + tid + "()"))
+                                #exec("%s = %s" %
+                                #     ("cl_obj", tid + "." + tid + "()"))
+
+                                cl_obj = get_obj( tid + "." + tid + "()")
                                 isvalid = cl_obj.validate(tvalue, task_name[-1])
                                 if isvalid[0]:
                                     inp.setAttribute('value', str(tvalue))
@@ -145,7 +153,7 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                 else:
                                     err.append(
                                         {"field": argname, "msg": isvalid[1], "order": order})
-                            elif field.ip_type == 'text-box' and mapval == "0":
+                            elif  field.ip_type == 'text-box' and mapval == "0":
                                 isvalid = validation(
                                     field.validation_criteria, tvalue)
                                 if isvalid[0]:
@@ -159,8 +167,10 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                 for val in val_dict:
                                     order += 1
                                     for key in ast.literal_eval(val).keys():
-                                        exec("%s = %s.%s" %
-                                             ("field", "input_obj", key))
+                                        #exec("%s = %s.%s" %
+                                        #     ("field", "input_obj", key))
+                                                 
+                                        field = get_obj(key,input_obj)
                                         ky = ast.literal_eval(val)[key]
                                         if ky['ismapped'] == "0" and field.ip_type == "text-box":
                                             isvalid = validation(
@@ -184,8 +194,9 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                                 for item in items:
                                     order += 1
                                     member = eval(item)
-                                    exec("%s = %s" %
-                                         ("cl_obj", tid + "." + tid + "()"))
+                                    #exec("%s = %s" %
+                                    #     ("cl_obj", tid + "." + tid + "()"))
+                                    cl_obj = get_obj(tid + "." + tid + "()")
                                     isvalid = cl_obj.validate(item)
                                     if not isvalid[0]:
                                         err.append(
@@ -212,9 +223,12 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                 for argname in input_args:
                     arg = doc.createElement("arg")
                     tid = task.getAttribute("id")
-                    exec("%s = %s" %
-                         ("input_obj", tid + "." + tid + "Inputs" + "()"))
-                    exec("%s = %s.%s" % ("field", "input_obj", argname))
+                    #exec("%s = %s" %
+                    #     ("input_obj", tid + "." + tid + "Inputs" + "()"))
+
+                    input_obj = get_obj(tid + "." + tid + "Inputs" + "()")
+                    #exec("%s = %s.%s" % ("field", "input_obj", argname))
+                    field = get_obj(argname, input_obj)
                     tvalue, mapval = form_value(input_args, argname)
                     if field.ip_type == 'text-box' and mapval == "0":
                         isvalid = validation(field.validation_criteria, tvalue)
@@ -222,8 +236,9 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                         val_dict = tvalue.split("|")
                         for val in val_dict:
                             for key in ast.literal_eval(obj).keys():
-                                exec("%s = %s.%s" %
-                                     ("field", "input_obj", key))
+                                #exec("%s = %s.%s" %
+                                #     ("field", "input_obj", key))
+                                field = get_obj(key, input_obj)
                                 ky = ast.literal_eval(val)[key]
                                 isvalid = validation(
                                     field.validation_criteria, ky['value'])
@@ -250,7 +265,8 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                     task.appendChild(args)
                 outputs = doc.createElement("outputs")
                 tid = task.getAttribute("id")
-                exec("%s = %s" % ("output_obj", tid + "." + tid + "Outputs" + "()"))
+                #exec("%s = %s" % ("output_obj", tid + "." + tid + "Outputs" + "()"))
+                output_obj = get_obj(tid + "." + tid + "Outputs" + "()")
                 output_fields = [x for x in dir(output_obj) if not x.startswith(
                     '__') and not x.endswith('__')]
                 for opt in output_fields:
@@ -258,7 +274,7 @@ def job_task_input_save_api(id, execid, input_list, ttype=''):
                     output = doc.createElement("output")
                     output.setAttribute('name', field.name)
                     output.setAttribute('value', "")
-                    output.setAttribute('tvalue', field.tvalue)
+                    output.setAttribute('tvalue', locals()['field'].tvalue)
                     outputs.appendChild(output)
                 task.appendChild(outputs)
     if len(err) > 0:
@@ -370,6 +386,15 @@ def job_task_mandatory_input_save_api(id, input_list, ttype=''):
     obj.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
 
+def get_obj(path,param = None):
+  if param != None:
+      exec("%s = %s.%s" %
+         ("res", 'param', path))
+      return (locals()['res'])
+  exec("%s = %s" %
+         ("res", path))
+  return (locals()['res'])
+
 
 def job_task_inputs_api(execid, id, ttype=''):
     ''' Lists input argumenst for specified task execid'''
@@ -386,17 +411,20 @@ def job_task_inputs_api(execid, id, ttype=''):
         doc = xmltodict.parse(fd.read())
 
     for task in doc['workflow']['tasks']['task']:
-        if isinstance(task, unicode):
-            tid = doc['workflow']['tasks']['task']['@id']
-            break
+        # commneted for p3 upgrade- not understood
+        #if isinstance(task, unicode):
+        #    tid = doc['workflow']['tasks']['task']['@id']
+        #    break
         if task['@texecid'] == execid:
             tid = task['@id']
-    exec("%s = %s" % ("input_obj", tid + "." + tid + "Inputs" + "()"))
+    #exec("%s = %s" % ("input_obj", tid + "." + tid + "Inputs" + "()"))
+    input_obj = get_obj( tid + "." + tid + "Inputs" + "()")
     inputs = [x for x in dir(input_obj) if not x.startswith(
         '__') and not x.endswith('__')]
-  
+
     for ipt in inputs:
-        exec("%s = %s.%s" % ("field", "input_obj", ipt))
+        #exec("%s = %s.%s" % ("field", "input_obj", ipt))
+        field =  get_obj(ipt,input_obj)
         if isinstance(field, list) or field.group_member == "1":
             continue
         if execid:
@@ -404,18 +432,19 @@ def job_task_inputs_api(execid, id, ttype=''):
                 field=field, tid=tid, doc=doc, texecid=execid)
         else:
             wftaskip = job_task_inputs(field=field, tid=tid)
-        
+
         if field.ip_type == "group":
             group_members = []
             for member in field.members:
-                exec("%s = %s.%s" % ("member_data", "input_obj", member))
+                #exec("%s = %s.%s" % ("member_data", "input_obj", member))
+                member_data =  get_obj(member,input_obj)
                 if execid:
                     group_members.append(job_task_inputs(
                         field=member_data, tid=tid, doc=doc, texecid=execid))
                 else:
                     group_members.append(job_task_inputs(
                         field=member_data, tid=tid))
- 
+
             wftaskip['svalue'] = wftaskip['svalue'].replace('\'', '\"')
             wftaskip['addmore'] = True if field.add.lower(
             ) == 'true' or field.add.lower == '1' else False
@@ -460,6 +489,7 @@ def job_task_mandatory_inputs_api(jid, ttype=''):
                     for member in field.members:
                         exec("%s = %s.%s" %
                              ("member_data", "input_obj", member))
+                        member_data = locals()['member_data']
                         group_members.append(
                             job_task_inputs(
                                 field=member_data,
@@ -505,12 +535,14 @@ def workflow_inputs_api(wid, stacktype):
 
         for task in getAsList(doc['workflow']['tasks']['task']):
             tid = task['@id']
-            exec("%s = %s" % ("input_obj", tid + "." + tid + "Inputs" + "()"))
+            
+            input_obj= get_obj(tid +  "." + tid + "Inputs" + "()")
+            #input_obj = locals()['input_obj'] 
             inputs = [x for x in dir(input_obj) if not x.startswith(
                 '__') and not x.endswith('__')]
             tmplist = []
             for ipt in inputs:
-                exec("%s = %s.%s" % ("field", "input_obj", ipt))
+                field = get_obj(ipt, input_obj)
                 if isinstance(field, list) or field.group_member == "1":
                     continue
                 recommended = True if 'recommended' in dir(
@@ -521,8 +553,7 @@ def workflow_inputs_api(wid, stacktype):
                     if field.ip_type == "group":
                         group_members = []
                         for member in field.members:
-                            exec("%s = %s.%s" %
-                                 ("member_data", "input_obj", member))
+                            member_data = get_obj(member, input_obj)
                             group_members.append(job_task_inputs(
                                 field=member_data, doc=doc, tid=tid, texecid=task['@texecid']))
                         wftaskip['svalue'] = wftaskip['svalue'].replace(
@@ -554,7 +585,8 @@ def job_task_inputs(field, tid, mandatory='', doc='', texecid=''):
 
     if doc:
         for task in doc['workflow']['tasks']['task']:
-            if isinstance(task, unicode):
+            ''' commented for p3 upgrade
+               if isinstance(task, unicode):
                 if 'args' not in doc['workflow']['tasks']['task']:
                     wftaskip['svalue'] = field.svalue
                     wftaskip['ismapped'] = field.mapval
@@ -564,7 +596,7 @@ def job_task_inputs(field, tid, mandatory='', doc='', texecid=''):
                             wftaskip['svalue'] = field.svalue if targ['@value'] == "" else targ['@value']
                             wftaskip['ismapped'] = targ['@mapval'] if '@mapval' in targ and targ['@mapval'] in [
                                 '1', '2'] else field.mapval
-                break
+                break'''
             if task['@texecid'] == texecid:
                 iplist = task['args']['arg'] if 'args' in task else []
                 for targ in getAsList(iplist):
@@ -657,8 +689,8 @@ def _get_parent_output_list(
                     break
                 inputs_dict = {
                     'input': generate_field_key(task['@texecid'], task['@name'], output['@name'])}
-		if output['@name'] != 'status':
-                	inputs_list.append(inputs_dict)
+                if output['@name'] != 'status':
+                    inputs_list.append(inputs_dict)
                 processedtasks[texecid] = texecid
                 _get_parent_output_list(
                     inputs_list,

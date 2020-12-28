@@ -1,5 +1,6 @@
 import os
 import glob
+from pytz import common_timezones
 
 from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.components.common import get_device_list
@@ -59,4 +60,13 @@ class fa_nexus5k_figen2_fc:
                     details['selected'] = "0"
                     info_list.append(details)
         res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+    def get_timezones(self, keys):
+        res = result()
+        tzlist = []
+        for tz in common_timezones:
+            tz_entity = {"id": tz, "label": tz, "selected": "0"}
+            tzlist.append(tz_entity)
+        res.setResult(tzlist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

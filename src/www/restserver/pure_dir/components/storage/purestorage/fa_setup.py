@@ -7,7 +7,11 @@ from pure_dir.components.common import *
 import requests
 import json
 from pure_dir.global_config import get_discovery_store
+from pure_dir.services.utils.miscellaneous import get_xml_element, get_xml_childelements
+from pure_dir.global_config import get_settings_file
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
 
+settings = get_settings_file()
 
 class FASetup:
     def __init__(self):
@@ -20,17 +24,16 @@ class FASetup:
         valid = True
         if len(ip_list) == len(set(ip_list)):
             for ip in ip_list:
- 		ip_val = False
+                ip_val = False
                 if ip != 'dns':
-                       ip_val = ipvalidation(ip_list[ip])
+                    ip_val = ipvalidation(ip_list[ip])
                 else:
-                       ip_val = True
+                    ip_val = True
 
                 if not ip_val:
                     err.append({"field": ip, "msg": "Please Enter Valid IP"})
                 if ip != 'dns':
-                    network_reach, ip_reach = ipv.validate_ip(
-                        ip_list[ip], netmask, gateway)
+                    network_reach, ip_reach = ipv.validate_ip(ip_list[ip])
                     if network_reach:
                         if ip_reach:
                             err.append(
@@ -62,7 +65,7 @@ class FASetup:
         """
         Validates the details provided for FlashArray configuration
 
-        :param data: Dictionary (model, mac, array_name, orig_ip, serial_number, ct0_ip, ct1_ip, vir0_ip, netmask, gateway, domain_name, dns, relay_host, sender_domain, ntp_server, alert_emails, timezone, organization, full_name, job_title)
+        :param data: Dictionary (model, mac, array_name, orig_ip, serial_number, ct0_ip, ct1_ip, vir0_ip, netmask, gateway, domain_name, dns, relay_host, sender_domain, ntp_server, alert_emails, organization, full_name, job_title)
 
         :return: Returns the validation status
         """
@@ -79,7 +82,7 @@ class FASetup:
                                    'relay_host': 'SMTP Relay Host Address',
                                    'sender_domain': 'Sender Domain',
                                    'alert_emails': 'Alert Emails',
-                                   'timezone': 'Timezone',
+                                   #'timezone': 'Timezone',
                                    'organization': 'Organization',
                                    'full_name': 'Full Name',
                                    'job_title': 'Job Title'},
@@ -177,6 +180,13 @@ class FASetup:
 
         :return: Returns the reconfiguration status
         """
+        ##To fetch timezone value from globals
+        status, details = get_xml_element(settings, "stacktype")
+        if status == True:
+            status, global_data = get_xml_childelements(get_global_wf_config_file(), 'htype', 'input', ['name', 'value'], 'stacktype', details[0]['stacktype'])
+            if status == False:
+                res.setResult(False, PTK_INTERNALERROR, _("PDT_FAILED_MSG"))
+
         input_dict = {
             "array_name": data['name'],
             "ct0_ip": data['ct0_ip'],
@@ -194,7 +204,7 @@ class FASetup:
             "sender_domain": data['sender_domain'],
             "alert_emails": data['alert_emails'],
             "ntp_server": data['ntp_server'],
-            "timezone": data['timezone'],
+            "timezone": [config["value"] for config in global_data if config.get("name") == "zone"][0],
             "organization": data['organization'],
             "full_name": data['full_name'],
             "job_title": data['job_title'],

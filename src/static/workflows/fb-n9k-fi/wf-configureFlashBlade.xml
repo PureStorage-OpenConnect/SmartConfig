@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<workflow desc="FlashBlade Storage Configuration" hidden="1" htype="fb-n9k-fi" id="configureFlashBlade" isdeletable="0" name="FlashBlade Storage Configuration" simulate="0" type="FlashBlade">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="Create Subnet" id="FBCreateSubnet" inittask="1" label="Create Subnet" name="FBCreateSubnet" texecid="t300">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="prefix" tvalue="192.168.52.0/24" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fb_id" value="fb_id"/>
+        <arg mapval="0" name="name" value="Data"/>
+        <arg mapval="0" name="prefix" value="192.168.52.0/24"/>
+        <arg mapval="0" name="vlan" value="3152"/>
+        <arg mapval="0" name="gateway" value="192.168.52.254"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+      </args>
+    </task>
+    <task OnSuccess="t302" Onfailure="None" desc="Create network interface" id="FBCreateNetworkInterface" inittask="1" label="Create network interface" name="FBCreateNetworkInterface" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fb_id" value="fb_id"/>
+        <arg mapval="0" name="name" value="data_1"/>
+        <arg mapval="0" name="address" value="192.168.52.241"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create NFS File System" id="FBCreateNFS" inittask="1" label="Create NFS File System" name="FBCreateNFS" texecid="t302">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fb_id" value="fb_id"/>
+        <arg mapval="0" name="name" value="imagenet"/>
+        <arg mapval="0" name="provisioned_set" value="{'provisioned_size': {'ismapped': '0', 'value': '10'}, 'provisioned_size_unit': {'ismapped': '0', 'value': '1073741824'}}"/>
+        <arg mapval="0" name="nfs_version" value="v3_enabled"/>
+        <arg mapval="0" name="snapshot" value="False"/>
+        <arg mapval="0" name="fast_remove" value="False"/>
+        <arg mapval="1" name="export_rule" value="__t300.FBCreateSubnet.prefix"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

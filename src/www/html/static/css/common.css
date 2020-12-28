@@ -568,6 +568,14 @@ label.upgrade_software {
 .notification.info {
 	background: rgba(68, 169, 222, 0.76);
 }
+.notification.danger {
+	background: rgb(239, 107, 57, 0.76);
+}
+.notification.notification-block {
+	position: unset;
+    padding: 5px 10px;
+    margin: 4px 0;
+}
 .toolbar-primary .tool-item > .fa {
 	font-size: 17px;
 }

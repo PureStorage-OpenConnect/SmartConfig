@@ -106,8 +106,13 @@ class FAConnectVolumeToFCHost:
         vol_prefix = ""
         mdata = ""
         for pre in range(1, blade_len + 1):
-            host_prefix = 'VM-Host-FC-' + str(pre).zfill(2)
-            vol_prefix = 'VM-Vol-FC-' + str(pre).zfill(2)
+            if pre < 10:
+                host_prefix = 'VM-Host-FC-' + str(pre).zfill(2)
+                vol_prefix = 'VM-Vol-FC-' + str(pre).zfill(2)
+            else:
+                host_prefix = 'VM-Host-FC-' + str(pre).zfill(3)
+                vol_prefix = 'VM-Vol-FC-' + str(pre).zfill(3)
+
             mdata += mhosts + host_prefix + "'}, " + mvols + vol_prefix + "'}}|"
 
         loginfo(
@@ -181,9 +186,14 @@ class FAConnectVolumeToFCHost:
         blade_len = self.ucsm_get_associated_sp_cnt(keys)
         mdata = []
         for pre in range(1, blade_len + 1):
-            host = 'VM-Host-FC-' + str(pre).zfill(2)
-            mdata.append(
-                {"id": str(host), "selected": "0", "label": str(host)})
+            if pre < 10:
+                host = 'VM-Host-FC-' + str(pre).zfill(2)
+                mdata.append(
+                    {"id": str(host), "selected": "0", "label": str(host)})
+            else:
+                host = 'VM-Host-FC-' + str(pre).zfill(3)
+                mdata.append(
+                    {"id": str(host), "selected": "0", "label": str(host)})
 
         res.setResult(mdata, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

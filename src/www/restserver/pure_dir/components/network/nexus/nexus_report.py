@@ -9,20 +9,21 @@ from pure_dir.components.common import get_device_credentials
 from pure_dir.services.utils.miscellaneous import *
 import xmltodict
 import copy
-import urllib2
+import urllib.error
 from pure_dir.global_config import get_settings_file
 
 g_hw_details = {}
 
+
 def get_device_details(hw_type):
     """
-    Function to get the device IP and Credentials based on MAC Address. 
-    
+    Function to get the device IP and Credentials based on MAC Address.
+
     Parameters:
         hw_type (str): Hardware type for which details are to be obtained.
-    
+
     Returns:
-        cred (dict): Dict of IP Address and Credentials for the hardware type argument. 
+        cred (dict): Dict of IP Address and Credentials for the hardware type argument.
     """
     try:
         stacktype = get_xml_element(
@@ -43,17 +44,18 @@ def get_device_details(hw_type):
                     'ucs_switch_b',
                         'pure_id']:
                     g_hw_details[input_val['@name']] = input_val['@value']
-        for key, val in g_hw_details.iteritems():
+        for key, val in g_hw_details.items():
             if key != hw_type:
                 continue
             cred = get_device_credentials(
                 key="mac", value=val)
             return cred
 
-    except urllib2.URLError as e:
+    except urllib.error.URLError as e:
         loginfo("Failed during Nexus Report Generation" + str(e))
 
     return None
+
 
 def _nexus_handler(switch_name):
     """To get Nexus Handle"""
@@ -62,12 +64,13 @@ def _nexus_handler(switch_name):
     nexus_creden = get_device_details(switch_name)
     try:
         handle = Nexus(ipaddress=nexus_creden['ipaddress'],
-                        username=nexus_creden['username'],
-                        password=nexus_creden['password'])
+                       username=nexus_creden['username'],
+                       password=nexus_creden['password'])
         return handle
     except BaseException:
         loginfo("Failed to get nexus handler")
         return None
+
 
 def get_nexus_switch_info(args={}):
     """
@@ -75,32 +78,40 @@ def get_nexus_switch_info(args={}):
     """
     nexus_sys_info = []
     method = "Nexus Switch System Information"
-    switch_name = ['nexus_switch_a' , 'nexus_switch_b']
+    switch_name = ['nexus_switch_a', 'nexus_switch_b']
     for switch in switch_name:
         helper = _nexus_handler(switch)
         if helper is not None:
             nexus_info = {}
             nexus_version = {}
-            nexus_init= {'name' : "", 'ip_address' : "", 'model' : "", 'serial_no' : "", 'system_version' : "", 'kickstart_version' : "", 'uptime' : ""}
+            nexus_init = {
+                'name': "",
+                'ip_address': "",
+                'model': "",
+                'serial_no': "",
+                'system_version': "",
+                'kickstart_version': "",
+                'uptime': ""}
             nexus_sys = copy.deepcopy(nexus_init)
             nexus_info = helper.nexus_switch_info()
             nexus_sys['name'] = nexus_info['name']
             nexus_sys['ip_address'] = get_device_details(switch)['ipaddress']
             nexus_sys['model'] = nexus_info['model']
-            nexus_sys['serial_no'] = nexus_info['serial_no'] 
+            nexus_sys['serial_no'] = nexus_info['serial_no']
             nexus_version = helper.get_nexus_sys_ks_version()
-            nexus_sys['system_version'] = nexus_version['system_version'] 
-            nexus_sys['kickstart_version'] = nexus_version['kickstart_version'] 
+            nexus_sys['system_version'] = nexus_version['system_version']
+            nexus_sys['kickstart_version'] = nexus_version['kickstart_version']
             nexus_sys['uptime'] = helper.nexus_uptime()['uptime']
             nexus_sys_info.append(nexus_sys.copy())
         else:
-            return PTK_RESOURCENOTAVAILABLE, nexus_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
-    if [nexus_dict for nexus_dict in nexus_sys_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-        #loginfo("Successfully fetched " + method)
+            return PTK_RESOURCENOTAVAILABLE, nexus_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+                switch, get_device_details(switch)['ipaddress'])
+    if [nexus_dict for nexus_dict in nexus_sys_info if not nexus_dict == nexus_init] != []:
         return PTK_OKAY, nexus_sys_info, _("PDT_SUCCESS_MSG")
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nexus_sys_info, "Unable to get " + method
+
 
 def get_nexus_global_info(args={}):
     """
@@ -109,10 +120,19 @@ def get_nexus_global_info(args={}):
     nex_glob_info = []
     method = "Nexus Global Switch Information"
     nex_sys = {}
-    switch_name = ['nexus_switch_a' , 'nexus_switch_b']
+    switch_name = ['nexus_switch_a', 'nexus_switch_b']
     for switch in switch_name:
-        nex_init = {'name' : '', 'domain': '', 'dns': '', 'ntp': '', 'lacp': '', 'vpc': '', 'interface-vlan': ''}
-        nex_sys = copy.deepcopy(nex_init)
+        nexus_init = {
+            'name': '',
+            'domain': '',
+            'dns': '',
+            'ntp': '',
+            'lacp': '',
+            'vpc': '',
+            'interface-vlan': ''}
+        if not args['san_type']:
+            nexus_init['udld'] = ''
+        nex_sys = copy.deepcopy(nexus_init)
         helper = _nexus_handler(switch)
         if helper is not None:
             try:
@@ -124,22 +144,32 @@ def get_nexus_global_info(args={}):
                 nex_sys['dns'] = nex_show_dns['dnsnameservice'][0]
                 nex_sys['domain'] = ""
             finally:
-                nex_show_ntp = helper.nexus_command('show ntp peers',['PeerIPAddress'])
-	        nex_show_feature = helper.nexus_command('show feature', ['ROW_cfcFeatureCtrlTable'], cfcFeatureCtrlName2=['lacp','vpc','interface-vlan'])
+                nex_show_ntp = helper.nexus_command('show ntp peers', ['PeerIPAddress'])
+                if not args['san_type']:
+                    nex_show_feature = helper.nexus_command(
+                        'show feature', ['ROW_cfcFeatureCtrlTable'], cfcFeatureCtrlName2=[
+                            'lacp', 'vpc', 'interface-vlan', 'udld'])
+                else:
+                    nex_show_feature = helper.nexus_command(
+                        'show feature', ['ROW_cfcFeatureCtrlTable'], cfcFeatureCtrlName2=[
+                            'lacp', 'vpc', 'interface-vlan'])
                 nex_sys['ntp'] = nex_show_ntp['PeerIPAddress'][0].strip()
                 nex_sys['lacp'] = nex_show_feature[0]['cfcFeatureCtrlOpStatus2']
-	        nex_sys['vpc'] = nex_show_feature[1]['cfcFeatureCtrlOpStatus2']
-	        nex_sys['interface-vlan']=nex_show_feature[2]['cfcFeatureCtrlOpStatus2']
+                nex_sys['vpc'] = nex_show_feature[1]['cfcFeatureCtrlOpStatus2']
+                nex_sys['interface-vlan'] = nex_show_feature[2]['cfcFeatureCtrlOpStatus2']
+                if not args['san_type']:
+                    nex_sys['udld'] = nex_show_feature[3]['cfcFeatureCtrlOpStatus2']
                 nex_sys['name'] = helper.nexus_switch_info()['name']
                 nex_glob_info.append(nex_sys)
         else:
-            return PTK_RESOURCENOTAVAILABLE, nex_glob_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
-    if [nexus_dict for nexus_dict in nex_glob_info if (cmp(nexus_dict, nex_init)) != 0] != []:
-        #loginfo("Successfully fetched " + method)
+            return PTK_RESOURCENOTAVAILABLE, nex_glob_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+                switch, get_device_details(switch)['ipaddress'])
+    if [nexus_dict for nexus_dict in nex_glob_info if not nexus_dict == nexus_init] != []:
         return PTK_OKAY, nex_glob_info, _("PDT_SUCCESS_MSG")
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nex_glob_info, "Unable to get " + method
+
 
 def get_nexus_environment_info(args={}):
     """
@@ -148,42 +178,61 @@ def get_nexus_environment_info(args={}):
     nex_env_info = []
     method = "Nexus Environment Information"
     nex_sys = {}
-    switch_name = ['nexus_switch_a' , 'nexus_switch_b']
+    switch_name = ['nexus_switch_a', 'nexus_switch_b']
     for switch in switch_name:
-        nexus_init = {'host_name': '', 'psuid_status': [], 'ps_model': [], 'nex_mscs': [], 'fan_name': [], 'fan_model':[],
-                    'fandir_status': []}
+        nexus_init = {
+            'host_name': '',
+            'psuid_status': [],
+            'ps_model': [],
+            'nex_mscs': [],
+            'fan_name': [],
+            'fan_model': [],
+            'fandir_status': []}
         helper = _nexus_handler(switch)
         if helper is not None:
-	    nex_show_hostname = helper.nexus_command('show hardware', ['host_name'])
-            nex_show_psinfo = helper.nexus_command('show environment', ['psnum','psmodel','ps_status',
-				 				        'tempmod','fandir',
-                                                                         'sensor', 'curtemp', 'alarmstatus',
-                                                                         'fanname', 'fanmodel', 'fanstatus'])
-	    nex_sys['host_name'] = ''.join(nex_show_hostname['host_name'])
-	    psmod = [x.encode('utf-8') for x in nex_show_psinfo['psmodel']] 
-	    psnum=[str(i) for i in nex_show_psinfo['psnum']]
-	    ps_status = nex_show_psinfo['ps_status'] 
-	    psuid_status = zip(psnum,ps_status)
-	    nex_sys['psuid_status'] = ["/".join(i) for i in psuid_status]
-	    psmodel = zip(psnum,psmod)
-            nex_sys['ps_model'] = ["/".join(i) for i in psmodel]
-	    nex_show_psinfo['tempmod'] = [i.strip() for i in nex_show_psinfo['tempmod']]
-	    nex_mod = zip(nex_show_psinfo['tempmod'], nex_show_psinfo['sensor'], nex_show_psinfo['curtemp'], nex_show_psinfo['alarmstatus'])
-	    nex_mod = ["/".join(i)  for i in nex_mod]
-	    nex_sys['nex_mscs'] = nex_mod
-	    nex_sys['fan_name'] = nex_show_psinfo['fanname']
+            nex_show_hostname = helper.nexus_command('show hardware', ['host_name'])
+            nex_show_psinfo = helper.nexus_command('show environment',
+                                                   ['psnum',
+                                                    'psmodel',
+                                                    'ps_status',
+                                                    'tempmod',
+                                                    'fandir',
+                                                    'sensor',
+                                                    'curtemp',
+                                                    'alarmstatus',
+                                                    'fanname',
+                                                    'fanmodel',
+                                                    'fanstatus'])
+            nex_sys['host_name'] = ''.join(nex_show_hostname['host_name'])
+            psmod = [x.encode('utf-8') for x in nex_show_psinfo['psmodel']]
+            psnum = [str(i) for i in nex_show_psinfo['psnum']]
+            ps_status = nex_show_psinfo['ps_status']
+            psuid_status = zip(psnum, ps_status)
+            nex_sys['psuid_status'] = ["/".join(i) for i in psuid_status]
+            psmodel = zip(psnum, psmod)
+            nex_sys['ps_model'] = ["/".join(str(i)) for i in psmodel]
+            nex_show_psinfo['tempmod'] = [i.strip() for i in nex_show_psinfo['tempmod']]
+            nex_mod = zip(
+                nex_show_psinfo['tempmod'],
+                nex_show_psinfo['sensor'],
+                nex_show_psinfo['curtemp'],
+                nex_show_psinfo['alarmstatus'])
+            nex_mod = ["/".join(i) for i in nex_mod]
+            nex_sys['nex_mscs'] = nex_mod
+            nex_sys['fan_name'] = nex_show_psinfo['fanname']
             nex_sys['fan_model'] = nex_show_psinfo['fanmodel']
-	    fandir_status = zip(nex_show_psinfo['fanstatus'], nex_show_psinfo['fandir'])
-	    nex_sys['fandir_status'] = [' '.join(i) for i in fandir_status]
-	    nex_env_info.append(copy.deepcopy(nex_sys))
+            fandir_status = zip(nex_show_psinfo['fanstatus'], nex_show_psinfo['fandir'])
+            nex_sys['fandir_status'] = [' '.join(i) for i in fandir_status]
+            nex_env_info.append(copy.deepcopy(nex_sys))
         else:
-            return PTK_RESOURCENOTAVAILABLE, nex_env_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
-    if [nexus_dict for nexus_dict in nex_env_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-        #loginfo("Successfully fetched " + method)
+            return PTK_RESOURCENOTAVAILABLE, nex_env_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+                switch, get_device_details(switch)['ipaddress'])
+    if [nexus_dict for nexus_dict in nex_env_info if not nexus_dict == nexus_init] != []:
         return PTK_OKAY, nex_env_info, _("PDT_SUCCESS_MSG")
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nex_env_info, "Unable to get " + method
+
 
 def get_nexus_vlan_info(args={}):
     """
@@ -200,20 +249,21 @@ def get_nexus_vlan_info(args={}):
         nex_show_vlan = helper.nexus_command('show vlan brief', ['ROW_vlanbriefxbrief'])
         vlan_details = nex_show_vlan['ROW_vlanbriefxbrief']
         for vlan_info in vlan_details:
-            if isinstance(vlan_info,list):
-   	        for vlan in vlan_info:
+            if isinstance(vlan_info, list):
+                for vlan in vlan_info:
                     vlan_dict['vlan_name'] = vlan["vlanshowbr-vlanname"]
                     vlan_dict['vlan_id'] = vlan['vlanshowbr-vlanid']
-	            vlan_dict['vlan_status'] = vlan['vlanshowbr-vlanstate']
+                    vlan_dict['vlan_status'] = vlan['vlanshowbr-vlanstate']
                     nex_vlan_info.append(vlan_dict.copy())
-        if [nexus_dict for nexus_dict in nex_vlan_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+        if [nexus_dict for nexus_dict in nex_vlan_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_vlan_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_vlan_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_vlan_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_vlan_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus_intf_info(args={}):
     """
@@ -235,34 +285,36 @@ def get_nexus_intf_info(args={}):
         intf_desc = nex_show_desc['ROW_interface']
         intf_desc1 = intf_desc[0]
         for intf_info in intf_details:
-            if isinstance(intf_info,list):
+            if isinstance(intf_info, list):
                 for intf in intf_info:
                     intf_dict['description'] = intf['desc'] if 'desc' in intf else "--"
                     intf_dict['interface_name'] = intf["interface"]
                     intf_dict['vlan'] = intf['vlan'] if 'vlan' in intf else ""
-                    status = intf['state']
-		    intf_type = intf['type'] if 'type' in intf else "--"
-		    speed = intf['speed'] if 'speed' in intf else "--"
-		    intf_dict['state_speed_type'] = status+ '/' +intf_type+ '/' + speed
-   		    nex_intf_info.append(intf_dict.copy())
+                    status = intf['state'] if intf.get('state') else intf.get('svi_admin_state', 'Unknown')
+                    intf_type = intf['type'] if 'type' in intf else "--"
+                    speed = intf['speed'] if 'speed' in intf else "--"
+                    intf_dict['state_speed_type'] = status + '/' + intf_type + '/' + speed
+                    nex_intf_info.append(intf_dict.copy())
         for intf_descr in intf_desc:
-	    if isinstance(intf_descr,list):
-	        for intf_d in intf_descr:
-		    intf_desc_dict['interface_name'] = intf_d['interface']
-		    intf_desc_dict['description'] = intf_d['desc'] if 'desc' in intf_d else "--"
-		    nex_int_desc_list.append(intf_desc_dict.copy())
+            if isinstance(intf_descr, list):
+                for intf_d in intf_descr:
+                    intf_desc_dict['interface_name'] = intf_d['interface']
+                    intf_desc_dict['description'] = intf_d['desc'] if 'desc' in intf_d else "--"
+                    nex_int_desc_list.append(intf_desc_dict.copy())
         for intf in nex_intf_info:
-	    intflist = [x for x in nex_int_desc_list if x['interface_name'] == intf['interface_name']]
-	    if intflist:
-	        intf.update(intflist[0])
-        if [nexus_dict for nexus_dict in nex_intf_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+            intflist = [x for x in nex_int_desc_list if x['interface_name']
+                        == intf['interface_name']]
+            if intflist:
+                intf.update(intflist[0])
+        if [nexus_dict for nexus_dict in nex_intf_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_intf_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_intf_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_intf_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_intf_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus_vpc_info(args={}):
     """
@@ -275,36 +327,45 @@ def get_nexus_vpc_info(args={}):
     switch_name = args['switch_name']
     method = "Nexus Switch " + switch_name[-1].upper() + " vPC Domain configuration"
     helper = _nexus_handler(switch_name)
-    nexus_init = {'vpc_id': '', 'port': '', 'status': '', 'active_vlans': '', 'vpc_domain_id': '', 'vpc_role': ''}
+    nexus_init = {
+        'vpc_id': '',
+        'port': '',
+        'status': '',
+        'active_vlans': '',
+        'vpc_domain_id': '',
+        'vpc_role': ''}
     if helper is not None:
-        nex_vpc_details = helper.nexus_command('show vpc brief', ['ROW_vpc','ROW_peerlink','vpc-domain-id','vpc-role'])
-        nex_vpc_det = nex_vpc_details['ROW_vpc'] 
+        nex_vpc_details = helper.nexus_command(
+            'show vpc brief', [
+                'ROW_vpc', 'ROW_peerlink', 'vpc-domain-id', 'vpc-role'])
+        nex_vpc_det = nex_vpc_details['ROW_vpc']
         nex_vpc_peer = nex_vpc_details['ROW_peerlink']
         for vpc in nex_vpc_det:
-	    if isinstance(vpc, list):
-	        for nex_vpc in vpc:
-		    vpc_dict['vpc_id'] = nex_vpc['vpc-id']
-		    vpc_dict['port'] = nex_vpc['vpc-ifindex']
-		    vpc_dict['status'] = nex_vpc['vpc-port-state']
-		    vpc_dict['active_vlans'] = nex_vpc['up-vlan-bitset']
-		    nex_vpc_info.append(vpc_dict.copy())
+            if isinstance(vpc, list):
+                for nex_vpc in vpc:
+                    vpc_dict['vpc_id'] = nex_vpc['vpc-id']
+                    vpc_dict['port'] = nex_vpc['vpc-ifindex']
+                    vpc_dict['status'] = nex_vpc['vpc-port-state']
+                    vpc_dict['active_vlans'] = nex_vpc['up-vlan-bitset']
+                    nex_vpc_info.append(vpc_dict.copy())
         for vpc_peer in nex_vpc_peer:
-	    vpc_peer_dict['vpc_id'] = vpc_peer['peer-link-id']
+            vpc_peer_dict['vpc_id'] = vpc_peer['peer-link-id']
             vpc_peer_dict['port'] = vpc_peer['peerlink-ifindex']
             vpc_peer_dict['status'] = vpc_peer['peer-link-port-state']
             vpc_peer_dict['active_vlans'] = vpc_peer['peer-up-vlan-bitset']
             nex_vpc_info.append(vpc_peer_dict.copy())
         for vpc in nex_vpc_info:
-	    vpc.update({'vpc_domain_id': nex_vpc_details['vpc-domain-id'][0]})
-            vpc.update({'vpc_role' : nex_vpc_details['vpc-role'][0]})
-        if [nexus_dict for nexus_dict in nex_vpc_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+            vpc.update({'vpc_domain_id': nex_vpc_details['vpc-domain-id'][0]})
+            vpc.update({'vpc_role': nex_vpc_details['vpc-role'][0]})
+        if [nexus_dict for nexus_dict in nex_vpc_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_vpc_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_vpc_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_vpc_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_vpc_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus_portchannel_info(args={}):
     """
@@ -317,32 +378,39 @@ def get_nexus_portchannel_info(args={}):
     switch_name = args['switch_name']
     method = "Nexus Switch " + switch_name[-1].upper() + " Port Channel Configuration"
     helper = _nexus_handler(switch_name)
-    nexus_init = {'group': '', 'port_channel': '', 'protocol': '', 'type': '', 'member_ports': [] or ''}
+    nexus_init = {
+        'group': '',
+        'port_channel': '',
+        'protocol': '',
+        'type': '',
+        'member_ports': [] or ''}
     if helper is not None:
-        nex_pc_details = helper.nexus_command('show port-channel summary', ['ROW_channel','ROW_member','port-channel','prtcl','type'])
+        nex_pc_details = helper.nexus_command(
+            'show port-channel summary', ['ROW_channel', 'ROW_member', 'port-channel', 'prtcl', 'type'])
         pc_det = nex_pc_details['ROW_channel']
         for row_c in pc_det:
-	    for pc in row_c:
- 	        pc_dict['group'] = pc['group']
-	        pc_dict['port_channel'] = pc['port-channel']
-	        pc_dict['protocol'] = pc['prtcl']
-	        pc_dict['type'] = pc['type']
-	        ports_list = pc['TABLE_member']['ROW_member']
-	        if isinstance(ports_list, list):
-		    for ports in ports_list:
-		        ports_l.append(ports['port'])
-		        pc_dict['member_ports'] = ports_l
-	        else:
-		    pc_dict['member_ports'] = ports_list['port']
-	        nex_pc_info.append(pc_dict.copy())
-        if [nexus_dict for nexus_dict in nex_pc_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+            for pc in row_c:
+                pc_dict['group'] = pc['group']
+                pc_dict['port_channel'] = pc['port-channel']
+                pc_dict['protocol'] = pc['prtcl']
+                pc_dict['type'] = pc['type']
+                ports_list = pc['TABLE_member']['ROW_member']
+                if isinstance(ports_list, list):
+                    for ports in ports_list:
+                        ports_l.append(ports['port'])
+                        pc_dict['member_ports'] = ports_l
+                else:
+                    pc_dict['member_ports'] = ports_list['port']
+                nex_pc_info.append(pc_dict.copy())
+        if [nexus_dict for nexus_dict in nex_pc_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_pc_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_pc_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_pc_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_pc_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus5k_vsan_info(args={}):
     """
@@ -351,17 +419,23 @@ def get_nexus5k_vsan_info(args={}):
     switch = args['switch_name']
     method = "Nexus5k " + switch[-1].upper() + " VSANs"
     helper = _nexus_handler(switch)
-    nexus_init = {'vsan_name': '', 'vsan_state': '', 'vsan_interop_mode' : '', 'vsan_load_balancing': '', 'vsan_operational_state': ''}
+    nexus_init = {
+        'vsan_name': '',
+        'vsan_state': '',
+        'vsan_interop_mode': '',
+        'vsan_load_balancing': '',
+        'vsan_operational_state': ''}
     if helper is not None:
         nex_sys_info = helper.nexus_vsan_details()
-        if [nexus_dict for nexus_dict in nex_sys_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+        if [nexus_dict for nexus_dict in nex_sys_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_sys_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_sys_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus5k_flogi(args={}):
     """
@@ -382,14 +456,15 @@ def get_nexus5k_flogi(args={}):
             nex_sys['wwpn'] = row['pwwn']
             nex_sys['wwnn'] = row['nwwn']
             nex_sys_info.append(nex_sys.copy())
-        if [nexus_dict for nexus_dict in nex_sys_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+        if [nexus_dict for nexus_dict in nex_sys_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_sys_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_sys_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus5k_zoneset(args={}):
     """
@@ -398,22 +473,23 @@ def get_nexus5k_zoneset(args={}):
     nex_sys_info = []
     nex_sys = {}
     switch = args['switch_name']
-    method = "Nexus5k Switch " +  switch[-1].upper() + " Zone Information"
+    method = "Nexus5k Switch " + switch[-1].upper() + " Zone Information"
     helper = _nexus_handler(switch)
     nexus_init = {'zoneset_name': '', 'zoneset_vsan_id': ''}
     if helper is not None:
         nex_zoneset_name = helper.nexus_config_command('show zoneset brief', ['body'])
-        nex_sys['zoneset_name'] = nex_zoneset_name['body'][0].encode('utf-8').split('\n')[0].split(' ')[-3]
-        nex_sys['zoneset_vsan_id'] = nex_zoneset_name['body'][0].encode('utf-8').split('\n')[0].split(' ')[-1]
+        nex_sys['zoneset_name'] = nex_zoneset_name['body'][0].split('\n')[0].split(' ')[-3]
+        nex_sys['zoneset_vsan_id'] = nex_zoneset_name['body'][0].split('\n')[0].split(' ')[-1]
         nex_sys_info.append(nex_sys)
-        if [nexus_dict for nexus_dict in nex_sys_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+        if [nexus_dict for nexus_dict in nex_sys_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nex_sys_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nex_sys_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nex_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nex_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus5k_zone(args={}):
     """
@@ -426,15 +502,16 @@ def get_nexus5k_zone(args={}):
     if helper is not None:
         nexus_sys_info = helper.nexus_zoneset_details()
         for i in nexus_sys_info:
-            i['logged'] = 'Yes' 
-        if [nexus_dict for nexus_dict in nexus_sys_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-            #loginfo("Successfully fetched " + method)
+            i['logged'] = 'Yes'
+        if [nexus_dict for nexus_dict in nexus_sys_info                                                                                                                                 if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nexus_sys_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
             return PTK_NOTEXIST, nexus_sys_info, "Unable to get " + method
     else:
-        return PTK_RESOURCENOTAVAILABLE, nexus_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
+        return PTK_RESOURCENOTAVAILABLE, nexus_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+            switch, get_device_details(switch)['ipaddress'])
+
 
 def get_nexus5k_switch_info(args={}):
     """
@@ -444,7 +521,14 @@ def get_nexus5k_switch_info(args={}):
     nexus_info = {}
     switch_name = ['nexus_switch_a', 'nexus_switch_b']
     method = "Nexus5k Switch System Information"
-    nexus_init = {'name': '', 'model': '', 'serial_num': '', 'ip_address': '', 'uptime': '', 'system_version': '', 'kickstart_version': ''}
+    nexus_init = {
+        'name': '',
+        'model': '',
+        'serial_num': '',
+        'ip_address': '',
+        'uptime': '',
+        'system_version': '',
+        'kickstart_version': ''}
     for switch in switch_name:
         helper = _nexus_handler(switch)
         if helper is not None:
@@ -463,13 +547,14 @@ def get_nexus5k_switch_info(args={}):
             nexus_info.update(nexus_version)
             nexus_sys_info.append(nexus_info.copy())
         else:
-            return PTK_RESOURCENOTAVAILABLE, nexus_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
-    if [nexus_dict for nexus_dict in nexus_sys_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-        #loginfo("Successfully fetched " + method)
+            return PTK_RESOURCENOTAVAILABLE, nexus_sys_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+                switch, get_device_details(switch)['ipaddress'])
+    if [nexus_dict for nexus_dict in nexus_sys_info if not nexus_dict == nexus_init] != []:
         return PTK_OKAY, nexus_sys_info, _("PDT_SUCCESS_MSG")
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nexus_sys_info, "Unable to get " + method
+
 
 def get_nexus5k_environment_info(args={}):
     """
@@ -478,28 +563,46 @@ def get_nexus5k_environment_info(args={}):
     nex_env_info = []
     method = "Nexus Environment Information"
     nex_sys = {}
-    switch_name = ['nexus_switch_a' , 'nexus_switch_b']
+    switch_name = ['nexus_switch_a', 'nexus_switch_b']
     for switch in switch_name:
-        nexus_init = {'host_name': '', 'psuid_status': [], 'ps_model': [], 'nex_mscs': [], 'fan_name': [], 'fan_model':[],
-                    'fandir_status': []}
+        nexus_init = {
+            'host_name': '',
+            'psuid_status': [],
+            'ps_model': [],
+            'nex_mscs': [],
+            'fan_name': [],
+            'fan_model': [],
+            'fandir_status': []}
         helper = _nexus_handler(switch)
         if helper is not None:
             nex_show_hostname = helper.nexus_command('show hostname', ['body'])
-            nex_show_psinfo = helper.nexus_command('show environment', ['psnum','psmodel','ps_status',
-                                                                        'tempmod','fandir',
-                                                                         'sensor', 'curtemp', 'alarmstatus',
-                                                                         'fanname', 'fanmodel', 'fanstatus'])
+            nex_show_psinfo = helper.nexus_command('show environment',
+                                                   ['psnum',
+                                                    'psmodel',
+                                                    'ps_status',
+                                                    'tempmod',
+                                                    'fandir',
+                                                    'sensor',
+                                                    'curtemp',
+                                                    'alarmstatus',
+                                                    'fanname',
+                                                    'fanmodel',
+                                                    'fanstatus'])
             nex_sys['host_name'] = [i['hostname'] for i in nex_show_hostname['body']][0]
-            psmod = [x.encode('utf-8') for x in nex_show_psinfo['psmodel']]
-            psnum=[str(i) for i in nex_show_psinfo['psnum']]
+            psmod = [x for x in nex_show_psinfo['psmodel']]
+            psnum = [str(i) for i in nex_show_psinfo['psnum']]
             ps_status = nex_show_psinfo['ps_status']
-            psuid_status = zip(psnum,ps_status)
+            psuid_status = zip(psnum, ps_status)
             nex_sys['psuid_status'] = ["/".join(i) for i in psuid_status]
-            psmodel = zip(psnum,psmod)
+            psmodel = list(zip(psnum, psmod))
             nex_sys['ps_model'] = ["/".join(i) for i in psmodel]
             nex_show_psinfo['tempmod'] = [i.strip() for i in nex_show_psinfo['tempmod']]
-            nex_mod = zip(nex_show_psinfo['tempmod'], nex_show_psinfo['sensor'], nex_show_psinfo['curtemp'], nex_show_psinfo['alarmstatus'])
-            nex_mod = ["/".join(i)  for i in nex_mod]
+            nex_mod = zip(
+                nex_show_psinfo['tempmod'],
+                nex_show_psinfo['sensor'],
+                nex_show_psinfo['curtemp'],
+                nex_show_psinfo['alarmstatus'])
+            nex_mod = ["/".join(i) for i in nex_mod]
             nex_sys['nex_mscs'] = nex_mod
             nex_sys['fan_name'] = nex_show_psinfo['fanname']
             nex_sys['fan_model'] = nex_show_psinfo['fanmodel']
@@ -507,13 +610,14 @@ def get_nexus5k_environment_info(args={}):
             nex_sys['fandir_status'] = [' '.join(i) for i in fandir_status]
             nex_env_info.append(copy.deepcopy(nex_sys))
         else:
-            return PTK_RESOURCENOTAVAILABLE, nex_env_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
-    if [nexus_dict for nexus_dict in nex_env_info if (cmp(nexus_dict, nexus_init)) != 0] != []:
-        #loginfo("Successfully fetched " + method)
+            return PTK_RESOURCENOTAVAILABLE, nex_env_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+                switch, get_device_details(switch)['ipaddress'])
+    if [nexus_dict for nexus_dict in nex_env_info if not nexus_dict == nexus_init] != []:
         return PTK_OKAY, nex_env_info, _("PDT_SUCCESS_MSG")
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nex_env_info, "Unable to get " + method
+
 
 def get_nexus5k_global_info(args={}):
     """
@@ -522,10 +626,17 @@ def get_nexus5k_global_info(args={}):
     nex_glob_info = []
     method = "Nexus Global Switch Information"
     nex_sys = {}
-    switch_name = ['nexus_switch_a' , 'nexus_switch_b']
+    switch_name = ['nexus_switch_a', 'nexus_switch_b']
     for switch in switch_name:
-        nex_init = {'name' : '', 'domain': '', 'dns': '', 'ntp': '', 'lacp': '', 'vpc': '', 'interface-vlan': ''}
-        nex_sys = copy.deepcopy(nex_init)
+        nexus_init = {
+            'name': '',
+            'domain': '',
+            'dns': '',
+            'ntp': '',
+            'lacp': '',
+            'vpc': '',
+            'interface-vlan': ''}
+        nex_sys = copy.deepcopy(nexus_init)
         helper = _nexus_handler(switch)
         if helper is not None:
             try:
@@ -537,20 +648,21 @@ def get_nexus5k_global_info(args={}):
                 nex_sys['dns'] = nex_show_dns['dnsnameservice'][0]
                 nex_sys['domain'] = ""
             finally:
-                nex_show_ntp = helper.nexus_command('show ntp peers',['PeerIPAddress'])
+                nex_show_ntp = helper.nexus_command('show ntp peers', ['PeerIPAddress'])
                 hostname = helper.nexus_command('show hostname', ['hostname'])
                 nex_show_feature = helper.feature_list()
                 nex_sys['ntp'] = nex_show_ntp['PeerIPAddress'][0].strip()
                 nex_sys['lacp'] = nex_show_feature['lacp']
                 nex_sys['vpc'] = nex_show_feature['vpc']
-                nex_sys['interface-vlan']=nex_show_feature['interface-vlan']
+                nex_sys['interface-vlan'] = nex_show_feature['interface-vlan']
                 nex_sys['name'] = hostname['hostname'][0]
                 nex_glob_info.append(nex_sys)
         else:
-            return PTK_RESOURCENOTAVAILABLE, nex_glob_info, "failed to get handler for Nexus {} : {} Report Generation".format(switch, get_device_details(switch)['ipaddress'])
-    if [nexus_dict for nexus_dict in nex_glob_info if (cmp(nexus_dict, nex_init)) != 0] != []:
-        #loginfo("Successfully fetched " + method)
+            return PTK_RESOURCENOTAVAILABLE, nex_glob_info, "failed to get handler for Nexus {} : {} Report Generation".format(
+                switch, get_device_details(switch)['ipaddress'])
+    if [nexus_dict for nexus_dict in nex_glob_info if not nexus_dict == nexus_init] != []:
         return PTK_OKAY, nex_glob_info, _("PDT_SUCCESS_MSG")
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nex_glob_info, "Unable to get " + method
+

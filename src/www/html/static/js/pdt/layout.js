@@ -1,4 +1,4 @@
-var stage = 0, tout, rout, no_steps = 4, systemInfo, localization, macs = [], hardwares = {};
+var stage = 0, tout, rout, no_steps = 4, systemInfo, localization, macs = [], hardwares = {}, hardwareStacks = {};
 var current_step = 1, skipValidation = 0, goTo, loaderCnt, requestCallback, callbackFlag = false;
 $(document).ready(function() {
 	if(navigator.userAgent.indexOf('Firefox') > -1) $('body').addClass('firefox');
@@ -206,7 +206,7 @@ function initTooltip(container, obj) {
 		color: '#454545',
 		tooltipHover: true,
 		width: false,		// Dynamic width
-		maxWidth: 500
+		maxWidth: 600
 	};
 	var obj = $.extend({}, defaults, obj);
 	$(container + ' .tipso').tipso(obj);

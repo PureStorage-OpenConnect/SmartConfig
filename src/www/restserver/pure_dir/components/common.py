@@ -1,10 +1,13 @@
 import os
+import base64
 from xml.dom.minidom import parse, parseString
 from pure_dir.services.utils.miscellaneous import *
 from pure_dir.infra.apiresults import *
 import time
 from ucsmsdk.ucshandle import UcsHandle
+from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.global_config import get_discovery_store
+
 
 image_dir = "/mnt/system/uploads/"
 xml_file = '/mnt/system/pure_dir/pdt/images.xml'
@@ -15,12 +18,12 @@ def pretty_print(data): return '\n'.join([line for line in parseString(
 
 
 def encrypt(passwd):
-    res = passwd.encode('base64', 'strict')
+    res = base64.b64encode(bytes(passwd, 'utf-8')).decode('utf-8')
     return res
 
 
 def decrypt(passwd):
-    res = passwd.decode('base64', 'strict')
+    res = base64.b64decode(passwd).decode('utf-8')
     return res
 
 
@@ -165,3 +168,15 @@ def switch_enable_nxapi(host, username, password):
     time.sleep(.5)
     client.close()
     return
+
+def get_nexus_handler(cred):
+    """To get Nexus Handle"""
+    obj = result()
+    try:
+        handle = Nexus(ipaddress=cred['ipaddress'],
+                       username=cred['username'],
+                       password=cred['password'])
+        return handle
+    except BaseException:
+        loginfo("Failed to get nexus handler")
+        return None

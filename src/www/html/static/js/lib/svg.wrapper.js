@@ -1,6 +1,6 @@
 $description = $(".description");
 $(document).ready(function() {
-	$('path').click(function(e) {
+	$('body').delegate('#connectivity-diagram path', 'click', function(e) {
 		e.stopPropagation();
 		$('path.move').removeAttr('class');
 		$(this).attr('class', 'move');
@@ -35,83 +35,64 @@ $(document).ready(function() {
 });
 
 function drawLegend() {
-	svgLegend.path().attr({fill: 'none', stroke: connColors['nexus-nexus'], 'stroke-width': lineWidth})
-		.M(10, 16).L(80, 16);
-	svgLegend.text('10 GbE (LAN Fabric A)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['nexus-nexus']).move(100, 10);	//.animate('2s');
+	var startIndex = 20, lineLength = 70, lineTxtSpacing = 20, legendDistance = 420, k = 0;
+	$.each(legendColorArr, function(txt, color) {
+		svgLegend.path().attr({fill: 'none', stroke: color, 'stroke-width': lineWidth})
+			.M((startIndex + (legendDistance * k)), 16).L((startIndex + (legendDistance * k) + lineLength), 16);
+		svgLegend.text(txt).font({ size: 12.5, family: 'Verdana' }).fill(color).move((startIndex + (legendDistance * k) + lineLength + lineTxtSpacing), 10);	//.animate('2s');
 
-	svgLegend.path().attr({fill: 'none', stroke: connColors['nexus-nexus'], 'stroke-width': lineWidth}).style('stroke-dasharray', 8)
-		.M(10, 40).L(80, 40);
-	svgLegend.text('10 GbE (LAN Fabric B)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['nexus-nexus']).move(100, 34);
-
-	
-	svgLegend.path().attr({fill: 'none', stroke: connColors['chassis-ucs'], 'stroke-width': lineWidth})
-		.M(300, 16).L(380, 16);
-	svgLegend.text('10 GbE (Unified Fabric A)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['chassis-ucs']).move(400, 10);
-
-	svgLegend.path().attr({fill: 'none', stroke: connColors['chassis-ucs'], 'stroke-width': lineWidth}).style('stroke-dasharray', 8)
-		.M(300, 40).L(380, 40);
-	svgLegend.text('10 GbE (Unified Fabric B)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['chassis-ucs']).move(400, 34);
-
-
-	svgLegend.path().attr({fill: 'none', stroke: connColors['mds-ucs'], 'stroke-width': lineWidth})
-		.M(600, 16).L(680, 16);
-	svgLegend.text('8G FC (SAN Fabric A)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['mds-ucs']).move(700, 10);
-
-	svgLegend.path().attr({fill: 'none', stroke: connColors['mds-ucs'], 'stroke-width': lineWidth}).style('stroke-dasharray', 8)
-		.M(600, 40).L(680, 40);
-	svgLegend.text('8G FC (SAN Fabric B)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['mds-ucs']).move(700, 34);
-
-
-	svgLegend.path().attr({fill: 'none', stroke: connColors['flasharray-mds'], 'stroke-width': lineWidth})
-		.M(900, 16).L(980, 16);
-	svgLegend.text('16G FC (SAN Fabric A)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['flasharray-mds']).move(1000, 10);
-
-	svgLegend.path().attr({fill: 'none', stroke: connColors['flasharray-mds'], 'stroke-width': lineWidth}).style('stroke-dasharray', 8)
-		.M(900, 40).L(980, 40);
-	svgLegend.text('16G FC (SAN Fabric B)').font({ size: 12.5, family: 'Verdana' }).fill(connColors['flasharray-mds']).move(1000, 34);
+		svgLegend.path().attr({fill: 'none', stroke: color, 'stroke-width': lineWidth}).style('stroke-dasharray', 8)
+			.M((startIndex + (legendDistance * k)), 40).L((startIndex + (legendDistance * k) + lineLength), 40);
+		svgLegend.text(txt).font({ size: 12.5, family: 'Verdana' }).fill(color).move((startIndex + (legendDistance * k) + lineLength + lineTxtSpacing), 34);
+		k++;
+	});
 }
 
-function drawPortChannelConnections() {
-	var g = nodes.group();
-
-	g.ellipse(20, 65).fill('transparent').stroke("#000").move(580, 25).attr('class', 'enabled');
-	g.ellipse(28, 70).fill('transparent').stroke("#FF0000").move(576, 22).attr('class', 'enabled');
-	g.text('vPC Peer').move(610, 50).fill('#FB5000').font({ size: 13.5, family: 'Verdana' });
-
-	g.ellipse(50, 20).fill('transparent').stroke("#000").move(20, 140).attr('class', 'enabled');
-	g.ellipse(60, 26).fill('transparent').stroke("#FF0000").move(15, 137).attr('class', 'enabled');
-	g.text('vPC').move(85, 143).fill('#FB5000').font({ size: 13.5, family: 'Verdana' });
-
-	g.ellipse(50, 20).fill('transparent').stroke("#000").move(1170, 140).attr('class', 'enabled');
-	g.ellipse(60, 26).fill('transparent').stroke("#FF0000").move(1165, 137).attr('class', 'enabled');
-	g.text('vPC').move(1135, 143).fill('#FB5000').font({ size: 13.5, family: 'Verdana' });
-
-	g.ellipse(50, 20).fill('transparent').stroke("#000").move(60, 350).attr('class', 'enabled');
-	g.ellipse(60, 26).fill('transparent').stroke("#FF0000").move(55, 347).attr('class', 'enabled');
-
-	g.ellipse(50, 20).fill('transparent').stroke("#000").move(810, 350).attr('class', 'enabled');
-	g.ellipse(60, 26).fill('transparent').stroke("#FF0000").move(805, 347).attr('class', 'enabled');
-}
-
-function plotNodes(nodeColor, x, y) {
-	//console.log(nodeColor + '  ::  ' + x + '   >>>   ' + y);
-	//group.circle(nodeRadius).fill(nodeColor).move(x, y).attr('class', 'enabled');
-	svg.circle(nodeRadius).fill(nodeColor).move(x, y).attr('class', 'enabled');
+function plotNodes(position, nodeColor, x, y, port, helpTxt) {
+	group = nodes.group().attr({"class": "enabled tipso tipso_style", "data-tipso-title": '&nbsp;&nbsp;' + port, "data-tipso": helpTxt});
+	var nested = group.nested(), textAnchor = 'start', rotation = 0;
+	nested.circle(nodeRadius).attr({'style': "fill: " + nodeColor + "; stroke: " + nodeColor + "; stroke-width: 1;"}).move(x, y);
+	switch(position) {
+		case 'top':
+			y -= 10 + ((port.length - 1) * 3);
+			x -= 5 + ((port.length - 1) * 2.5);
+			rotation = 270;
+			break;
+		case 'bottom':
+			y += 15 + ((port.length - 1) * 2.5);
+			x += 8 - ((port.length - 1) * 2.5);
+			rotation = 90;
+			break;
+		case 'left':
+			textAnchor = 'end';
+			x -= 10;
+			y -= 7;
+			break;
+		case 'right':
+		default:
+			x += 15;
+			y -= 7;
+			break;
+	}
+	nested.text(function(add) {
+		add.tspan(port).fill(nodeColor).attr({'text-anchor': textAnchor, 'font-size': '9px', 'letter-spacing': '0.8px'})
+	}).move(x, y).transform({ rotation: rotation });
 }
 
 var group;
-function plotShape(objType, objName, objLabel, subLabel) {
+function plotShape(objType, objName, objLabel, subLabel, helpTxt) {
 	var color;
 	subLabel = (typeof subLabel == 'undefined') ? '' : subLabel;
-	group = nodes.group().translate(xP, yP).attr("name", objName).draggy();
-	group.rect((imageSize[objType].width + (groupHPadding * 2)), (imageSize[objType].height + groupVPadding * 2)).radius(7).fill("#FFF").stroke("#EAEAEA");
+	group = nodes.group().translate(xP, yP).attr({"name": objName, "class": "tipso tipso_style", "data-tipso-title": '&nbsp;&nbsp;' + ucfirst(objType), "data-tipso": helpTxt}).draggy();
+	var nested = group.nested().attr({'width': (imageSize[objType].width + (groupHPadding * 2)) + 'px', 'height': (imageSize[objType].height + groupVPadding * 2) + 'px'});
+	//nested.rect((imageSize[objType].width + (groupHPadding * 2)), (imageSize[objType].height + groupVPadding * 2)).radius(7).fill("#FFF").stroke("#EAEAEA");
 	//group.image(objType + '.png', imageSize[objType].width, imageSize[objType].height).move(groupHPadding, 30);
-	group.rect(imageSize[objType].width, imageSize[objType].height).radius(4).fill('#DADADA').stroke('#A2A2A2').move(groupHPadding, groupVPadding);
-	group.text(function(add) {
-		add.tspan(objLabel).fill(labelColor)
-		add.tspan(subLabel).fill('#FB5000').attr({'font-size': '10px'}).dx(5).dy(-2)
-	}).move((groupHPadding + 20), (groupVPadding + 10));
-
+	nested.rect(imageSize[objType].width, imageSize[objType].height).radius(4).fill('#DADADA').stroke('#A2A2A2').move(groupHPadding, groupVPadding);
+	nested.text(function(add) {
+		add.tspan(objLabel).fill(labelColor).attr({'font-size': '9px', 'font-family': 'ProximaNovaSemibold', 'letter-spacing': '0.8px'})
+		add.tspan(subLabel).fill('#FB5000').attr({'font-size': '8px'}).dx(5).dy(-2)
+	}).move((groupHPadding + 20), (groupVPadding + 10))
+	.attr({'text-anchor': 'middle', 'dominant-baseline': 'middle', 'x': '50%', 'y': '50%'});
 	/* $.each(connections[objType], function(index, value) {
 		color = (typeof connColors[objType + '-' + value['to']] == 'undefined') ? connColors[value['to'] + '-' + objType] : connColors[objType + '-' + value['to']];
 		plotNodes(color, (groupHPadding + value['x']), (groupVPadding + value['y']));

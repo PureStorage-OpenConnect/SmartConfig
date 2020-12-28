@@ -1,6 +1,7 @@
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import PTK_OKAY, result
 
+
 class Test_PureCreateMultipleHosts:
 
     def __init__(self):

@@ -9,12 +9,13 @@
 from pycsco.nxos.device import Device
 from pycsco.nxos import error
 import json
-import urllib2
+import urllib.error
 import re
 import xmltodict
 from pure_dir.infra.apiresults import PTK_CLIERROR, PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.utils.miscellaneous import *
+
 
 class MDS:
     def __init__(self, ipaddr, uname, passwd):
@@ -68,7 +69,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -94,7 +95,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -121,7 +122,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -146,7 +147,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -180,14 +181,16 @@ class MDS:
             else:
                 op_dict = json.loads(iface_op[1])
                 iface_struct = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']
-                iface_details['interface'] = iface_struct['interface_vfc']
+                ############TODO To be validated with downgraded MDS ###################
+                iface_details['interface'] = iface_struct['interface_vfc'] if iface_struct.get('interface_vfc') else iface_struct['interface']
                 hw_type = ''.join(iface_struct['hardware'].split(' ')[-2:])
                 iface_details['type'] = 'FC' if hw_type == 'FibreChannel' else hw_type
-		pc_id = iface_struct.get('bundle_if_index', None) 
-		if pc_id is not None:
-		    iface_details['pc'] = {'id':'Po'+re.search('port-channel(.+)', pc_id).group(1), 'type':'FC PC'}
-		else:
-		    iface_details['pc'] = None
+                pc_id = iface_struct.get('bundle_if_index', None)
+                if pc_id is not None:
+                    iface_details['pc'] = {
+                        'id': 'Po' + re.search('port-channel(.+)', pc_id).group(1), 'type': 'FC PC'}
+                else:
+                    iface_details['pc'] = None
                 iface_details['pwwn'] = iface_struct['port_wwn']
                 iface_details['speed'] = iface_struct.get('oper_speed', 'indeterminate')
                 iface_details['state'] = iface_struct['oper_port_state']
@@ -199,7 +202,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -270,7 +273,7 @@ class MDS:
             obj.setResult(iface_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(iface_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -324,7 +327,7 @@ class MDS:
             obj.setResult(iface_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(iface_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -359,7 +362,7 @@ class MDS:
                 obj.setResult(output_dict, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(output_dict, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -401,7 +404,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -439,7 +442,7 @@ class MDS:
             obj.setResult(vsan_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(vsan_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -477,7 +480,7 @@ class MDS:
             obj.setResult(devalias_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(devalias_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -500,11 +503,11 @@ class MDS:
                 if row.startswith('fc') or row.startswith('port-channel'):
                     tmp_list = [x for x in row.split(' ') if x != '']
                     flogi_dict = {}
-                    flogi_dict['iface_id'] = tmp_list[0].encode('utf-8')
-                    flogi_dict['vsan_id'] = tmp_list[1].encode('utf-8')
-                    flogi_dict['fcid'] = tmp_list[2].encode('utf-8')
-                    flogi_dict['pwwn'] = tmp_list[3].encode('utf-8')
-                    flogi_dict['nwwn'] = tmp_list[4].encode('utf-8')
+                    flogi_dict['iface_id'] = tmp_list[0]
+                    flogi_dict['vsan_id'] = tmp_list[1]
+                    flogi_dict['fcid'] = tmp_list[2]
+                    flogi_dict['pwwn'] = tmp_list[3]
+                    flogi_dict['nwwn'] = tmp_list[4]
                     flogi_sessions.append(flogi_dict)
 
         except error.CLIError as e:
@@ -513,7 +516,7 @@ class MDS:
             obj.setResult(flogi_sessions, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(flogi_sessions, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -547,7 +550,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return feature_list
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return feature_list
 
@@ -575,7 +578,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(True, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -610,7 +613,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(True, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -656,7 +659,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -691,7 +694,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -730,7 +733,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -771,7 +774,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -811,7 +814,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -845,7 +848,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -886,7 +889,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -927,7 +930,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -1014,7 +1017,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1050,7 +1053,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1087,7 +1090,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1123,7 +1126,7 @@ class MDS:
             obj.setResult(zone_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(zone_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -1178,7 +1181,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1221,7 +1224,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -1266,7 +1269,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1317,7 +1320,7 @@ class MDS:
             obj.setResult(zoneset_list, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(zoneset_list, PTK_NOTEXIST,
                           "Could not connect to switch")
@@ -1371,7 +1374,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1416,7 +1419,7 @@ class MDS:
                 obj.setResult(False, PTK_CLIERROR, str(e.err))
                 return obj
 
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 loginfo("Error msg: " + str(e.reason))
                 obj.setResult(False, PTK_NOTEXIST,
                               "Could not connect to switch")
@@ -1462,7 +1465,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1508,7 +1511,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1554,7 +1557,7 @@ class MDS:
             obj.setResult(False, PTK_CLIERROR, str(e.err))
             return obj
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             obj.setResult(False, PTK_NOTEXIST, "Could not connect to switch")
             return obj
@@ -1594,7 +1597,7 @@ class MDS:
             loginfo("Error msg while enabling nxapi: " + str(e.msg))
             return
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg while enabling nxapi:: " + str(e.reason))
             return
 
@@ -1621,7 +1624,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return False
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Failed to set MDS password")
             loginfo("Error msg: " + str(e.reason))
             return False
@@ -1654,7 +1657,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1672,15 +1675,21 @@ class MDS:
             else:
                 out_dict = json.loads(mds_out[1])
                 mds_sys = out_dict['ins_api']['outputs']['output']['body']
-                mds_uptime['uptime'] = (str(mds_sys['sys_up_days']) + " days," + str(mds_sys['sys_up_hrs']) + " hrs," +
-                                           str(mds_sys['sys_up_mins']) + " mins," + str(mds_sys['sys_up_secs']) + " secs")
+                mds_uptime['uptime'] = (str(mds_sys['sys_up_days']) +
+                                        " days," +
+                                        str(mds_sys['sys_up_hrs']) +
+                                        " hrs," +
+                                        str(mds_sys['sys_up_mins']) +
+                                        " mins," +
+                                        str(mds_sys['sys_up_secs']) +
+                                        " secs")
                 return mds_uptime
         except error.CLIError as e:
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1705,7 +1714,7 @@ class MDS:
             loginfo("Error msg: " + str(e.msg))
             return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
             return None
 
@@ -1717,16 +1726,19 @@ class MDS:
         try:
             mds_out = self.handle.show(cmd, fmat='json')
             cli_error = self.handle.cli_error_check(json.loads(mds_out[1]))
+            ############TODO To be validated with downgraded MDS ###################
             if cli_error:
                 raise cli_error
-
+            else:
+                mds = json.loads(mds_out[1])
+                return mds
         except error.CLIError as e:
-            out_dict = ((e.err).strip())
-            doc = xmltodict.parse(out_dict)
-            out = json.dumps(doc)
-            return json.loads(out)
+            #out_dict = ((e.err).strip())
+            #doc = xmltodict.parse(out_dict)
+            #out = json.dumps(doc)
+            return None
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
 
     def mds_port_license(self):
@@ -1751,6 +1763,6 @@ class MDS:
             loginfo("CLI Error: " + str(e.err))
             loginfo("Error msg: " + str(e.msg))
 
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
         return mds_lic

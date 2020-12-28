@@ -12,10 +12,13 @@ from ucsmsdk.mometa.firmware.FirmwareDownloader import FirmwareDownloader
 from ucsmsdk.mometa.firmware.FirmwareDownloader import FirmwareDownloaderConsts
 from ucsmsdk.mometa.firmware.FirmwareAck import FirmwareAckConsts
 from pure_dir.services.utils.miscellaneous import *
+from pure_dir.components.common import *
+import getpass
 
 infra_timeout = 1800
 blade_timeout = 1800
 image_dir = "/mnt/system/uploads"
+settings = "/mnt/system/pure_dir/pdt/settings.xml"
 
 
 def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
@@ -367,6 +370,9 @@ def firmware_add_local(handle, image_dir, image_name, timeout=10 * 60):
     :return firmwaredownloader managed object
     """
     try:
+        host = get_ip_address(get_filtered_ifnames()[0])
+        user=getpass.getuser()
+        phrase=decrypt(get_xml_element(settings, 'phrase')[1][0]['phrase'])
         file_path = os.path.join(image_dir, image_name)
 
         if not os.path.exists(file_path):
@@ -375,28 +381,18 @@ def firmware_add_local(handle, image_dir, image_name, timeout=10 * 60):
 
         top_system = TopSystem()
         firmware_catalogue = FirmwareCatalogue(parent_mo_or_dn=top_system)
-        firmware_downloader = FirmwareDownloader(
-            parent_mo_or_dn=firmware_catalogue,
-            file_name=image_name)
-        firmware_downloader.server = FirmwareDownloaderConsts.PROTOCOL_LOCAL
-        firmware_downloader.protocol = FirmwareDownloaderConsts.PROTOCOL_LOCAL
-        firmware_downloader.admin_state = \
-            FirmwareDownloaderConsts.ADMIN_STATE_RESTART
-
-        uri_suffix = "operations/file-%s/image.txt" % image_name
-        handle.file_upload(url_suffix=uri_suffix,
-                           file_dir=image_dir,
-                           file_name=image_name)
+        #modified protocol to SCP to support large image uploads
+        firmware_downloader = FirmwareDownloader(parent_mo_or_dn=firmware_catalogue, file_name=image_name, pwd=phrase, 
+                                                 remote_path=image_dir, server=host, user=user, protocol="scp")
+        firmware_downloader.admin_state = FirmwareDownloaderConsts.ADMIN_STATE_RESTART
 
         handle.add_mo(firmware_downloader, modify_present=True)
         handle.commit()
 
         start = datetime.datetime.now()
-        while not firmware_downloader.transfer_state == \
-                FirmwareDownloaderConsts.TRANSFER_STATE_DOWNLOADED:
+        while not firmware_downloader.transfer_state == "downloaded":
             firmware_downloader = handle.query_dn(firmware_downloader.dn)
-            if firmware_downloader.transfer_state == \
-                    FirmwareDownloaderConsts.TRANSFER_STATE_FAILED:
+            if firmware_downloader.transfer_state == "failed":
                 loginfo("Download of '%s' failed. Error: %s" %
                         (image_name,
                          firmware_downloader.fsm_rmt_inv_err_descr))
@@ -408,10 +404,9 @@ def firmware_add_local(handle, image_dir, image_name, timeout=10 * 60):
         return firmware_downloader, True
 
     except Exception as e:
-        loginfo(e)
+        loginfo(str(e))
         loginfo("Download of image failed in firmware add local")
         return "", False
-
 
 def is_image_available_on_ucsm(handle, image):
     """

@@ -5,6 +5,7 @@
 # author          :Guruprasad
 # version         :1.0
 ############################################################
+import json
 from pure_dir.services.utils.miscellaneous import *
 from pure_dir.infra.apiresults import *
 from pure_dir.infra.logging.logmanager import *
@@ -169,9 +170,6 @@ def userverify(user):
 
     res.setResult(False, PTK_NOTEXIST, "No such user")
     return res
-
-
-import json
 
 
 def userlogin(user):

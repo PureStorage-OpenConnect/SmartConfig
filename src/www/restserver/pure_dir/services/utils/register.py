@@ -9,12 +9,12 @@
 import yaml
 import json
 import requests
-import netinfo
+from . import netinfo
 from yamlreader import yaml_load
 
 import collections
 import pyaml
-from miscellaneous import *
+from . import miscellaneous
 from pure_dir.infra.apiresults import *
 
 # Function to find network interface
@@ -37,13 +37,13 @@ def get_service_apis(api_file, file_path):
     api_yaml = file_path + "/" + api_file
     with open(api_yaml) as f:
         dataMap = yaml.safe_load(f)
-        for k, v in dataMap['paths'].items():
-            for key, value in v.items():
+        for k, v in list(dataMap['paths'].items()):
+            for key, value in list(v.items()):
                 api = {}
                 api['name'] = k[1:]
                 if key in ['get', 'post', 'put', 'delete']:
                     api['type'] = key
-                if 'security' in value and value['security'] == []:
+                # if 'security' in value and value['security'] == []:
                     api['scope'] = "Public"
                     api_list.append(api)
     return api_list
@@ -97,9 +97,9 @@ def register_with_gateway(data):
             return True
         else:
             if res['status']['code'] == 404:
-                print "Waiting for service manager to start"
+                print("Waiting for service manager to start")
             return False
 
     except Exception as e:
-        print "Failed to register the service: ", str(e)
+        print("Failed to register the service: ", str(e))
         return False

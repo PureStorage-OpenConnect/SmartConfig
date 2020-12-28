@@ -301,7 +301,8 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 			container = api.formContainer + ' .control-group';
 		}
 		$(container).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').removeClass('error');
-		$(container).find('.help-block').html('');
+		$(container).find('.help-block, .notification-block').html('');
+		$(container).find('.notification-block').addClass('hide');
 	}
 	// Display a progressing spinner till the UI successfully receives the response.
 	var spinner_cnt = addProcessingSpinner(api.container);
@@ -340,7 +341,7 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 			} else if(response.status.code == '1') {	// Status code is 1 to display a Confirmation popup
 				removeProcessingSpinner(api.container, spinner_cnt);
 				successCallback(response);		// To trigger success callback
-			} else if(response.status.code == '0') {	// A successful response for server
+			} else if(response.status.code == '0' || response.status.code == '5') {	// A successful response for server
 				if(response.status.taskid) {
 					if(response.status.progress != '100') {
 						api.data = {id: response.status.taskid};
@@ -362,6 +363,21 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 					createAlert({icon:'check-circle', title: localization['success'] + '!', color: 'green success', text: response.status.message, api: api.url});
 				}
 				successCallback(response);		// To trigger success callback
+				
+				if(response.status.code == '5' && 'notifications' in response.data) {		// Handling the warning messages.
+					$.each(response.data.notifications, function(i, value) {
+						container = '';
+						if(typeof api.formContainer == 'object') {
+							$.each(api.formContainer, function(i, elem) {
+								container += elem + ' .control-group.' + value.field + ',';
+							});
+							container = trimChar(container, ',');
+						} else {
+							container = api.formContainer + ' .control-group.' + value.field;
+						}
+						$(container).find('.notification-block').removeClass('hide').html('<i class="fa fa-warning"></i> ' + ucfirst(value.msg));
+					});
+				}
 			} else if(response.status.code == '-20') {	// Authentification failure.
 				$.removeCookie(settings.cookie_name);
 				$(location).attr('href', 'login.html');
@@ -370,7 +386,12 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 				if(api.url == 'TaskInfo') {
 					backgroundCallback(response);
 				} else {
-					if(api.notify) showError(response.status, api.url);	// To display a failure status notification.
+					if(response.status.code == '-14') {
+						$(api.formContainer).find('.notification.inline:not(.fixed)').remove();
+						if($(api.formContainer).find('.notification.inline').length)
+							$(api.formContainer).find('.notification.inline').after('<h5 class="notification danger inline"><i class="fa fa-warning"></i> ' + response.status.message + '</h5>');
+						else $(api.formContainer).prepend('<h5 class="notification danger inline"><i class="fa fa-warning"></i> ' + response.status.message + '</h5>');
+					} else if(api.notify) showError(response.status, api.url);	// To display a failure status notification.
 					// Display the validation error occur on the forms
 					if(api.isValidate && response.data) {
 						$.each(response.data, function(i, value) {
@@ -691,4 +712,18 @@ function getUniqueFromArrayObject(array, field) {
 		output.push(array[i][field]);
 	}
 	return output;
+}
+
+function isValidIP(ipaddress) {
+	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)) {
+		return (true)
+	}
+	return (false)
+}
+
+function isValidDomain(domain) {
+	if (!domain) return false;
+	//var re = /^(?!:\/\/)([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,64}?$/gi;
+	var re = /^([a-zA-Z0-9]+)([a-zA-Z0-9-]+\.){0,5}[a-zA-Z0-9-][a-zA-Z0-9-]+\.[a-zA-Z]{2,64}?$/gi;
+	return re.test(domain);
 }

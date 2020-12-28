@@ -52,8 +52,10 @@ class MDSZoning:
                 # Alias for blade servers. UCSM itself accepts WWN even without OUI -
                 # 00:25:B5 eventhough it is recommended
                 alias_name = bs_alias_template % (
-                    str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
-                zone_list.append(alias_name.encode('utf-8'))
+                    #str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
+                    flogi['pwwn'][-1], switch_tag.upper())
+
+                zone_list.append(alias_name)
             elif get_oui(flogi['pwwn']) == oui_pure:
                 # Alias for flash array ports. FlashArray ports' WWN comes with OUI from
                 # vendor itself.
@@ -68,7 +70,7 @@ class MDSZoning:
                     "ismapped": "0", "value": flogi['iface_id']}
                 alias_dict['pwwn'] = {"ismapped": "0", "value": flogi['pwwn']}
                 alias_dict['alias_name'] = {
-                    "ismapped": "0", "value": alias_name.encode("utf-8")}
+                    "ismapped": "0", "value": alias_name}
                 alias_list.append(alias_dict)
 
         loginfo("Alias_list: %s" % str(alias_list))
@@ -93,7 +95,7 @@ class MDSZoning:
         vsan_id = getGlobalArg(inputs, 'vsan_%s' % switch_tag.lower())
         zoneset_name = "flashstack-zoneset-vsan-%s" % vsan_id
         zoneset_dict['zoneset_name'] = {
-            "ismapped": "0", "value": zoneset_name.encode("utf-8")}
+            "ismapped": "0", "value": zoneset_name}
         zoneset_dict['zoneset_members'] = {"ismapped": "2", "value": zone_list}
         job_input_save(jobid, texecid, 'zoneset', str(zoneset_dict))
 
@@ -319,7 +321,7 @@ class MDSZoning:
                 res = obj.ucsm_sp_wwpn(
                     cred['vipaddress'], cred['username'], cred['password'])
                 if res.getStatus() == PTK_OKAY:
-                    pwwn_list = map(str.lower, res.getResult())
+                    pwwn_list = list(map(str.lower, res.getResult()))
                 else:
                     loginfo(
                         "Unable to get pwwn of service profiles from UCS from MDS zoning")

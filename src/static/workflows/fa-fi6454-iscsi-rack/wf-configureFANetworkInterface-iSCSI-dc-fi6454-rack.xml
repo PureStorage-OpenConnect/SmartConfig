@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<workflow desc="Configure FlashArray Network Interface IP" htype="fa-fi6454-iscsi-rack" id="configureFANetworkInterface-iSCSI-dc-fi6454-rack" isdeletable="0" name="Configure FlashArray Network Interface" order="1" simulate="0" type="FlashArray" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" id="configureFlashArray-iSCSI-dc-fi6454-rack" initwf="1" name="Configure FlashArray Network Interface" wexecid="g309"/>
+  </wfs>
+</workflow>

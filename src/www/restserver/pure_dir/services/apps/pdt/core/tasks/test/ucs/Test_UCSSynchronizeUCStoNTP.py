@@ -1,4 +1,4 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
 from pytz import common_timezones
@@ -15,7 +15,7 @@ class Test_UCSSynchronizeUCStoNTP:
         return res.getResult()
 
     def rollback(self, inputs, outputs, logfile):
-        print "synchronize ucs to ntp rollback"
+        print("synchronize ucs to ntp rollback")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

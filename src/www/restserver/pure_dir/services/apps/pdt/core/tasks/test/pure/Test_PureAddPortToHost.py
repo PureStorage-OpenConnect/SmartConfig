@@ -1,6 +1,7 @@
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import PTK_OKAY, result
 
+
 class Test_PureAddPortToHost:
     def __init__(self):
         pass
@@ -18,7 +19,7 @@ class Test_PureAddPortToHost:
         data = [{"id": "5001500150015080", "selected": "1", "label": "CT0.FC0"},
                 {"id": "5001500150015081", "selected": "0", "label": "CT0.FC1"}]
         obj.setResult(data, PTK_OKAY, "success")
-        print "obj data going is ", obj.getResult()
+        print("obj data going is ", obj.getResult())
         return obj
 
     def get_host_list(self, keys):

@@ -1,7 +1,8 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.components.common import get_device_list
+
 
 class Test_UCSEnableUplinkPorts:
     def __init__(self):

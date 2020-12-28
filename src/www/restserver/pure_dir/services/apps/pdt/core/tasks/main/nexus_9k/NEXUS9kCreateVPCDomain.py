@@ -109,8 +109,8 @@ class NEXUS9kCreateVPCDomain:
 
     def get_detail(self, mac, src, dst):
         nexus_list = []
-        status, details = get_xml_element(
-            file_name=get_discovery_store(), attribute_key="device_type", attribute_value="Nexus 9k")
+        status, details = get_xml_element(file_name=get_discovery_store(
+        ), attribute_key="device_type", attribute_value="Nexus 9k")
 
         if status:
             for detail in details:

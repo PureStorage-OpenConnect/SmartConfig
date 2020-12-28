@@ -170,8 +170,10 @@ def get_wk_file_pattern():
 def get_skip_flag():
     return "%s/workflow_flag.xml" % (g_base_dir)
 
+
 def get_build_xml():
     return g_build_xml
+
 
 def get_log():
     return "%s/error_log" % (g_base_dir)

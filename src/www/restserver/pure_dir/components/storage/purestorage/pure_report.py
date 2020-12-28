@@ -8,20 +8,21 @@ from pure_dir.services.utils.miscellaneous import *
 from purestorage import FlashArray
 import xmltodict
 import copy
-import urllib2
+import urllib.error
 from pure_dir.global_config import get_settings_file
 
 g_hw_details = {}
 
+
 def get_device_details(hw_type):
     """
-    Function to get the device IP and Credentials based on MAC Address. 
-    
+    Function to get the device IP and Credentials based on MAC Address.
+
     Parameters:
         hw_type (str): Hardware type for which details are to be obtained.
-    
+
     Returns:
-        cred (dict): Dict of IP Address and Credentials for the hardware type argument. 
+        cred (dict): Dict of IP Address and Credentials for the hardware type argument.
     """
 
     try:
@@ -44,17 +45,18 @@ def get_device_details(hw_type):
                     'ucs_switch_b',
                         'pure_id']:
                     g_hw_details[input_val['@name']] = input_val['@value']
-        for key, val in g_hw_details.iteritems():
+        for key, val in g_hw_details.items():
             if key != hw_type:
                 continue
             cred = get_device_credentials(
                 key="mac", value=val)
             return cred
 
-    except urllib2.URLError as e:
+    except urllib.error.URLError as e:
         loginfo("Failed during FlashArray Report Generation" + str(e))
 
     return None
+
 
 def _pure_handler():
     """ To get FlashArray Handle to access the REST APIs."""
@@ -62,30 +64,38 @@ def _pure_handler():
     pure_creden = get_device_details('pure_id')
     try:
         pure_obj = PureTasks(ipaddress=pure_creden['ipaddress'],
-                        username=pure_creden['username'],
-                        password=pure_creden['password'])
+                             username=pure_creden['username'],
+                             password=pure_creden['password'])
         handle = pure_obj.pure_handler(ipaddress=pure_creden['ipaddress'],
-                        username=pure_creden['username'],
-                        password=pure_creden['password'])
+                                       username=pure_creden['username'],
+                                       password=pure_creden['password'])
         return handle, pure_obj
     except Exception as e:
         loginfo("Failed to get Pure handler")
         return None, None
-    
+
+
 def get_fa_system_info(args={}):
     """
     Function to obtain FlashArray System Information.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Info.
 
     """
     fa_info_list = []
     array_tmp_dict = {}
-    fa_ini = {'array_name' : "", 'array_ip' : "", 'array_id' : "", 'array_version' : "", 'array_revision' : "", 'array_capacity' : "", 'serial_no' : ""}
+    fa_ini = {
+        'array_name': "",
+        'array_ip': "",
+        'array_id': "",
+        'array_version': "",
+        'array_revision': "",
+        'array_capacity': "",
+        'serial_no': ""}
     fa_info = copy.deepcopy(fa_ini)
     method = "FlashArray System Info"
     try:
@@ -97,11 +107,10 @@ def get_fa_system_info(args={}):
             fa_info['array_id'] = array_tmp_dict['id']
             fa_info['array_version'] = array_tmp_dict['version']
             fa_info['array_revision'] = array_tmp_dict['revision']
-            fa_info['array_capacity'] =  str(handle.get(space=True)[0]['capacity'])
+            fa_info['array_capacity'] = str(handle.get(space=True)[0]['capacity'])
             fa_info['serial_no'] = pure_obj.getSerial_no(fa_info['array_ip'])
             fa_info_list.append(fa_info.copy())
-            if [fa_dict for fa_dict in fa_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -122,17 +131,21 @@ def get_fa_system_info(args={}):
 def get_fa_controller_info(args={}):
     """
     Function to obtain FlashArray Controller Information.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Controller Info.
 
     """
     fa_controller_info_list = []
     array_tmp_list = []
-    fa_ini = {'fa_controller_name' : "", 'fa_controller_mode' : "", 'fa_controller_status' : "", 'fa_controller_model' : ""}
+    fa_ini = {
+        'fa_controller_name': "",
+        'fa_controller_mode': "",
+        'fa_controller_status': "",
+        'fa_controller_model': ""}
     fa_controller_info = copy.deepcopy(fa_ini)
     method = "FlashArray Controllers Info"
     try:
@@ -140,13 +153,12 @@ def get_fa_controller_info(args={}):
         if handle and pure_obj is not None:
             array_tmp_list = handle.get(controllers=True)
             for controller in array_tmp_list:
-                fa_controller_info['fa_controller_name'] = controller['name'] 
+                fa_controller_info['fa_controller_name'] = controller['name']
                 fa_controller_info['fa_controller_mode'] = controller['mode']
                 fa_controller_info['fa_controller_status'] = controller['status']
                 fa_controller_info['fa_controller_model'] = controller['model']
                 fa_controller_info_list.append(fa_controller_info.copy())
-            if [fa_dict for fa_dict in fa_controller_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_controller_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_controller_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -167,17 +179,17 @@ def get_fa_controller_info(args={}):
 def get_fa_global_settings_info(args={}):
     """
     Function to obtain FlashArray Global Settings Information.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Global Settings Info.
 
     """
     fa_global_info_list = []
     array_tmp_dict = {}
-    fa_ini = {'domain' : "", 'dns_servers' : "", 'ntp_servers' : "", 'phone_home' : ""}
+    fa_ini = {'domain': "", 'dns_servers': "", 'ntp_servers': "", 'phone_home': ""}
     fa_global_info = copy.deepcopy(fa_ini)
     method = "FlashArray Global Settings Info"
     try:
@@ -189,8 +201,7 @@ def get_fa_global_settings_info(args={}):
             fa_global_info['ntp_servers'] = handle.get(ntpserver=True)['ntpserver']
             fa_global_info['phone_home'] = handle.get(phonehome=True)['phonehome']
             fa_global_info_list.append(fa_global_info.copy())
-            if [fa_dict for fa_dict in fa_global_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_global_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_global_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -211,18 +222,27 @@ def get_fa_global_settings_info(args={}):
 def get_fa_nw_interfaces(args={}):
     """
     Function to obtain FlashArray Network Interfaces.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Network Interfaces.
 
     """
     fa_nw_interf_info_list = []
     array_tmp_list = []
-    fa_ini = {'interf_name' : "", 'subnet' : "", 'ip_addr' : "", 'netmask' : "", 'gateway' : "", 'mtu' : "", 'speed' : "", 'status' : "", 
-                         'services' : "", 'hw_addr' : ""}
+    fa_ini = {
+        'interf_name': "",
+        'subnet': "",
+        'ip_addr': "",
+        'netmask': "",
+        'gateway': "",
+        'mtu': "",
+        'speed': "",
+        'status': "",
+        'services': "",
+        'hw_addr': ""}
     fa_nw_interf_info = copy.deepcopy(fa_ini)
     method = "FlashArray Network Interfaces"
     try:
@@ -238,11 +258,10 @@ def get_fa_nw_interfaces(args={}):
                 fa_nw_interf_info['mtu'] = str(nw_interf['mtu'])
                 fa_nw_interf_info['speed'] = str(nw_interf['speed'])
                 fa_nw_interf_info['status'] = nw_interf['enabled']
-                fa_nw_interf_info['services'] = nw_interf['services'] 
+                fa_nw_interf_info['services'] = nw_interf['services']
                 fa_nw_interf_info['hw_addr'] = nw_interf['hwaddr']
                 fa_nw_interf_info_list.append(fa_nw_interf_info.copy())
-            if [fa_dict for fa_dict in fa_nw_interf_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_nw_interf_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_nw_interf_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -259,14 +278,14 @@ def get_fa_nw_interfaces(args={}):
         #loginfo("Released the Pure Handle after fetching " + method)
         pure_obj.release_pure_handle()
 
-    
-def get_fa_host_group(args={}):   
+
+def get_fa_host_group(args={}):
     """
     Function to obtain FlashArray Host Group.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Host Group.
 
@@ -275,7 +294,7 @@ def get_fa_host_group(args={}):
     fa_hgroup_list = []
     fa_hgroup_vol = []
     fa_hgroup_size = []
-    fa_ini = {'hgroup_name' : "", 'hosts' : "", 'shared_vol' : "", 'size'  : ""}
+    fa_ini = {'hgroup_name': "", 'hosts': "", 'shared_vol': "", 'size': ""}
     fa_hgroup_info = copy.deepcopy(fa_ini)
     method = "FlashArray Host Group"
     try:
@@ -285,7 +304,7 @@ def get_fa_host_group(args={}):
             fa_hgroup_vol = handle.list_hgroups(connect=True)
             fa_hgroup_size = handle.list_hgroups(space=True)
             for hgroup in fa_hgroup_list:
-                fa_hgroup_info['hgroup_name'] = hgroup['name'] 
+                fa_hgroup_info['hgroup_name'] = hgroup['name']
                 fa_hgroup_info['hosts'] = hgroup['hosts']
                 for hg_vol in fa_hgroup_vol:
                     if fa_hgroup_info['hgroup_name'] == hg_vol['name']:
@@ -296,8 +315,7 @@ def get_fa_host_group(args={}):
                         fa_hgroup_info['size'] = str(hg_size['size'])
                         break
                 fa_hgroup_info_list.append(fa_hgroup_info.copy())
-            if [fa_dict for fa_dict in fa_hgroup_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_hgroup_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_hgroup_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -314,13 +332,14 @@ def get_fa_host_group(args={}):
         #loginfo("Released the Pure Handle after fetching " + method)
         pure_obj.release_pure_handle()
 
+
 def get_fa_volumes(args={}):
     """
     Function to obtain FlashArray Volumes.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Volumes.
 
@@ -329,7 +348,7 @@ def get_fa_volumes(args={}):
     array_tmp_list = []
     vol_serial_list = []
     shared_vol_list = []
-    fa_ini = {'vol_name' : "" , 'serial' : "", 'lun_id' : "", 'size' : "", 'vol_type' : ""}
+    fa_ini = {'vol_name': "", 'serial': "", 'lun_id': "", 'size': "", 'vol_type': ""}
     fa_volumes_info = copy.deepcopy(fa_ini)
     method = "FlashArray Volumes"
     try:
@@ -349,7 +368,8 @@ def get_fa_volumes(args={}):
                         break
                 fa_volumes_info_list.append(fa_volumes_info.copy())
             for shared_vol in shared_vol_list:
-                if [fa_vol['vol_name'] for fa_vol in fa_volumes_info_list if shared_vol['name'] == fa_vol['vol_name']] == []:
+                if [fa_vol['vol_name']
+                        for fa_vol in fa_volumes_info_list if shared_vol['name'] == fa_vol['vol_name']] == []:
                     fa_volumes_info['vol_name'] = shared_vol['name']
                     fa_volumes_info['lun_id'] = str(shared_vol['lun'])
                     fa_volumes_info['size'] = str(shared_vol['size'])
@@ -359,8 +379,7 @@ def get_fa_volumes(args={}):
                             fa_volumes_info['serial'] = vol_serial['serial']
                             break
                     fa_volumes_info_list.append(fa_volumes_info.copy())
-            if [fa_dict for fa_dict in fa_volumes_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_volumes_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_volumes_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -381,17 +400,22 @@ def get_fa_volumes(args={}):
 def get_fa_ports(args={}):
     """
     Function to obtain FlashArray Ports.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Ports.
 
     """
     fa_ports_info_list = []
     array_tmp_list = []
-    fa_ini = {'interf_name' : "", 'initiator_wwn' : "", 'target_wwn' : "", 'initiator_iqn' : "", 'target_iqn' : ""}
+    fa_ini = {
+        'interf_name': "",
+        'initiator_wwn': "",
+        'target_wwn': "",
+        'initiator_iqn': "",
+        'target_iqn': ""}
     fa_ports_info = copy.deepcopy(fa_ini)
     method = "FlashArray Ports"
     try:
@@ -399,16 +423,15 @@ def get_fa_ports(args={}):
         if handle and pure_obj is not None:
             array_tmp_list = handle.list_ports(initiators=True)
             for port in array_tmp_list:
-                if port['target'] != None:
+                if port['target'] is not None:
                     fa_ports_info['interf_name'] = port['target']
-                    fa_ports_info['initiator_wwn'] = port['wwn']    
+                    fa_ports_info['initiator_wwn'] = port['wwn']
                     fa_ports_info['target_wwn'] = port['target_wwn']
                     fa_ports_info['initiator_iqn'] = port['iqn']
                     fa_ports_info['target_iqn'] = port['target_iqn']
                     if fa_ports_info != fa_ini:
                         fa_ports_info_list.append(fa_ports_info.copy())
-            if [fa_dict for fa_dict in fa_ports_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_ports_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_ports_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -425,13 +448,14 @@ def get_fa_ports(args={}):
         #loginfo("Released the Pure Handle after fetching " + method)
         pure_obj.release_pure_handle()
 
+
 def get_fa_hosts(args={}):
     """
     Function to obtain FlashArray Hosts.
-    
+
     Parameters:
         args (dict): Takes the SAN Type as input.
-  
+
     Returns:
         List of FlashArray Hosts.
 
@@ -442,10 +466,16 @@ def get_fa_hosts(args={}):
         handle, pure_obj = _pure_handler()
         if handle and pure_obj is not None:
             host_list = handle.list_hosts()
-            vol_list =  handle.list_hosts(connect=True)
-            vol_size_list =  handle.list_hosts(space=True)
+            vol_list = handle.list_hosts(connect=True)
+            vol_size_list = handle.list_hosts(space=True)
             for host in host_list:
-                fa_ini = {'host_name' : "", 'connected_volumes' : [], 'iqn' : [], 'wwn' : [], 'lun_id' : [], 'size' : ""}
+                fa_ini = {
+                    'host_name': "",
+                    'connected_volumes': [],
+                    'iqn': [],
+                    'wwn': [],
+                    'lun_id': [],
+                    'size': ""}
                 fa_hosts_info = copy.deepcopy(fa_ini)
                 fa_hosts_info['host_name'] = host['name']
                 if host['wwn'] != []:
@@ -460,8 +490,7 @@ def get_fa_hosts(args={}):
                     if vol_space['name'] == host['name']:
                         fa_hosts_info['size'] = str(vol_space['size'])
                 fa_hosts_info_list.append(copy.deepcopy(fa_hosts_info))
-            if [fa_dict for fa_dict in fa_hosts_info_list if cmp(fa_dict, fa_ini) != 0] != []:
-                #loginfo("Successfully fetched " + method)
+            if [fa_dict for fa_dict in fa_hosts_info_list if not fa_dict == fa_ini] != []:
                 return PTK_OKAY, fa_hosts_info_list, _("PDT_SUCCESS_MSG")
             else:
                 loginfo("Unable to get " + method)
@@ -477,4 +506,3 @@ def get_fa_hosts(args={}):
     finally:
         #loginfo("Released the Pure Handle after fetching " + method)
         pure_obj.release_pure_handle()
-

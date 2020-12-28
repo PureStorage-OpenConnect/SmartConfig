@@ -68,7 +68,7 @@ class UCSCreateIQNPoolsForiSCSIBoot:
         return res
 
     def validate(self, item):
-        if item != "" and re.match("^[0-9a-zA-Z\.:-]{0,64}$", item):
+        if item != "" and re.match(r"^[0-9a-zA-Z\.:-]{0,64}$", item):
             pass
         else:
             return False, "Invalid IQN Suffix"

@@ -13,11 +13,16 @@ ExecError exception on error
 """
 import os
 import sys
-import commands
+#import commands
+##############For Python3#########################
+import pipes
 
+import subprocess
 from subprocess import Popen, PIPE
 
-mkarg = commands.mkarg
+#mkarg = commands.mkarg
+###########For Python3##################
+mkarg = pipes.quote
 
 
 class ExecError(Exception):
@@ -59,13 +64,12 @@ def system(command, *args):
         exitcode = os.WEXITSTATUS(error)
         raise ExecError(command, exitcode)
 
-
 def getoutput(command, *args):
     """Executes <command> with <*args> -> output
     If command returns non-zero exitcode raises ExecError"""
-
     command = fmt_command(command, *args)
-    error, output = commands.getstatusoutput(command)
+    #error, output = commands.getstatusoutput(command)
+    error, output = subprocess.getstatusoutput(command)
     if error:
         exitcode = os.WEXITSTATUS(error)
         raise ExecError(command, exitcode, output)

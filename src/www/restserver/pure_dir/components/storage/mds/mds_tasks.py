@@ -47,7 +47,7 @@ class MDSTasks:
             customlogs("Failed to enable features", logfile)
 
         else:
-            op_feature_list = tuple([x.encode('utf-8') for x in feature_list])
+            op_feature_list = tuple(feature_list)
             customlogs("Features %s enabled successfully" %
                        str(op_feature_list), logfile)
             output_dict['status'] = "SUCCESS"
@@ -77,7 +77,7 @@ class MDSTasks:
             customlogs("Failed to disable features", logfile)
 
         else:
-            op_feature_list = tuple([x.encode('utf-8') for x in feature_list])
+            op_feature_list = tuple(feature_list)
             customlogs("Features %s disabled successfully" %
                        str(op_feature_list), logfile)
             output_dict['status'] = "SUCCESS"
@@ -166,7 +166,7 @@ class MDSTasks:
             customlogs("Failed to configure portchannel", logfile)
 
         else:
-            op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
+            op_fc_list = tuple(fc_list)
             customlogs("Port channel '%s' configured with interfaces %s" %
                        (input_dict['portchannel_id'], str(op_fc_list)), logfile)
             output_dict['status'] = "SUCCESS"
@@ -197,7 +197,7 @@ class MDSTasks:
             customlogs("Failed to remove portchannel configuration", logfile)
 
         else:
-            op_fc_list = tuple([x.encode('utf-8') for x in fc_list])
+            op_fc_list = tuple(fc_list)
             customlogs("Port channel '%s' with interfaces %s removed" %
                        (input_dict['portchannel_id'], str(op_fc_list)), logfile)
             output_dict['status'] = "SUCCESS"
@@ -291,8 +291,7 @@ class MDSTasks:
             customlogs("Failed to configure VSAN", logfile)
 
         else:
-            op_interface_list = tuple([x.encode('utf-8')
-                                       for x in interface_list])
+            op_interface_list = tuple(interface_list)
             customlogs("VSAN '%s' configured with interfaces %s successfully" %
                        (input_dict['vsan_id'], str(op_interface_list)), logfile)
             output_dict['status'] = "SUCCESS"
@@ -329,8 +328,7 @@ class MDSTasks:
             customlogs("Failed to remove VSAN configuration", logfile)
 
         else:
-            op_interface_list = tuple([x.encode('utf-8')
-                                       for x in interface_list])
+            op_interface_list = tuple(interface_list)
             customlogs("Interfaces %s removed from VSAN '%s' successfully" %
                        (str(op_interface_list), input_dict['vsan_id']), logfile)
             output_dict['status'] = "SUCCESS"
@@ -372,7 +370,7 @@ class MDSTasks:
         else:
             output_dict['status'] = "SUCCESS"
             output_dict['alias'] = str(alias_list)
-            op_alias_list = tuple([x.encode('utf-8') for x in alias_list])
+            op_alias_list = tuple(alias_list)
             customlogs("Device aliases %s created successfully" %
                        str(op_alias_list), logfile)
 
@@ -403,7 +401,7 @@ class MDSTasks:
         else:
             output_dict['status'] = "SUCCESS"
             output_dict['alias'] = str(alias_list)
-            op_alias_list = tuple([x.encode('utf-8') for x in alias_list])
+            op_alias_list = tuple(alias_list)
             customlogs("Device aliases %s deleted successfully" %
                        str(op_alias_list), logfile)
 
@@ -458,8 +456,7 @@ class MDSTasks:
                     obj.setResult(output_dict, res.getStatus(), res.getMsg())
                     return obj
                 else:
-                    op_zone_members = tuple(
-                        [x.encode('utf-8') for x in zone_members])
+                    op_zone_members = tuple(zone_members)
                     customlogs("Members %s added to the zone '%s' with VSAN '%s' successfully" % (
                         str(op_zone_members), zone_dict['zone_name']['value'], vsan_id), logfile)
                     zone_list.append(zone_dict['zone_name']['value'])
@@ -543,8 +540,7 @@ class MDSTasks:
                     obj.setResult(output_dict, res.getStatus(), res.getMsg())
                     return obj
                 else:
-                    op_zoneset_members = tuple(
-                        [x.encode('utf-8') for x in zoneset_members])
+                    op_zoneset_members = tuple(zoneset_members)
                     customlogs("Members %s added to the zoneset '%s' with vsan '%s' successfully" % (
                         str(op_zoneset_members), zoneset_dict['zoneset_name']['value'], vsan_id), logfile)
                     time.sleep(10)

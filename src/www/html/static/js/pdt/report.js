@@ -76,6 +76,7 @@ function exportAsPDF(PDFSize) {
 	});
 
 	$('.report-container .report-section').each(function(index) {
+		var $self = $(this);
 		Y = doc.autoTable.previous.finalY || 0;
 		Y += topPadding;
 		if(PDFSize == 'a4' && Y > 150) { doc.addPage(); Y = topPadding; }
@@ -126,6 +127,29 @@ function exportAsPDF(PDFSize) {
 		}
 
 		doc.autoTable({
+			didDrawCell: function (data) {
+				if($self.find('table.report-table').hasClass('connection-table') && data.cell.section == 'body' && data.column.index === 5) {
+					var td = data.cell.raw;
+					var textPos = data.cell.textPos;
+					/* var img = td.getElementsByTagName('img')[0];
+					//var dim = data.cell.height - data.cell.padding('vertical');
+					var stateImg = new Image();
+					stateImg.src = img.src;
+					doc.addImage(stateImg, textPos.x, textPos.y, 4, 4); */
+					switch(td.innerHTML) {
+						case 'Up':
+							doc.setTextColor('#16961C');
+							break;
+						case 'Down':
+							doc.setTextColor('#454545');
+							break;
+						default:
+							doc.setTextColor('#FF0000');
+							break;
+					}
+					doc.text(td.innerHTML, textPos.x, (textPos.y + 3.2));
+				}
+			},
 			didDrawPage: function (data) {
 				// Header
 				doc.printingHeaderRow = true;
@@ -206,7 +230,7 @@ function exportAsPDF(PDFSize) {
 	doc.myText('Tool Version: ' + systemInfo.version, {align: "center"}, versionTxtConf['left'], versionTxtConf['top']);
 	doc.setFontSize(subTitleConf['fontSize']);
 	doc.setTextColor('#8D8D8D');
-	doc.myText(hardwares[systemInfo.stacktype] + " [" + stack + "]", {align: "center"}, subTitleConf['left'], subTitleConf['top']);
+	doc.myText(hardwareStacks[systemInfo.stacktype] + " [" + stack + "]", {align: "center"}, subTitleConf['left'], subTitleConf['top']);
 
 	doc.autoTable({
 		startY: startY,
@@ -276,7 +300,7 @@ function exportAsPDF(PDFSize) {
 		title: 'SmartConfig - Report',
 		subject: 'SmartConfig - Report'
 	});
-	doc.save('SmartConfig - Report.pdf');
+	doc.save('SmartConfig-Report.pdf');
 	return;
 }
 
@@ -339,7 +363,7 @@ function loadReportTemplate(downloadFlag, size) {
 	
 	doAjaxRequest({url: 'FlashStackTypes', base_path: settings.base_path}, function(response) {
 		$.each(response.data, function(key, value) {
-			hardwares[value.value] = value.label;
+			hardwareStacks[value.value] = value.label;
 		});
 	}, doNothing);
 
@@ -389,7 +413,7 @@ function loadReportTemplate(downloadFlag, size) {
 				str = '<div class="report-section cabling" id="report-cabling-section-' + n + '">' +
 					'<h4 class="title">' + comp['model'] + ' ' + index + ' Cabling Information</h4>' +
 					'<div class="report-table-container">' +
-						'<table class="report-table">' +
+						'<table class="report-table connection-table">' +
 							'<thead>' +
 								'<tr style="background: #FB5000; color: #FFF;">' +
 									'<td style="text-align: center; vertical-align: middle;">Local Device</td>' +
@@ -397,19 +421,36 @@ function loadReportTemplate(downloadFlag, size) {
 									'<td style="text-align: center; vertical-align: middle;">Connection</td>' +
 									'<td style="text-align: center; vertical-align: middle;">Remote Device</td>' +
 									'<td style="text-align: center; vertical-align: middle;">Remote Port</td>' +
+									'<td style="text-align: center; vertical-align: middle;">Port State</td>' +
 								'</tr>' +
 							'</thead>' +
 							'<tbody>';
 								$.each(value, function(i, info) {
 									tmp = getComponentInfoByName(response.data.components, info['remote_device']);
+									state = (info['state'].toLowerCase() == 'up') ? 'success' : 'm_xicon-1';
+									var string = '';
+									if(typeof info['local_ports'] != 'undefined') {
+										console.log(info['local_ports']);
+										$.each(info['local_ports'], function(p, port) {
+											if(port['state'] == 'up') {
+												string += port['name'] + ',';
+											}
+										});
+										string = trimChar(string, ',');
+										string = ' (' + string.replace(/,/g, ', ') + ')';
+									}
 									str += '<tr>';
 										if(i == 0)
 											str += '<td>' + comp['model'] + ' ' + index + '</td>';
 										else str += '<td></td>';
-										str += '<td>' + info['local_interface'] + '</td>' +
+										str += '<td>' + info['local_interface'].replace("|", ", ") + string + '</td>' +
 										'<td>' + info['connection'] + '</td>' +
 										'<td>' + tmp['model'] + ' ' + info['remote_device'] + '</td>' +
-										'<td>' + info['remote_interface'] + '</td>' +
+										'<td>' + info['remote_interface'].replace("|", ", ") + '</td>' +
+										'<td>' +
+											//'<img src="static/images/' + state + '.png" height="24px" width="24px"></img>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+											ucfirst(info['state']) + 
+										'</td>' +
 									'</tr>';
 								});
 							str += '</tbody>' +
@@ -441,7 +482,7 @@ function reportAPIs(downloadFlag, size) {
 			singleCallback: function() {
 				if(downloadFlag) {
 					exportAsPDF(size);
-					doAjaxRequest({url: 'ReleaseHandle', base_path: settings.base_path}, doNothing, doNothing);
+					doAjaxRequest({url: 'ReleaseHandle', base_path: settings.base_path, query: {"stacktype": systemInfo.stacktype}}, doNothing, doNothing);
 					$('.export-report').closest('.buttonCustom').find('.dropdown-toggle').html('Export Report');
 					$('.export-report').closest('.buttonCustom').removeClass('buttonDisabled');
 				}

@@ -78,6 +78,7 @@ def get_ucs_login(mac):
                 time.sleep(30)
                 retry += 1
 
+
 def ucsm_logout(handle):
     """
     Logout of UCSM

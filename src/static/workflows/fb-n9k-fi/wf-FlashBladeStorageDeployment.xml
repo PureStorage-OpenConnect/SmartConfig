@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Subnet and NFS share" htype="fb-n9k-fi" id="FlashBladeStorageDeployment" isdeletable="0" name="Configure FlashBlade Storage" order="2" prereq="None" simulate="0" type="FlashBlade" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="None" id="configureFlashBlade" initwf="1" name="FlashBlade Storage Configuration" wexecid="g310"/>
+  </wfs>
+</workflow>

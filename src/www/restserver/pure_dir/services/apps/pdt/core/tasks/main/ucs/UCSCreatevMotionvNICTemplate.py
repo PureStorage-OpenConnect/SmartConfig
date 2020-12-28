@@ -71,7 +71,7 @@ class UCSCreatevMotionvNICTemplate:
         val = [{"id": "A", "selected": "1", "label": "Fabric Interconnect A(primary)"}, {
             "id": "B", "selected": "0", "label": "Fabric Interconnect B(subordinate)"}]
         res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        print "results are", res.getResult()
+        print("results are", res.getResult())
         return res
 
     def getfilist(self, keys):
@@ -203,7 +203,7 @@ class UCSCreatevMotionvNICTemplateInputs:
         mandatory='1',
         order=3)
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='Fabric ID',
         api="getfis()",

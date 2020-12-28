@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<workflow desc="Deploy UCS Configuration for Servers, LAN and Boot Policy" htype="fb-n9k-fi" id="ConfigureFI-fb" isdeletable="0" name="Configure UCS Fabric Interconnects" order="3" prereq="FlashBladeStorageDeployment" simulate="0" type="UCSM" wtype="wgroup">
+  <wfs>
+    <wf OnFailure="None" OnSuccess="g201" flags="vmedia_skip:configureUCSServers-fb-vMediaskip;" id="configureUCSServers-fb" initwf="1" name="Configure UCS Servers" wexecid="g200"/>
+    <wf OnFailure="None" OnSuccess="g202" id="configureUCSLANConnectivity-fb" initwf="0" name="Configure UCS LAN Connectivity" wexecid="g201"/>
+    <wf OnFailure="None" OnSuccess="None" id="CreateUCSBootPolicy-fb" initwf="0" name="Create Boot Policy" wexecid="g202"/>
+  </wfs>
+</workflow>

@@ -25,7 +25,7 @@ def loginfo(message):
     logging.basicConfig(level=logging.INFO, filename=g_log_dir +
                         '/' + g_log_filename, format=g_log_format)
     logging.info("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
-    print "%s- %s - %s" % (get_apiname(), get_currentuser(), message)
+    print("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
 
 
 def customlogs(message, logfile):
@@ -36,7 +36,7 @@ def customlogs(message, logfile):
     log = logging.getLogger("Deployment")
     log.deploy = lambda msg, *args: log._log(logging.DEPLOY, msg, args)
     log.deploy("%s" % (message))
-    print "%s- %s - %s" % (get_apiname(), get_currentuser(), message)
+    print("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
 
 
 def logerror(message):
@@ -44,7 +44,7 @@ def logerror(message):
     logging.basicConfig(level=logging.INFO, filename=g_log_dir +
                         '/' + g_log_filename, format=g_log_format)
     logging.error("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
-    print "%s- %s - %s" % (get_apiname(), get_currentuser(), message)
+    print("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
 
 
 def logwarn(message):
@@ -52,7 +52,7 @@ def logwarn(message):
     logging.basicConfig(level=logging.INFO, filename=g_log_dir +
                         '/' + g_log_filename, format=g_log_format)
     logging.warn("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
-    print "%s- %s - %s" % (get_apiname(), get_currentuser(), message)
+    print("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
 
 
 def logcritical(message):
@@ -61,7 +61,7 @@ def logcritical(message):
                         '/' + g_log_filename, format=g_log_format)
     logging.critical("%s- %s - %s" %
                      (get_apiname(), get_currentuser(), message))
-    print "%s- %s - %s" % (get_apiname(), get_currentuser(), message)
+    print("%s- %s - %s" % (get_apiname(), get_currentuser(), message))
 
 
 def get_currentuser():

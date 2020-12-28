@@ -25,12 +25,14 @@ from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
 from pure_dir.services.apps.pdt.core.tasks.main.mds import*
 from pure_dir.services.apps.pdt.core.tasks.test.mds import*
+from pure_dir.services.apps.pdt.core.tasks.main.flashblade import *
 from time import gmtime, strftime
 from copy import deepcopy
 import xmltodict
 import shelve
 import time
-
+import os.path
+from os import path
 
 def get_value_from_global_list(hw_type, key):
     """
@@ -72,7 +74,8 @@ def _map_input_args(tasks, hw_type, dicts, outputdicts, input_obj):
     iplist = tasks['args']['arg'] if isinstance(tasks['args']['arg'], list) else [
         tasks['args']['arg']]
     for inputarg in iplist:
-        exec("%s = %s.%s" % ("field", "input_obj", inputarg['@name']))
+        #exec("%s = %s.%s" % ("field", "input_obj", inputarg['@name']))
+        field = get_obj(("%s" % inputarg['@name']), input_obj)
         if '@mapval' in inputarg and inputarg['@mapval'] == '1':
             if inputarg['@value'][0:2] != "__":
                 loginfo("Error: Something went wrong map value set as 1 and no __")
@@ -98,11 +101,16 @@ def _map_input_args(tasks, hw_type, dicts, outputdicts, input_obj):
                 inputs = inputarg['@value'].split('|')
                 for ip in inputs:
                     ipt = None
-		    try:		    
-                    	ipt = eval(ip)
-		    except SyntaxError as e:
-			loginfo(str(e) + 'Name: ' + inputarg['@name'] + ' value: '+ inputarg['@value'])
-			raise Exception('Failure while parsing group data')
+                    try:
+                        ipt = eval(ip)
+                    except SyntaxError as e:
+                        loginfo(
+                            str(e) +
+                            'Name: ' +
+                            inputarg['@name'] +
+                            ' value: ' +
+                            inputarg['@value'])
+                        raise Exception('Failure while parsing group data')
                     for val in ipt:
                         if ipt[val]['ismapped'] == "3":
                             ipt[val]['value'] = get_value_from_global_list(
@@ -257,6 +265,15 @@ def execute_task(
         g_obj_list,
         logfile, hw_type)
 
+def get_obj(path,param = None):
+  if param != None:
+      exec("%s = %s.%s" %
+         ("res", 'param', path))
+      return (locals()['res'])
+  exec("%s = %s" %
+         ("res", path))
+  return (locals()['res'])
+
 
 def _execute_task(
         cur_task,
@@ -306,9 +323,10 @@ def _execute_task(
         my_cls = _get_obj(g_obj_list, cur_task['@id'])
 
     inputs = {}
+    #exec("%s = %s" %
+    #     ("input_obj", cur_task['@id'] + "." + cur_task['@id'] + "Inputs" + "()"))
 
-    exec("%s = %s" %
-         ("input_obj", cur_task['@id'] + "." + cur_task['@id'] + "Inputs" + "()"))
+    input_obj = get_obj(cur_task['@id'] + "." + cur_task['@id'] + "Inputs" + "()")
     _map_input_args(cur_task, hw_type, inputs, outputdicts, input_obj)
     method = getattr(my_cls, "execute")
     update_task_status(jid, cur_task['@texecid'], TASK_STATUS_EXECUTING)
@@ -371,7 +389,6 @@ def jobexecute_helper(jid):
     :param jid: Job ID
 
     """
-
     try:
         jobexecute_helper_safe(jid)
     except Exception as e:
@@ -525,6 +542,11 @@ def dump_stack(jid, cur_task, seqno, job_recorder, task_list, logfile, outputdic
     """
     # method helps in restarting a task incase of failure
     # dumps the meta required for restart to a dump file
+    if path.exists(get_job_dump_file(jid)):
+       #Already failed task
+       loginfo('Dump already exists')
+       return 0
+
     shelf = shelve.open(get_job_dump_file(jid), flag="c")
     shelf['record'] = job_recorder
     shelf['jid'] = jid

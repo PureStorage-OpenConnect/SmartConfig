@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<workflow desc="FlashArray iSCSI Interface Configuration" hidden="1" htype="fa-fi6454-iscsi-rack" id="configureFlashArray-iSCSI-dc-fi6454-rack" isdeletable="0" name="FlashArray iSCSI Interface Configuration" simulate="0" type="FlashArray">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="Configure network interface" id="FlashArrayConfigureNI" inittask="1" name="Configure network interface" texecid="t300">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="CT0.ETH8" overwrite="False"/>
+        <arg mapval="0" name="enabled" value="True"/>
+        <arg mapval="3" name="address" value="iSCSI-IP-CT0ETH8"/>
+        <arg mapval="3" name="netmask" value="netmask"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+      </args>
+    </task>
+    <task OnSuccess="t302" Onfailure="None" desc="Configure network interface" id="FlashArrayConfigureNI" inittask="1" name="Configure network interface" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="CT1.ETH8" overwrite="False"/>
+        <arg mapval="0" name="enabled" value="True"/>
+        <arg mapval="3" name="address" value="iSCSI-IP-CT1ETH8"/>
+        <arg mapval="3" name="netmask" value="netmask"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+      </args>
+    </task>
+    <task OnSuccess="t303" Onfailure="None" desc="Configure network interface" id="FlashArrayConfigureNI" inittask="1" name="Configure network interface" texecid="t302">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="CT0.ETH9" overwrite="False"/>
+        <arg mapval="0" name="enabled" value="True"/>
+        <arg mapval="3" name="address" value="iSCSI-IP-CT0ETH9"/>
+        <arg mapval="3" name="netmask" value="netmask"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Configure network interface" id="FlashArrayConfigureNI" inittask="1" name="Configure network interface" texecid="t303">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="CT1.ETH9" overwrite="False"/>
+        <arg mapval="0" name="enabled" value="True"/>
+        <arg mapval="3" name="address" value="iSCSI-IP-CT1ETH9"/>
+        <arg mapval="3" name="netmask" value="netmask"/>
+        <arg mapval="0" name="mtu" value="9000"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

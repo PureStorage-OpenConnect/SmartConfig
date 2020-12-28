@@ -1,0 +1,26 @@
+#connectivity-diagram path:hover {
+	cursor: pointer;
+	stroke-width: 4px;
+}
+#connectivity-diagram path.move {
+	stroke-dasharray: 10;
+	animation: dash 5s linear;
+}
+@keyframes dash {
+	to {
+		stroke-dashoffset: 1000;
+	}
+}
+#connectivity-diagram rect {
+	fill: rgb(218, 218, 218);
+    stroke: rgb(162, 162, 162);
+    stroke-width: initial;
+}
+#connectivity-diagram ellipse {
+	fill: transparent;
+    stroke: #FB5000;
+    stroke-width: 2px;
+}
+#connectivity-diagram .legend {
+	margin-top: 24px;
+}

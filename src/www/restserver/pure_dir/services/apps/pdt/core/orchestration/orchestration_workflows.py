@@ -22,18 +22,22 @@ from pure_dir.infra.apiresults import *
 from pure_dir.services.apps.pdt.core.discovery import get_config_mode, get_unconfigured_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import*
-from pure_dir.services.apps.pdt.core.tasks.main.ucs import*
-from pure_dir.services.apps.pdt.core.tasks.test.ucs import*
+from pure_dir.services.apps.pdt.core.tasks.main.ucs import *
+from pure_dir.services.apps.pdt.core.tasks.test.ucs import *
 
 from pure_dir.services.apps.pdt.core.tasks.main.pure import *
 from pure_dir.services.apps.pdt.core.tasks.test.pure import *
 
-from pure_dir.services.apps.pdt.core.tasks.main.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_5k import*
-from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import*
-from pure_dir.services.apps.pdt.core.tasks.main.mds import*
-from pure_dir.services.apps.pdt.core.tasks.test.mds import*
+from pure_dir.services.apps.pdt.core.tasks.main.flashblade import *
+
+from pure_dir.services.apps.pdt.core.tasks.main.nexus_5k import *
+from pure_dir.services.apps.pdt.core.tasks.test.nexus_5k import *
+from pure_dir.services.apps.pdt.core.tasks.main.nexus_9k import *
+from pure_dir.services.apps.pdt.core.tasks.test.nexus_9k import *
+
+from pure_dir.services.apps.pdt.core.tasks.main.mds import *
+from pure_dir.services.apps.pdt.core.tasks.test.mds import *
+
 from pure_dir.infra.common_helper import *
 
 g_flash_stack_types = [
@@ -53,6 +57,9 @@ g_flash_stack_types = [
 
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi6454-mds-fc', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
+
+    {'label': 'FA//MDS//Nexus 9K//FI',
+        'value': 'fa-n9k9336-fi6454-mds-fc', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
 
     {'label': 'FA//MDS//FI ', 'value': 'fa-fi6332-mds-fc', 'tag': 'FC', 'enabled': True,
         'req_hardwares': {'UCSM': 2, 'MDS': 2, 'PURE': 1}},
@@ -83,6 +90,10 @@ g_flash_stack_types = [
         'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}},
     {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi6454-iscsi',
      'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+
+    {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k9336-fi6454-iscsi',
+     'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi-mds-fc-rack', 'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi-iscsi-rack',
@@ -90,7 +101,17 @@ g_flash_stack_types = [
     {'label': 'FA//MDS//Nexus 9K//FI',
         'value': 'fa-n9k-fi6454-mds-fc-rack', 'tag': 'FC', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'MDS': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//Nexus 9K//FI', 'value': 'fa-n9k-fi6454-iscsi-rack',
-     'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True}
+     'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FB//Nexus 9K//FI', 'value': 'fb-n9k-fi',
+     'tag': 'NFS', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'FlashBlade': 1}},
+    {'label': 'FA//FI ', 'value': 'fa-fi6454-fc', 'tag': 'FC',  
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//FI ', 'value': 'fa-fi6454-iscsi', 'tag': 'iSCSI',
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//FI ', 'value': 'fa-fi6454-fc-rack', 'tag': 'FC',
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
+    {'label': 'FA//FI ', 'value': 'fa-fi6454-iscsi-rack', 'tag': 'iSCSI',
+        'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True}
 ]
 
 
@@ -313,9 +334,9 @@ def prepare_tasks(jobid):
 
         for task in jobdoc['workflow']['tasks']['task']:
             tid = task['@id']
-            exec("%s = %s" % ("task_obj", tid + "." + tid + "()"))
-            if 'prepare' in dir(task_obj):
-                method = getattr(task_obj, "prepare")
+            exec("%s = %s" % ("task_obj", tid + "." + tid + "()")) 
+            if 'prepare' in dir(locals()['task_obj']):
+                method = getattr(locals()['task_obj'], "prepare")
                 res = method(jobid, task['@texecid'], ret.getResult())
                 if res.getStatus() != PTK_OKAY:
                     return res
@@ -329,7 +350,6 @@ def prepare_tasks(jobid):
         obj.setResult(None, PTK_INTERNALERROR,
                       _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return obj
-
 
 def check_job_with_wid_exists(wname):
     """
@@ -437,7 +457,7 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     job_dict = {}
     obj = result()
     subjobs = []
-
+    
     if persistant_prepare == 1:
         # do not prepare jobs with same workflow name
         res = check_job_with_wid_exists(wname)
@@ -463,7 +483,7 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
             if '@flags' in wf.keys():
                 for alter_flag in wf['@flags'].split(";"):
                     alter_wf = alter_flag.split(":")
-                    if check_wf_flag(alter_wf[0]) == True:
+                    if check_wf_flag(alter_wf[0]):
                         shutil.copyfile(get_workflow_file_path(
                             alter_wf[1]), get_job_file(tuuid))
                         copy_wf = False
@@ -476,11 +496,12 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
             prepare_tasks(tuuid)
 
         out = xmltodict.unparse(jobdoc, pretty=True)
-        with open(get_job_file(jobid), 'w') as file:
+
+        with open(get_job_file(jobid), 'wb') as file:
             file.write(out.encode('utf-8'))
 
-    except BaseException:
-        loginfo("Unable to create log")
+    except BaseException as e:
+        loginfo("Exception occoured" + str(e))
         obj.setResult(None, PTK_INTERNALERROR, _(
             "PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return obj
@@ -488,6 +509,7 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     job_dict = {'jobid': jobid, 'subjobs': subjobs}
     obj.setResult(job_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
+
 
 
 def job_save_as_api(jobid, data):

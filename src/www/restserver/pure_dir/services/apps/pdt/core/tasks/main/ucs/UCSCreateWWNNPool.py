@@ -76,7 +76,7 @@ class UCSCreateWWNNPool:
         return res
 
     def validate(self, item):
-        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){6}$", 
+        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){6}$",
                     item.lower()) and item[:2] == "20":
             pass
         else:

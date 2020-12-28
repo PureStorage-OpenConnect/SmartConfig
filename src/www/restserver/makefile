@@ -1,8 +1,8 @@
-# Pure Project Make File
+# SmartConfig MakeFile
 # author: Abhilash
 
-
 VIRTUALENV = $(shell which virtualenv)
+PATCHES_DIR = build_scripts/patches
 
 clean: shutdown
 	rm -fr venv
@@ -10,19 +10,23 @@ clean: shutdown
 	find . -name "*.pyc" -exec rm -f {} \;
 
 venv:
-	$(VIRTUALENV) venv
+	mkdir venv
+	python3 -m venv venv
+	cp build_scripts/activate_this.py venv/bin/
 
 virtualenv: clean venv 
-	. venv/bin/activate; sh install_packages.sh
-	. venv/bin/activate; python setup.py install
-	. venv/bin/activate; python setup.py develop
+	. venv/bin/activate; sh build_scripts/install_packages.sh
+	. venv/bin/activate; python3 setup.py install
+	. venv/bin/activate; python3 setup.py develop
 
-install: virtualenv confconsole apache firewall
+packages:
+	@for f in $(shell ls ${PATCHES_DIR}); do sh ${PATCHES_DIR}/$${f}/*.sh; done
+
+install: virtualenv packages confconsole apache firewall
 	reboot
 
 launch: venv shutdown
-	. venv/bin/activate; python  src/www/restserver/pure_dir/services/common/gateway/gateway.py &
-	#. venv/bin/activate; python  services/ &
+	. venv/bin/activate; python3  src/www/restserver/pure_dir/services/common/gateway/gateway.py &
 
 confconsole:
 	rm -rf /usr/lib/confconsole 

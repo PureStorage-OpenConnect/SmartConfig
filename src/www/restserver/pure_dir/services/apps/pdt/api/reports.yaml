@@ -102,7 +102,14 @@ paths:
     get:
       tags: [Report]
       operationId: pure_dir.services.apps.pdt.pdt_api.release_handle
-      summary: API to release UCS Handle
+      summary: API to release Device Handle
+      parameters:
+          - required: true
+            in: query
+            name: stacktype
+            description: The selected stacktype
+            required: true
+            type: string
       responses:
         '200':
           description: Return the status
@@ -232,7 +239,6 @@ definitions:
     properties:
       data:
         type: boolean
-        description: UCS Handle Release Status
+        description: Device Handle Release Status
       status:
         $ref: '#/definitions/Status'
-

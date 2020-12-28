@@ -205,7 +205,7 @@
 			<label key="connected_port">Connected Port</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_fcinterconnectinfo" belongsTo="Compute Networking" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack" header_title="UCS System FC Interconnect Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_fcinterconnectinfo" belongsTo="Compute Networking" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack|fa-fi6454-fc|fa-fi6454-fc-rack" header_title="UCS System FC Interconnect Information" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="port">Port</label>
 			<label key="wwn">WWN</label>
@@ -229,7 +229,7 @@
 			<label key="to">UUID To</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_wwn_pool" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack" header_title="UCS System WWN Pool Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_wwn_pool" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack|fa-fi6454-fc|fa-fi6454-fc-rack" header_title="UCS System WWN Pool Information" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Pool name</label>
 			<label key="assignment_order">Assignment Order</label>
@@ -240,7 +240,7 @@
 			<label key="to">To</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_iqn_pool" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" header_title="UCS System IQN Pool Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_iqn_pool" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fa-fi6454-iscsi|fa-fi6454-iscsi-rack" header_title="UCS System IQN Pool Information" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Pool name</label>
 			<label key="assignment_order">Assignment Order</label>
@@ -329,7 +329,7 @@
 			<label key="san_order">SAN : Order, Primary and Secondary</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_san_boot_config_policy" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack" header_title="UCS System SAN Boot Configuration for Boot Policy" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_san_boot_config_policy" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack|fa-fi6454-fc|fa-fi6454-fc-rack" header_title="UCS System SAN Boot Configuration for Boot Policy" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Name</label>
 			<label key="san_order">SAN : Order, Primary and Secondary</label>
@@ -350,7 +350,7 @@
 			<label key="networks_allowed">Networks Allowed</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_san_template" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack" header_title="UCS System SAN Template" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_san_template" belongsTo="Compute Policy" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack|fa-fi6454-fc|fa-fi6454-fc-rack" header_title="UCS System SAN Template" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Name</label>
 			<label key="template_type">SAN Template Type</label>
@@ -417,7 +417,7 @@
 			<label key="vnic_order">vNIC Order</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_server_fc_interface_information" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack" header_title="UCS System Rack and Blade Server FC Interfaces Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_server_fc_interface_information" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack|fa-fi6454-fc|fa-fi6454-fc-rack" header_title="UCS System Rack and Blade Server FC Interfaces Information" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Name</label>
 			<label key="location">Location</label>
@@ -429,7 +429,7 @@
 			<label key="max_data">Max Data Field Size</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_server_fc_interface_config" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack" header_title="UCS System Rack and Blade Server FC Interfaces Configuration" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_server_fc_interface_config" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-fi-fc|fa-n9k-ucsmini-fc|fa-fi6332-fc|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-fi6454-mds-fc|fa-fi6454-mds-fc-rack|fa-fi6332-mds-fc|fa-fi6332-mds-fc-rack|fa-fi6454-fc|fa-fi6454-fc-rack" header_title="UCS System Rack and Blade Server FC Interfaces Configuration" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Name</label>
 			<label key="location">Location</label>
@@ -441,7 +441,7 @@
 			<label key="vhba_order">vHBA Order</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_server_iscsi_interface_information" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" header_title="UCS System Rack and Blade Server iSCSI Interfaces Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_server_iscsi_interface_information" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fa-fi6454-iscsi|fa-fi6454-iscsi-rack" header_title="UCS System Rack and Blade Server iSCSI Interfaces Information" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Name</label>
 			<label key="location">Location</label>
@@ -455,7 +455,7 @@
 			<label key="iscsi_order">Order</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_iscsi_bootparams_primary" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" header_title="UCS System iSCSI Boot Parameters Primary" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_iscsi_bootparams_primary" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fa-fi6454-iscsi|fa-fi6454-iscsi-rack" header_title="UCS System iSCSI Boot Parameters Primary" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="service_profile">Service Profile</label>
 			<label key="iscsi_primary">Initiator Name</label>
@@ -467,7 +467,7 @@
 			<label key="initiator_primary_target_secondary">Initiator Primary and Target Secondary: IP Address, Name and LUN Id</label>
 		</labels>
 	</section>
-	<section api="get_ucs_system_iscsi_bootparams_secondary" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" header_title="UCS System iSCSI Boot Parameters Secondary" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_iscsi_bootparams_secondary" belongsTo="Compute SVC-profile" stacktypes="fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n5k-figen2-iscsi|fa-n5k-fi-iscsi|fa-n5k-ucsmini-iscsi|fa-fi6332-iscsi|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fa-fi6454-iscsi|fa-fi6454-iscsi-rack" header_title="UCS System iSCSI Boot Parameters Secondary" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="service_profile">Service Profile</label>
 			<label key="iscsi_secondary">Initiator Name</label>
@@ -479,7 +479,20 @@
 			<label key="initiator_secondary_target_secondary">Initiator Secondary and Target Secondary: IP Address, Name and LUN Id</label>
 		</labels>
 	</section>
-	<section api="get_nexus_switch_info" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" header_title="Nexus Switch System Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_ucs_system_udld_portchl_config" belongsTo="Compute SVC-profile" stacktypes="fb-n9k-fi" header_title="UCS System UDLD PortChannel Configuration" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="portchl_name">PortChannel</label>
+			<label key="oper_speed">Speed</label>
+			<label key="oper_state">State</label>
+			<label key="switch_id">Switch Id</label>
+			<label key="eth_interface">Ethernet Interface</label>
+			<label key="link_prof_name">Link Profile</label>
+			<label key="udld_link_policy_name">UDLD Link Policy</label>
+			<label key="udld_state">UDLD State</label>
+			<label key="udld_mode">UDLD Mode</label>
+		</labels>
+	</section>
+	<section api="get_nexus_switch_info" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" header_title="Nexus Switch System Information" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="name">Name</label>
 			<label key="ip_address">IP Address</label>
@@ -490,7 +503,10 @@
 			<label key="uptime">Uptime</label>
 		</labels>
 	</section>
-	<section api="get_nexus_global_info" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" header_title="Nexus Global Switch Information" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_global_info" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" header_title="Nexus Global Switch Information" footer_title="Footer Title" footer_desc="Footer Description">
+		<args>
+			<arg name="san_type" value="{{san_type}}"></arg>
+		</args>
 		<labels>
 			<label key="name">Name</label>
 			<label key="domain">Domain</label>
@@ -499,9 +515,10 @@
 			<label key="lacp">LACP</label>
 			<label key="vpc">VPC</label>
 			<label key="interface-vlan">Interface-VLAN</label>
+			<label key="udld">UDLD</label>
 		</labels>
 	</section>
-	<section api="get_nexus_environment_info" header_title="Nexus Environment Information" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_environment_info" header_title="Nexus Environment Information" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="host_name">Name</label>
 			<label key="psuid_status">PSUID/Status</label>
@@ -523,7 +540,7 @@
 			<label key="fan_status">Status</label>
 		</labels>
 	</section>
-	<section api="get_nexus_vlan_info" header_title="Nexus A VLANs" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_vlan_info" header_title="Nexus A VLANs" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -533,7 +550,7 @@
 			<label key="vlan_status">Status</label>
 		</labels>
 	</section>
-	<section api="get_nexus_vlan_info" header_title="Nexus B VLANs" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_vlan_info" header_title="Nexus B VLANs" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -543,7 +560,7 @@
 			<label key="vlan_status">Status</label>
 		</labels>
 	</section>
-	<section api="get_nexus_intf_info" header_title="Nexus A Interfaces" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_intf_info" header_title="Nexus A Interfaces" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -554,7 +571,7 @@
 			<label key="state_speed_type">State/Type/Speed</label>
 		</labels>
 	</section>
-	<section api="get_nexus_intf_info" header_title="Nexus B Interfaces" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_intf_info" header_title="Nexus B Interfaces" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -565,7 +582,7 @@
 			<label key="state_speed_type">State/Type/Speed</label>
 		</labels>
 	</section>
-	<section api="get_nexus_vpc_info" header_title="Nexus A vPC domain configuration" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_vpc_info" header_title="Nexus A vPC domain configuration" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -578,7 +595,7 @@
 			<label key="active_vlans">Active VLANs</label>
 		</labels>
 	</section>
-	<section api="get_nexus_vpc_info" header_title="Nexus B vPC domain configuration" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_vpc_info" header_title="Nexus B vPC domain configuration" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -591,7 +608,7 @@
 			<label key="active_vlans">Active VLANs</label>
 		</labels>
 	</section>
-	<section api="get_nexus_portchannel_info" header_title="Nexus A port channel information" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_portchannel_info" header_title="Nexus A port channel information" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_a"></arg>
 		</args>
@@ -603,7 +620,7 @@
 			<label key="member_ports">Member Ports</label>
 		</labels>
 	</section>
-	<section api="get_nexus_portchannel_info" header_title="Nexus B port channel information" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_nexus_portchannel_info" header_title="Nexus B port channel information" belongsTo="Nexus-Interface" stacktypes="fa-n9k-fi-mds-fc|fa-n9k-fi-mds-fc-rack|fa-n5k-figen2-fc|fa-n5k-figen2-iscsi|fa-n9k-fi-iscsi|fa-n9k-fi-iscsi-rack|fa-n9k-fi6454-mds-fc|fa-n9k-fi6454-mds-fc-rack|fa-n9k-fi6454-iscsi|fa-n9k-fi6454-iscsi-rack|fb-n9k-fi" footer_title="Footer Title" footer_desc="Footer Description">
 		<args>
 			<arg name="switch_name" value="nexus_switch_b"></arg>
 		</args>
@@ -864,7 +881,7 @@
 			<label key="logged">Logged IN</label>
 		</labels>
 	</section>
-	<section api="get_fa_system_info" belongsTo="FlashArray" header_title="FlashArray System Info" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_system_info" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray System Info" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="array_name">Array Name</label>
 			<label key="array_ip">Array IP</label>
@@ -875,7 +892,7 @@
 			<label key="serial_no">Serial number</label>
 		</labels>
 	</section>
-	<section api="get_fa_controller_info" belongsTo="FlashArray" header_title="FlashArray Controllers Info" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_controller_info" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Controllers Info" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="fa_controller_name">FlashArray Controller Name</label>
 			<label key="fa_controller_mode">FlashArray Controller Mode</label>
@@ -883,7 +900,7 @@
 			<label key="fa_controller_model">FlashArray Controller Model</label>
 		</labels>
 	</section>
-	<section api="get_fa_global_settings_info" belongsTo="FlashArray" header_title="FlashArray Global Settings Info" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_global_settings_info" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Global Settings Info" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="domain">Domain</label>
 			<label key="dns_servers">DNS Servers</label>
@@ -891,7 +908,7 @@
 			<label key="phone_home">Phone Home Hourly Log</label>
 		</labels>
 	</section>
-	<section api="get_fa_nw_interfaces" belongsTo="FlashArray" header_title="FlashArray Network Interfaces" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_nw_interfaces" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Network Interfaces" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="interf_name">Interface Name</label>
 			<label key="subnet">Subnet Address</label>
@@ -905,7 +922,7 @@
 			<label key="hw_addr">Hardware Address</label>
 		</labels>
 	</section>
-	<section api="get_fa_host_group" belongsTo="FlashArray" header_title="FlashArray Host Group" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_host_group" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Host Group" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="hgroup_name">Host Group Name</label>
 			<label key="hosts">Hosts</label>
@@ -913,7 +930,7 @@
 			<label key="size">Size</label>
 		</labels>
 	</section>
-	<section api="get_fa_volumes" belongsTo="FlashArray" header_title="FlashArray Volumes" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_volumes" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Volumes" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="vol_name">Volume Name</label>
 			<label key="serial">Volume serial number</label>
@@ -922,7 +939,7 @@
 			<label key="vol_type">Volume Type</label>
 		</labels>
 	</section>
-	<section api="get_fa_ports" belongsTo="FlashArray" header_title="FlashArray Ports" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_ports" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Ports" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="interf_name">Interface Name</label>
 			<label key="initiator_wwn">Initiator WWN</label>
@@ -931,7 +948,7 @@
 			<label key="target_iqn">Target IQN</label>
 		</labels>
 	</section>
-	<section api="get_fa_hosts" belongsTo="FlashArray" header_title="FlashArray Hosts" footer_title="Footer Title" footer_desc="Footer Description">
+	<section api="get_fa_hosts" belongsTo="FlashArray" unsupported_stacktypes="fb-n9k-fi" header_title="FlashArray Hosts" footer_title="Footer Title" footer_desc="Footer Description">
 		<labels>
 			<label key="host_name">Host Name</label>
 			<label key="connected_volumes">Connected Volumes</label>
@@ -939,6 +956,73 @@
 			<label key="size">Size</label>
 			<label key="wwn">WWN</label>
 			<label key="iqn">IQN</label>
+		</labels>
+	</section>
+	<section api="get_fb_system_info" belongsTo="FlashBlade" stacktypes="fb-n9k-fi" header_title="FlashBlade System Info" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="fb_name">FlashBlade Name</label>
+			<label key="fb_ip">IP Address</label>
+			<label key="fb_id">FlashBlade ID</label>
+			<label key="fb_version">Version</label>
+			<label key="fb_revision">Revision</label>
+			<label key="fb_capacity">Capacity(Bytes)</label>
+			<label key="fb_serial">Serial No</label>
+			<label key="fb_model">Model No</label>
+		</labels>
+	</section>
+	<section api="get_fb_hardware_info" belongsTo="FlashBlade" stacktypes="fb-n9k-fi" header_title="FlashBlade Hardware Info" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="hw_type">FlashBlade Hardware Component</label>
+			<label key="chassis_slot">Chassis/Slot</label>
+			<label key="hw_serial">Serial No</label>
+			<label key="hw_model">Model No</label>
+			<label key="hw_status">Status</label>
+			<label key="hw_speed">Speed(bps)</label>
+			<label key="hw_capacity">Raw Capacity(Bytes)</label>
+		</labels>
+	</section>
+	<section api="get_fb_global_settings_info" belongsTo="FlashBlade" stacktypes="fb-n9k-fi" header_title="FlashBlade Global Settings Info" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="domain">Domain</label>
+			<label key="dns_servers">DNS Servers</label>
+			<label key="ntp_servers">NTP Servers</label>
+			<label key="time_zone">TimeZone</label>
+			<label key="relay_host">Relay Host</label>
+			<label key="sender_domain">Sender Domain</label>
+			<label key="alert_email">Alert Email Address(es)</label>
+		</labels>
+	</section>
+	<section api="get_fb_subnet_interfaces" belongsTo="FlashBlade" stacktypes="fb-n9k-fi" header_title="FlashBlade Subnets and Network Interfaces" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="subnet_name">Subnet Name</label>
+			<label key="subnet_prefix">Subnet Prefix</label>
+			<label key="vlan">VLAN</label>
+			<label key="mtu">MTU</label>
+			<label key="netmask">Netmask</label>
+			<label key="gateway">Gateway</label>
+			<label key="interf_name">Interfaces</label>
+			<label key="interf_ip_addr">Addresses</label>
+			<label key="services">Services</label>
+		</labels>
+	</section>
+	<section api="get_fb_eth_ports" belongsTo="FlashBlade" stacktypes="fb-n9k-fi" header_title="FlashBlade Ethernet Ports" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="port_name">Port Name</label>
+			<label key="slot">Slot</label>
+			<label key="serial">Serial No</label>
+			<label key="model">Model No</label>
+			<label key="speed">Speed(bps)</label>
+			<label key="status">Status</label>
+		</labels>
+	</section>
+	<section api="get_fb_file_systems" belongsTo="FlashBlade" stacktypes="fb-n9k-fi" header_title="FlashBlade NFS FileSystems" footer_title="Footer Title" footer_desc="Footer Description">
+		<labels>
+			<label key="name">FileSystem Name</label>
+			<label key="created_size">Created Size(Bytes)</label>
+			<label key="provisioned_size">Provisioned Size(Bytes)</label>
+			<label key="fast_remove">Fast Remove Feature</label>
+			<label key="nfs">NFS version</label>
+			<label key="nfs_rule">NFS Export Rules</label>
 		</labels>
 	</section>
 </sections>

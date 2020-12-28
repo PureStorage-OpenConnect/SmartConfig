@@ -82,7 +82,7 @@ class UCSSynchronizeUCStoNTPInputs:
         dt_type="string",
         label="Time Zone",
         mandatory="1",
-        mapval="0",
+        mapval="3",
         name="zone",
         static="False",
         static_values="",

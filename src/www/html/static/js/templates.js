@@ -23,6 +23,7 @@ function loadFormTemplate(field) {
 			str += loadFormField(field);
 			str += '<div class="clear"></div>\
 			<div class="help-block"></div>\
+			<div class="notification notification-block hide"></div>\
 		</div>\
 		<div class="clear"></div>\
 	</div>';
@@ -346,7 +347,7 @@ function getOptionsCallback(value, data, execid, bind, flag) {
 				$.each(value.group_fields, function(i, field) {
 					if(field.name in val) {
 						if(typeof val[field.name].value == 'string') val[field.name].value = val[field.name].value.split("|");
-						if(field.iptype == 'drop-down' || field.iptype == 'text-box')
+						if(field.iptype == 'drop-down' || field.iptype == 'select-box' || field.iptype == 'text-box')
 							val[field.name].value = val[field.name].value[0];
 						$('.control-group[argname="' + value.name + '"]').find('[argname="' + value.name + '"]').children('.group-row').eq(index).find('.field-group[argname="' + field.name + '"]').find('.task-input.workflow-input-' + field.name).val(val[field.name].value);
 					}
@@ -390,6 +391,7 @@ function getOptionsCallback(value, data, execid, bind, flag) {
 			selected = '';
 			switch(value.iptype) {
 				case 'drop-down':
+				case 'select-box':
 				case 'multiselect-dropdown':
 					if(value.svalue == '' && val.selected == '1') {
 						value.svalue = val.id;
@@ -434,7 +436,7 @@ function getOptionsCallback(value, data, execid, bind, flag) {
 			}
 		});
 		$('[execid="' + execid + '"] .workflow-input-' + value.name).append(str);
-		if(value.iptype == 'multiselect-dropdown' || value.iptype == 'drop-down') {
+		if(value.iptype == 'multiselect-dropdown' || value.iptype == 'drop-down' || value.iptype == 'select-box') {
 			$('[execid="' + execid + '"] #workflow_' + value.name).each(function() {
 				tmp = $(this).attr('value');
 				if(tmp.indexOf(",") >= 0 && value.iptype == 'multiselect-dropdown') tmp = tmp.split(",");
@@ -586,8 +588,9 @@ function loadFields(args, isGroup, execid, width, mode) {
 					if(args.additional.indexOf('suffix') > -1) str += '<span class="suffix">' + (args.suffix || args.val_suffix) + '</span>';
 				break;
 			case 'drop-down':
+			case 'select-box':
 				str += '<div class="' + width + '" argname="' + args.name + '">\
-					<select type="dropdown" id="workflow_' + args.name + '" name="workflow_' + args.name + '" value="' + args.svalue + '" tabindex="' + tabIndex + '" class="task-input workflow-input-' + args.name + '">\
+					<select type="dropdown" dropdown-type="' + args.iptype + '" id="workflow_' + args.name + '" name="workflow_' + args.name + '" value="' + args.svalue + '" tabindex="' + tabIndex + '" class="task-input workflow-input-' + args.name + '">\
 						<option value="">' + localization['select'] + ' ' + args.label + '</option>\
 					</select>';
 				break;

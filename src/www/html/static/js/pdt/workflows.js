@@ -249,7 +249,32 @@ $(document).ready(function() {
 			download(location.protocol + '//' + window.location.host + '/static/downloads/' + response.data.url);
 		}, doNothing);
 	});
-
+	
+	$('body').delegate('.connectivity-check', 'click', function(e) {
+		e.stopPropagation();
+		var topologyImg = null,		
+		str = '<div class="control-group">\
+			<div class="title col-lg-12 col-md-12 col-sm-12">\
+				<div id="connectivity-diagram">\
+					<div id="topology-diagram">\
+						<div class="graph"></div>\
+						<div class="legend"></div>\
+						<div class="description"></div>\
+					</div>\
+				</div>\
+			</div>\
+		</div>\
+		<div class="clear"></div>';
+		openModel({title: 'Connectivity Diagram', body: str, size: 'big', buttons: {
+			"cancel": function() {
+				closeModel();
+			}
+		}});
+		doAjaxRequest({url: 'FSConnectivity', base_path: settings.base_path, container: '.content-container'}, function(response) {
+			drawSmartConfigTopology(response.data);
+		}, doNothing);
+	});
+	
 	/**
 	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
 	  * @param array $array - the initial array of objects with duplicate entries.
@@ -330,9 +355,9 @@ $(document).ready(function() {
 	  * @return array - unique array of objects(attribute based).
 	*/
 	$('body').delegate('.workflowlog', 'click', function(e) {
-                autoScroll = false;
-                $(".workflow-log").mCustomScrollbar('scrollTo', $('.workflowsList a[name="log_' + $(this).closest('.workflowinfo').attr('jobid') + '"]').last()[0].offsetTop);
-        });
+		autoScroll = false;
+		$(".workflow-log").mCustomScrollbar('scrollTo', $('.workflowsList a[name="log_' + $(this).closest('.workflowinfo').attr('jobid') + '"]').last()[0].offsetTop);
+	});
 
 	/**
 	  * @desc it will take a array of objects, remove the duplicate object based on the given attribute.
@@ -776,15 +801,18 @@ function getBatchStatus(notify) {
 	clearTimeout(tout);clearTimeout(rout);
 	var ccount = 0, fcount = 0, ecount = 0, rfcount = 0, tmp;
 	var icon, flag = true, state = true, jobid;
+	if(systemInfo.config_mode.toLowerCase() == 'json') {
+		$('.toggle.deployment-type').addClass('hide');
+	} else 
+		$('.buttonFinish, .buttonPrevious').removeClass('hide');
+	if(systemInfo.deployment_type == 'advanced')
+		$('.buttonFinish').addClass('hide');
+
 	doAjaxRequest({url: 'BatchStatus', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, notify: notify}, function(response) {
 		if(systemInfo.config_mode.toLowerCase() == 'json') {
 			$('.buttonNext').text(localization['init_deploy']).removeClass('hide');
 			$('.buttonNext, .buttonPrevious').addClass('buttonDisabled');
-			$('.toggle.deployment-type').addClass('hide');
-		} else 
-			$('.buttonFinish, .buttonPrevious').removeClass('hide');
-		if(systemInfo.deployment_type == 'advanced')
-			$('.buttonFinish').addClass('hide');
+		}
 		$('tr.workflowinfo').removeClass('failed');
 		$('.deployment-type').toggleClass('disabled', true);
 		$('.buttonFinish, .buttonPrevious, .buttonCustom.export-report').addClass('buttonDisabled');
@@ -902,6 +930,7 @@ function getBatchStatus(notify) {
 				$('.reset-config').before('<div class="buttonCustom dropup reports">' +
 					'<span type="button" class="dropdown-toggle" data-toggle="dropdown">' + localization['export-report'] + '</span>' +
 					'<div class="dropdown-menu">' +
+						'<a class="dropdown-item connectivity-check hide" href="javascript:;"><i class="fa fa-plug"></i> Connectivity Diagram</a>' +
 						'<a class="dropdown-item export-report pdf a4" href="javascript:;"><i class="fa fa-file-pdf-o"></i> PDF (A4 Size)</a>' +
 						'<a class="dropdown-item export-report excel" href="javascript:;"><i class="fa fa-file-excel-o"></i> XLS</a>' +
 					'</div>' +
@@ -1368,8 +1397,10 @@ function loadDeploymentLogs(mode) {
 			$(".workflow-log .mCSB_container").prepend('<div class="deployment-log-collection"></div>');
 
 		$(".workflow-log .mCSB_container .deployment-log-collection").html(response.data.logs);
+		var height = parseInt($('.log-container').height()) - 60;
+		$('.workflowsList .workflow-log.logs').css('height', height + 'px').css('max-height', height + 'px');
 		if(autoScroll)
-			setTimeout(function () {$(".workflow-log").mCustomScrollbar('scrollTo', 'bottom');}, 500);
+			setTimeout(function () {$(".workflowsList .workflow-log").mCustomScrollbar('scrollTo', 'bottom');}, 500);
 	}, doNothing);
 }
 
@@ -1393,8 +1424,10 @@ function loadJobLogs(jobid, mode, notify) {
 		}
 		var str = '<a name="log_' + jobid + '"></a><h5>' + $('tr.workflowinfo[jobid="' + jobid + '"]').find('.workflow-name').text() + ':</h5>\n' + response.data.logs;
 		$(".workflow-log .mCSB_container .log_" + jobid).html(str);
+		var height = parseInt($('.right-panel.workflow-log-container').height()) - 60;
+		$('.right-panel .workflow-log.logs').css('height', height + 'px').css('max-height', height + 'px');
 		if(autoScroll)
-			setTimeout(function () {$(".workflow-log").mCustomScrollbar('scrollTo', 'bottom');}, 500);
+			setTimeout(function () {$(".right-panel .workflow-log").mCustomScrollbar('scrollTo', 'bottom');}, 500);
 	}, doNothing);
 }
 

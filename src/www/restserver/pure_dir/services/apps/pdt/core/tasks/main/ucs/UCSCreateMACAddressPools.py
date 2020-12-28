@@ -19,7 +19,7 @@ metadata = dict(
 class UCSCreateMACAddressPools:
     def __init__(self):
         pass
-    
+
     def execute(self, taskinfo, logfile):
         loginfo("Create MAC Address Pools")
         res = get_ucs_handle(taskinfo['inputs']['fabric_id'])
@@ -100,11 +100,11 @@ class UCSCreateMACAddressPools:
         return res
 
     def validate(self, item, mac_name):
-        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", 
+        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$",
                     item.lower()) and item[-4] == mac_name and item[:2] == "00":
             pass
         else:
-            return False, "Invalid MAC Address format Eg: 00:xx:xx:xx:x"+mac_name+":xx"
+            return False, "Invalid MAC Address format Eg: 00:xx:xx:xx:x" + mac_name + ":xx"
         return True, ""
 
 

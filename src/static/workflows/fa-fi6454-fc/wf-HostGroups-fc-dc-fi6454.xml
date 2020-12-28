@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Host Group and add Hosts to Host Group" hidden="1" htype="fa-fi6454-fc" id="HostGroups-fc-dc-fi6454" isdeletable="0" name="Create Host Group and add Hosts to Host Group" order="7" prereq="MDSZoning" type="FlashArray">
+  <tasks>
+    <task OnSuccess="t303" Onfailure="None" desc="Creates a host group" id="FACreateHostGroup" inittask="1" label="Create Host Group" name="FACreateHostGroup" texecid="t302">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="hgname" tvalue="Success" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="0" name="hgname" value="VM-HostGroup-FC"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Adding host to host group" id="FAAddFCHostToHostGroup" inittask="0" label="Add Host To Host Group" name="FAAddFCHostToHostGroup" texecid="t303">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="pure_id" value="pure_id"/>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="hgname" value="__t302.FACreateHostGroup.hgname"/>
+        <arg mapval="0" name="hosts" value="" overwrite="False"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

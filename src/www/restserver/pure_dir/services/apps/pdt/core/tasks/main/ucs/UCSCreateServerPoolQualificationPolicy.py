@@ -31,7 +31,7 @@ class UCSCreateServerPoolQualificationPolicy:
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
-        print "Create Server Pool Qualification Policy rollback"
+        print("Create Server Pool Qualification Policy rollback")
         return 0
 
     def getprocessorarch(self, keys):

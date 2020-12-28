@@ -21,5 +21,5 @@ class UCSGlobalPolicy:
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
-        print "synchronize ucs to ntp rollback"
+        print("synchronize ucs to ntp rollback")
         return 0

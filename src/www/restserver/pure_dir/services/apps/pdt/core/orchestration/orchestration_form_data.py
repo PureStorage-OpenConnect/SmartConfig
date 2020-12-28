@@ -41,7 +41,7 @@ class OrchestrationForm:
             return True
 
         for task in doc['workflow']['tasks']['task']:
-            if isinstance(task, unicode):
+            if isinstance(task, str):
                 if '@simulate' in doc['workflow']['tasks']['task'] and doc['workflow']['tasks']['task']['@simulate'] == "1":
                     return True
             elif task['@texecid'] == texecid:
@@ -57,8 +57,9 @@ class OrchestrationForm:
         :param texecid: Task execution ID
         """
         for task in doc['workflow']['tasks']['task']:
-            if isinstance(task, unicode):
-                return doc['workflow']['tasks']['task']['@id']
+            # for p3 upgrade
+            #if isinstance(task, unicode):
+            #    return doc['workflow']['tasks']['task']['@id']
             if task['@texecid'] == texecid:
                 return task['@id']
         return None
@@ -167,7 +168,7 @@ class OrchestrationForm:
             return ret
 
         try:
-            method = getattr(obj, operation)
+            method = getattr(locals()['obj'], operation)
             if keys:
                 for key_pair in keys['keyvalues']:
                     if 'ismapped' in key_pair and key_pair['ismapped'] == '3':
@@ -175,7 +176,7 @@ class OrchestrationForm:
                             hw_type, key_pair['value'])
                         # Its a global mapped value, Get the value
             if isGroup:
-                tmp_args = keys.values()[0]
+                tmp_args = list(keys.values())[0]
                 tmp_args.append({"key": "group", "value": "1"})
                 keys['keyvalues'] = tmp_args
             return method(keys)

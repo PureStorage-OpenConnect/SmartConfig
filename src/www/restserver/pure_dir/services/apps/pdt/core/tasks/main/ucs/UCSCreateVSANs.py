@@ -43,7 +43,7 @@ class UCSCreateVSANs:
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-        print ucs_list, res
+        print(ucs_list, res)
         return res
 
 
@@ -93,7 +93,7 @@ class UCSCreateVSANsInputs:
         mandatory='1',
         order=3)
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='Fabric ID',
         dt_type="string",

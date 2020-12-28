@@ -20,7 +20,7 @@ def get_logs_api(jobid):
         obj.setResult(logs_dict, PTK_NOTEXIST, _(
             "PDT_RESOURCE_UNAVAILABLE_ERR_MSG"))
         return obj
-    with file(get_log_file_path(jobid)) as f:
+    with open(get_log_file_path(jobid)) as f:
         logs = f.read()
     logs_dict = {'logs': logs}
     obj.setResult(logs_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -35,7 +35,7 @@ def deployment_logs(jobid):
 
         obj.setResult(logs_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return obj
-    with file(get_log_file_path(jobid)) as f:
+    with open(get_log_file_path(jobid)) as f:
         logs = f.read()
     logs_dict = {'logs': logs}
     obj.setResult(logs_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))

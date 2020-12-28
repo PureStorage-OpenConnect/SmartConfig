@@ -13,8 +13,8 @@ import struct
 import socket
 import fcntl
 
-import executil
-from lazyclass import lazyclass
+from . import executil
+from .lazyclass import lazyclass
 
 SIOCGIFFLAGS = 0x8913
 SIOCGIFADDR = 0x8915
@@ -44,7 +44,7 @@ IFF_DORMANT = 0x20000  # has netif_carrier_on()
 def get_ifnames():
     """ returns list of interface names (up and down) """
     ifnames = []
-    for line in file('/proc/net/dev').readlines():
+    for line in open('/proc/net/dev').readlines():
         try:
             ifname, junk = line.strip().split(":")
             ifnames.append(ifname)

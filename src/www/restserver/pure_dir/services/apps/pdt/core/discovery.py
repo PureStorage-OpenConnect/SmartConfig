@@ -6,6 +6,7 @@
 # version         :1.0
 ###################################################################
 
+
 import os
 import os.path
 import requests
@@ -26,7 +27,9 @@ from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.storage.mds.mds import MDS
 from pure_dir.components.compute.ucs.ucs import UCSManager
 from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
+from pure_dir.components.storage.flashblade.flashblade_tasks import FlashBladeTasks
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
 from pure_dir.services.apps.pdt.core.systemmanager import *
 from pure_dir.components.compute.ucs.ucs_upgrade import get_version
 from pure_dir.components.network.nexus.nexus_setup import NEXUSSetup
@@ -34,6 +37,7 @@ from pure_dir.components.storage.mds.mds_setup import MDSSetup
 from pure_dir.components.storage.purestorage.fa_setup import FASetup
 from pure_dir.components.common import *
 from pure_dir.infra.logging.logmanager import loginfo
+from pure_dir.services.apps.pdt.core.emulate import check_if_emulated
 from scapy.all import *
 from filelock import FileLock
 from xml.dom.minidom import parse, Document
@@ -49,6 +53,7 @@ old_dhcp_lease_file = '/var/lib/dhcpd/dhcpd.leases.old'
 static_discovery_store = get_discovery_store()
 static_discovery_store_lock = '/mnt/system/pure_dir/pdt/devices.xml.lock'
 workflow_flag_file = '/mnt/system/pure_dir/pdt/workflow_flag.xml'
+device_emulate_file = '/mnt/system/pure_dir/pdt/emulate/devices.xml'
 
 # Maximum time to wait for configuration of FS components
 max_waittime_n9k = 900
@@ -61,14 +66,15 @@ max_waittime_fa = 600
 def fsnetworkrange():
     nw_range = {}
 
-    ip_list = IpValidator().get_ips_in_range()
-    cur_ip = network_info()['ip']
-    ip_list = [x for x in ip_list if str(x) != cur_ip]
+    subnet_info = IpValidator().subnet_calc()
+    ip_list = subnet_info['host_range']
+    nw_info = network_info()
+    ip_list = [x for x in ip_list if str(x) not in [nw_info['ip'],nw_info['gateway'] if nw_info['gateway'] != '' else '0.0.0.0']]
 
-    nw_range['subnet'] = str(ip_list[0])
-    nw_range['start'] = str(ip_list[11])
-    nw_range['end'] = str(ip_list[-2])
-    dhcp_range = ip_list[11:32]
+    nw_range['subnet'] = subnet_info['subnet']
+    nw_range['start'] = str(ip_list[0])
+    nw_range['end'] = str(ip_list[-1])
+    dhcp_range = ip_list[0:10]
     nw_range['dhcp_start'] = str(dhcp_range[0])
     nw_range['dhcp_end'] = str(dhcp_range[-1])
 
@@ -180,6 +186,9 @@ def get_unconfigured_device_list():
             elif "FlashArray" in identifiers['vendor-string']:
                 client['config_state'], client['serial_number'] = is_pure(value.ip, "Unconfigured")
                 client['device_type'] = "PURE"
+            elif "FlashBlade" in identifiers['vendor-string']:
+                client['config_state'], client['serial_number'] = is_flashblade(value.ip, "Unconfigured")
+                client['device_type'] = "FlashBlade"
             elif "UCS" in identifiers['vendor-string']:
                 client['config_state'] = is_ucsm(value.ip, "Unconfigured")
                 client['device_type'] = "UCSM"
@@ -265,7 +274,7 @@ def check_configured_device_status(device_type, max_waittime, subelement):
             loginfo("Setting password for MDS")
             obj = MDS(subelement.getAttribute("ipaddress"), "admin", "admin")
             obj.change_password(decrypt(subelement.getAttribute("password")))
-        #elif "PURE" in device_type:
+        # elif "PURE" in device_type:
         #    loginfo("Setting password for FlashArray")
         #    obj = PureTasks(subelement.getAttribute("ipaddress"), "pureuser", "pureuser")
         #    obj.change_password("pureuser", "pureuser", decrypt(subelement.getAttribute("password")))
@@ -369,10 +378,22 @@ def dhcpenable(data):
     res = result()
     ret = []
 
+    subnet_info = IpValidator().subnet_calc()
+    subnet_mask_bits =  int(subnet_info['mask_bits'])
+    if subnet_mask_bits > 27:
+         res.setResult([], PTK_BANNER_ERROR, "A ."+ str(subnet_mask_bits)+ " network has less than 30 Host IP addresses available. To successfully allocate dynamic, static, KVM IP addresses SmartConfig requires a minimum of 30 Host IP addresses. Please review your subnet mask before continuing deployment.")
+         return res
+        
     msg, status, arg = dhcpvalidate(data)
     if not status:
         res.setResult(arg, PTK_INTERNALERROR, msg)
         return res
+
+    
+    emulated = check_if_emulated()
+    if emulated:
+        cmd = "cp %s %s" % (device_emulate_file, get_discovery_store())
+        execute_local_command(cmd)
 
     dhcp_conf = {}
     dhcp_conf['subnet'] = data['subnet']
@@ -387,22 +408,28 @@ def dhcpenable(data):
     status = gen_from_template(dhcp_conf_template, dhcp_conf, dhcp_conf_file)
 
     retry = 0
-    while retry < 2:
-        retry += 1
-        dhcp_status = check_dhcpserver_presence()
-        if dhcp_status:
-            res.setResult(ret, PTK_INTERNALERROR,
-                          _("PDT_DHCP_ALREADY_EXISTS_ERR_MSG"))
-            return res
+    if not emulated:
+        while retry < 2:
+            retry += 1
+            dhcp_status = check_dhcpserver_presence()
+            if dhcp_status:
+                res.setResult(ret, PTK_INTERNALERROR,
+                              _("PDT_DHCP_ALREADY_EXISTS_ERR_MSG"))
+                return res
     cmd = "cp %s %s" % (dhcp_conf_file, dhcp_config)
     execute_local_command(cmd)
     cmd = "systemctl start dhcpd"
-    (error, output) = execute_local_command(cmd)
-    if not error:
+
+    if not emulated:
+        (error, output) = execute_local_command(cmd)
+    else:
+        error = None
+
+    if not error or emulated:
         if delete_xml_element(settings, 'dhcp_start', element_name='network') == False:
             res.setResult(ret, PTK_INTERNALERROR,
                           _("PDT_NETWORK_SETTINGS_SAVE_FAILED_ERR_MSG"))
-        xml_data = dict((key, value) for key, value in data.iteritems() if key in [
+        xml_data = dict((key, value) for key, value in data.items() if key in [
             'dhcp_start', 'dhcp_end', 'start', 'end', 'subnet'])
         add_xml_element(settings, xml_data, element_name='network')
         res.setResult(ret, PTK_OKAY, _("PDT_DHCP_ENABLED_MSG"))
@@ -425,11 +452,11 @@ def dhcpvalidate(data):
         return "Please fill all mandatory fields.", False, ret
 
     ipv = IpValidator()
-    if ipv.ip_range(data['dhcp_start'], data['netmask'], data['gateway']) == False or \
-            ipv.ip_range(data['dhcp_end'], data['netmask'], data['gateway']) == False or \
-            ipv.ip_range(data['start'], data['netmask'], data['gateway']) == False or \
-            ipv.ip_range(data['end'], data['netmask'], data['gateway']) == False or \
-            ipv.ip_range(data['subnet'], data['netmask'], data['gateway']) == False:
+    if ipv.is_ip_in_network(data['dhcp_start']) == False or \
+            ipv.is_ip_in_network(data['dhcp_end']) == False or \
+            ipv.is_ip_in_network(data['start']) == False or \
+            ipv.is_ip_in_network(data['end']) == False or \
+            ipv.is_ip_in_network(data['subnet']) == False:
         return "Check the Network settings", False, ret
 
     if int(data['dhcp_start'].split('.')[3]) >= int(data['dhcp_end'].split('.')[3]):
@@ -444,6 +471,16 @@ def dhcpvalidate(data):
 def dhcpdisable():
     res = result()
     ret = []
+
+    emulated = check_if_emulated()
+    if emulated:
+        cmd = "rm -rf %s" % (get_discovery_store())
+        execute_local_command(cmd)
+        cmd = "rm -rf %s" % dhcp_config
+        (error, output) = execute_local_command(cmd)
+        res.setResult(ret, PTK_OKAY, _("PDT_DHCP_DISABLED_MSG"))
+        return res
+
     cmd = "systemctl stop dhcpd"
     (error, output) = execute_local_command(cmd)
     if not error:
@@ -458,6 +495,7 @@ def dhcpdisable():
 def dhcpinfo():
     res = result()
     dhcp_info = {}
+    warning_list = []
 
     status, details = get_xml_element(settings, 'dhcp_start')
     if status:
@@ -467,7 +505,21 @@ def dhcpinfo():
 
     nw_info = network_info()
     dhcp_info.update(nw_info)
-
+    subnet_info = IpValidator().subnet_calc()
+    subnet_mask_bits =  int(subnet_info['mask_bits'])
+    if subnet_mask_bits == 27:
+         host_count = 2**(32 - subnet_mask_bits) - 2
+         # IP count to be deducted from available host count 
+         # DHCP:15, FI:3, FA/FB:3, MDS:2 and Nexus:2
+         #server_count = host_count - (10+3+3+2+2)
+         field_name = 'netmask'
+         
+         warning_msg = ("A .{} network has a maximum of only {} host IP addresses available." 
+                       " These must be allocated to dynamic, static and KVM IP addresses.".format(subnet_mask_bits, host_count))
+         warning_list.append({'field' : field_name, 'msg' : warning_msg})
+         dhcp_info['notifications'] = warning_list
+         res.setResult(dhcp_info, PTK_WARNING, _("PDT_WARNING_MSG"))
+         return res
     res.setResult(dhcp_info, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return res
 
@@ -540,7 +592,22 @@ def adddevice(data):
                     data['ip'], username=data['username'], password=data['password'])
                 details = pure_tasks.flash_array_info(data['ip'])
                 pure_tasks.release_pure_handle()
-            except BaseException:
+            except BaseException as e:
+                loginfo("Failed with error:%s" % str(e))
+                res.setResult(ret, PTK_NOTEXIST,
+                              _("PDT_CONFIRM_SSH_CREDENTIALS_MSG"))
+                return res
+
+    elif data['type'] == "FlashBlade":
+        status, serial = is_flashblade(data['ip'], "Configured",
+                          username=data['username'], password=data['password'])
+        if status == 'Configured':
+            try:
+                fb_tasks = FlashBladeTasks(
+                    data['ip'], username=data['username'], password=data['password'])
+                details = fb_tasks.flash_blade_info(data['ip'])                      
+            except BaseException as e:
+                loginfo("Failed with error:%s" % str(e))
                 res.setResult(ret, PTK_NOTEXIST,
                               _("PDT_CONFIRM_SSH_CREDENTIALS_MSG"))
                 return res
@@ -580,8 +647,8 @@ def adddevice(data):
                       _("PDT_INVALID_DEVICE_TYPE_MSG"))
         return res
 
-    if status == "Unknown":
-        res.setResult(ret, PTK_NOTEXIST, _("PDT_INVALID_DEVICE_MSG"))
+    if status in ["Unknown", "Unconfigured"]:
+        res.setResult(ret, PTK_NOTEXIST, _("PDT_ADD_DEVICE_ERR_MSG"))
         return res
 
     elif status == "Failed":
@@ -593,18 +660,71 @@ def adddevice(data):
         ipaddress=data['ip'],
         username=data['username'],
         password=data['password'],
-        serial_no=details['serial_no'],
-        mac=details['mac_addr'].upper(),
-        model=details['model'],
+        serial_no=details.get('serial_no'),
+        mac=details.get('mac_addr', '').upper(),
+        model=details.get('model', ''),
         device_type=data['type'],
         configured="Configured",
-        name=details['name'],
+        name=details.get('name'),
         reachability="Up")
     res.setResult(ret, PTK_OKAY, _("PDT_DEVICE_ADDED_MSG"))
     return res
 
 
+def simulate_device_config(data):
+    sleep(5)
+    dev_count = 0
+    lock = FileLock(static_discovery_store + ".lock")
+    with lock.acquire(timeout=-1):
+        with open(get_discovery_store()) as d_file:
+            rf_doc = xmltodict.parse(d_file.read())
+            for device in rf_doc['devices']['device']:
+                if device['@device_type'] != 'PURE':
+                    device['@configured'] = 'In-progress'
+                dev_count = dev_count + 1
+            rf_out = xmltodict.unparse(rf_doc, pretty=True)
+            with open(get_discovery_store(), 'w') as w_file:
+                w_file.write(rf_out.encode('utf-8'))
+
+    lock = FileLock(static_discovery_store + ".lock")
+    # with lock.acquire(timeout=-1):
+    i = 0
+    while i < dev_count:
+        sleep(15)
+        with open(get_discovery_store()) as d_file:
+            rf_doc = xmltodict.parse(d_file.read())
+            for device in rf_doc['devices']['device']:
+                if device['@device_type'] == 'PURE':
+                    continue
+                if device['@configured'] != 'Configured':
+                    device['@configured'] = 'Configured'
+                    break
+            rf_out = xmltodict.unparse(rf_doc, pretty=True)
+            with open(get_discovery_store(), 'w') as w_file:
+                w_file.write(rf_out.encode('utf-8'))
+
+# simulate_device_config()
+
+
 def initialconfig():
+    obj = result()
+    # if simulate update the status and exit
+    emulated = check_if_emulated()
+    if emulated:
+        threading.Thread(target=simulate_device_config, args=([],)).start()
+        obj.setResult([], PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return obj
+
+    status, dep_settings = get_xml_element(settings, 'stacktype')
+    if status == True:
+        status, global_config_data = get_xml_childelements(get_global_wf_config_file(), 'htype', 'input', ['name', 'value'], 'stacktype', dep_settings[0]['stacktype'])
+        if status == False:
+            obj.setResult([], PTK_INTERNALERROR, _("PDT_FAILED_MSG"))
+            return obj
+    else:
+        obj.setResult([], PTK_INTERNALERROR, _("PDT_FAILED_MSG"))
+        return obj
+
     if os.path.exists(static_discovery_store) is True:
         doc = parse_xml(static_discovery_store)
         ucsm_set = False
@@ -679,7 +799,7 @@ def initialconfig():
                         "ntp_server": subelement.getAttribute("ntp_server"),
                         "dns": subelement.getAttribute("dns"),
                         "domain_name": subelement.getAttribute("domain_name"),
-                        "timezone": subelement.getAttribute("timezone"),
+                        "timezone": [config.get("value") for config in global_config_data if config.get("name") == "zone"][0],
                         "relay_host": subelement.getAttribute("relay_host"),
                         "alert_emails": subelement.getAttribute("alert_emails"),
                         "sender_domain": subelement.getAttribute("sender_domain"),
@@ -730,7 +850,8 @@ def initialconfig():
                             "ucs_upgrade": subordinate_data.getAttribute("ucs_upgrade"),
                             "infra_image": subordinate_data.getAttribute("infra_image")}
                     loginfo("Triggering UCSMFIConfigure api")
-                    loginfo({key:value for key, value in data.items() if key not in ["pri_passwd", "conf_passwd"]})
+                    loginfo({key: value for key, value in data.items()
+                             if key not in ["pri_passwd", "conf_passwd"]})
                     #loginfo({key:data[key] for key in data.keys() if key not in ["pri_passwd", "conf_passwd"]})
                     threading.Thread(target=obj.ucsmficonfigure,
                                      args=("cluster", data)).start()
@@ -977,7 +1098,7 @@ def save_config(stacktype, datas):
                     domain_name = data['domain_name']
                 device_data = {
                     "name": data['array_name'],
-		    "username": "pureuser",
+                    "username": "pureuser",
                     "password": encrypt('pureuser'),
                     "ct0_ip": data['ct0_ip'],
                     "ct1_ip": data['ct1_ip'],
@@ -994,7 +1115,6 @@ def save_config(stacktype, datas):
                     "sender_domain": data['sender_domain'],
                     "alert_emails": data['alert_emails'],
                     "ntp_server": data['ntp_server'],
-                    "timezone": data['timezone'],
                     "organization": data['organization'],
                     "full_name": data['full_name'],
                     "job_title": data['job_title'],
@@ -1004,7 +1124,7 @@ def save_config(stacktype, datas):
                     "configured": "Unconfigured",
                     "reachability": "",
                     "validated": "1",
-		    "isZTP":"1",
+                    "isZTP": "1",
                     "timestamp": str(time.time())}
                 add_xml_element(static_discovery_store, device_data)
 
@@ -1223,7 +1343,6 @@ def update_config(stacktype, datas):
                         "relay_host": data['relay_host'],
                         "sender_domain": data['sender_domain'],
                         "alert_emails": data['alert_emails'],
-                        "timezone": data['timezone'],
                         "organization": data['organization'],
                         "full_name": data['full_name'],
                         "job_title": data['job_title'],
@@ -1314,7 +1433,7 @@ def clearconfig():
 
 def deletedevice(mac_list):
     res = result()
-    mac_list = filter(None, mac_list)
+    mac_list = list(filter(None, mac_list))
     if len(mac_list) == 0:
         loginfo("Pass atleast one mac-address")
         res.setResult([], PTK_PRECHECKFAILURE, "Pass atleast one mac-address")
@@ -1335,8 +1454,13 @@ def deletedevice(mac_list):
     return res
 
 
-def figenvalidate(filist, stacktype):
+def genvalidate(data, stacktype):
     res = result()
+    filist = data['UCSM']
+    nexuslist = []
+    if 'NEXUS' in data:
+       nexuslist = data['NEXUS']
+
     if len(filist) != 2:
         loginfo("FI count should be 2")
         res.setResult(stacktype, PTK_INTERNALERROR, _("PDT_UNSUPPORTED_FI_COUNT_ERR_MSG"))
@@ -1370,12 +1494,32 @@ def figenvalidate(filist, stacktype):
         res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
     elif "FI-6454" in filist[0] and "FI-6454" in filist[1]:
-        if stacktype == "fa-n9k-fi-mds-fc":
-            stacktype = 'fa-n9k-fi6454-mds-fc'
-        elif stacktype == "fa-n9k-fi-iscsi":
-            stacktype = 'fa-n9k-fi6454-iscsi'
-        elif stacktype == "fa-fi6332-mds-fc":
-            stacktype = 'fa-fi6454-mds-fc'
+
+        if nexuslist:
+           if len(nexuslist) != 2:
+              loginfo("Nexus count should be 2")
+              res.setResult(stacktype, PTK_INTERNALERROR, _("PDT_UNSUPPORTED_NEXUS_COUNT_ERR_MSG"))
+              return res
+
+           if "Cisco N9K-C9336C-FX2" in nexuslist[0] and "Cisco N9K-C9336C-FX2" in nexuslist[1]:
+              if stacktype == "fa-n9k-fi-mds-fc":
+                 stacktype = 'fa-n9k9336-fi6454-mds-fc'
+              elif stacktype == "fa-n9k-fi-iscsi":
+                 stacktype = 'fa-n9k9336-fi6454-iscsi'
+           else:
+              if stacktype == "fa-n9k-fi-mds-fc":
+                 stacktype = 'fa-n9k-fi6454-mds-fc'
+              elif stacktype == "fa-n9k-fi-iscsi":
+                 stacktype = 'fa-n9k-fi6454-iscsi'
+        else:
+              #stacktypes for 6454 DC
+              if stacktype == "fa-n9k-ucsmini-fc":
+                 stacktype = 'fa-fi6454-fc'
+              elif stacktype == "fa-n5k-ucsmini-iscsi":
+                 stacktype = 'fa-fi6454-iscsi'
+              elif stacktype == "fa-fi6332-mds-fc":
+                 stacktype = 'fa-fi6454-mds-fc'
+
         loginfo("Setting stacktype to %s" % stacktype)
         deployment_settings({'subtype': stacktype})
         res.setResult(stacktype, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -1433,8 +1577,10 @@ def configdefaults(data):
     try:
         # Auto-populate free IPs for all hardware (except blades)
         for hw_dict in conf_defaults:
-            hw_dict['switch_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
-            ip_cnt = ip_cnt + 1
+            if hw_dict['device_type'] != "PURE":
+                hw_dict['switch_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
+                ip_cnt = ip_cnt + 1
+
             if hw_dict['device_type'] == "UCSM" and 'virtual_ip' in hw_dict:
                 hw_dict['virtual_ip'] = "" if ip_list == [] else ip_list[ip_cnt]
                 ip_cnt = ip_cnt + 1
@@ -1452,17 +1598,17 @@ def configdefaults(data):
             if hw_dict['device_type'] == "UCSM" and 'kvm_console_ip' in hw_dict:
                 kvm_ip_range = get_kvm_ip_range(ip_list[ip_cnt:])
                 hw_dict['kvm_console_ip']['kvm_range'] = "" if kvm_ip_range == [] else kvm_ip_range[0].split(
-                    '.')[-1] + "-" + str(int(kvm_ip_range[0].split('.')[-1]) + 11)
-                ip_cnt = ip_cnt + 12
+                    '.')[-1] + "-" + str(int(kvm_ip_range[0].split('.')[-1]) + 15)
+                ip_cnt = ip_cnt + len(kvm_ip_range)
                 hw_dict['kvm_console_ip'] = json.dumps(
                     hw_dict['kvm_console_ip'])
 
     except IndexError:
         res.setResult(conf_defaults, PTK_NOTEXIST,
                       _("PDT_NO_FREE_IP_ERR_MSG"))
-    # Uncomment Below line for working in emulated mode- initial Config page
-    #res.setResult(conf_defaults, PTK_OKAY, _("PDT_SUCCESS_MSG"))
-    # return res
+    if check_if_emulated():
+        res.setResult(conf_defaults, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
     if ip_list == []:
         res.setResult(conf_defaults, PTK_NOTEXIST,
                       _("PDT_NO_FREE_IP_ERR_MSG"))
@@ -1473,17 +1619,16 @@ def configdefaults(data):
 
 def get_kvm_ip_range(ips):
     free_ip_groups = []
-    ips_dict = {x.split('.')[-1]:x for x in ips}
-    hosts = [int(x) for x in ips_dict.keys()]
-    hosts.sort()
+    ips_dict = {x.split('.')[-1]: x for x in ips}
+    hosts = sorted([int(x) for x in ips_dict.keys()])
 
-    for k, g in groupby(enumerate(hosts), lambda x: x[0]-x[1]):
+    for k, g in groupby(enumerate(hosts), lambda x: x[0] - x[1]):
         lst = list(map(itemgetter(1), g))
         ip_lst = [ips_dict[str(x)] for x in lst]
         free_ip_groups.append(ip_lst)
 
     for group in free_ip_groups:
-        if len(group) >= 12:
+        if len(group) >= 8:
             return group
 
 
@@ -1536,7 +1681,6 @@ def get_fa_configdefaults(item):
     hw_dict['ct0_ip'] = ""
     hw_dict['ct1_ip'] = ""
     hw_dict['vir0_ip'] = ""
-    hw_dict['timezone'] = "America/Los_Angeles"
     hw_dict['relay_host'] = "blackhole-smtp2.dev.purestorage.com"
     hw_dict['sender_domain'] = "purestorage.com"
     hw_dict['alert_emails'] = "admin@purestorage.com"
@@ -1550,13 +1694,12 @@ def get_fa_configdefaults(item):
 def get_ucs_configdefaults(input_count, mac_lst, conf_lst):
     ucs_list = []
     conf_count = len(conf_lst)
-    res = dhcpinfo()
-    info = parseTaskResult(res)
+    info = dhcpinfo().getResult()
     dicts = {
         "min_range": info['start'].split('.')[-1],
         "max_range": info['end'].split('.')[-1],
-        "min_interval": "12",
-        "max_interval": "12",
+        "min_interval": "8",
+        "max_interval": "160",
         "subnet": '.'.join(info['subnet'].split('.', 3)[:-1]),
         "kvm_range": ""
     }
@@ -1809,17 +1952,28 @@ def get_latest_image(hw_type):
         nexus_images['switch_kickstart_image'] = nexus_kickstart[0]
         return nexus_images
 
+def get_ip_list(start,end):
+       ip_list = []
+       beg = start
+       while beg <= end:
+           ip_list.append(beg)
+           beg = beg + 1
+       return ip_list
+
 
 def get_available_static_ips():
     free_static_range_ips = static_range_ips = configured_ips = []
     status, data = get_xml_element(settings, 'dhcp_start')
     if status:
-        dhcp_range_ips = [x for x in range(ipaddress.ip_address(unicode(data[0]['dhcp_start'])),
-                                  ipaddress.ip_address(unicode(data[0]['dhcp_end'])) + 1)]
-  
-        static_range_ips = [str(ipaddress.ip_address((x))) for x in
-                            range(ipaddress.ip_address(unicode(data[0]['start'])),
-                                  ipaddress.ip_address(unicode(data[0]['end'])) + 1) if x not in dhcp_range_ips]
+        dhcp_range_ips = get_ip_list(ipaddress.ip_address(str(data[0]['dhcp_start'])), ipaddress.ip_address(str(data[0]['dhcp_end'])) + 1)
+        tmp_range =  get_ip_list(ipaddress.ip_address(str(data[0]['start'])), ipaddress.ip_address(str(data[0]['end'])) + 1)
+    
+        nw_info = network_info()
+	
+        ips_to_ignore = [ipaddress.ip_address(str(x)) for x in [nw_info['ip'], nw_info['gateway'] if nw_info['gateway'] != '' else '0.0.0.0', data[0]['subnet']]]
+        ips_to_ignore = dhcp_range_ips + ips_to_ignore
+
+        static_range_ips = [str(ipaddress.ip_address((x))) for x in tmp_range if x not in ips_to_ignore]
 
     status, data = get_xml_element(static_discovery_store, 'ipaddress')
     if status:
@@ -1873,6 +2027,9 @@ def is_configured(ip, device_type):
     elif device_type == "PURE":
         state, serial = is_pure(ip, "")
         return state
+    elif device_type == "FlashBlade":
+        state, serial = is_flashblade(ip, "")
+        return state
 
 
 def is_ucsm(ip, mode, username='', password=''):
@@ -1881,13 +2038,15 @@ def is_ucsm(ip, mode, username='', password=''):
         try:
             r = requests.get(url, timeout=5, verify=False)
             if r.status_code == 200:
-                if "already configured" in r.content:
+                pattern = bytes("already configured", "utf-8")
+                if pattern in r.content:
                     return "Configured"
                 else:
                     return "Unconfigured"
             else:
                 return "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Unknown"
 
     else:
@@ -1898,7 +2057,8 @@ def is_ucsm(ip, mode, username='', password=''):
                 return "Valid"
             else:
                 return "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Failed"
 
 
@@ -1911,7 +2071,8 @@ def is_nexus(ip, mode, username='', password=''):
                 return "Configured"
             else:
                 return "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Unconfigured"
 
     else:
@@ -1922,7 +2083,8 @@ def is_nexus(ip, mode, username='', password=''):
                 return "Configured"
             else:
                 return "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Failed"
 
 
@@ -1936,7 +2098,8 @@ def is_mds(ip, mode, username='', password=''):
                 return "Configured"
             else:
                 return "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Unconfigured"
 
     else:
@@ -1947,7 +2110,8 @@ def is_mds(ip, mode, username='', password=''):
                 return "Valid"
             else:
                 return "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Failed"
 
 
@@ -1961,20 +2125,53 @@ def is_pure(ip, mode):
                 return "Unconfigured", data['serial_number']
             elif data['status'] == "initializing":
                 return "Configured", data['serial_number']
-	    else:
-		return "Unconfigured", "Unknown"
-        except BaseException:
+            else:
+                return "Unconfigured", "Unknown"
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Unconfigured", "Unknown"
     else:
         url = "https://" + ip
         try:
             r = requests.get(url, timeout=5, verify=False)
             if r.status_code == 200:
-                if "Pure Storage Login" in r.content:
+                pattern = bytes("Pure Storage Login", "utf-8")
+                if pattern in r.content:
                     return "Configured", "Unknown"
                 else:
                     return "Unconfigured", "Unknown"
             else:
                 return "Unknown", "Unknown"
-        except BaseException:
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
             return "Unconfigured", "Unknown"
+
+
+def is_flashblade(ip, mode, username='', password=''):
+    if mode == "Unconfigured":
+        url = "http://" + ip + ":8081/array-initial-config"
+        try:
+            r = requests.get(url, timeout=5, verify=False)
+            data = r.json()
+            if data['status'] == "uninitialized":
+                return "Unconfigured", data['serial_number']
+            elif data['status'] == "initializing":
+                return "Configured", data['serial_number']
+            else:
+                return "Unconfigured", "Unknown"
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
+            return "Unconfigured", "Unknown"
+    else:
+        try:
+            (error, status) = execute_remote_command(
+                ip, username, password, "pureblade list")
+            patterns = ["CH", "FB", "healthy"]
+            if all(x in status for x in patterns):
+                return "Configured", "Unknown"
+            else:
+                return "Unconfigured", "Unknown"
+        except BaseException as e:
+            loginfo("Failed with error:%s" % str(e))
+            return "Unconfigured", "Unknown"
+

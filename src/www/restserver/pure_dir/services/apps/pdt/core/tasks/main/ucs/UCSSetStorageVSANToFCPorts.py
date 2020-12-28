@@ -102,7 +102,7 @@ class UCSSetStorageVSANToFCPortsInputs:
         mandatory="1",
         order=1)
     ucs_fabric_id = Radiobutton(
-        hidden='False',
+        hidden='True',
         isbasic='True',
         helptext='',
         dt_type="string",

@@ -65,7 +65,11 @@ class FACreateHostGroup:
         prefix = ""
         blade_len = self.ucsm_get_associated_sp_cnt(keys)
         for i in range(1, blade_len + 1):
-            prefix += "VM-Host-FC-" + str(i).zfill(2) + "|"
+            if i < 10:
+                prefix += "VM-Host-FC-" + str(i).zfill(2) + "|"
+            else:
+                prefix += "VM-Host-FC-" + str(i).zfill(3) + "|"
+
 
         job_input_save(jobid, texecid, 'name', prefix)
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))

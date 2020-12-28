@@ -1,8 +1,8 @@
 
+import random
+import shutil
 import os
 image_dir = "/mnt/system/uploads/"
-import shutil
-import random
 
 
 class kickstart:
@@ -23,7 +23,7 @@ class kickstart:
                              uploadfile.filename, mount_path)
                 os.system("umount %s" % src)
                 pattern = "kernelopt"
-                print "******************", mount_path
+                print("******************", mount_path)
                 with open(mount_path + '/boot.cfg', 'r') as infile, open(mount_path + '/boot1.cfg', 'w') as outfile:
                     for line in infile:
                         if pattern in line:

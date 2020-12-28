@@ -29,7 +29,7 @@ class UCSBindToATemplate:
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
-        print "create boot policy rollback"
+        print("create boot policy rollback")
         return 0
 
     def getbiospolicy(self, keys):
@@ -199,7 +199,7 @@ class UCSBindToATemplate:
                     selected = "0"
                 temp_list.append(
                     {"id": serviceprofile.name, "selected": selected, "label": serviceprofile.name})
-        print "temp_list", temp_list
+        print("temp_list", temp_list)
         ucsm_logout(handle)
         res.setResult(temp_list, PTK_OKAY, "success")
         return res

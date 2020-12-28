@@ -1,6 +1,7 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
+
 
 class Test_UCSCreatevNICvHBAPlacementPolicy:
     def __init__(self):
@@ -20,9 +21,9 @@ class Test_UCSCreatevNICvHBAPlacementPolicy:
         return res
 
     def rollback(self, inputs, outputs, logfile):
-        print "Create vNIC/vHBA Placement Policy rollback"
-        print inputs
-        print outputs
+        print("Create vNIC/vHBA Placement Policy rollback")
+        print(inputs)
+        print(outputs)
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

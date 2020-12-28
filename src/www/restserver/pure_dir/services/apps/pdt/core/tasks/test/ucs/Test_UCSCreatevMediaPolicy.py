@@ -1,6 +1,7 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
+
 
 class Test_UCSCreatevMediaPolicy:
     def __init__(self):
@@ -12,7 +13,7 @@ class Test_UCSCreatevMediaPolicy:
         return res.getResult()
 
     def rollback(self, inputs, outputs, logfile):
-        print "Create vMedia Policy rollback"
+        print("Create vMedia Policy rollback")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res
@@ -25,7 +26,7 @@ class Test_UCSCreatevMediaPolicy:
         return res
 
     def esxiimages(self, keys):
-        print "inside esxiimages"
+        print("inside esxiimages")
         res = result()
 
         val = [{"id": "ESX5.0", "selected": "1", "label": "ESX 5.0"}, {

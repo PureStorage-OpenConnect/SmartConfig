@@ -1,9 +1,9 @@
 from pure_dir.infra.apiresults import *
 from pure_dir.infra.common_helper import getAsList
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
-from pure_dir.components.common import get_device_credentials
-from pycsco.nxos.device import Device
-from pycsco.nxos import error
+from pure_dir.components.common import get_device_credentials, get_nexus_handler
+#from pycsco.nxos.device import Device
+#from pycsco.nxos import error
 from pure_dir.services.utils.miscellaneous import execute_remote_command
 from pure_dir.components.network.nexus.nexus import *
 import json
@@ -273,17 +273,17 @@ class NEXUSTasks:
                           "Setting global configuration failed")
             return obj
         try:
-	    for ntp in inputdict['ntp'].split(','):
-            	ntp_op = self.switch.config(
-                	'ntp server %s use-vrf management' % ntp, fmat='json')
-            	cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
-            	if cli_error:
-                	customlogs("Failed to set global configuration", logfile)
-                	customlogs("Error message is :", logfile)
-                	customlogs(str(cli_error), logfile)
-                	obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Setting global configuration failed")
-                	return obj
+            for ntp in inputdict['ntp'].split(','):
+                ntp_op = self.switch.config(
+                    'ntp server %s use-vrf management' % ntp, fmat='json')
+                cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
+                if cli_error:
+                    customlogs("Failed to set global configuration", logfile)
+                    customlogs("Error message is :", logfile)
+                    customlogs(str(cli_error), logfile)
+                    obj.setResult(dicts, PTK_INTERNALERROR,
+                                  "Setting global configuration failed")
+                    return obj
         except error.CLIError as e:
             customlogs("Failed to set global configuration", logfile)
             customlogs("Error message is :", logfile)
@@ -390,18 +390,17 @@ class NEXUSTasks:
                           "Removing global configuration failed")
             return obj
         try:
-
-	    for ntp in inputdict['ntp'].split(','):
-            	ntp_op = self.switch.config(
-                	'ntp server %s use-vrf management' % inputdict['ntp'], fmat='json')
-            	cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
-            	if cli_error:
-            	    	customlogs("Failed to remove global configuration", logfile)
-                	customlogs("Error message is :", logfile)
-                	customlogs(str(cli_error), logfile)
-                	obj.setResult(dicts, PTK_INTERNALERROR,
-                              "Removing global configuration failed")
-                	return obj
+            for ntp in inputdict['ntp'].split(','):
+                ntp_op = self.switch.config(
+                    'ntp server %s use-vrf management' % ntp, fmat='json')
+                cli_error = self.switch.cli_error_check(json.loads(ntp_op[1]))
+                if cli_error:
+                    customlogs("Failed to remove global configuration", logfile)
+                    customlogs("Error message is :", logfile)
+                    customlogs(str(cli_error), logfile)
+                    obj.setResult(dicts, PTK_INTERNALERROR,
+                                  "Removing global configuration failed")
+                    return obj
         except error.CLIError as e:
             customlogs("Failed to remove global configuration", logfile)
             customlogs("Error message is :", logfile)
@@ -772,7 +771,7 @@ class NEXUSTasks:
                           "Remove NTP Distribution Interface configuration failed")
             return obj
 
-    def nexusCreateVPCDomain(self, inputdict, logfile):
+    def nexusCreateVPCDomain(self, inputdict, logfile, peerRouterLog=False):
         """
         Create VPC Domain in nexus switch
 
@@ -810,6 +809,8 @@ class NEXUSTasks:
                 'auto-recovery',
                 'ip arp synchronize',
                 'exit']
+            if peerRouterLog:
+                commands.insert(-3, 'no layer3 peer-router syslog')
             cmds_to_string = ' ; '.join(commands)
             vpc_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(vpc_op[1]))
@@ -883,7 +884,7 @@ class NEXUSTasks:
                           "Remove VPC domain configuration failed")
             return obj
 
-    def nexusConfigurePortChannelMemberInterfaces(self, inputdict, logfile):
+    def nexusConfigurePortChannelMemberInterfaces(self, inputdict, logfile, flashBlade=False):
         """
         Configure Port channel member Interfaces for peer link between nexus switches
 
@@ -903,12 +904,17 @@ class NEXUSTasks:
         dicts['native_vlan_id'] = inputdict['native_vlan_id']
         dicts['allowed_vlans_set'] = inputdict['allowed_vlans_set']
 
+        eth_speed = None
+        cred = get_device_credentials(key='mac', value=inputdict['nexus_id'])
+        handle = get_nexus_handler(cred)
+
         helper = Nexus()
         allowed_vlans = helper.get_allowed_vlans(
             inputdict['allowed_vlans_set'])
         ethernets = inputdict['slot_chassis'].split('|')
         for ethernet in ethernets:
             try:
+                eth_speed = handle.get_speed('show interface {}'.format(ethernet))
                 commands = ['interface %s' % ethernet, 'channel-group %s force mode active' %
                             inputdict['port_channel_number'], 'no shut']
                 cmds_to_string = ' ; '.join(commands)
@@ -933,16 +939,33 @@ class NEXUSTasks:
                 return obj
 
         try:
-            commands = [
-                'interface port-channel %s' %
-                inputdict['port_channel_number'],
-                'switchport mode trunk',
-                'switchport trunk native vlan %s' %
-                inputdict['native_vlan_id'],
-                'switchport trunk allowed vlan %s' %
-                allowed_vlans,
-                'vpc peer-link',
-                'exit']
+            if not flashBlade:
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'switchport mode trunk',
+                    'switchport trunk native vlan %s' %
+                    inputdict['native_vlan_id'],
+                    'switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+                    'vpc peer-link',
+                    'exit']
+            else:
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'switchport mode trunk',
+                    'switchport trunk native vlan %s' %
+                    inputdict['native_vlan_id'],
+                    'switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+		    'spanning-tree port type network',
+		    'speed {}'.format(eth_speed),
+		    'duplex full',
+  		    'no negotiate auto',
+                    'vpc peer-link',
+                    'exit']
+	
             cmds_to_string = ' ; '.join(commands)
             conf_op = self.switch.config(cmds_to_string, fmat='json')
             cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
@@ -970,7 +993,7 @@ class NEXUSTasks:
                           "Configure Port Channel Member Interfaces failed")
             return obj
 
-    def nexusUnconfigurePortChannelMemberInterfaces(self, inputdict, logfile):
+    def nexusUnconfigurePortChannelMemberInterfaces(self, inputdict, logfile, flashBlade=False):
         """
         Unconfigure Port channel member Interfaces for peer link between nexus switches
 
@@ -997,11 +1020,20 @@ class NEXUSTasks:
         ethernets = inputdict['slot_chassis'].split('|')
         for ethernet in ethernets:
             try:
-                commands = ['no interface port-channel %s' % inputdict['port_channel_number'],
-                            'interface %s' % ethernet, 'no switchport mode trunk',
-                            'no switchport trunk native vlan %s' %
-                            inputdict['native_vlan_id'],
-                            'no switchport trunk allowed vlan %s' % allowed_vlans, 'shut']
+                if not flashBlade:
+                    commands = ['no interface port-channel %s' % inputdict['port_channel_number'],
+                                'interface %s' % ethernet, 'no switchport mode trunk',
+                                'no switchport trunk native vlan %s' %
+                                inputdict['native_vlan_id'],
+                                'no switchport trunk allowed vlan %s' % allowed_vlans,
+			        'shut']
+                else:
+                     commands = ['no interface port-channel %s' % inputdict['port_channel_number'],
+                                'interface %s' % ethernet, 'no switchport mode trunk',
+                                'no switchport trunk native vlan %s' %
+                                inputdict['native_vlan_id'],
+                                'no switchport trunk allowed vlan %s' % allowed_vlans, 'no spanning-tree port type network',
+                                'shut']
                 cmds_to_string = ' ; '.join(commands)
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
@@ -1029,7 +1061,7 @@ class NEXUSTasks:
                       "Port Channel Member Interfaces configuration removed successfully")
         return obj
 
-    def nexusConfigureVirtualPortChannelsToUCS(self, inputdict, logfile, device_type):
+    def nexusConfigureVirtualPortChannelsToUCS(self, inputdict, logfile, device_type, flashBlade=False):
         """
         Configure Virtual Port Channels to UCS from nexus
 
@@ -1045,15 +1077,23 @@ class NEXUSTasks:
         loginfo(inputdict)
 
         dicts = inputdict
-
+        
+        eth_speed = None
         helper = Nexus()
+        cred = get_device_credentials(key='mac', value=inputdict['nexus_id'])
+        handle = get_nexus_handler(cred)
         allowed_vlans = helper.get_allowed_vlans(
             inputdict['allowed_vlans_set'])
         ethernets = inputdict['slot_chassis'].split('|')
         for ethernet in ethernets:
             try:
-                commands = ['interface %s' % ethernet, 'channel-group %s force mode active' %
-                            inputdict['port_channel_number'], 'no shut']
+                if not flashBlade:
+                    commands = ['interface %s' % ethernet, 'channel-group %s force mode active' %
+                                inputdict['port_channel_number'], 'no shut']
+                else:
+                    eth_speed = handle.get_speed('show interface {}'.format(ethernet))
+                    commands = ['interface %s' % ethernet, 'channel-group %s force mode active' %
+                                inputdict['port_channel_number'], 'udld enable', 'no shut']
                 cmds_to_string = ' ; '.join(commands)
                 conf_op = self.switch.config(cmds_to_string, fmat='json')
                 cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
@@ -1092,6 +1132,25 @@ class NEXUSTasks:
                     'vpc %s' %
                     inputdict['port_channel_number'],
                     'exit']
+            elif flashBlade:
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'switchport mode trunk',
+                    'switchport trunk native vlan %s' %
+                    inputdict['native_vlan_id'],
+                    'switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+                    'spanning-tree port type edge trunk',
+                    'mtu %s' %
+                    inputdict['mtu_value'],
+                    ##TODO Speed 100G to be set####
+                    'speed {}'.format(eth_speed),
+                    'duplex full',
+                    'no negotiate auto',
+                    'vpc %s' %
+                    inputdict['port_channel_number'],
+                    'exit']
             else:
                 commands = [
                     'interface port-channel %s' %
@@ -1110,6 +1169,7 @@ class NEXUSTasks:
                     'vpc %s' %
                     inputdict['port_channel_number'],
                     'exit']
+            
 
             cmds_to_string = ' ; '.join(commands)
             conf_op = self.switch.config(cmds_to_string, fmat='json')
@@ -1138,7 +1198,7 @@ class NEXUSTasks:
                           "Configure Virtual Port Channels to UCS Fabric failed")
             return obj
 
-    def nexusUnconfigureVirtualPortChannelsToUCS(self, inputdict, logfile, device_type):
+    def nexusUnconfigureVirtualPortChannelsToUCS(self, inputdict, logfile, device_type, flashBlade=False):
         """
         Unconfigure Virtual Port Channels to UCS from nexus
 
@@ -1169,6 +1229,21 @@ class NEXUSTasks:
                                 'interface %s' % ethernet, 'no switchport mode trunk',
                                 'no switchport trunk native vlan %s' % inputdict['native_vlan_id'],
                                 'no switchport trunk allowed vlan %s' % allowed_vlans, 'shut']
+                elif flashBlade:
+                    commands = [
+                        'interface port-channel %s' %
+                        inputdict['port_channel_number'],
+                        'no interface port-channel %s' %
+                        inputdict['port_channel_number'],
+                        'interface %s' %
+                        ethernet,
+                        'no switchport mode trunk',
+                        'no switchport trunk native vlan %s' %
+                        inputdict['native_vlan_id'],
+                        'no switchport trunk allowed vlan %s' %
+                        allowed_vlans,
+                        'no mtu',
+                        'shut']
                 else:
                     commands = [
                         'interface port-channel %s' %
@@ -2206,3 +2281,182 @@ class NEXUSTasks:
 
         obj.setResult(output_dict, res.getStatus(), res.getMsg())
         return obj
+
+    def nexusConfigureVirtualPortChannelsToFB(self, inputdict, logfile, device_type):
+        """
+        Configure Virtual Port Channels to FlashBlade from nexus
+
+        :param inputdict: Dictionary (port_channel_number, allowed_vlans, mtu_value)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+        obj = result()
+        loginfo("NEXUSConfigureVirtualPortChannelsToFB")
+        dicts = {}
+
+        loginfo("Parameters =")
+        loginfo(inputdict)
+
+        dicts = inputdict
+
+        eth_speed = None
+        helper = Nexus()
+        cred = get_device_credentials(key='mac', value=inputdict['nexus_id'])
+        handle = get_nexus_handler(cred)         
+        allowed_vlans = helper.get_allowed_vlans(
+            inputdict['allowed_vlans_set'])
+        ethernets = inputdict['slot_chassis'].split('|')
+        for ethernet in ethernets:
+            try:
+                eth_speed = handle.get_speed('show interface {}'.format(ethernet))
+                commands = ['interface %s' % ethernet, 'channel-group %s force mode active' %
+                            inputdict['port_channel_number'], 'no shut']
+                cmds_to_string = ' ; '.join(commands)
+                conf_op = self.switch.config(cmds_to_string, fmat='json')
+                cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
+                if cli_error:
+                    customlogs(
+                        "Failed to configure virtual port channels to FlashBlade", logfile)
+                    customlogs("Error message is :", logfile)
+                    customlogs(str(cli_error), logfile)
+                    obj.setResult(dicts, PTK_INTERNALERROR,
+                                  "Configure Virtual Port Channels to FlashBlade failed")
+            except error.CLIError as e:
+                customlogs(
+                    "Failed to configure virtual port channels to FlashBlade", logfile)
+                customlogs("Error message is :", logfile)
+                customlogs(str(e.msg), logfile)
+                customlogs(str(e.err), logfile)
+                obj.setResult(dicts, PTK_INTERNALERROR,
+                          "Configure Virtual Port Channels to FlashBlade failed")
+                return obj
+        try:
+            if device_type == "n9k":
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'switchport mode trunk',
+                    'switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+                    'spanning-tree port type edge trunk',
+                    'mtu %s' %
+                    inputdict['mtu_value'],
+                    'vpc %s' %
+                    inputdict['port_channel_number'],
+                    'exit']
+            cmds_to_string = ' ; '.join(commands)
+            conf_op = self.switch.config(cmds_to_string, fmat='json')
+            cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
+            if cli_error:
+                customlogs(
+                    "Failed to configure virtual port channels to FlashBlade", logfile)
+                customlogs("Error message is :", logfile)
+                customlogs(str(cli_error), logfile)
+                obj.setResult(dicts, PTK_INTERNALERROR,
+                              "Configure Virtual Port Channels to FlashBlade failed")
+                return obj
+        except error.CLIError as e:
+            customlogs(
+                "Failed to configure virtual port channels to FlashBlade", logfile)
+            customlogs("Error message is :", logfile)
+            customlogs(str(e.msg), logfile)
+            customlogs(str(e.err), logfile)
+            obj.setResult(dicts, PTK_INTERNALERROR,
+                          "Configure Virtual Port Channels to FlashBlade failed")
+            return obj
+        try:
+            commands = [
+                    'interface port-channel %s' %
+                   inputdict['port_channel_number'],
+                   'speed {}'.format(eth_speed), 'no shut']
+            cmds_to_string = ' ; '.join(commands)
+            conf_op = self.switch.config(cmds_to_string, fmat='json')
+            cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
+            if cli_error:
+                customlogs(
+                    "Failed to configure virtual port channels to FlashBlade", logfile)
+                customlogs("Error message is :", logfile)
+                customlogs(str(cli_error), logfile)
+                obj.setResult(dicts, PTK_INTERNALERROR,
+                              "Configure Virtual Port Channels to FlashBlade failed")
+                return obj
+            else:
+                customlogs(
+                    "Configuring Virtual Port Channels to FlashBlade successful\n", logfile)
+                obj.setResult(dicts, PTK_OKAY,
+                              "Configure Virtual Port Channels to FlashBlade succesful")
+                return obj
+        except error.CLIError as e:
+            customlogs(
+                "Failed to configure virtual port channels to FlashBlade", logfile)
+            customlogs("Error message is :", logfile)
+            customlogs(str(e.msg), logfile)
+            customlogs(str(e.err), logfile)
+            obj.setResult(dicts, PTK_INTERNALERROR,
+                          "Configure Virtual Port Channels to FlashBlade failed")
+            return obj
+
+
+    def nexusUnconfigureVirtualPortChannelsToFB(self, inputdict, logfile, device_type):
+        """
+        Unconfigure Virtual Port Channels to FlashBlade from nexus
+
+        :param inputdict: Dictionary (port_channel_number, allowed_vlans, mtu_value)
+        :param logfile: Logfile name
+        :return: Returns the status of the execution
+        """
+        obj = result()
+        loginfo("NEXUSUnconfigureVirtualPortChannelsToFB")
+        dicts = {}
+
+        loginfo("Parameters =")
+        loginfo(inputdict)
+
+        dicts = inputdict
+
+        helper = Nexus()
+        allowed_vlans = helper.get_allowed_vlans(
+            inputdict['allowed_vlans_set'])
+        ethernets = inputdict['slot_chassis'].split('|')
+        for ethernet in ethernets:
+            try:
+                commands = [
+                    'interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'no interface port-channel %s' %
+                    inputdict['port_channel_number'],
+                    'interface %s' %
+                    ethernet,
+                    'no switchport mode trunk',
+                    'no switchport trunk allowed vlan %s' %
+                    allowed_vlans,
+                    'no mtu',
+                    'shut']
+
+                cmds_to_string = ' ; '.join(commands)
+                conf_op = self.switch.config(cmds_to_string, fmat='json')
+                cli_error = self.switch.cli_error_check(json.loads(conf_op[1]))
+                if cli_error:
+                    customlogs(
+                        "Failed to remove virtual port channels to FlashBlade configuration", logfile)
+                    customlogs("Error message is :", logfile)
+                    customlogs(str(cli_error), logfile)
+                    obj.setResult(dicts, PTK_INTERNALERROR,
+                                  "Failed to remove virtual port channels to FlashBlade configuration")
+                    return obj
+            except error.CLIError as e:
+                customlogs(
+                    "Failed to remove virtual port channels to FlashBlade configuration", logfile)
+                customlogs("Error message is :", logfile)
+                customlogs(str(e.msg), logfile)
+                customlogs(str(e.err), logfile)
+                obj.setResult(dicts, PTK_INTERNALERROR,
+                              "Failed to remove virtual port channels to FlashBlade configuration")
+                return obj
+
+        customlogs(
+            "Virtual Port Channels to FlashBlade configuration removed successfully\n", logfile)
+        obj.setResult(dicts, PTK_OKAY,
+                      "Virtual Port Channels to FlashBlade configuration removed successfully")
+        return obj
+

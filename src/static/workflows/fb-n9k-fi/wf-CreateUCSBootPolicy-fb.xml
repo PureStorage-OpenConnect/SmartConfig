@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<workflow desc="Create Boot Policy" hidden="1" htype="fb-n9k-fi" id="CreateUCSBootPolicy-fb" isdeletable="0" name="Create UCS Boot Policy" type="UCSM">
+  <tasks>
+    <task OnSuccess="t301" Onfailure="None" desc="Create Boot Policy" id="UCSCreateBootPolicy" inittask="1" label="Create Boot policy" name="UCSCreateBootPolicy" texecid="t201">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+        <output name="bootpolicyname" tvalue="Local-Boot" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="boot_policy_name" value="Local-Boot"/>
+        <arg mapval="0" name="boot_policy_desc" value="FlashBlade Boot policy"/>
+      </args>
+    </task>
+    <task OnSuccess="t401" Onfailure="None" desc="Add Local Disk to Boot Policy" id="UCSAddLocalDiskToBootPolicy" inittask="0" label="Add Local disk" name="UCSAddLocalDiskToBootPolicy" texecid="t301">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="1" name="bootpolicyname" value="__t201.UCSCreateBootPolicy.bootpolicyname"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Create default host firmware package" id="UCSCreateHostFirmwarePackage" inittask="0" label="Create Host Firmware Package" name="CreateHostFirmwarePackage" texecid="t401">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+        <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
+        <arg mapval="0" name="name" value="default"/>
+        <arg mapval="0" name="desc" value="default firmware package"/>
+        <arg mapval="0" name="blade_pkg" value=""/>
+        <arg mapval="0" name="rack_pkg" value=""/>
+        <arg mapval="0" name="excluded_comp" value="local-disk"/>
+      </args>
+    </task>
+  </tasks>
+</workflow>

@@ -2,6 +2,7 @@ from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
 
+
 class Test_NEXUS9kSetGlobalConfigurations:
     def __init__(self):
         pass
@@ -13,7 +14,7 @@ class Test_NEXUS9kSetGlobalConfigurations:
         return res.getResult()
 
     def rollback(self, inputs, outputs, logfile):
-        print "NEXUS Set Global Configurations rollback"
+        print("NEXUS Set Global Configurations rollback")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

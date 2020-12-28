@@ -14,15 +14,15 @@ $(document).ready(function() {
 	*/
 	$('body').delegate('.iso-library', 'click', function(e) {
 		e.stopPropagation();
-		var parent = '', subtypes = {'UCSM': ['ESXi', 'ESXi-kickstart', 'UCS-infra', 'UCS-blade'], 'MDS': ['MDS', 'MDS-kickstart'],'Nexus':['Nexus 5k','Nexus 9k','Nexus 5k-kickstart']};
+		var parentAttr = '', subtypes = {'UCSM': ['ESXi', 'ESXi-kickstart', 'RHEL', 'RHEL-kickstart', 'UCS-infra', 'UCS-blade'], 'MDS': ['MDS', 'MDS-kickstart'],'Nexus':['Nexus 5k','Nexus 9k','Nexus 5k-kickstart']};
 		var buttons = {"close": closeModel}, file_format = {type: 'bin, gbin', format: /(\.|\/)(bin|gbin)$/i};
 		var attr = $(this).attr('type'), file = $(this).attr('file');
 		Object.keys(subtypes).some(function(key) {
 			if($.inArray(attr, subtypes[key]) > -1) {
-				parent = key; return;
+				parentAttr = key; return;
 			}
 		});
-		if(parent == '') parent = attr;
+		if(parentAttr == '') parentAttr = attr;
 		if(typeof attr !== typeof undefined && attr !== false && attr != '') {
 			buttons['select'] = selectISO;
 		} else attr = '';
@@ -31,8 +31,8 @@ $(document).ready(function() {
 		loadImages('.tab-content', attr, file);
 		attr = (attr == '') ? 'MDS-kickstart' : attr;
 		var image_type = attr;
-		if(attr == 'ESXi') file_format = {type: 'iso', format: /(\.|\/)(iso)$/i};
-		else if(attr == 'ESXi-kickstart') file_format = {type: 'cfg', format: /(\.|\/)(cfg)$/i};
+		if(attr == 'ESXi' || attr == 'RHEL') file_format = {type: 'iso', format: /(\.|\/)(iso)$/i};
+		else if(attr == 'ESXi-kickstart' || attr == 'RHEL-kickstart') file_format = {type: 'cfg', format: /(\.|\/)(cfg)$/i};
 		uploadHandler('ImportImage', false, settings.base_path, 'import_iso', file_format.format, false, doNothing, doNothing);
 		$(".import_iso .file_format").html("(" + localization['allowed-format'] + ": <b>" + file_format.type + "</b>)");
 
@@ -62,7 +62,7 @@ $(document).ready(function() {
 				$('#iso_image_esxi_iso').trigger('click');
 			}
 		});
-		$('[name="image_type"][value="' + parent + '"]').addClass('active').trigger('click');
+		$('[name="image_type"][value="' + parentAttr + '"]').addClass('active').trigger('click');
 		$('.sub_image[value="' + image_type + '"]').addClass('active').trigger('click');
 		if(image_type == 'ESXi' || image_type == 'ESXi-kickstart') {
 			var myToggle = $('.toggle-select.image_mode').data('toggles');
@@ -72,6 +72,14 @@ $(document).ready(function() {
 				$('#iso_image_esxi_iso').trigger('click');
 			else if(image_type == 'ESXi-kickstart')
 				$('#iso_image_esxi_kickstart').trigger('click');
+		} else if(image_type == 'RHEL' || image_type == 'RHEL-kickstart') {
+			var myToggle = $('.toggle-select.image_mode').data('toggles');
+			myToggle.toggle(false);
+			$('#iso_image_os').trigger('click');
+			if(image_type == 'RHEL')
+				$('#iso_image_rhel_iso').trigger('click');
+			else if(image_type == 'RHEL-kickstart')
+				$('#iso_image_rhel_kickstart').trigger('click');
 		}
 		return false;
 	});
@@ -93,7 +101,18 @@ $(document).ready(function() {
 			$('#import_form .operating_system').addClass('hide');
 		}
 	});
-	$('body').delegate('.sub_image, .os_sub_image', 'change', function(e) {
+	$('body').delegate('.sub_image', 'change', function(e) {
+		$('.os_sub_image').parent().addClass('hide');
+		$('.os_sub_image.' + this.value).parent().removeClass('hide');
+		if(this.value == 'ESXi')
+			$('#iso_image_esxi_iso').trigger('click');
+		else if(this.value == 'RHEL')
+			$('#iso_image_rhel_iso').trigger('click');
+		else
+			$("[name='image_os_sub_type']").prop('checked', false);
+		updateUploadEvent(this.value);
+	});
+	$('body').delegate('.os_sub_image', 'change', function(e) {
 		updateUploadEvent(this.value);
 	});
 
@@ -182,7 +201,7 @@ $(document).ready(function() {
 		openModel({title: localization['add-device'], body: loadAddDeviceForm(), buttons: {
 			"cancel": closeModel,
 			"submit": function() {
-				var data = {type: 'PURE', ip: $('#add_ip_address').val(), username: $('#add_user_name').val(), password: $('#add_password').val()};
+				var data = {type: $('input[type="radio"][name="hardware_device"]:checked').val(), ip: $('#add_ip_address').val(), username: $('#add_user_name').val(), password: $('#add_password').val()};
 				doAjaxRequest({url: 'AddDevice', base_path: settings.base_path, method: 'POST', data: data, container: '.modal-inset', success_notify: true, isValidate: true, formContainer: '.add_device'}, function(response) {
 					closeModel();
 					loadDiscovery('.content-container');
@@ -374,7 +393,6 @@ $(document).ready(function() {
 					bindTagifyEvent('#fa_alert_emails_0', 'Add an email', /^[a-zA-Z0-9.!#$%&â€™*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
 					bindTagifyEvent('#ntp_server', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 					bindTagifyEvent('#dns', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
-					loadTimezone();
 					break;
 			}
 			$('.modal-inset .help-txt').tipso({
@@ -474,7 +492,6 @@ $(document).ready(function() {
 							$('#form-body #fa_organization_0').val(response.data[0]['organization']);
 							$('#form-body #fa_full_name_0').val(response.data[0]['full_name']);
 							$('#form-body #fa_job_title_0').val(response.data[0]['job_title']);
-							$('#form-body #fa_timezone_0').val([response.data[0]['timezone']]).trigger('change');
 							$.each(response.data[0]['alert_emails'].split(","), function(i, value) {
 								$('#form-body #fa_alert_emails_0').tagsinput('add', trimChar(value, " "));
 							});
@@ -610,6 +627,9 @@ function selectElement(elem) {
 		if(elem.attr('type') == 'PURE') {
 			$('.networkinfo.elementInfo[type="PURE"]').removeClass('active');
 			elem.addClass('active');
+		} else if(elem.attr('type') == 'FlashBlade') {
+			$('.networkinfo.elementInfo[type="FlashBlade"]').removeClass('active');
+			elem.addClass('active');
 		} else if(elem.hasClass('Unconfigured')) {
 			$('.networkinfo.elementInfo.Configured').removeClass('active');
 			elem.addClass('active');
@@ -638,7 +658,7 @@ function EnableDHCP() {
 	var static_start = parseInt(dhcp_range[1]) + 1;
 	data.start = subnet + "." + slider.options.min;
 	data.end = subnet + "." + slider.options.max;
-	doAjaxRequest({url: 'DHCPSettings', base_path: settings.base_path, method: 'POST', data: data, success_notify: true, container: '.modal-inset', isValidate: true, formContainer: '.modal-inset'}, function(response) {
+	doAjaxRequest({url: 'DHCPSettings', base_path: settings.base_path, method: 'POST', data: data, success_notify: true, container: '.modal-inset', isValidate: true, formContainer: '.modal-inset .dhcp_settings'}, function(response) {
 		systemInfo.dhcp_status = 'enabled';
 		$('#enable-dhcp').prop('checked', true);
 		$('.dhcp-settings').removeClass('hide');
@@ -669,8 +689,8 @@ function updateUploadEvent(value) {
 	$('.iso_file').addClass('hide');
 	$('#iso_file').val('');
 	var file_format = {type: 'bin, gbin', format: /(\.|\/)(bin|gbin)$/i};
-	if(value == 'ESXi') file_format = {type: 'iso', format: /(\.|\/)(iso)$/i};
-	else if(value == 'ESXi-kickstart') {
+	if(value == 'ESXi' || value == 'RHEL') file_format = {type: 'iso', format: /(\.|\/)(iso)$/i};
+	else if(value == 'ESXi-kickstart' || value == 'RHEL-kickstart') {
 		file_format = {type: 'cfg', format: /(\.|\/)(cfg)$/i};
 		$('.iso_file').removeClass('hide');
 	}
@@ -722,7 +742,7 @@ function loadFlashstackTypes() {
 */
 function loadDiscovery(container) {
 	clearTimeout(tout);
-	var notify = true, obj = {'PURE': 0, 'UCSM': 0, 'MDS': 0, 'Nexus 5k': 0, 'Nexus 9k': 0};
+	var notify = true, obj = {'PURE': 0, 'FlashBlade': 0, 'UCSM': 0, 'MDS': 0, 'Nexus 5k': 0, 'Nexus 9k': 0};
 	if(container == '') notify = false;
 	var cb_status, checked, title, device_type, selectedHost = [], unSelectableDevices = [], device_state = {'Up': {'icon': 'online', 'title': localization['online']}, 'Down': {'icon': 'offline', 'title': localization['offline']}, 'Failed': {'icon': 'failed', 'title': localization['failed']}, 'Checking': {'icon': 'fa fa-circle faa-burst animated', 'title': localization['checking']}};
 	if(systemInfo.dhcp_status == "enabled")
@@ -765,7 +785,7 @@ function loadDiscovery(container) {
 								checked = ' disabled="disabled"';
 							}
 							if($.inArray(value.config_state, ['Unconfigured', 'Failed']) == -1) {
-								if(value.device_type == 'PURE' && value.config_state == 'Configured') {}
+								if((value.device_type == 'PURE' || value.device_type == 'FlashBlade') && value.config_state == 'Configured') {}
 								else {
 									cb_status = 'disabled';checked = '';
 								}
@@ -855,7 +875,11 @@ function getStackTypesByHardwares(obj, container) {
 				$.each(response.data, function(key, value) {
 					hardwares[value.value] = value.req_hardwares;
 					if(value.enabled) {
-						str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" stacktype="' + value.value + '"><div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div><h4>' + value.label + '</h4></div></div>';
+						str += '<div class=""><div data-ripple="#FFF" class="box ' + value.enabled + ' material-ripple" stacktype="' + value.value + '">';
+							if(value.tag.length > 0)
+								str += '<div class="tag ribbon ribbon-top-right"><span>' + value.tag + '</span></div>';
+							str += '<h4>' + value.label + '</h4></div>';
+						str += '</div>';
 					}
 				});
 				str += '</div>' +
@@ -912,8 +936,8 @@ function checkRequiredHardwares(container) {
 				flag = false; status = 0;
 				color = 'red-text';
 
-				if(key == 'PURE') {
-					selected = $('.networkinfo.elementInfo.active[type="PURE"]').length;
+				if(key == 'PURE' || key == 'FlashBlade') {
+					selected = $('.networkinfo.elementInfo.active[type="' + key + '"]').length;
 					if(selected == 1) {
 						color = 'green-text';status = 1;
 					}
@@ -1176,7 +1200,6 @@ function postFAForm(index, isFAPrimary) {
 	data.organization = $('#fa_organization_' + index).val();
 	data.full_name = $('#fa_full_name_' + index).val();
 	data.job_title = $('#fa_job_title_' + index).val();
-	data.timezone = $('#fa_timezone_' + index).val();
 	data.alert_emails = $('#fa_alert_emails_' + index).val();
 	var formContainer = ['.initial-setup .common-inputs', '.pure.fa_' + index, '.modal-inset'];
 	if(typeof isFAPrimary == 'number') index = isFAPrimary;
@@ -1194,8 +1217,8 @@ function postFAForm(index, isFAPrimary) {
   * @desc 
 */
 function validateConfiguration() {
-	$('.control-group').find('.task-input').removeClass('error');
 	$('.control-group').find('.help-block').hide().html('');
+	$('.control-group').find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').removeClass('error');
 	
 	var tmp, ips = [], dhcpIPs = [], arr, flag = true, dom, subnet = dhcpInfo.dhcp_start.split(".");
 	subnet.pop();
@@ -1203,6 +1226,13 @@ function validateConfiguration() {
 	for(var i = parseInt(dhcpInfo.dhcp_start.split(".").pop()); i <= parseInt(dhcpInfo.dhcp_end.split(".").pop()); i++) {
 		dhcpIPs.push(subnet + '.' + i);
 	}
+	$('.initial-setup .control-group.hostname-or-ip').each(function(index) {
+		if(!isValidIP($(this).find('input.task-input').val()) && !isValidDomain($(this).find('input.task-input').val())) {
+			flag = false;
+			$(this).find('.help-block').show().html("Address must be a valid IP address or hostname.");
+			$(this).find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+		}
+	});
 	
 	$('.initial-setup .control-group.unique_ip').each(function(index) {
 		tmp = '';
@@ -1229,13 +1259,13 @@ function validateConfiguration() {
 				tmp = $(this).find('input.task-input').attr("subnet") + '.' + i;
 				if(tmp.length > 0 && ips.filter(function(x){ return x === tmp; }).length > 1) {
 					$(this).find('.help-block').show().html(localization['duplicate-ip']);
-					$(this).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+					$(this).find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 					flag = false;
 				}
 				if(tmp.length > 0 && dhcpIPs.filter(function(x){ return x === tmp; }).length > 0) {
 					$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['ip_overlap_dhcp']);
 					$(this).find('.help-block').show().html(localization['ip_overlap_dhcp']);
-					$(this).find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+					$(this).find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 					flag = false;
 				}
 			}
@@ -1247,13 +1277,13 @@ function validateConfiguration() {
 					if(v.length > 0) {
 						if(ips.filter(function(x){ return x === v; }).length > 1) {
 							dom.closest('.control-group').find('.help-block').show().html(localization['duplicate-ip']);
-							dom.closest('.control-group').find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+							dom.closest('.control-group').find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 							flag = false;
 						}
 						if(dhcpIPs.filter(function(x){ return x === v; }).length > 0) {
 							$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['ip_overlap_dhcp']);
 							dom.closest('.control-group').find('.help-block').show().html(localization['ip_overlap_dhcp']);
-							dom.closest('.control-group').find('.task-input, .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+							dom.closest('.control-group').find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
 							flag = false;
 						}
 					}
@@ -1267,6 +1297,14 @@ function validateConfiguration() {
 		(slider[1] >= parseInt(dhcpInfo.dhcp_start.split(".").pop()) && slider[1] <= parseInt(dhcpInfo.dhcp_end.split(".").pop()))) {
 		$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(localization['dhcp_kvm_overlap']);
 	}
+
+	response = checkIpAvailability($('#common_gateway').val());
+	if(!response[0]) {
+		$('#common_gateway').closest('.control-group').find('.help-block').show().html(response[1]);
+		$('#common_gateway').closest('.control-group').find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+		flag = false;
+	}
+
 	if(!flag) return false;
 	loaderCnt = addProcessingSpinner('.content-container');
 	var requestCount = NEXUSForConfigure.length + MDSForConfigure.length + 1;
@@ -1305,6 +1343,43 @@ function validateConfiguration() {
 	}
 }
 
+function checkIpAvailability(ip) {
+	var dom, flag = true, msg = '';
+	$('.initial-setup .control-group.unique_ip:not(.ntp_server)').each(function(index) {
+		tmp = '';
+		if($(this)[0].hasAttribute("argtype") && $(this).attr("argtype") == 'ip-range') {
+			arr = $(this).find('input.task-input').val().split('-');
+			for(i = parseInt(arr[0]); i <= parseInt(arr[1]); i++) {
+				tmp = $(this).find('input.task-input').attr("subnet") + '.' + i;
+				if(ip.length > 0 && tmp.length > 0 && ip === tmp) {
+					msg = localization['duplicate-ip'];
+					$(this).find('.help-block').show().html(msg);
+					$(this).find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+					flag = false;
+				}
+			}
+		} else {
+			dom = $(this);
+			$(this).find('input.task-input').each(function(i) {
+				tmp = $(this).val().split(',');
+				$.each(tmp, function(i, v) {
+					if(ip.length > 0 && v.length > 0 && ip == v) {
+						msg = localization['duplicate-ip'];
+						dom.find('.help-block').show().html(msg);
+						dom.find('.task-input, .bootstrap-tagsinput > [type="text"], .ms-options-wrap > button, .multiple_emails-input, .checkbox, .radio').addClass('error');
+						flag = false;
+					}
+				});
+			});
+		}
+	});
+	if(parseInt(ip.split(".").pop()) > parseInt(dhcpInfo.dhcp_start.split(".").pop()) && parseInt(ip.split(".").pop()) < parseInt(dhcpInfo.dhcp_end.split(".").pop())) {
+		msg = "Gateway IP should not be in DHCP range";
+		$('.ucsm-configure .control-group.kvm_console_ip').find('.help-block').show().html(msg);
+		flag = false;
+	}
+	return [flag, msg];
+}
 /**
   * @desc .
   * @param object $obj - .
@@ -1398,18 +1473,20 @@ function triggerInitialization() {
 var isPUREConfigured = true, dhcpInfo;
 function loadInitialSetupForm() {
 	clearTimeout(tout);
-	var loadDynamicValues = {}, data_str, obj = {'UCSM': [], 'MDS': []};
+	var loadDynamicValues = {}, tmp, data_str, obj = {'UCSM': [], 'MDS': []};
 	var passwordHelp = '<span><strong>Must contain:</strong><br>\
-		Lower case letters<br>\
-		Upper case letters<br>\
-		Digits<br>\
-		Special characters - (&#33;&quot;&#37;&amp;&#39;&#40;&#41;&#92;&#42;&#43;&#44;&#45;&#46;&#47;&#58;&#59;&#60;&#62;&#64;&#91;&#93;&#94;&#95;&#96;&#123;&#124;&#125;&#126;)<br><br>\
-		<strong>Password Should satisfy below following conditions</strong><br>\
-		Must not contain a character that is repeated more than three times consecutively, such as aaabbb<br>\
-		Must not be identical to the username or the reverse of the username<br>\
-		Must pass a password dictionary check. For example, the password must not be based on a standard dictionary word<br>\
-		Must not contain the following symbols: $ (dollar sign), ? (question mark), and = (equals sign)<br>\
-		Should not be blank for local user and admin accounts</span>';
+		Lowercase letters<br>\
+		Uppercase letters<br>\
+		Numbers<br>\
+		Special Characters - &#33; &quot; &#37; &amp; &#39; &#40; &#41; &#92; &#42; &#43; &#44; &#45; &#46; &#47; &#58; &#59; &#60; &#62; &#64; &#91; &#93; &#94; &#95; &#96; &#123; &#124; &#125; &#126;<br><br>\
+		<strong>Must meet the following complexity conditions:</strong><br>\
+		Must not contain letters consecutively repeated more than 3 times: e.g. aaa bbb.<br>\
+		Must not contain letters listed in alphabetical order: e.g. abcd efgh ijkl.<br>\
+		Must not contain numbers consecutively repeated more than 3 times: e.g. 123 456.<br>\
+		Must not contain the following special characters: $ (dollar), ? (question mark) or = (equals).<br>\
+		Must not be blank.<br>\
+		Must not be identical to the username (forward or reverse).<br>\
+		Must not be based on a standard dictionary word.</span>';
 	var fields = [], file_format = {type: 'json', format: /(\.|\/)(json)$/i};
         if(systemInfo.stacktype.indexOf('-n9k-') > 0)
              obj['NEXUS_9K'] = [];
@@ -1441,8 +1518,8 @@ function loadInitialSetupForm() {
 							<h3 class="hseperator widget-subtitle bold">' + localization['general-info'] + '</h3>\
 						</div>\
 						<div class="form col-lg-12 col-md-12 col-sm-12 col-xs-12">' +
-							loadFormTemplate({id: 'common_netmask', label: localization['mgmt-netmask'], class: 'ipaddress', holder: 'netmask switch_netmask unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
-							loadFormTemplate({id: 'common_gateway', label: localization['default-gateway'], class: 'ipaddress', holder: 'gateway switch_gateway unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
+							loadFormTemplate({id: 'common_netmask', label: localization['mgmt-netmask'], class: 'ipaddress', holder: 'netmask switch_netmask unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true, readonly: true}) + 
+							loadFormTemplate({id: 'common_gateway', label: localization['default-gateway'], class: 'ipaddress', holder: 'gateway switch_gateway col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true, readonly: true}) + 
 							loadFormTemplate({id: 'ntp_server', label: localization['ntp-server'] + '(s)**', class: 'tags tagify', "dataRole": "tagsinput", holder: 'ntp ntp_server unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
 							loadFormTemplate({id: 'dns', label: localization['dns-ip'] + '(s)**', class: 'tags tagify', "dataRole": "tagsinput", holder: 'ucsm-primary dns nameserver unique_ip col-lg-6 col-md-6 col-sm-6 col-xs-6', mandatory: true}) + 
 							'<div style="margin-bottom: 10px;" class="clear col-lg-12 col-md-12 col-sm-12 col-xs-12"></div>' +
@@ -1539,8 +1616,11 @@ function loadInitialSetupForm() {
 		$('.nexus5k_system_image').after('<div type="Nexus 5k" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 		$('.nexus5k_kickstart_image').after('<div type="Nexus 5k-kickstart" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	}
-	$('.esxi_remote_file').after('<div type="ESXi" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
-	$('.esxi_kickstart_file').after('<div type="ESXi-kickstart" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
+	tmp = 'ESXi';
+	if(systemInfo.stacktype.indexOf('fb-') > -1)
+		tmp = 'RHEL';
+	$('.esxi_remote_file').after('<div type="' + tmp + '" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
+	$('.esxi_kickstart_file').after('<div type="' + tmp + '-kickstart" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	$('.ucs_infra_image').after('<div type="UCS-infra" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	$('.ucs_blade_image').after('<div type="UCS-blade" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
 	$('.ucs_rack_image').after('<div type="UCS-Rack" class="iso-library icon-with-link"><i class="fa fa-th-large"></i> ' + localization['select-iso-library'] + '</div>');
@@ -1582,7 +1662,6 @@ function loadInitialSetupForm() {
 	bindTagifyEvent('#dns', 'Add IP Address', /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/);
 	if(!isPUREConfigured) {
 		bindTagifyEvent('#fa_alert_emails_0', 'Add an email', /^[a-zA-Z0-9.!#$%&â€™*+/=?^_{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/);
-		loadTimezone();
 	}
 
 	var flag = true, mdsflag = true, nexusflag = true;
@@ -1606,19 +1685,6 @@ function loadInitialSetupForm() {
 	$('.toggle-select.mode').toggles({type: 'select', on: false, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['standalone'], off: localization['cluster']}});
 	$('.toggle-select.config_type').toggles({type: 'select', on: true, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['primary'], off: localization['subordinate']}});
 	toggleSwitches();
-}
-
-/**
-  * @desc .
-  * @param object $response - .
-*/
-function loadTimezone() {
-	// Load Timezone
-	$('.timezone .task-input').html('<option value="">Select Timezone</option>');
-	$.each(timezone, function(index, val) {
-		$('.timezone .task-input').append('<option value="' + val.timezone + '">' + val.timezone + '</option>');
-	});
-	$(".timezone .task-input").select2();
 }
 
 /**
@@ -1819,7 +1885,9 @@ function loadGlobalFormFields() {
 		$('.task-input[type="multiselect-dropdown"]').each(function(index) {
 			initMultiSelect($(this), $(this).attr('label'), true, true, 1);
 		});
-
+		$('.task-input[dropdown-type="select-box"]').each(function(index) {
+			$(this).select2();
+		});
 		$('.control-group .controls span.prefix').each(function(index) {
 			var borderWidth = 15 + $(this).outerWidth();
 			$(this).next('input.prefix').css('border-left-width', borderWidth + 'px');
@@ -1879,6 +1947,7 @@ function updateDHCPIPs(dom) {
 	let html = '<span class="showcase__mark help-txt tipso tipso_style" data-tipso-title="DHCP Range/Reserved IPs" data-tipso="These IP address ranges are used for device discovery." data-html="true" data-toggle="tooltip" style="left: ' + dhcpLeft + '; width: ' + dhcpWidth + ';">' + dhcpInfo.dhcp_start.split(".").pop() + '-' + dhcpInfo.dhcp_end.split(".").pop() + '</span>';
 	dom.closest('[type="range-picker"]').find('span.irs').find('span.irs').after(html);
 	
+	$('.tipso_bubble').remove();
 	initTooltip('[type="range-picker"]');
 }
 
@@ -1915,10 +1984,17 @@ function loadConfigValues(data) {
 				dhcpLeft = $('.irs-bar').css('left');
 				dhcpWidth = $('.irs-bar').css('width');
 				
+				var sliderInitFrom = parseInt(tmp[0]), sliderInitTo = parseInt(tmp[1]);
 				slider.update({
 					from: parseInt(tmp[0]),
 					to: parseInt(tmp[1]),
 					onChange: function(data) {
+						if( (data.to <= marks[0] && ((marks[0] - data.min) < (parseInt(value[key].min_interval) - 1))) ||
+							(data.from >= marks[1] && ((data.max - marks[1]) < (parseInt(value[key].min_interval) - 1))) ) {
+							slider.update({from: sliderInitFrom, to: sliderInitTo});
+							updateDHCPIPs($(".control-group.kvm_console_ip #workflow_kvm_console_ip.range-slider"));
+							return false;
+						}
 						if(data.from >= marks[0] && data.from <= marks[1]) {
 							slider.update({from: (marks[0] - diff - 1), to: (marks[0] - 1)});
 							updateDHCPIPs($(".control-group.kvm_console_ip #workflow_kvm_console_ip.range-slider"));
@@ -1932,6 +2008,10 @@ function loadConfigValues(data) {
 							if(diff < parseInt(value[key].min_interval)) diff = parseInt(value[key].min_interval);
 							else if(diff > parseInt(value[key].max_interval)) diff = parseInt(value[key].max_interval);
 						}
+					},
+					onFinish: function(data) {
+						sliderInitFrom = data.from;
+						sliderInitTo = data.to;
 					}
 				});
 				updateDHCPIPs(dom, marks, dhcpLeft, dhcpWidth);
@@ -1959,8 +2039,7 @@ function loadConfigValues(data) {
 				plotValuesByDom(dom, value[key]);
 				if(value.device_type == 'pure' && !isPUREConfigured) {
 					$('.control-group.pure_id[argname="pure_id"][execid="global-config"]').closest('.global.block').hide();
-					if(key == 'timezone') $('#fa_timezone_0').val([value[key]]).trigger('change');
-					else if(key == 'alert_emails') {
+					if(key == 'alert_emails') {
 						$('#fa_alert_emails_0').prev('.bootstrap-tagsinput').find('span').each(function() {
 							$('#fa_alert_emails_0').tagsinput('remove', $(this).text());
 						});
@@ -2080,6 +2159,13 @@ function plotValuesByDom(dom, value) {
   * @param integer $column - .
 */
 function loadUCSMForm(column) {
+	var osArray = [];
+	osArray.push({label: 'None', value: '', selected: 'selected'});
+	if(systemInfo.stacktype.indexOf('fb-') > -1)
+		osArray.push({label: 'RHEL', value: 'Yes', selected: ''});
+	else
+		osArray.push({label: 'ESXi', value: 'Yes', selected: ''});
+	
 	var widthCls = ' col-lg-12 col-md-12 col-sm-12 col-xs-12';
 	$('.ucsm.ucsm-configure').remove();
 	var str = '<div class="row ucsm ucsm-configure">';
@@ -2117,7 +2203,7 @@ function loadUCSMForm(column) {
 			loadFormTemplate({id: 'oobIP', label: localization['primary-ip'], class: 'ipaddress', holder: 'ucsm-subordinate pri_ip hide nopadding ' + widthCls, mandatory: true}) + 
 			loadFormTemplate({id: 'systemName', label: localization['system-name'], holder: 'ucsm-primary pri_name switch_name ' + widthCls, mandatory: true});
 			str += '<div class="' + widthCls + ' nopadding">' +
-				loadFormTemplate({type: 'dropdown', id: 'os_install', class: 'os_install', label: localization['operating_system'], holder: 'os_install nopadding', value: [{label: 'None', value: '', selected: 'selected'}, {label: 'ESXi', value: 'Yes', selected: ''}]}) +
+				loadFormTemplate({type: 'dropdown', id: 'os_install', class: 'os_install', label: localization['operating_system'], holder: 'os_install nopadding', value: osArray}) +
 				loadFormTemplate({type: 'dropdown', id: 'esxi_file', class: 'esxi_remote_file', label: 'ISO File', holder: 'esxi_file remote_file os_install hide nopadding', mandatory: true}) +
 				loadFormTemplate({type: 'dropdown', id: 'esxi_kickstart', class: 'esxi_kickstart_file', label: localization['kickstart'], holder: 'esxi_kickstart remote_file os_install hide nopadding'}) +
 			'</div>' +
@@ -2207,7 +2293,6 @@ function loadFAForm(options, index, isFAPrimary, width) {
 			loadFormTemplate({id: 'fa_job_title_' + index, label: 'Your Title', class: '', holder: 'fa_eula job_title fa_job_title ' + width, mandatory: true}) + 
 			loadFormTemplate({id: 'sender_domain', label: 'Sender Domain', holder: 'sender_domain fa_sender_domain ' + width, mandatory: true, helptext: 'Email Domain Name (Example: flashstack.cisco.com)'}) + 
 			loadFormTemplate({id: 'fa_alert_emails_' + index, label: 'Alert Email Address(s)**', class: 'tags tagify', "dataRole": "tagsinput", holder: 'alert_emails fa_alert_emails ' + width}) + 
-			loadFormTemplate({id: 'fa_timezone_' + index, type: 'dropdown', label: 'Timezone', class: '', holder: 'timezone ' + width, mandatory: true}) + 
 			loadFormField({type: 'hidden', id: 'fa_switch_serial_' + index, value: options.serial}) + 
 			loadFormField({type: 'hidden', id: 'fa_switch_mac_' + index, value: options.mac}) + 
 			loadFormField({type: 'hidden', id: 'fa_switch_ip_' + index, value: options.ip}) + 
@@ -2232,13 +2317,13 @@ function populateNetworkInfo() {
   * @desc .
 */
 function loadDHCPSettingsForm() {
-	doAjaxRequest({url: 'DHCPInfo', base_path: settings.base_path, container: '.modal-inset'}, function(response) {
+	doAjaxRequest({url: 'DHCPInfo', base_path: settings.base_path, container: '.modal-inset', formContainer: '.modal-inset .dhcp_settings'}, function(response) {
 		var str = '<div class="dhcp_settings">' +
-			'<h5 class="notification info inline"><i class="fa fa-info-circle"></i> ' + localization['dhcp-settings-msg'] + '.</h5>' +
-			loadFormTemplate({id: 'dhcp_subnet', label: localization['subnet'], value: response.data.subnet, readonly: true, class: 'disabled ipaddress', holder: 'dhcp subnet'}) +
+			'<h5 class="notification info inline fixed"><i class="fa fa-info-circle"></i> ' + localization['dhcp-settings-msg'] + '.</h5>' +
+			loadFormTemplate({id: 'dhcp_subnet', label: 'Network', value: response.data.subnet, readonly: true, class: 'disabled ipaddress', holder: 'dhcp subnet'}) +
 			loadFormTemplate({id: 'dhcp_netmask', label: localization['netmask'], value: response.data.netmask, readonly: true, class: 'disabled ipaddress', holder: 'dhcp netmask'}) +
 			loadFormTemplate({id: 'dhcp_gateway', label: localization['gateway'], value: response.data.gateway, readonly: true, class: 'disabled ipaddress', holder: 'dhcp gateway'}) +
-			loadFormTemplate({id: 'dhcp_ipaddress', label: localization['ip'], value: response.data.ip, readonly: true, class: 'disabled ipaddress', holder: 'dhcp server_ip'}) +
+			loadFormTemplate({id: 'dhcp_ipaddress', label: 'SmartConfig ' + localization['ip'], value: response.data.ip, readonly: true, class: 'disabled ipaddress', holder: 'dhcp server_ip'}) +
 			loadFormTemplate({id: 'dhcp_ranges', label: localization['dhcp-static-range'], holder: 'dhcp ranges range-slider', helptext: localization['static-range-info']}) +
 		'</div>';
 		$('.modal-body #form-body .mCSB_container').html(str);
@@ -2257,7 +2342,7 @@ function loadDHCPSettingsForm() {
 			//from_min: parseInt(response.data.dhcp_start.split(".").pop()),
 			//from_fixed: true,
 			//from_shadow: true,
-			min_interval: 20,
+			min_interval: 10,
 			max_interval: 40,
 			to: response.data.dhcp_end.split(".").pop(),
 			//to_max: (max - 30),
@@ -2279,7 +2364,7 @@ function loadDHCPSettingsForm() {
 				
 			}
 		});
-	});
+	}, doNothing);
 }
 
 /**
@@ -2287,7 +2372,11 @@ function loadDHCPSettingsForm() {
 */
 function loadAddDeviceForm() {
 	var str = '<div class="add_device">';
-		str += loadFormTemplate({id: 'add_ip_address', label: localization['ip'], class: 'ipaddress', holder: 'ip ip_address', mandatory: true}) + 
+		str += loadFormTemplate({type: 'group', label: 'Hardware Type', class: 'hardware_device', holder: 'hwtype', fields: [
+			{type: 'radio', id: 'hardware_pure', optional_label: 'FlashArray', value: 'PURE', name: 'hardware_device', checked: true},
+			{type: 'radio', id: 'hardware_fb', optional_label: 'FlashBlade', value: 'FlashBlade', name: 'hardware_device'}
+		]}) + 
+		loadFormTemplate({id: 'add_ip_address', label: localization['ip'], class: 'ipaddress', holder: 'ip ip_address', mandatory: true}) + 
 		loadFormTemplate({id: 'add_user_name', label: localization['username'], holder: 'username', mandatory: true}) + 
 		loadFormTemplate({type: 'password', id: 'add_password', label: localization['password'], holder: 'password', mandatory: true}) + 
 	'</div>';
@@ -2321,8 +2410,11 @@ function loadISOLibraryForm(attr) {
 	subtype.push({type: 'radio', id: 'iso_image_hyper_v', optional_label: 'Hyper-V', value: 'Hyper-v', name: 'image_sub_type', class: 'sub_image UCSM ' + style, disabled: 'disabled', holder: 'operating_system hide disabled'});
 	subtype.push({type: 'radio', id: 'iso_image_kvm', optional_label: 'KVM', value: 'KVM', name: 'image_sub_type', class: 'sub_image UCSM ' + style, disabled: 'disabled', holder: 'operating_system hide disabled'});
 	subtype.push({type: 'radio', id: 'iso_image_os', optional_label: 'vSphere ESXi', value: 'ESXi', name: 'image_sub_type', class: 'sub_image UCSM ' + style, holder: 'operating_system hide'});
+	subtype.push({type: 'radio', id: 'iso_image_rhel', optional_label: 'RHEL', value: 'RHEL', name: 'image_sub_type', class: 'sub_image UCSM ' + style, holder: 'operating_system hide'});
 	ossubtype.push({type: 'radio', id: 'iso_image_esxi_iso', optional_label: 'ISO', value: 'ESXi', name: 'image_os_sub_type', class: 'os_sub_image ESXi ' + style, holder: ''});
 	ossubtype.push({type: 'radio', id: 'iso_image_esxi_kickstart', optional_label: localization['kickstart'], value: 'ESXi-kickstart', name: 'image_os_sub_type', class: 'os_sub_image ESXi ' + style, holder: ''});
+	ossubtype.push({type: 'radio', id: 'iso_image_rhel_iso', optional_label: 'ISO', value: 'RHEL', name: 'image_os_sub_type', class: 'os_sub_image RHEL ' + style, holder: 'hide'});
+	ossubtype.push({type: 'radio', id: 'iso_image_rhel_kickstart', optional_label: localization['kickstart'], value: 'RHEL-kickstart', name: 'image_os_sub_type', class: 'os_sub_image RHEL ' + style, holder: 'hide'});
 
 	var str = '<div class="form-container nopadding">\
 		<div class="">\
@@ -2383,10 +2475,20 @@ function loadImages(container, type, file) {
 				$.each(response.data, function(key, value) {
 					switch(value.type) {
 						case 'ESXi':
-							$('#iso_file, #esxi_file').append('<option value="' + value.name + '">' + value.name + '</option>');
+							if(systemInfo.stacktype.indexOf('fb-') == -1)
+								$('#iso_file, #esxi_file').append('<option value="' + value.name + '">' + value.name + '</option>');
 							break;
 						case 'ESXi-kickstart':
-							$('#esxi_kickstart').append('<option value="' + value.name + '">' + value.name + '</option>');
+							if(systemInfo.stacktype.indexOf('fb-') == -1)
+								$('#esxi_kickstart').append('<option value="' + value.name + '">' + value.name + '</option>');
+							break;
+						case 'RHEL':
+							if(systemInfo.stacktype.indexOf('fb-') > -1)
+								$('#iso_file, #esxi_file').append('<option value="' + value.name + '">' + value.name + '</option>');
+							break;
+						case 'RHEL-kickstart':
+							if(systemInfo.stacktype.indexOf('fb-') > -1)
+								$('#esxi_kickstart').append('<option value="' + value.name + '">' + value.name + '</option>');
 							break;
 						case 'Nexus 9k':
 							$('.nexus_switch_image').append('<option value="' + value.name + '">' + value.name + '</option>');

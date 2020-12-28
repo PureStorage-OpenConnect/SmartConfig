@@ -104,12 +104,12 @@ class UCSCreateWWPNPool:
         return res
 
     def validate(self, item, pool_name):
-        wwpn = "0"+pool_name+":00"
-        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){6}$", 
+        wwpn = "0" + pool_name + ":00"
+        if re.match("[0-9a-f]{2}([:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){6}$",
                     item.lower()) and item[-5:] == wwpn and item[:2] == "20":
             pass
         else:
-            return False, "Invalid WWPN Address Eg:20:xx:xx:xx:xx:xx:"+wwpn
+            return False, "Invalid WWPN Address Eg:20:xx:xx:xx:xx:xx:" + wwpn
         return True, ""
 
 

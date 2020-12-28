@@ -29,7 +29,7 @@ class UCSUnbindFromTheTemplate:
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):
-        print "create boot policy rollback"
+        print("create boot policy rollback")
         return 0
 
     def getbiospolicy(self, keys):

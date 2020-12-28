@@ -1,7 +1,8 @@
 import os
 import glob
+from pytz import common_timezones
 
-from pure_dir.infra.apiresults import PTK_OKAY,  result
+from pure_dir.infra.apiresults import PTK_OKAY, result
 from pure_dir.components.common import get_device_list
 from pure_dir.services.utils.miscellaneous import parse_xml
 from pure_dir.global_config import get_discovery_store
@@ -35,7 +36,7 @@ class fa_fi6454_mds_fc_rack:
                     selected = "0"
                 img_list.append(
                     {"id": img, "selected": selected, "label": img})
-            print img_list
+            print(img_list)
             res.setResult(img_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
             return res
         res.setResult(img_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
@@ -60,4 +61,13 @@ class fa_fi6454_mds_fc_rack:
                     details['selected'] = "0"
                     info_list.append(details)
         res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+    def get_timezones(self, keys):
+        res = result()
+        tzlist = []
+        for tz in common_timezones:
+            tz_entity = {"id": tz, "label": tz, "selected": "0"}
+            tzlist.append(tz_entity)
+        res.setResult(tzlist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

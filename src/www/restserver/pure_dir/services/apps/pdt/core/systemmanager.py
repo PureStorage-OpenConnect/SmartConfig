@@ -15,6 +15,7 @@ from pure_dir.services.utils.miscellaneous import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import reset_global_config
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_workflow_dir
 from pure_dir.global_config import get_settings_file
+from pure_dir.services.apps.pdt.core.emulate import check_if_emulated
 info_file = "ula/pdt.txt"
 build_file = "/mnt/system/pure_dir/pdt/build.xml"
 upload_path = "/var/www/html/static/images/"
@@ -45,6 +46,9 @@ def get_blade_rack_support(stack_type):
     if os.path.isdir(rack_path):
         ret['rack'] = True
 
+    if stack_type == 'fa-fi6454-fc' or stack_type == 'fa-fi6454-iscsi':
+        ret = {'blade': True, 'rack': True}
+
     return ret
 
 
@@ -74,6 +78,11 @@ def system_info():
             sysinfo['dhcp_status'] = "disabled"
     else:
         sysinfo['dhcp_status'] = "disabled"
+    if check_if_emulated():
+        if os.path.exists('/etc/dhcp/dhcpd.conf'):
+            sysinfo['dhcp_status'] = "enabled"
+        else:
+            sysinfo['dhcp_status'] = "disabled"
 
     status, details = get_xml_element(settings, 'current_step')
     if status:
@@ -83,6 +92,9 @@ def system_info():
                 sysinfo['deployment_settings']['subtype'])
         else:
             sysinfo['deployment_settings']['server_types'] = {'rack': False, 'blade': False}
+    if 'system' in sysinfo:
+    	if 'emulate' in sysinfo['system']:
+             del sysinfo['system']['emulate']
 
     res.setResult(sysinfo, PTK_OKAY, "Success")
     return res
@@ -100,6 +112,7 @@ def deployment_settings(data):
     res.setResult(True, PTK_OKAY, "Success")
     return res
 
+
 def networkinfo():
     res = result()
     networkinfo = network_info()
@@ -108,6 +121,7 @@ def networkinfo():
     else:
         res.setResult(networkinfo, PTK_INTERNALERROR, "No information")
     return res
+
 
 def import_logo(uploadfile):
     res = result()
@@ -119,7 +133,8 @@ def import_logo(uploadfile):
             os.system("rm -rf /var/www/html/static/images/" + system['report_logo'])
 
     cur_time = get_current_time(tmformat="%d%m%H%M")
-    filename_with_time = "%s_%s.%s" % (uploadfile.filename.split('.')[0], cur_time, uploadfile.filename.split('.')[1])
+    filename_with_time = "%s_%s.%s" % (uploadfile.filename.split(
+        '.')[0], cur_time, uploadfile.filename.split('.')[1])
 
     if update_xml_element(settings, 'name', '', {'report_logo': filename_with_time}, 'system'):
         res.setResult(False, PTK_INTERNALERROR, "Failed to save settings")
@@ -129,15 +144,18 @@ def import_logo(uploadfile):
     res.setResult(filename_with_time, PTK_OKAY, "Success")
     return res
 
+
 def save_file(uploadfile, filepath):
     with open(filepath, "ab") as f:
         f.write(uploadfile.stream.read())
 
+
 def get_current_time(tmformat=""):
-   dateTimeObj = datetime.now()
-   tmfmt = "%d-%b-%Y-%H:%M:%S.%f" if tmformat=="" else tmformat
-   timestampStr = dateTimeObj.strftime(tmfmt)
-   return timestampStr
+    dateTimeObj = datetime.now()
+    tmfmt = "%d-%b-%Y-%H:%M:%S.%f" if tmformat == "" else tmformat
+    timestampStr = dateTimeObj.strftime(tmfmt)
+    return timestampStr
+
 
 def pdtreset():
     res = result()

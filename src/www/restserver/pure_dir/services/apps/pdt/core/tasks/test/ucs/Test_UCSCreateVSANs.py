@@ -1,6 +1,7 @@
-from pure_dir.infra.logging.logmanager import loginfo 
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import getMappedOutputs
 from pure_dir.infra.apiresults import PTK_OKAY, result
+
 
 class Test_UCSCreateVSANs:
     def __init__(self):
@@ -20,7 +21,7 @@ class Test_UCSCreateVSANs:
         return res
 
     def rollback(self, inputs, outputs, logfile):
-        print "create vsan rollback"
+        print("create vsan rollback")
         res = result()
         res.setResult(None, PTK_OKAY, "success")
         return res

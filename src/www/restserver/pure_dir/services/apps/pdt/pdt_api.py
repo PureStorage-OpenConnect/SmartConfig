@@ -11,6 +11,7 @@ from pure_dir.components.compute.ucs.ucs import *
 from pure_dir.components.compute.ucs.ucs_upgrade import *
 from pure_dir.components.compute.ucs.ucs_report import *
 from pure_dir.components.storage.purestorage import *
+from pure_dir.components.storage.flashblade.flashblade_report import *
 from pure_dir.components.common import *
 
 from pure_dir.components.network.nexus.nexus_setup import *
@@ -29,9 +30,10 @@ from core import *
 
 def log(data):
     try:
-	loginfo(data)
-    except:
-	loginfo("failed to log")
+        loginfo(data)
+    except BaseException:
+        loginfo("failed to log")
+
 
 def systeminfo():
     ret = systemmanager.system_info()
@@ -102,8 +104,8 @@ def dhcpinfo():
     return parseResult(ret)
 
 
-def figenvalidate(filist, stacktype):
-    ret = discovery.figenvalidate(filist, stacktype)
+def genvalidate(data, stacktype):
+    ret = discovery.genvalidate(data, stacktype)
     return parseResult(ret)
 
 
@@ -568,32 +570,50 @@ def jsonconfigdefaults(stacktype):
     return parseResult(ret)
 
 
-#reports 
+# reports
 def sc_report(stacktype):
     obj = SCReport()
     ret = obj.report(stacktype)
     return parseResult(ret)
+
 
 def sc_report_info(method, args):
     obj = SCReport()
     ret = obj.report_info(method, args)
     return parseResult(ret)
 
+
 def generate_report(stacktype):
     obj = SCReport()
     ret = obj.generate_report(stacktype)
     return parseResult(ret)
+
 
 def report_status(tid):
     obj = SCReport()
     ret = obj.report_status(tid)
     return parseResult(ret)
 
+
 def fs_connectivity():
     ret = topology.fs_connectivity()
     return parseResult(ret)
 
-def release_handle():
-    ret = release_ucsm_handler()
-    return parseResult(ret)
+
+def release_handle(stacktype):
+    ret1 = release_ucsm_handler()
+    if 'fb' not in stacktype:
+        return parseResult(ret1)
+    ret2 = release_fb_handler()
+    ret = result()
+    if ret1.getStatus() !=0 and ret2.getStatus() != 0 :
+        ret.setResult(False, PTK_NOTEXIST, "Both UCS and FlashBlade Handles don't exist")
+        return parseResult(ret)
+    elif ret1.getStatus() != 0:
+        return parseResult(ret1)
+    elif ret2.getStatus() != 0:
+        return parseResult(ret2)
+    else:
+        ret.setResult(True, PTK_OKAY, "Released both UCS and FlashBlade Handles")
+        return parseResult(ret)
 
