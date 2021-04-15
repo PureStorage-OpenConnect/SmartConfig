@@ -58,7 +58,7 @@ class OrchestrationForm:
         """
         for task in doc['workflow']['tasks']['task']:
             # for p3 upgrade
-            #if isinstance(task, unicode):
+            # if isinstance(task, unicode):
             #    return doc['workflow']['tasks']['task']['@id']
             if task['@texecid'] == texecid:
                 return task['@id']

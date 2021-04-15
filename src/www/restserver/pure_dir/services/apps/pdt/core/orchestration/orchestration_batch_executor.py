@@ -50,6 +50,10 @@ def _get_workflow_list(htype):
                 'name': doc['workflow']['@name'],
                 'order': order,
             }
+
+            if '@rollbackOnReset' in doc['workflow'] and doc['workflow']['@rollbackOnReset'] == '1':
+                wf_entity['rollbackOnReset'] = doc['workflow']['@rollbackOnReset']
+
             wf_list.append(wf_entity)
         except IOError:
             continue

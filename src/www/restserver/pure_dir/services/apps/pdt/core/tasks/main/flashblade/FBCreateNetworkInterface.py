@@ -15,11 +15,10 @@ metadata = dict(
 
 
 class FBCreateNetworkInterface:
-    
+
     def __init__(self):
         pass
 
-    
     def execute(self, taskinfo, logfile):
         """
          :param taskinfo: task input for FBCreateNetworkInterface
@@ -43,7 +42,7 @@ class FBCreateNetworkInterface:
             return parseTaskResult(res)
 
         obj = FlashBladeTasks(cred['ipaddress'],
-                        cred['username'], cred['password'])
+                              cred['username'], cred['password'])
         if obj:
             result = obj.create_network_interface(taskinfo['inputs'], logfile)
             return parseTaskResult(result)
@@ -72,7 +71,7 @@ class FBCreateNetworkInterface:
             return parseTaskResult(res)
 
         obj = FlashBladeTasks(cred['ipaddress'],
-                        cred['username'], cred['password'])
+                              cred['username'], cred['password'])
         if obj:
             result = obj.delete_network_interface(inputs, logfile)
             return parseTaskResult(result)
@@ -91,7 +90,6 @@ class FBCreateNetworkInterface:
         fb_list = get_device_list(device_type="FlashBlade")
         res.setResult(fb_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-
 
 
 class FBCreateNetworkInterfaceInputs:
@@ -125,7 +123,7 @@ class FBCreateNetworkInterfaceInputs:
         mapval="",
         order=2,
         recommended="1")
-    address= Textbox(
+    address = Textbox(
         validation_criteria='ip',
         hidden='False',
         isbasic='True',
@@ -142,6 +140,6 @@ class FBCreateNetworkInterfaceInputs:
         order=3,
         recommended="1")
 
+
 class FBCreateNetworkInterfaceOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
-

@@ -357,7 +357,6 @@ def get_global_options(operation, realm, keys):
         return ret
 
 
-
 def reset_global_config():
     """
     Removes any values in global configuration in 'deleteOnReset' is set

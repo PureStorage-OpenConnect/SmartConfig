@@ -21,9 +21,9 @@ class IpValidator:
         nw_with_maskbit = ipaddress.IPv4Network(nw_details.with_netmask)
         mask_bits = str(nw_with_maskbit).split('/')[1]
 
-        subnet_info = dict(subnet = subnet, host_range = host_range, broadcast = broadcast,
-                           num_addr = num_addr, num_hosts = num_hosts, nw_with_maskbit = nw_with_maskbit,
-                           mask_bits = mask_bits)
+        subnet_info = dict(subnet=subnet, host_range=host_range, broadcast=broadcast,
+                           num_addr=num_addr, num_hosts=num_hosts, nw_with_maskbit=nw_with_maskbit,
+                           mask_bits=mask_bits)
         return subnet_info
 
     def get_ips_in_range(self):

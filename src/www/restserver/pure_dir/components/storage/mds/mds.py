@@ -11,7 +11,7 @@ from pycsco.nxos import error
 import json
 import urllib.error
 import re
-import xmltodict
+#import xmltodict
 from pure_dir.infra.apiresults import PTK_CLIERROR, PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.utils.miscellaneous import *
@@ -182,7 +182,8 @@ class MDS:
                 op_dict = json.loads(iface_op[1])
                 iface_struct = op_dict['ins_api']['outputs']['output']['body']['TABLE_interface']['ROW_interface']
                 ############TODO To be validated with downgraded MDS ###################
-                iface_details['interface'] = iface_struct['interface_vfc'] if iface_struct.get('interface_vfc') else iface_struct['interface']
+                iface_details['interface'] = iface_struct['interface_vfc'] if iface_struct.get(
+                    'interface_vfc') else iface_struct['interface']
                 hw_type = ''.join(iface_struct['hardware'].split(' ')[-2:])
                 iface_details['type'] = 'FC' if hw_type == 'FibreChannel' else hw_type
                 pc_id = iface_struct.get('bundle_if_index', None)
@@ -1736,6 +1737,8 @@ class MDS:
             #out_dict = ((e.err).strip())
             #doc = xmltodict.parse(out_dict)
             #out = json.dumps(doc)
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
             return None
 
         except urllib.error.URLError as e:
@@ -1766,3 +1769,67 @@ class MDS:
         except urllib.error.URLError as e:
             loginfo("Error msg: " + str(e.reason))
         return mds_lic
+
+    def save_config(self):
+        """
+        Save all the configurations to starup in MDS switch
+
+        :return: Returns the status
+        """
+        obj = result()
+        try:
+            conf_op = self.handle.config('copy run start', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(conf_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                loginfo("Running configuration of MDS saved to startup successfully")
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            obj.setResult(False, PTK_CLIERROR, str(e.err))
+            return obj
+
+        except urllib.error.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            obj.setResult(True, PTK_NOTEXIST,
+                          "Could not connect to switch")
+            return obj
+
+        obj.setResult(True, PTK_OKAY,
+                      "MDS Running configuration saved to startup successfully")
+        return obj
+
+    def backup_config(self, host):
+        """
+        Backup the running config from  MDS switch to the host
+
+        :return: Returns the status
+        """
+        obj = result()
+        mds_name = self.get_switchname().strip('\n')
+        try:
+            cmd = 'copy running-config tftp://%s/' % host
+            conf_op = self.handle.config(cmd, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(conf_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                loginfo("Running configuration of MDS, %s backed up to host successfully" % mds_name)
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            obj.setResult(False, PTK_CLIERROR, str(e.err))
+            return obj
+
+        except urllib.error.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            obj.setResult(True, PTK_NOTEXIST,
+                          "Could not connect to switch")
+            return obj
+
+        obj.setResult(True, PTK_OKAY,
+                      "MDS Running configuration backed up to successfully")
+        return obj

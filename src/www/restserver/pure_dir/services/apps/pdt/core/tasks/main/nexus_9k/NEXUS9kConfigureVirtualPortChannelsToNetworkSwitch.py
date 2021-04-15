@@ -5,6 +5,7 @@ from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
 from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.common import get_device_list, get_device_credentials
 from pure_dir.infra.apiresults import *
+from pure_dir.components.network.nexus.nexus import Nexus
 
 
 metadata = dict(
@@ -30,6 +31,17 @@ class NEXUS9kConfigureVirtualPortChannelsToNetworkSwitch:
             if obj:
                 res = obj.nexusConfigureVirtualPortChannelsToNetworkSwitch(
                     taskinfo['inputs'], logfile)
+                if res.getStatus() != PTK_OKAY:
+                    return parseTaskResult(res)
+                else:
+                    nexus_obj = Nexus(ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
+                    if nexus_obj:
+                        loginfo("Copying running config to startup config in nexus switch")
+                        nexus_res = nexus_obj.save_config()
+                        if nexus_res.getStatus() != PTK_OKAY:
+                            customlogs("\nUnable to copy running config to startup config in nexus switch\n", logfile)
+                            loginfo("Unable to copy running config to startup config in nexus switch")
+                            return parseTaskResult(nexus_res)
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")
@@ -40,7 +52,6 @@ class NEXUS9kConfigureVirtualPortChannelsToNetworkSwitch:
             loginfo("Failed to get NEXUS switch credentials")
             res.setResult(False, PTK_INTERNALERROR,
                           _("PDT_NEXUS_LOGIN_FAILURE"))
-
         return parseTaskResult(res)
 
     def rollback(self, inputs, outputs, logfile):

@@ -15,11 +15,10 @@ metadata = dict(
 
 
 class FBCreateNFS:
-    
+
     def __init__(self):
         pass
 
-    
     def execute(self, taskinfo, logfile):
         """
          :param taskinfo: task input for FBCreateNFS
@@ -43,7 +42,7 @@ class FBCreateNFS:
             return parseTaskResult(res)
 
         obj = FlashBladeTasks(cred['ipaddress'],
-                        cred['username'], cred['password'])
+                              cred['username'], cred['password'])
         if obj:
             result = obj.create_file_system(taskinfo['inputs'], logfile)
             return parseTaskResult(result)
@@ -72,7 +71,7 @@ class FBCreateNFS:
             return parseTaskResult(res)
 
         obj = FlashBladeTasks(cred['ipaddress'],
-                        cred['username'], cred['password'])
+                              cred['username'], cred['password'])
         if obj:
             result = obj.delete_file_system(inputs, logfile)
             return parseTaskResult(result)
@@ -96,7 +95,6 @@ class FBCreateNFS:
                ]
         res.setResult(val, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-
 
     def fblist(self, keys):
         """
@@ -251,9 +249,9 @@ class FBCreateNFSInputs:
         api="",
         name="export_rule",
         label="Export Rule",
-        #svalue="E.g., 1.0.0.0/8(rw,no_root_squash) 
-        #        fd01:abcd::/64(ro,secure,root_squash,anongid=16000) 
-        #        @netgrp(rw,all_squash,anonuid=99,no_fileid_32bit) 
+        # svalue="E.g., 1.0.0.0/8(rw,no_root_squash)
+        #        fd01:abcd::/64(ro,secure,root_squash,anongid=16000)
+        #        @netgrp(rw,all_squash,anonuid=99,no_fileid_32bit)
         #        1.41.8.32(rw,no_all_squash,fileid_32bit)",
         svalue="__t300.FBCreateSubnet.prefix",
         static_values="",
@@ -265,4 +263,3 @@ class FBCreateNFSInputs:
 
 class FBCreateNFSOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
-

@@ -10,7 +10,6 @@
 from __future__ import print_function, unicode_literals
 
 from netmiko import Netmiko
-from getpass import getpass
 
 
 def netmiko_connect(ip, username, password, tag):
@@ -100,7 +99,22 @@ def get_san_neighbors(ipaddress, username, password, tag):
                     san_neighbor_dict['my_pwwn'] = det[0].split(':', 1)[1].strip()
                     san_neighbor_dict['my_nwwn'] = det[1].split(':', 1)[1].strip()
                     san_neighbors.append(san_neighbor_dict)
-            san_neighbors = [i for n, i in enumerate(san_neighbors) if i not in san_neighbors[n + 1:]]
+            san_neighbors = [i for n, i in enumerate(
+                san_neighbors) if i not in san_neighbors[n + 1:]]
             return san_neighbors
-        except:
+        except BaseException:
             return None
+    return san_neighbors
+
+def netmiko_obj(ipaddress, username, password):
+    '''
+    create netmiko object for given credentials
+    '''
+    my_device = {
+            "host": ipaddress,
+            "username": username,
+            "password": password,
+            "device_type": "cisco_nxos",
+        }
+    netmiko_connect = Netmiko(**my_device)
+    return netmiko_connect

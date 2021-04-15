@@ -19,7 +19,7 @@ from xml.dom.minidom import parse
 
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
-from pure_dir.services.apps.pdt.core.discovery import get_config_mode, get_unconfigured_device_list
+from pure_dir.services.apps.pdt.core.discovery import get_unconfigured_device_list
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import*
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_globals import*
 from pure_dir.services.apps.pdt.core.tasks.main.ucs import *
@@ -104,7 +104,7 @@ g_flash_stack_types = [
      'tag': 'iSCSI', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FB//Nexus 9K//FI', 'value': 'fb-n9k-fi',
      'tag': 'NFS', 'enabled': True, 'req_hardwares': {'UCSM': 2, 'Nexus 9k': 2, 'FlashBlade': 1}},
-    {'label': 'FA//FI ', 'value': 'fa-fi6454-fc', 'tag': 'FC',  
+    {'label': 'FA//FI ', 'value': 'fa-fi6454-fc', 'tag': 'FC',
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
     {'label': 'FA//FI ', 'value': 'fa-fi6454-iscsi', 'tag': 'iSCSI',
         'enabled': True, 'req_hardwares': {'UCSM': 2, 'PURE': 1}, 'hidden': True},
@@ -334,7 +334,7 @@ def prepare_tasks(jobid):
 
         for task in jobdoc['workflow']['tasks']['task']:
             tid = task['@id']
-            exec("%s = %s" % ("task_obj", tid + "." + tid + "()")) 
+            exec("%s = %s" % ("task_obj", tid + "." + tid + "()"))
             if 'prepare' in dir(locals()['task_obj']):
                 method = getattr(locals()['task_obj'], "prepare")
                 res = method(jobid, task['@texecid'], ret.getResult())
@@ -350,6 +350,7 @@ def prepare_tasks(jobid):
         obj.setResult(None, PTK_INTERNALERROR,
                       _("PDT_UNEXPECTED_INTERNAL_ERR_MSG"))
         return obj
+
 
 def check_job_with_wid_exists(wname):
     """
@@ -457,7 +458,7 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     job_dict = {}
     obj = result()
     subjobs = []
-    
+
     if persistant_prepare == 1:
         # do not prepare jobs with same workflow name
         res = check_job_with_wid_exists(wname)
@@ -509,7 +510,6 @@ def workflowprepare_helper_safe(wname, persistant_prepare):
     job_dict = {'jobid': jobid, 'subjobs': subjobs}
     obj.setResult(job_dict, PTK_OKAY, _("PDT_SUCCESS_MSG"))
     return obj
-
 
 
 def job_save_as_api(jobid, data):

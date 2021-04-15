@@ -366,6 +366,7 @@ class UCSCreateTrafficvNICTemplateInputs:
         static_values="",
         order=14)
 
+
 class UCSCreateTrafficvNICTemplateOutputs:
     status = Output(dt_type="integer", name="status", tvalue="SUCCESS")
     vnic_templ_name = Output(

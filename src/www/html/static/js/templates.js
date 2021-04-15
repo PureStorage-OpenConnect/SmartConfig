@@ -1,3 +1,14 @@
+$(document).ready(function() {
+	$('body').delegate('i.fa.showText', 'click', function(e) {
+		if($(this).hasClass('fa-eye')) {
+			$(this).removeClass('fa-eye').addClass('fa-eye-slash');
+			$('#' + $(this).attr('field')).attr('type', 'text');
+		} else {
+			$(this).removeClass('fa-eye-slash').addClass('fa-eye');
+			$('#' + $(this).attr('field')).attr('type', 'password');
+		}
+	});
+});
 /**
   * @desc it will take a object(form input options) as input and will generate a html template for it.
   * @param object $field - options object to display few placeholder (form labels, mandatory symbol, help icon end etc).
@@ -8,11 +19,12 @@ function loadFormTemplate(field) {
 		label: '',
 		mandatory: false,
 		helptext: '',
-		holder: ''
+		holder: '',
+		id: ''
 	};
 	field = $.extend({}, defaults, field);
 	field.mandatory = (typeof field.mandatory == 'undefined' || !field.mandatory) ? '' : 'required';
-	var str = '<div class="control-group ' + field.holder + '">\
+	var str = '<div class="control-group ' + field.holder + '" argname="' + field.id + '">\
 		<label class="title col-lg-5 col-md-5 col-sm-4 col-xs-4">\
 			<span class="' + field.mandatory + '">' + field.label + ': ';
 			if(field.helptext != '')
@@ -68,6 +80,9 @@ function loadFormField(field) {
 		case 'hidden':
 		case 'password':
 			str += '<input type="' + field.type + '" id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" ' + field.maxlength + ' value="' + field.value + '" class="task-input ' + field.class + '" ' + field.readonly + ' ' + field.dataRole + '></input>';
+			if(field.class.indexOf('showText') >= 0) {
+				str += '<i class="fa fa-eye showText" field="' + field.id + '"></i>';
+			}
 			break;
 		case 'textarea':
 			str += '<textarea id="' + field.id + '" name="' + field.name + '" ' + field.disabled + ' placeholder="' + field.label + '" value="' + field.value + '" class="task-input ' + field.class + '" ' + field.readonly + '></textarea>';
@@ -753,8 +768,8 @@ function loadTaskFormInputOptions(args, isGroup, execid) {
 var tmpStr;
 function loadWorkflowInputForm(args, execid, type) {
 	type = (typeof type == 'undefined') ? 'row' : type;
-	var str = '', obj = {}, isHidden, additional, width = (execid == 'global-config') ? 'col-lg-5 col-md-5 col-sm-5 col-xs-5' : 'col-lg-3 col-md-3 col-sm-3 col-xs-3',
-	width1 = (execid == 'global-config') ? 'col-lg-7 col-md-7 col-sm-7 col-xs-7' : 'col-lg-9 col-md-9 col-sm-9 col-xs-9 nopadding',
+	var str = '', obj = {}, isHidden, additional, width = (execid == 'global-config') ? 'col-lg-5 col-md-5 col-sm-4 col-xs-4' : 'col-lg-3 col-md-3 col-sm-3 col-xs-3',
+	width1 = (execid == 'global-config') ? 'col-lg-7 col-md-7 col-sm-8 col-xs-8' : 'col-lg-9 col-md-9 col-sm-9 col-xs-9 nopadding',
 	width2 = (execid == 'global-config') ? '' : 'col-lg-8 col-md-9 col-sm-12 col-xs-12';
 	args.execid = (typeof args.execid == 'undefined') ? execid : args.execid;
 	args.mandatory = (typeof args.mandatory == 'undefined') ? '' : 'required';
@@ -782,7 +797,7 @@ function loadWorkflowInputForm(args, execid, type) {
 		str = '<div class="control-group ' + args.name + ' ' + isHidden + ' ' + additional + '" argname="' + args.name + '" argtype="' + args.iptype + '" execid="' + args.execid + '">\
 			<label class="title ' + width + '">\
 				<span class="' + args.mandatory + '">' + args.label + ': ';
-				if(typeof args.helptext != 'undefined')
+				if(typeof args.helptext != 'undefined' && args.helptext.length > 0)
 					str += '<i class="fa fa-question-circle help-txt tipso tipso_style" data-tipso-title="' + args.label + '" data-tipso="' + args.helptext + '" data-html="true" data-toggle="tooltip"></i>';
 				str += '</span>\
 			</label>\

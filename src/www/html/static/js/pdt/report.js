@@ -388,7 +388,7 @@ function loadReportTemplate(downloadFlag, size) {
 				'<tbody>';
 					$.each(response.data.components, function(dType, components) {
 						$.each(components, function(i, info) {
-							if($.inArray(dType, ['MDS', 'PURE', 'UCSM', 'Nexus 5k', 'Nexus 9k']) !== -1) {
+							if($.inArray(dType, ['MDS', 'PURE', 'UCSM', 'Nexus 5k', 'Nexus 9k', 'FlashBlade']) !== -1) {
 								info['vipaddress'] = (typeof info['vipaddress'] != 'undefined') ? info['vipaddress'] : '-';
 								info['leadership'] = (typeof info['leadership'] != 'undefined') ? info['leadership'] : '-';
 								str += '<tr>' +

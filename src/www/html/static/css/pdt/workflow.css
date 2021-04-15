@@ -404,6 +404,9 @@ div[class|="workflow-input"] > .radio, div[class|="workflow-input"] > .checkbox 
 .modal-body input[type="text"], .modal-body input[type="password"], .modal-body input[type="number"], .modal-body select, .modal-body textarea {
 	width: 100%;
 }
+.modal-body input[type="text"].p50, .modal-body input[type="password"].p50, .modal-body input[type="number"].p50, .modal-body select.p50, .modal-body textarea.p50 {
+	width: 49%;
+}
 .modal-body .slider-container {
 	margin: 16px 5px;
 }

@@ -19,7 +19,7 @@ import copy
 
 from pure_dir.infra.apiresults import PTK_CLIERROR, PTK_NOTEXIST, PTK_OKAY, result
 from pure_dir.infra.logging.logmanager import loginfo
-from pure_dir.services.utils.miscellaneous import find_dict_val, get_value
+from pure_dir.services.utils.miscellaneous import get_value
 
 
 class Nexus:
@@ -757,7 +757,7 @@ class Nexus:
                         else:
                             iface_notpc_list.append(iface)
                     if pc_bind:
-                        loginfo("Nexus interface list which are binded to port channel: " + \
+                        loginfo("Nexus interface list which are binded to port channel: " +
                                 pc_bind + " are" + str([iface['iface_id'] for iface in iface_pc_list]))
                         obj.setResult(iface_pc_list, PTK_OKAY, "Success")
                         return obj
@@ -1819,7 +1819,6 @@ class Nexus:
         return: vsan_name, vsan state, interoperability mode, vsan operational state
         """
         nexus_vsan_details = []
-        list_out = []
         tmp_list = []
         try:
             nexus_out = self.handle.config('show vsan', fmat='json')
@@ -1986,7 +1985,8 @@ class Nexus:
                     for lacp_port in lacp_mem_op:
                         port = {}
                         port['local_interface'] = lacp_port['port']
-                        port['remote_interface'] = lacp_port['partner-system-id'].split(',')[-1].replace('-',':')
+                        port['remote_interface'] = lacp_port['partner-system-id'].split(
+                            ',')[-1].replace('-', ':')
                         port['remote_interface_state'] = 'active' if lacp_port['partner-flags'][-1] == 'A' else 'passive'
                         lacp_dict['pc_ifaces'].append(port)
                     lacp_list.append(lacp_dict)
@@ -2005,11 +2005,76 @@ class Nexus:
         g = 1000
         try:
             sys = self.nexus_command(cmd, ['eth_speed', 'eth_media'])
-            speed = re.findall('\d+', sys['eth_media'][0])
+            speed = re.findall(r'\d+', sys['eth_media'][0])
             if 'g' in sys['eth_media'][0].lower():
-                eth_speed=int(speed[0])*g
+                eth_speed = int(speed[0]) * g
                 return eth_speed
 
         except Exception as e:
             loginfo("Error msg: " + str(e))
             return None
+
+    def save_config(self):
+        """
+        Save all the configurations to starup in Nexus switch
+
+        :return: Returns the status
+        """
+        obj = result()
+        dicts={}
+        try:
+            conf_op = self.handle.config('copy run start', fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(conf_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                loginfo("Running configuration of Nexus saved to startup successfully")
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            obj.setResult(False, PTK_CLIERROR, str(e.err))
+            return obj
+
+        except urllib.error.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            obj.setResult(True, PTK_NOTEXIST,
+                          "Could not connect to switch")
+            return obj
+
+        obj.setResult(dicts, PTK_OKAY,
+                      "Nexus Running configuration saved to startup successfully")
+        return obj
+
+    def backup_config(self, host):
+        """
+        Backup the running config from  Nexus switch to the host
+
+        :return: Returns the status
+        """
+        obj = result()
+        nexus_name = self.get_switchname().strip('\n')
+        try:
+            cmd = 'copy running-config tftp://%s/ vrf management' % host
+            conf_op = self.handle.config(cmd, fmat='json')
+            cli_error = self.handle.cli_error_check(json.loads(conf_op[1]))
+            if cli_error:
+                raise cli_error
+            else:
+                loginfo("Running configuration of Nexus %s backed up to host successfully" % nexus_name)
+
+        except error.CLIError as e:
+            loginfo("CLI Error: " + str(e.err))
+            loginfo("Error msg: " + str(e.msg))
+            obj.setResult(False, PTK_CLIERROR, str(e.err))
+            return obj
+
+        except urllib.error.URLError as e:
+            loginfo("Error msg: " + str(e.reason))
+            obj.setResult(True, PTK_NOTEXIST,
+                          "Could not connect to switch")
+            return obj
+
+        obj.setResult(True, PTK_OKAY,
+                      "Nexus Running configuration backed up to successfully")
+        return obj

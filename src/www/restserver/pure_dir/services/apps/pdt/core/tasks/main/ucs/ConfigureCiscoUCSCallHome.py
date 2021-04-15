@@ -41,12 +41,13 @@ class ConfigureCiscoUCSCallHome:
             inputs, logfile)
         obj.release_ucs_handle()
         return res
-    
+
     def getfilist(self, keys):
         res = result()
         ucs_list = get_device_list(device_type="UCSM")
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
+
 
 class ConfigureCiscoUCSCallHomeInputs:
     fabric_id = Dropdown(

@@ -21,10 +21,10 @@ from requests.packages.urllib3.util.retry import Retry
 from pure_dir.services.utils.miscellaneous import get_xml_element
 from pure_dir.global_config import get_settings_file
 
-#ucsm_credentials_store = "/mnt/system/pure_dir/pdt/ucsmlogin.xml"
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 settings = get_settings_file()
+
 
 class UCSManager:
     dhcp_lease_file = '/var/lib/dhcpd/dhcpd.leases'
@@ -84,12 +84,12 @@ class UCSManager:
     def is_passwd_strong(self, passwd):
         if (not re.findall(r'^.{6,80}$', passwd) or
             not re.findall(r'^.*(?=.{6,80})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$', passwd) or
-            re.findall(r'[$?=#]', passwd)):
+                re.findall(r'[$?=#]', passwd)):
             return False, "Does not meet complexity"
         else:
             password = passwd.lower()
             if (re.findall(r'(([a-zA-Z0-9_])\2{2,})', password) or
-                           re.findall(r'((\d)\2{2,})', password)):
+                    re.findall(r'((\d)\2{2,})', password)):
                 return False, "Must not contain consecutive characters"
             else:
                 num = re.findall(r'[0-9]{3,}', password)
@@ -98,12 +98,12 @@ class UCSManager:
                 word = []
                 alpha = [i for i in password if re.findall(r'[a-z]', i)]
                 for i in range(len(alpha)):
-                    if i+4 < len(alpha)+1:
-                        word = alpha[i:i+4]
+                    if i + 4 < len(alpha) + 1:
+                        word = alpha[i:i + 4]
                         for val in range(len(word)):
-                            if val+1 < len(word):
-                                if ord(word[val+1]) == ord(word[val])+1:
-                                    no_of_times+=1
+                            if val + 1 < len(word):
+                                if ord(word[val + 1]) == ord(word[val]) + 1:
+                                    no_of_times += 1
                         if no_of_times > 3:
                             is_consecutive = True
                 if is_consecutive:
@@ -111,7 +111,7 @@ class UCSManager:
                 for val in num:
                     numlst = [int(i) for i in val]
                     if len(numlst) >= 3:
-                        if sorted(numlst) == list(range(min(numlst), max(numlst)+1)):
+                        if sorted(numlst) == list(range(min(numlst), max(numlst) + 1)):
                             return False, "Must not contain consecutive numbers"
         return True, ""
 
@@ -540,7 +540,7 @@ class UCSManager:
             conf_status = self.ucsmficonfigure(mode, input_dict).getStatus()
             if conf_status == PTK_OKAY:
                 loginfo("FI Reconfigure: FI Configuration success")
-                ##TODO check if fabric B is properly up for DC
+                # TODO check if fabric B is properly up for DC
                 status, details = get_xml_element(settings, "stacktype")
                 if status and 'ucsmini' in details[0]['stacktype']:
                     time.sleep(30)
@@ -566,6 +566,7 @@ class UCSManager:
                     ip_val = True
                 if not ip_val:
                     err.append({"field": ip, "msg": "Please Enter Valid IP"})
+                    continue
                 if ip != 'dns':
                     network_reach, ip_reach = ipv.validate_ip(ip_list[ip])
                     if network_reach:
@@ -641,7 +642,7 @@ class UCSManager:
 
                 if 'pri_passwd' in config and config['pri_passwd']:
                     password_check = self.is_passwd_strong(config['pri_passwd'])
-                    if password_check[0] == False:
+                    if not password_check[0]:
                         ret.append({'field': 'pri_passwd',
                                     'msg': '{}. Refer helptext.'.format(password_check[1])})
                         ret.append({'field': 'conf_passwd',
@@ -1162,11 +1163,11 @@ class UCSManager:
                 retry += 1
                 time.sleep(2)
 
-        ##TODO check if fabric B is properly up for DC
-        status, details = get_xml_element(settings, "stacktype")       
+        # TODO check if fabric B is properly up for DC
+        status, details = get_xml_element(settings, "stacktype")
         if status and 'ucsmini' in details[0]['stacktype']:
             time.sleep(30)
-  
+
         loginfo(
             "Successfully configured subordinate FI %s. Cluster configuration done" %
             config['sec_ip'])
@@ -1362,7 +1363,7 @@ class UCSManager:
         data['virtualIP3'] = vir_ip[2]
         data['virtualIP4'] = vir_ip[3]
         data['yes_or_no_passwd'] = "2"
-        data['systemName'] = re.sub('\-A$', '', systemName)
+        data['systemName'] = re.sub(r'\-A$', '', systemName)
         data['adminPasswd'] = adminPasswd
         data['adminPasswd1'] = adminPasswd
         data['oobIP1'] = pri_ip[0]

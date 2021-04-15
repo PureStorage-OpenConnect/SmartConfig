@@ -58,13 +58,13 @@ def prepare_batch_status_file(hwtype, wflist):
     doc.appendChild(root)
     tasks_node = doc.createElement("workflows")
     root.appendChild(tasks_node)
-
     for wf in wflist:
         tstatus = doc.createElement("workflow")
         tstatus.setAttribute("id", wf['id'])
         tstatus.setAttribute("name", wf['name'])
         tstatus.setAttribute("order", wf['order'])
-
+        if wf.get('rollbackOnReset'):
+            tstatus.setAttribute("rollbackOnReset", wf['rollbackOnReset'])
         tstatus.setAttribute("status", "READY")
         tasks_node.appendChild(tstatus)
 

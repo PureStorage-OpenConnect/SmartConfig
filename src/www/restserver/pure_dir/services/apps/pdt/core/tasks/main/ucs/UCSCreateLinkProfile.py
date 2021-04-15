@@ -43,7 +43,6 @@ class UCSCreateLinkProfile:
         obj.release_ucs_handle()
         return res
 
-
     def getudldpolicies(self, keys):
         udld_pol_list = []
         res = result()
@@ -62,7 +61,7 @@ class UCSCreateLinkProfile:
         udld_policies = handle.query_classid("fabricUdldLinkPolicy")
         for udld_pol in udld_policies:
             udld_pol_list.append(
-                {"id" : udld_pol.name,"selected" : "0", "label" : udld_pol.name})
+                {"id": udld_pol.name, "selected": "0", "label": udld_pol.name})
         udld_pol_list.append(
             {"id": "not-set", "selected": "0", "label": "not-set"})
         ucsm_logout(handle)
@@ -120,9 +119,6 @@ class UCSCreateLinkProfileInputs:
         mandatory='1',
         mapval="1",
         order=3)
-        
-
-
 
 
 class UCSCreateLinkProfileOutputs:

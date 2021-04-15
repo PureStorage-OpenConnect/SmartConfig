@@ -27,7 +27,7 @@ def get_ucs_handle(mac):
     obj = UCSTasks(cred['vipaddress'],
                    cred['username'],
                    cred['password'])
-    if obj is not None:
+    if obj.handle is not None:
         res.setResult(obj, PTK_OKAY,
                       "success")
     else:
@@ -95,6 +95,7 @@ def ucsm_logout(handle):
             None,
             PTK_INTERNALERROR,
             "failed to release the handle")
+        loginfo("failed to release the handle" + str(e))
         return ret
 
     ret.setResult(None, PTK_OKAY, "Success")

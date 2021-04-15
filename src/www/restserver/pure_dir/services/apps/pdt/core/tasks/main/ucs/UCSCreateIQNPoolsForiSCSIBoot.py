@@ -1,7 +1,7 @@
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import job_input_save, parseTaskResult
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import job_input_save, parseTaskResult, getGlobalArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 import random
 import re
@@ -50,6 +50,12 @@ class UCSCreateIQNPoolsForiSCSIBoot:
         iqn_address = self.gen_iqn()
         loginfo("Random iqn address:%s" % iqn_address)
         job_input_save(jobid, texecid, 'suffix', iqn_address)
+
+        val = getGlobalArg(inputs, 'kvm_console_ip')
+        kvm_range = val.split('-')
+        kvm_count = int(kvm_range[1]) - int(kvm_range[0])
+        if kvm_count > 32:
+            job_input_save(jobid, texecid, 'suffix_to', str(kvm_count))
 
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

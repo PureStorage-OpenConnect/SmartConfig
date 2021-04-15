@@ -28,7 +28,7 @@ class NEXUS9kCreateVPCDomainFB:
             obj = NEXUSTasks(
                 ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
-                res = obj.nexusCreateVPCDomain(taskinfo['inputs'], logfile,peerRouterLog=True )
+                res = obj.nexusCreateVPCDomain(taskinfo['inputs'], logfile, peerRouterLog=True)
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")

@@ -1,13 +1,11 @@
 from pure_dir.components.storage.flashblade.flashblade_tasks import *
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import getAsList
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
 from pure_dir.components.common import get_device_credentials
 from pure_dir.services.utils.miscellaneous import *
 import xmltodict
 import copy
-import purity_fb
 import urllib.error
 from threading import Lock
 from pure_dir.global_config import get_settings_file
@@ -15,6 +13,7 @@ from pure_dir.global_config import get_settings_file
 g_hw_details = {}
 g_fb_task_obj = None
 lock = Lock()
+
 
 def get_device_details(hw_type):
     """
@@ -70,11 +69,11 @@ def _fb_handler():
         return g_fb_task_obj
     try:
         fb_task_obj = FlashBladeTasks(ipaddress=pure_creden['ipaddress'],
-                             username=pure_creden['username'],
-                             password=pure_creden['password'])
+                                      username=pure_creden['username'],
+                                      password=pure_creden['password'])
         g_fb_task_obj = fb_task_obj
         if fb_task_obj is not None:
-            if fb_task_obj.handle != None and fb_task_obj.fb != None:
+            if fb_task_obj.handle is not None and fb_task_obj.fb is not None:
                 return fb_task_obj
             else:
                 loginfo("Failed to get FlashBlade handler")
@@ -82,8 +81,9 @@ def _fb_handler():
         else:
             return None
     except Exception as e:
-        loginfo("Failed to get FlashBlade handler")
+        loginfo("Failed to get FlashBlade handler" + str(e))
         return None
+
 
 def release_fb_handler():
     """To release FlashBlade Handle."""
@@ -113,7 +113,7 @@ def get_fb_system_info(args={}):
     """
     fb_info_list = []
     fb_tmp_dict = {}
-    handle,fb = None, None
+    fb = None
     fb_ini = {
         'fb_name': "",
         'fb_ip': "",
@@ -129,10 +129,12 @@ def get_fb_system_info(args={}):
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
+            fb = fb_task_obj.fb
             fb_info['fb_ip'] = get_device_details('fb_id')['ipaddress']
-            fb_info['fb_serial'] = fb_task_obj.fb.hardware.list_hardware(filter='type=\'ch\'').items[0].serial
-            fb_info['fb_model'] = fb_task_obj.fb.hardware.list_hardware(filter='type=\'fb\'').items[0].model
+            fb_info['fb_serial'] = fb_task_obj.fb.hardware.list_hardware(
+                filter='type=\'ch\'').items[0].serial
+            fb_info['fb_model'] = fb_task_obj.fb.hardware.list_hardware(
+                filter='type=\'fb\'').items[0].model
             fb_info['fb_capacity'] = str(fb.arrays.list_arrays_space().items[0].capacity)
             fb_tmp_dict = fb.arrays.list_arrays()
             fb_info['fb_name'] = fb_tmp_dict.items[0].name
@@ -170,14 +172,13 @@ def get_fb_hardware_info(args={}):
     """
     fb_hw_info_list = []
     fb_tmp_dict = {}
-    handle,fb = None, None
     fb_ini = {
         'hw_type': "",
         'hw_name': "",
         'hw_serial': "",
         'hw_model': "",
         'hw_status': "",
-        'hw_speed': "", 
+        'hw_speed': "",
         'hw_capacity': ""}
     fb_hw_info = copy.deepcopy(fb_ini)
     method = "FlashBlade Hardware Info"
@@ -185,7 +186,6 @@ def get_fb_hardware_info(args={}):
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
             fb_tmp_dict = fb_task_obj.fb.hardware.list_hardware(filter='type=\'ch\'').items
             for item in fb_tmp_dict:
                 fb_hw_info['hw_type'] = "Chassis - " + str(item.index)
@@ -193,17 +193,18 @@ def get_fb_hardware_info(args={}):
                 fb_hw_info['hw_serial'] = item.serial if item.serial else "--"
                 fb_hw_info['hw_model'] = item.model if item.model else "--"
                 fb_hw_info['hw_status'] = item.status
-                fb_hw_info['hw_speed'] = str(item.speed) if item.speed else "--" 
+                fb_hw_info['hw_speed'] = str(item.speed) if item.speed else "--"
                 fb_hw_info['hw_capacity'] = "N/A"
                 fb_hw_info_list.append(fb_hw_info.copy())
-            fb_tmp_dict = list(zip(fb_task_obj.fb.hardware.list_hardware(filter='type=\'fb\'').items, fb_task_obj.fb.blade.list_blades().items))
+            fb_tmp_dict = list(zip(fb_task_obj.fb.hardware.list_hardware(
+                filter='type=\'fb\'').items, fb_task_obj.fb.blade.list_blades().items))
             for item in fb_tmp_dict:
                 fb_hw_info['hw_type'] = "FlashBlade - " + str(item[0].slot)
                 fb_hw_info['hw_name'] = item[0].name
                 fb_hw_info['hw_serial'] = item[0].serial if item[0].serial else "--"
                 fb_hw_info['hw_model'] = item[0].model if item[0].model else "--"
                 fb_hw_info['hw_status'] = item[0].status
-                fb_hw_info['hw_speed'] = str(item[0].speed) if item[0].speed else "--" 
+                fb_hw_info['hw_speed'] = str(item[0].speed) if item[0].speed else "--"
                 fb_hw_info['hw_capacity'] = str(item[1].raw_capacity)
                 fb_hw_info_list.append(fb_hw_info.copy())
             if [fb_dict for fb_dict in fb_hw_info_list if not fb_dict == fb_ini] != []:
@@ -234,7 +235,6 @@ def get_fb_global_settings_info(args={}):
     """
     fb_glob_settings_info_list = []
     fb_tmp_dict = {}
-    handle,fb = None, None
     fb_ini = {
         'domain': "",
         'dns_servers': [],
@@ -249,7 +249,6 @@ def get_fb_global_settings_info(args={}):
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
             fb_tmp_dict = fb_task_obj.fb.dns.list_dns().items[0]
             fb_glob_settings_info['domain'] = fb_tmp_dict.domain
             fb_glob_settings_info['dns_servers'] = fb_tmp_dict.nameservers
@@ -259,7 +258,8 @@ def get_fb_global_settings_info(args={}):
             fb_tmp_dict = fb_task_obj.fb.smtp.list_smtp().items[0]
             fb_glob_settings_info['relay_host'] = fb_tmp_dict.relay_host
             fb_glob_settings_info['sender_domain'] = fb_tmp_dict.sender_domain
-            fb_glob_settings_info['alert_email'] = fb_task_obj.fb.alert_watchers.list_alert_watchers().items[0].name
+            fb_glob_settings_info['alert_email'] = fb_task_obj.fb.alert_watchers.list_alert_watchers(
+            ).items[0].name
             fb_glob_settings_info_list.append(fb_glob_settings_info.copy())
             if [fb_dict for fb_dict in fb_glob_settings_info_list if not fb_dict == fb_ini] != []:
                 return PTK_OKAY, fb_glob_settings_info_list, _("PDT_SUCCESS_MSG")
@@ -289,7 +289,6 @@ def get_fb_subnet_interfaces(args={}):
     """
     fb_subnet_interf_list = []
     fb_tmp_dict = {}
-    handle,fb = None, None
     fb_ini = {
         'subnet_name': "",
         'subnet_prefix': "",
@@ -306,7 +305,6 @@ def get_fb_subnet_interfaces(args={}):
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
             fb_tmp_dict = fb_task_obj.fb.subnets.list_subnets().items
             for item in fb_tmp_dict:
                 fb_subnet_interf['subnet_name'] = item.name
@@ -316,7 +314,7 @@ def get_fb_subnet_interfaces(args={}):
                 fb_subnet_interf['gateway'] = item.gateway
                 fb_subnet_interf['interf_name'] = [interf.name for interf in item.interfaces]
                 nw_interf = fb_task_obj.fb.network_interfaces.list_network_interfaces(
-                names=fb_subnet_interf['interf_name']).items
+                    names=fb_subnet_interf['interf_name']).items
                 fb_subnet_interf['interf_ip_addr'] = [''.join(intf.address) for intf in nw_interf]
                 fb_subnet_interf['services'] = [''.join(intf.services) for intf in nw_interf]
                 fb_subnet_interf['netmask'] = nw_interf[0].netmask
@@ -335,6 +333,7 @@ def get_fb_subnet_interfaces(args={}):
     finally:
         lock.release()
 
+
 def get_fb_eth_ports(args={}):
     """
     Function to obtain FlashBlade Ethernet Ports.
@@ -348,7 +347,6 @@ def get_fb_eth_ports(args={}):
     """
     fb_eth_ports_list = []
     fb_tmp_dict = {}
-    handle,fb = None, None
     fb_ini = {
         'port_name': "",
         'slot': "",
@@ -362,7 +360,6 @@ def get_fb_eth_ports(args={}):
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
             fb_tmp_dict = fb_task_obj.fb.hardware.list_hardware(filter='type=\'eth\'').items
             for item in fb_tmp_dict:
                 fb_eth_ports['port_name'] = item.name
@@ -400,7 +397,6 @@ def get_fb_file_systems(args={}):
     """
     fb_nfs_list = []
     fb_tmp_dict = {}
-    handle,fb = None, None
     fb_ini = {
         'name': "",
         'created_size': "",
@@ -414,9 +410,8 @@ def get_fb_file_systems(args={}):
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
-            fb_tmp_dict = fb_task_obj.fb.file_systems.list_file_systems(filter='destroyed=\'False\'' and 
-                          'nfs.v3_enabled or nfs.v4_1_enabled').items
+            fb_tmp_dict = fb_task_obj.fb.file_systems.list_file_systems(
+                filter='destroyed=\'False\'' and 'nfs.v3_enabled or nfs.v4_1_enabled').items
             for item in fb_tmp_dict:
                 fb_nfs['name'] = item.name
                 fb_nfs['created_size'] = str(item.created)
@@ -452,8 +447,6 @@ def get_fb_lag_list(args={}):
 
     """
     fb_lag_list = []
-    fb_tmp_dict = {}
-    handle,fb = None, None
     fb_ini = {
         'name': "",
         'id': "",
@@ -462,29 +455,34 @@ def get_fb_lag_list(args={}):
         'mac_address': "",
         'state': "",
         'ports': ""}
-    fb_lag = copy.deepcopy(fb_ini)
+    #fb_lag =copy.deepcopy(fb_ini)
     method = "FlashBlade LAG List"
     try:
         lock.acquire()
         fb_task_obj = _fb_handler()
         if fb_task_obj is not None:
-            handle, fb = fb_task_obj.handle, fb_task_obj.fb
             fb_hw_list = fb_task_obj.fb.hardware.list_hardware().to_dict().get('items')
             fb_eth_list = [hw for hw in fb_hw_list if hw['type'] == 'eth']
             fb_lag_list = fb_task_obj.fb.link_aggregation_groups.list_link_aggregation_groups().to_dict().get('items')
-            [fb_lag.update({'state':'up' if fb_lag['status'] == 'healthy' else 'down'}) for fb_lag in fb_lag_list]
-            [port.update({'state': 'up' if iface['status'] == 'healthy' else 'unused' if iface['status'] == 'unused' else 'down'}) for lag in fb_lag_list for port in lag['ports'] for iface in fb_eth_list if port['name'] == iface['name']]
+            [fb_lag.update({'state': 'up' if fb_lag['status'] == 'healthy' else 'down'})
+             for fb_lag in fb_lag_list]
+            [port.update({'state': 'up' if iface['status'] == 'healthy' else 'unused' if iface['status'] == 'unused' else 'down'})
+             for lag in fb_lag_list for port in lag['ports'] for iface in fb_eth_list if port['name'] == iface['name']]
 
-            #TODO: MAC address of lag is None in list_link_aggregation_groups() output. So taking it from cli.
+            # TODO: MAC address of lag is None in list_link_aggregation_groups()
+            # output. So taking it from cli.
             fb_cred = get_device_details('fb_id')
-            error, output = execute_remote_command(fb_cred['ipaddress'], fb_cred['username'], fb_cred['password'], "purelag list --csv")
+            error, output = execute_remote_command(
+                fb_cred['ipaddress'], fb_cred['username'], fb_cred['password'], "purelag list --csv")
             if error == 0:
                 output = list(filter(None, [op.rstrip() for op in output.split('\n')[1:]]))
-                lag_cli_list = [{'name': lag.split(',')[0], 'mac': lag.split(',')[-1]} for lag in output]
-                [lag_sdk.update({'mac_address': lag_cli.get('mac')}) for lag_sdk in fb_lag_list for lag_cli in lag_cli_list if lag_sdk['name'] == lag_cli['name']]
+                lag_cli_list = [{'name': lag.split(',')[0],
+                                 'mac': lag.split(',')[-1]} for lag in output]
+                [lag_sdk.update({'mac_address': lag_cli.get(
+                    'mac')}) for lag_sdk in fb_lag_list for lag_cli in lag_cli_list if lag_sdk['name'] == lag_cli['name']]
 
-            [lag.update({'lag_speed':str(int(lag['lag_speed']/(1000*1000*1000))) + ' Gb/s',
-                         'port_speed':str(int(lag['port_speed']/(1000*1000*1000))) + ' Gb/s'}) for lag in fb_lag_list]
+            [lag.update({'lag_speed': str(int(lag['lag_speed'] / (1000 * 1000 * 1000))) + ' Gb/s',
+                         'port_speed':str(int(lag['port_speed'] / (1000 * 1000 * 1000))) + ' Gb/s'}) for lag in fb_lag_list]
             return PTK_OKAY, fb_lag_list, _("PDT_SUCCESS_MSG")
 
         loginfo("Failed to get Handler for FlashBlade Report Generation " + method)

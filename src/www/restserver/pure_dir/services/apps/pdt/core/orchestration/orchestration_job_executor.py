@@ -31,8 +31,9 @@ from copy import deepcopy
 import xmltodict
 import shelve
 import time
-import os.path
+#import os.path
 from os import path
+
 
 def get_value_from_global_list(hw_type, key):
     """
@@ -74,7 +75,6 @@ def _map_input_args(tasks, hw_type, dicts, outputdicts, input_obj):
     iplist = tasks['args']['arg'] if isinstance(tasks['args']['arg'], list) else [
         tasks['args']['arg']]
     for inputarg in iplist:
-        #exec("%s = %s.%s" % ("field", "input_obj", inputarg['@name']))
         field = get_obj(("%s" % inputarg['@name']), input_obj)
         if '@mapval' in inputarg and inputarg['@mapval'] == '1':
             if inputarg['@value'][0:2] != "__":
@@ -265,14 +265,15 @@ def execute_task(
         g_obj_list,
         logfile, hw_type)
 
-def get_obj(path,param = None):
-  if param != None:
-      exec("%s = %s.%s" %
-         ("res", 'param', path))
-      return (locals()['res'])
-  exec("%s = %s" %
+
+def get_obj(path, param=None):
+    if param is not None:
+        exec("%s = %s.%s" %
+             ("res", 'param', path))
+        return (locals()['res'])
+    exec("%s = %s" %
          ("res", path))
-  return (locals()['res'])
+    return (locals()['res'])
 
 
 def _execute_task(
@@ -323,8 +324,6 @@ def _execute_task(
         my_cls = _get_obj(g_obj_list, cur_task['@id'])
 
     inputs = {}
-    #exec("%s = %s" %
-    #     ("input_obj", cur_task['@id'] + "." + cur_task['@id'] + "Inputs" + "()"))
 
     input_obj = get_obj(cur_task['@id'] + "." + cur_task['@id'] + "Inputs" + "()")
     _map_input_args(cur_task, hw_type, inputs, outputdicts, input_obj)
@@ -543,10 +542,18 @@ def dump_stack(jid, cur_task, seqno, job_recorder, task_list, logfile, outputdic
     # method helps in restarting a task incase of failure
     # dumps the meta required for restart to a dump file
     if path.exists(get_job_dump_file(jid)):
-       #Already failed task
-       loginfo('Dump already exists')
-       return 0
+        # Already failed task
+	# Check if it failed for same execid then dont overwrite
+        loginfo('Dump already exists')
+        shelf = shelve.open(get_job_dump_file(jid), flag="c")
+        old_execid = [ k[1] for k in shelf['cur_task'].items() if k[0] == '@texecid' ]
+        new_execid = [ k[1] for k in cur_task.items() if k[0] == '@texecid' ]
 
+        shelf.close()
+        if old_execid[0] == new_execid[0]:
+             print ("Failed for a previously failed task")
+             return 0
+       
     shelf = shelve.open(get_job_dump_file(jid), flag="c")
     shelf['record'] = job_recorder
     shelf['jid'] = jid

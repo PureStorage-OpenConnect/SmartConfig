@@ -1,8 +1,5 @@
-import time
-
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import getAsList
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.network.nexus.nexus import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
 from pure_dir.components.common import get_device_credentials
@@ -59,7 +56,6 @@ def get_device_details(hw_type):
 
 def _nexus_handler(switch_name):
     """To get Nexus Handle"""
-    obj = result()
     nexus_creden = {}
     nexus_creden = get_device_details(switch_name)
     try:
@@ -238,7 +234,6 @@ def get_nexus_vlan_info(args={}):
     """
     fetches vlan_name, vlan_id, vlan_status
     """
-    res = result()
     nex_vlan_info = []
     nexus_init = {'vlan_name': '', 'vlan_id': '', 'vlan_status': ''}
     vlan_dict = {}
@@ -269,7 +264,6 @@ def get_nexus_intf_info(args={}):
     """
     fetches interface_name, vlan, state_speed_type, description
     """
-    res = result()
     nex_intf_info = []
     intf_dict = {}
     intf_desc_dict = {}
@@ -283,14 +277,15 @@ def get_nexus_intf_info(args={}):
         nex_show_desc = helper.nexus_command('show interface description', ['ROW_interface'])
         intf_details = nex_show_intf['ROW_interface']
         intf_desc = nex_show_desc['ROW_interface']
-        intf_desc1 = intf_desc[0]
+        #intf_desc1 = intf_desc[0]
         for intf_info in intf_details:
             if isinstance(intf_info, list):
                 for intf in intf_info:
                     intf_dict['description'] = intf['desc'] if 'desc' in intf else "--"
                     intf_dict['interface_name'] = intf["interface"]
                     intf_dict['vlan'] = intf['vlan'] if 'vlan' in intf else ""
-                    status = intf['state'] if intf.get('state') else intf.get('svi_admin_state', 'Unknown')
+                    status = intf['state'] if intf.get(
+                        'state') else intf.get('svi_admin_state', 'Unknown')
                     intf_type = intf['type'] if 'type' in intf else "--"
                     speed = intf['speed'] if 'speed' in intf else "--"
                     intf_dict['state_speed_type'] = status + '/' + intf_type + '/' + speed
@@ -320,7 +315,6 @@ def get_nexus_vpc_info(args={}):
     """
     fetches vpc_id, port, status, active_vlans, vpc_domain_id, vpc_role
     """
-    res = result()
     nex_vpc_info = []
     vpc_dict = {}
     vpc_peer_dict = {}
@@ -373,7 +367,6 @@ def get_nexus_portchannel_info(args={}):
     """
     nex_pc_info = []
     pc_dict = {}
-    pc_peer_dict = {}
     ports_l = []
     switch_name = args['switch_name']
     method = "Nexus Switch " + switch_name[-1].upper() + " Port Channel Configuration"
@@ -441,7 +434,6 @@ def get_nexus5k_flogi(args={}):
     """
     fetches interface, vsan_id, wwpn, wwnn
     """
-    res = result()
     nex_sys_info = []
     nex_sys = {}
     switch = args['switch_name']
@@ -503,7 +495,7 @@ def get_nexus5k_zone(args={}):
         nexus_sys_info = helper.nexus_zoneset_details()
         for i in nexus_sys_info:
             i['logged'] = 'Yes'
-        if [nexus_dict for nexus_dict in nexus_sys_info                                                                                                                                 if not nexus_dict == nexus_init] != []:
+        if [nexus_dict for nexus_dict in nexus_sys_info if not nexus_dict == nexus_init] != []:
             return PTK_OKAY, nexus_sys_info, _("PDT_SUCCESS_MSG")
         else:
             loginfo("Unable to get " + method)
@@ -665,4 +657,3 @@ def get_nexus5k_global_info(args={}):
     else:
         loginfo("Unable to get " + method)
         return PTK_NOTEXIST, nex_glob_info, "Unable to get " + method
-

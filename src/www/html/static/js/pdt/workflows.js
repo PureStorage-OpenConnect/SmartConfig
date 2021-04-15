@@ -245,7 +245,12 @@ $(document).ready(function() {
 	*/
 	$('body').delegate('.export-config', 'click', function(e) {
 		e.stopPropagation();
-		doAjaxRequest({url: 'ExportConfiguration', base_path: settings.base_path, query: {stacktype: systemInfo.subtype}, container: '.workflowsList'}, function(response) {
+		var api = 'ExportConfiguration', query = {stacktype: systemInfo.subtype};
+		if($(this).hasClass('fs-devices')) {
+			api = 'BackupConfig';
+			query = {};
+		}
+		doAjaxRequest({url: api, base_path: settings.base_path, query: query, container: '.workflowsList'}, function(response) {
 			download(location.protocol + '//' + window.location.host + '/static/downloads/' + response.data.url);
 		}, doNothing);
 	});
@@ -925,8 +930,13 @@ function getBatchStatus(notify) {
 			} else {
 				$('.buttonPrevious, .buttonFinish').addClass('hide');
 				$('.buttonFinish').before('<a href="javascript:;" class="buttonCustom reset-config" style="display: inline-block;">' + localization['finish'] + '</a>');
-				$('.reset-config').before('<a href="javascript:;" class="buttonCustom export-config" style="display: inline-block;">' + localization['export-devices'] + '</a>');
-				//$('.reset-config').before('<a href="javascript:;" class="buttonCustom export-report" style="display: inline-block;">' + localization['export-report'] + '</a>');
+				$('.reset-config').before('<div class="buttonCustom dropup reports">' +
+					'<span type="button" class="dropdown-toggle" data-toggle="dropdown">' + localization['export-devices'] + '</span>' +
+					'<div class="dropdown-menu">' +
+						'<a class="dropdown-item export-config smartconfig-json" href="javascript:;"><i class="fa fa-file-text"></i> SmartConfig JSON</a>' +
+						'<a class="dropdown-item export-config fs-devices" href="javascript:;"><i class="fa fa-file-text"></i> FS Devices</a>' +
+					'</div>' +
+				'</div>');
 				$('.reset-config').before('<div class="buttonCustom dropup reports">' +
 					'<span type="button" class="dropdown-toggle" data-toggle="dropdown">' + localization['export-report'] + '</span>' +
 					'<div class="dropdown-menu">' +
@@ -1162,7 +1172,7 @@ Hook.register(
 			title = ' - ' + $('#label_' + execid).text();
 		
 		openModel({title: localization['wf-inputs'] + title, body: '', buttons: {
-			"close": closeModel,
+			"cancel": closeModel,
 			"save": saveWorkflowTask
 		}});
 		if(taskType != 'wgroup') {
@@ -1173,6 +1183,7 @@ Hook.register(
 			$('.modal-body .mode-container').remove();
 			$('.modal-body #form-body').before(str);
 			$('.toggle-select.mode').toggles({type: 'select', on: true, animate: 250, easing: 'swing', width: 'auto', height: '22px', text: {on: localization['basic'], off: localization['advanced']}});
+			$('.toggle-select.mode').addClass('hide');			// To hide the advanced/basic tabs
 			$('.toggle-select.mode').on('toggle', function(e, active) {
 				$('.modal-body #form-body .basic, .modal-body #form-body .advanced').addClass('hide');
 				$('.form-footer #saveBtn').addClass('hide');
@@ -1280,6 +1291,8 @@ function loadWorkflowFormFields() {
 			initMultiSelect($(this), $(this).attr('label'), true, true, 1);
 		});
 		bindInputOptionEvent();
+		$('.toggle-select.mode').removeClass('hide');	// To show the advanced/basic tabs
+		$('.toggle-select.mode').toggles(false);		// To trigger advanced tab view
 		initTooltip('.modal-inset');
 		if(validate) validateTask(execid);
 	}

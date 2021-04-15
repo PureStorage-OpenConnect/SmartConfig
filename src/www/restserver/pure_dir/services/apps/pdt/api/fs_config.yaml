@@ -1,0 +1,13 @@
+paths:
+   /BackupConfig:
+     get:
+      tags:
+        - Backup
+      operationId: pure_dir.services.apps.pdt.pdt_api.backupconfig
+      summary: Backup the configurations of all FlashStack components
+      security: []
+      responses:
+        '200':
+          description: Return the state of the backup and download operation
+          schema:
+            $ref: '#/definitions/ExportConfigResponse'

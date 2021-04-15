@@ -44,6 +44,7 @@ def modify_apachelog(error_file):
             stderr=subprocess.PIPE)
         (output, err) = execute_cmd.communicate()
         os.remove(edit_file)
+        err = err.decode("utf-8") if type(err) is bytes else err
         if err != '':
             loginfo("error: failed to edit apache logs. %s" % err)
             return False
@@ -63,7 +64,7 @@ def exportlog_helper():
             err_log = modify_apachelog(error_log)
             if err_log:
                 error_log = get_log()
-                shutil.copy2(error_log, dest)
+                shutil.copy2(error_log, dest + "apache_log")
 
         try:
             stacktype = get_xml_element(
@@ -81,7 +82,7 @@ def exportlog_helper():
 
         pure_log = get_pure_log()
         if os.path.exists(pure_log):
-            shutil.copy2(pure_log, dest)
+            shutil.copy2(pure_log, dest + "sc_log")
 
         build_xml = get_build_xml()
         if os.path.exists(build_xml):

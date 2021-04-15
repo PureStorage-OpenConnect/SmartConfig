@@ -69,7 +69,6 @@ class fa_n9k_fi6454_mds_fc_rack:
         res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-
     def get_timezones(self, keys):
         res = result()
         tzlist = []

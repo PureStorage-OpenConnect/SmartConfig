@@ -697,7 +697,7 @@ class PureTasks:
             hw_conf_list = [dict((k, hw[k]) for k in keys_list) for hw in hw_conf]
             return hw_conf_list
         except Exception as e:
-            loginfo("Unable to get purestorage handle")
+            loginfo("Unable to get purestorage handle" + str(e))
             return None
 
     def get_fc_port_list(self):
@@ -853,8 +853,6 @@ class PureTasks:
             mtu = inputs['mtu']
             netmask = inputs['netmask']
             interface_name = inputs['name']
-            data = {'address': address, 'enabled': enabled,
-                    'netmask': netmask, 'mtu': mtu}
             interface_result = self.handle.set_network_interface(
                 interface_name, enabled=enabled)
             interface_result = self.handle.set_network_interface(
@@ -1216,8 +1214,6 @@ class PureTasks:
             mtu = inputs['mtu']
             netmask = inputs['netmask']
             interface_name = inputs['name']
-            data = {'address': address, 'enabled': enabled,
-                    'netmask': netmask, 'mtu': mtu}
             interface_result = self.handle.set_network_interface(
                 interface_name, enabled=enabled)
             interface_result = self.handle.set_network_interface(
@@ -1242,16 +1238,15 @@ class PureTasks:
         fc_ports = self.handle.list_ports()
         ethernet_ports = self.handle.list_network_interfaces()
         model = self.get_array_controller()
-        if model in ["FA-X10R2", "FA-X20R2", "FA-X50R2", "FA-X70R2", "FA-X90R2"]:
-            for port in ethernet_ports:
-                if port['speed'] == 1000000000 and 'eth4' in port['name']:
-                    return ["ETH4", "ETH5"]
-                if port['speed'] == 2500000000 and 'eth4' in port['name']:
-                    return ["ETH4", "ETH5"]
-                elif port['speed'] == 4000000000 and 'eth14' in port['name']:
-                    return ["ETH14", "ETH15"]
-#        elif "FI-M-6324" in fi_model:  # Workaround for UCSMini Direct connect
-#            return ["ETH14", "ETH15"]
+        if model.startswith("FA-X") or model.startswith("FA-C"):
+            eth_inter = [ x['name'] for x in ethernet_ports]
+
+            if 'ct0.eth14' in eth_inter or 'ct1.eth14' in eth_inter:
+                 return ["ETH14", "ETH15"]
+            elif 'ct0.eth18' in eth_inter or 'ct1.eth18' in eth_inter :
+                 return ["ETH18", "ETH19"]
+            elif 'ct0.eth4' in eth_inter or 'ct1.eth5' in eth_inter:
+                 return ["ETH4", "ETH5"]
         else:
             if fc_ports:
                 return ["ETH8", "ETH9"]

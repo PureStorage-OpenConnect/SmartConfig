@@ -169,9 +169,9 @@ def switch_enable_nxapi(host, username, password):
     client.close()
     return
 
+
 def get_nexus_handler(cred):
     """To get Nexus Handle"""
-    obj = result()
     try:
         handle = Nexus(ipaddress=cred['ipaddress'],
                        username=cred['username'],

@@ -76,4 +76,3 @@ class fa_n9k_fi6454_iscsi:
             tzlist.append(tz_entity)
         res.setResult(tzlist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-

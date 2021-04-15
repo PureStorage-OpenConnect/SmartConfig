@@ -70,7 +70,6 @@ class FACreateHostGroup:
             else:
                 prefix += "VM-Host-FC-" + str(i).zfill(3) + "|"
 
-
         job_input_save(jobid, texecid, 'name', prefix)
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

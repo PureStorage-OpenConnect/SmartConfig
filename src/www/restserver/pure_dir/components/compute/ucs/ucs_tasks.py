@@ -3,6 +3,8 @@ from pure_dir.infra.logging.logmanager import *
 from pure_dir.components.compute.ucs.ucs import *
 from pure_dir.components.common import *
 from pure_dir.services.utils import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
+from pure_dir.components.compute.ucs.ucs_upgrade import get_version,_get_blade_firmware_running
 from ucsmsdk.mometa.ls.LsVConAssign import LsVConAssign
 from ucsmsdk.mometa.firmware.FirmwareAck import FirmwareAck
 from ucsmsdk.mometa.vnic.VnicDefBeh import VnicDefBeh
@@ -118,7 +120,7 @@ from ucsmsdk.mometa.bios.BiosVfProcessorPrefetchConfig import BiosVfProcessorPre
 from ucsmsdk.mometa.bios.BiosVfScrubPolicies import BiosVfScrubPolicies
 from ucsmsdk.mometa.bios.BiosVfDramRefreshRate import BiosVfDramRefreshRate
 from ucsmsdk.mometa.ls.LsServer import LsServer
-from ucsmsdk.mometa.callhome.CallhomeSource import CallhomeSource
+#from ucsmsdk.mometa.callhome.CallhomeSource import CallhomeSource
 from ucsmsdk.mometa.fabric.FabricUdldLinkPolicy import FabricUdldLinkPolicy
 from ucsmsdk.mometa.fabric.FabricEthLinkProfile import FabricEthLinkProfile
 from ucsmsdk.mometa.bios.BiosTokenSettings import BiosTokenSettings
@@ -133,8 +135,13 @@ from ucsmsdk.mometa.lsboot.LsbootVirtualMedia import LsbootVirtualMedia
 from ucsmsdk.mometa.lsboot.LsbootStorage import LsbootStorage
 from ucsmsdk.mometa.lsboot.LsbootLocalStorage import LsbootLocalStorage
 from ucsmsdk.mometa.lsboot.LsbootDefaultLocalImage import LsbootDefaultLocalImage
+from ucsmsdk.utils.ucsbackup import backup_ucs
+from ucsmsdk.utils.ucsbackup import import_ucs_backup
 from pure_dir.components.compute.ucs.ucs_upgrade import is_image_available_on_ucsm, upload_image_to_ucs, image_name_ucs
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import get_server_type, get_ucs_upgrade
+from pure_dir.components.common import decrypt
+import collections
+from pure_dir.components.storage.mds.mds import *
 
 
 class UCSTasks:
@@ -763,10 +770,47 @@ class UCSTasks:
         # Sleep for blade servers to be discovered
         time.sleep(120)
 
+        retry = 0
+        state = True
+        while retry <= 10 and state:
+            chassis_info = self.get_chassis_info(self.handle)
+            if chassis_info and 'accessibility-problem' not in chassis_info:
+                customlogs("\nChassis and IO modules are discovered\n", logfile)
+                loginfo("Chassis and IO modules are in operable state")
+                state = False
+            else:
+                retry += 1
+                if retry == 10:
+                    customlogs("\nChassis/IO Modules are not operable\n", logfile)
+                    customlogs("\nAcknowledge Cisco UCS Chassis is Unsuccessful\n", logfile)
+                    obj.setResult(dicts,
+                                  PTK_INTERNALERROR,
+                                  "Acknowledge UCS Chassis failed")
+                    return obj
+                time.sleep(20)
+
         customlogs("\nAcknowledge Cisco UCS Chassis is successful\n", logfile)
         dicts['state'] = inputdict['state']
         obj.setResult(dicts, PTK_OKAY, "Acknowledge UCS Chassis successful")
         return obj
+
+    def get_chassis_info(self, handle):
+        status, details = get_xml_element(settings, "stacktype")
+        stacktype = details[0]['stacktype']
+        tmp_list = []
+        try:
+            IO_mod = None
+            chassis_info = handle.query_classid("EquipmentChassis")
+            if 'mini' in stacktype:
+                IO_mod = handle.query_classid("EquipmentSwitchIOCard")
+            else:
+                IO_mod = handle.query_classid("EquipmentIOCard")
+            chassis = chassis_info + IO_mod
+            for info in chassis:
+                tmp_list.append(info.oper_state)
+        except Exception as e:
+            loginfo("Unable to fetch chassis and IO module info {}".format(str(e)))
+        return tmp_list
 
     def addBlockIPAddForKVMAccess(self, inputdict, logfile):
         """
@@ -1406,7 +1450,7 @@ class UCSTasks:
             self.handle.commit()
         except UcsException as e:
             customlogs(str(e), logfile)
-            self.handle.logout()
+            #self.handle.logout()
             obj.setResult(
                 dicts,
                 PTK_INTERNALERROR,
@@ -1438,30 +1482,35 @@ class UCSTasks:
             customlogs("\nCreating FC Port Channels failed\n", logfile)
             return obj
 
-        # To check whether FI is swapped/not
+        '''# To check whether FI is swapped/not
         fabric_mo = "fabric/san/" + inputdict['ucs_fabric_id'] + "/pc-" + inputdict['port_id']
         time.sleep(10)
         state = self.handle.query_dn(fabric_mo).oper_state
         if state != "up":
-            loginfo("FI might have been swapped.Please check")
+            loginfo("FI might have been swapped.Please check")'''
 
-        '''if self.handle.query_dn(fabric_mo).oper_state == "failed" and self.handle.query_dn(fabric_mo).state_qual == "No operational members":
-            # remove the port channnel
-            customlogs("\nNo operational members found on FC Port Channel ID:" +inputdict['port_id']+ "\n", logfile)
+        # To check whether FI is swapped/not
+        fabric_mo = "fabric/san/" + inputdict['ucs_fabric_id'] + "/pc-" + inputdict['port_id']
+        if not self.ucsVerifyPortChannelState(fabric_mo, logfile):
+            customlogs("Failed to Create FC Port Channel: {}".format(inputdict['fc_port_channel_name']), logfile)
             obj.setResult(
                 dicts,
                 PTK_INTERNALERROR,
-                "No operational members found on FC Port Channel")
-            customlogs("\nCreating FC Port Channels failed\n", logfile)
-            return obj'''
+                "FC Port Channel: {} creation failed".format(inputdict['fc_port_channel_name']))
 
-        self.handle.logout()
+            mo = self.handle.query_dn(fabric_mo)
+            if mo:
+                loginfo("Deleting the FC PortChannel since it is not up...")
+                self.ucsDeleteFCPortChannels(inputdict, logfile)
+            self.handle.logout()
+            return obj
+
+        #self.handle.logout()
         customlogs("\nCreated FC Port Channel successfully\n", logfile)
         dicts['fc_port_channel_name'] = parent_mo + \
             "/" + inputdict['fc_port_channel_name']
         obj.setResult(dicts, PTK_OKAY, "Created FC Port Channel successfully")
         return obj
-
 
     def ucsDeleteFCPortChannels(self, inputdict, logfile):
         """
@@ -1521,6 +1570,7 @@ class UCSTasks:
             return obj
         customlogs("\n FC Port Channel " +
                    inputdict['fc_port_channel_name'] + " deleted successfully\n", logfile)
+        self.handle.logout()
         obj.setResult(
             None,
             PTK_OKAY,
@@ -1643,15 +1693,90 @@ class UCSTasks:
                 "Failed to update host firmware package")
             return obj
 
-        self.handle.logout()
+#        self.handle.logout()
         # Waiting for blades to complete upgrade
-        time.sleep(600)
+#        time.sleep(600)
+        if inputdict['blade_pkg']:
+            blades_list = self.handle.query_classid("computeBlade")
+            for blade in blades_list:
+                if blade.oper_state != 'inoperable':
+                   status, dn =  self.verify_server_upgrade(self.handle, blade,image, logfile)
+                   if not status:
+                        msg = "Unable to fetch firmware version for {}".format(dn)
+                        customlogs(msg, logfile)
+                        obj.setResult(dicts, PTK_INTERNALERROR, "Unable to fetch server firmware for {}".format(dn))
+                        return obj                       
+        else:
+            rack_list = self.handle.query_classid("ComputeRackUnit")
+            for rack in rack_list:
+                if rack.oper_state != 'inoperable':
+                    status, dn = self.verify_server_upgrade(self.handle, rack,image, logfile)
+                   if not status:
+                        msg = "Unable to fetch firmware version for {}".format(dn)
+                        customlogs(msg, logfile)
+                        obj.setResult(dicts, PTK_INTERNALERROR, "Unable to fetch server firmware for {}".format(dn))
+                        return obj
         customlogs("\nHost Firmware Package Created Successfully\n", logfile)
         obj.setResult(
             dicts,
             PTK_OKAY,
             "Host Firmware Package Created Successfully")
         return obj
+
+    def verify_server_upgrade(self, handle, blade, image, logfile):
+        """
+        Wait until the blade discovery is completed
+
+        :param handle: ucs login handle
+        :param blade: UCS blade server
+        :param logfile: Logfile name
+        """
+
+        blade_timeout = 1800
+        start = datetime.datetime.now()
+
+        diff_seconds = 0
+        blade_time = str(time.time())
+        loginfo("Checking for server upgrade completion")
+        blade_up = False
+        while not blade_up and diff_seconds < blade_timeout:
+          status, msg = self.check_blade_completion(
+              handle, blade, get_version(image))
+          if status is False:
+              loginfo(msg)
+              loginfo(
+                  "Server firmware upgrade yet to complete. Checking the status again")
+              time.sleep(10)
+              diff_seconds = int(time.time()) - int(float(blade_time))
+              if msg == "":
+                  return False, blade.dn        
+          else:
+              customlogs("Server firmware upgrade completed successfully for %s " %(blade.dn) , logfile)
+              blade_up = True
+              return True, blade.dn
+        return False, blade.dn
+
+    def check_blade_completion(self, handle, blade, version):
+        """
+        Verify if blade upgrade is completed
+        :param handle: UCSM login handle
+        :version: Blade version to upgrade
+        :return : ucs blade upgrade status
+        """
+        running_version = ""
+        if _get_blade_firmware_running(handle, blade):
+            running_version = _get_blade_firmware_running(handle, blade).package_version[:-1]
+        else:
+            msg = "Unable to fetch firmware running version for {}".format(blade.dn)
+            customlogs(msg,logfile)
+            loginfo("Incompatible. server firmware for {}".format(blade.dn))
+            return False, ""
+        if running_version and version != running_version:
+            msg = "Server %s still not upgraded" % blade.dn
+            loginfo(msg)
+            return False, msg
+        return True, ""
+
 
     # TODO
     def get_image_file(self, handle, image):
@@ -2876,14 +3001,23 @@ class UCSTasks:
         try:
             self.handle.commit()
             mo_dn = "org-root/bios-prof-" + inputdict['name']
-            mo = BiosTokenSettings(parent_mo_or_dn= mo_dn + "/tokn-featr-Processor Prefetch Config/tokn-param-KTIPrefetch", is_assigned="yes",
-                 settings_mo_rn="Enabled")
+            mo = BiosTokenSettings(
+                parent_mo_or_dn=mo_dn +
+                "/tokn-featr-Processor Prefetch Config/tokn-param-KTIPrefetch",
+                is_assigned="yes",
+                settings_mo_rn="Enabled")
             self.handle.add_mo(mo, True)
-            mo = BiosTokenSettings(parent_mo_or_dn= mo_dn + "/tokn-featr-Processor Prefetch Config/tokn-param-LLCPrefetch", is_assigned="yes",
-            settings_mo_rn="Enabled")
+            mo = BiosTokenSettings(
+                parent_mo_or_dn=mo_dn +
+                "/tokn-featr-Processor Prefetch Config/tokn-param-LLCPrefetch",
+                is_assigned="yes",
+                settings_mo_rn="Enabled")
             self.handle.add_mo(mo, True)
-            mo = BiosTokenSettings(parent_mo_or_dn= mo_dn + "/tokn-featr-Processor Prefetch Config/tokn-param-XPTPrefetch", is_assigned="yes",
-            settings_mo_rn="Enabled")
+            mo = BiosTokenSettings(
+                parent_mo_or_dn=mo_dn +
+                "/tokn-featr-Processor Prefetch Config/tokn-param-XPTPrefetch",
+                is_assigned="yes",
+                settings_mo_rn="Enabled")
             self.handle.add_mo(mo, True)
             self.handle.commit()
         except UcsException as e:
@@ -3292,7 +3426,7 @@ class UCSTasks:
 
         # Waiting because it takes sometime for service profile to get associated
         # with the server once it is up
-        time.sleep(120)
+        time.sleep(240)
         sp_unassoc_cnt = 0
         service_profiles_list = []
         service_profiles = self.handle.query_classid("lsServer")
@@ -3306,9 +3440,9 @@ class UCSTasks:
                     self.wait_assoc_completion(
                         self.handle, sp.dn, sp.pn_dn, logfile)
                 else:
-                    customlogs("Failed to associate service profile " + sp.name + "\n", logfile)
                     # fix for service profile deletion
                     mo = self.handle.query_dn("org-root/ls-" + sp.name)
+                    customlogs("Failed to associate service profile " + sp.name + "\n"  +"Reason:" + mo.config_qualifier + "\n", logfile)
                     self.handle.remove_mo(mo)
                     try:
                         self.handle.commit()
@@ -3340,7 +3474,17 @@ class UCSTasks:
             customlogs("\nService profiles are created successfully\n", logfile)
             obj.setResult(dicts, PTK_OKAY, "Service profiles creation successful")
         # Waiting for sh flogi database entries to be displayed during MDS Zoning
-        time.sleep(230)
+      
+        status, details = get_xml_element(settings, "stacktype")
+        if status and 'mds' in details[0]['stacktype']:  
+            retry = 0
+            state = True
+            while retry < 15 and state:
+                if self.check_assoc(inputdict):
+                    state = False
+                else:
+                    retry += 1
+                    time.sleep(30)
         return obj
 
     def ucsCloneServiceProfileTemplate(self, inputdict, logfile):
@@ -3940,13 +4084,20 @@ class UCSTasks:
                 PTK_INTERNALERROR,
                 "Uplink Port Channels Creation failed")
             return obj
-        '''if self.ucsVerifyUplinkPortChannel(inputdict, logfile) == False:
-            customlogs("Failed to Create Uplink Port Channels", logfile)
+
+        dn = fabric + '/pc-' + inputdict['id']
+        if not self.ucsVerifyPortChannelState(dn, logfile):
+            customlogs("Failed to Create Uplink Port Channel: {}".format(inputdict['name']), logfile)
             obj.setResult(
                 dicts,
                 PTK_INTERNALERROR,
-                "Uplink Port Channels Creation failed")
-            return obj'''
+                "Uplink Port Channel: {} Creation failed".format(inputdict['name']))
+
+            mo = self.handle.query_dn(fabric + '/pc-' + inputdict['id'])
+            if mo:
+                loginfo("Deleting the Uplink PortChannel since it is not up...")
+                self.ucsDeleteUplinkPortChannel(inputdict, [], logfile)
+            return obj
 
         customlogs("\nUplink Port Channels Created Successfully\n", logfile)
         dicts['name'] = inputdict['name']
@@ -3956,21 +4107,24 @@ class UCSTasks:
             "Uplink Port Channels Created Successfully")
         return obj
 
-    def ucsVerifyUplinkPortChannel(self,inputs, logfile):
+
+    def ucsVerifyPortChannelState(self, dn, logfile):
         try:
-            fabric = "fabric/lan/" + inputs['ucs_fabric_id']
-            time.sleep(10)
-            mo = self.handle.query_dn(fabric + '/pc-' + inputs['id'])
-            if mo.oper_state == "failed" and mo.state_qual == "No operational members":
-                loginfo("Port Channel failed due to"+ inputs['id'] + "no Operational members")
-                customlogs(mo.state_qual, logfile)
-                return False
+            mo = self.handle.query_dn(dn)
+            retry = 0
+            while True:
+                mo = self.handle.query_dn(dn)
+                if mo.oper_state == "up":
+                    return True
+                if retry > 20:
+                    loginfo("Maximum retries exceeded. PortChannel is not up. Reason: {}".format(mo.state_qual))
+                    customlogs("Maximum retries exceeded. PortChannel is not up. Reason: {}".format(mo.state_qual), logfile)
+                    return False
+                time.sleep(10)
+                retry += 1
         except UcsException as e:
-            customlogs(str(e), logfile)
+            customlogs("An exception occured during PortChannel Creation {}".format(str(e)), logfile)
             return False
-        return True
-
-
 
     def ucsDeleteUplinkPortChannel(self, inputs, outputs, logfile):
         """
@@ -4558,6 +4712,20 @@ class UCSTasks:
             return obj
 
         customlogs("\nVLAN created successfully\n", logfile)
+
+        native_vlan = ''.join([data['value']  for data in  global_config_data if data['name']=='native_vlan'])
+        if inputdict['vlan_id'] == native_vlan:
+            mo = FabricVlan(parent_mo_or_dn="fabric/lan", default_net="yes", name=inputdict['vlan_name'])
+            self.handle.add_mo(mo, True)
+            try:
+                self.handle.commit()
+                customlogs("\n{} set as Native VLAN successfully\n".format(inputdict['vlan_name']), logfile)
+            except UcsException as e:
+                customlogs(str(e), logfile)
+                customlogs("Setting {} as Native VLAN failed".format(inputdict['vlan_name']), logfile)
+                obj.setResult(dicts, PTK_INTERNALERROR, "VLAN creation failed")
+                return obj
+
         vlan_id = inputdict['vlan_id']
         if '-' in vlan_id:
             vlan_id = vlan_id.split("-")
@@ -6548,7 +6716,7 @@ class UCSTasks:
         mo.admin_state = inputdict['state']
         mo.descr = ""
 
-        mo_1 = CallhomeSource(
+        '''mo_1 = CallhomeSource(
             parent_mo_or_dn=mo,
             email=inputdict['email'],
             r_from=inputdict['email_from'],
@@ -6559,7 +6727,7 @@ class UCSTasks:
             contact=inputdict['contact'],
             customer=inputdict['customer_id'],
             urgency=inputdict['switch_priority'],
-            addr=inputdict['address'])
+            addr=inputdict['address'])'''
         self.handle.set_mo(mo)
         try:
             self.handle.commit()
@@ -7234,7 +7402,7 @@ class UCSTasks:
 
     def ucsCreateUDLDLinkPolicy(self, inputdict, logfile):
         """
-        Create UDLD Link Policy 
+        Create UDLD Link Policy
         :param inputdict: Dictionary (name,admin_state,mode)
         :param logfile: Logfile name
         :return: Returns the status of the execution
@@ -7253,13 +7421,13 @@ class UCSTasks:
         loginfo("Admin State: " + inputdict['admin_state'])
         loginfo("Mode: " + inputdict['mode'])
 
-        message = "UDLD Link Policy Name: " + inputdict['name'] + "\nAdmin State: " + inputdict['admin_state'] + "\nMode: " + \
-                  inputdict['mode'] 
+        message = "UDLD Link Policy Name: " + \
+            inputdict['name'] + "\nAdmin State: " + inputdict['admin_state'] + "\nMode: " + inputdict['mode']
 
         customlogs(message, logfile)
         fabric_dn = "fabric/lan"
         mo = FabricUdldLinkPolicy(
-            parent_mo_or_dn=fabric_dn, 
+            parent_mo_or_dn=fabric_dn,
             name=inputdict['name'])
         self.handle.add_mo(mo)
         try:
@@ -7318,7 +7486,7 @@ class UCSTasks:
 
     def ucsCreateLinkProfile(self, inputdict, logfile):
         """
-        Create UDLD Link Policy 
+        Create UDLD Link Policy
         :param inputdict: Dictionary (name,admin_state,mode)
         :param logfile: Logfile name
         :return: Returns the status of the execution
@@ -7336,13 +7504,14 @@ class UCSTasks:
         loginfo("Link Profile Name: " + inputdict['name'])
         loginfo("UDLD Link Policy Name: " + inputdict['udld_pol'])
 
-        message = "Link Profile Name: " + inputdict['name'] + "\nUDLD Link Policy Name: " + inputdict['udld_pol']
+        message = "Link Profile Name: " + inputdict['name'] + \
+            "\nUDLD Link Policy Name: " + inputdict['udld_pol']
 
         customlogs(message, logfile)
         fabric_dn = "fabric/lan"
         mo = FabricEthLinkProfile(
-            parent_mo_or_dn=fabric_dn, 
-            name=inputdict['name'], 
+            parent_mo_or_dn=fabric_dn,
+            name=inputdict['name'],
             udld_link_policy_name=inputdict['udld_pol'])
         self.handle.add_mo(mo)
 
@@ -7419,8 +7588,8 @@ class UCSTasks:
             return obj
 
         loginfo(inputdict)
-        message = "Link Profile Name: " + inputdict['name'] + "PortChannel Name: " + inputdict['portchl_name'] + \
-                  "\nID: " + inputdict['id'] + "\nSelected ports: " + inputdict['ports']
+        message = "Link Profile Name: " + inputdict['name'] + "PortChannel Name: " + \
+            inputdict['portchl_name'] + "\nID: " + inputdict['id'] + "\nSelected ports: " + inputdict['ports']
         customlogs(message, logfile)
 
         fabric_dn = "fabric/lan/" + inputdict['ucs_fabric_id'] + "/pc-" + inputdict['id']
@@ -7464,7 +7633,10 @@ class UCSTasks:
 
         obj = result()
         loginfo("Unconfiguring UDLD on Uplink PortChannels")
-        customlogs("Unconfiguring UDLD on Uplink PortChannels " + inputdict['portchl_name'], logfile)
+        customlogs(
+            "Unconfiguring UDLD on Uplink PortChannels " +
+            inputdict['portchl_name'],
+            logfile)
 
         dicts = {}
 
@@ -7504,7 +7676,6 @@ class UCSTasks:
             PTK_OKAY,
             "UDLD Unconfigured on Uplink PortChannels Successfully")
         return obj
-
 
     def ucsCreateNativeVLAN(self, inputdict, logfile):
         """
@@ -7664,10 +7835,10 @@ class UCSTasks:
 
         customlogs(message, logfile)
         if inputdict['switch_id']:
-            inputdict['switch_id'] = "A-B" if inputdict['ucs_fabric_id']=="A" else "B-A"
+            inputdict['switch_id'] = "A-B" if inputdict['ucs_fabric_id'] == "A" else "B-A"
         else:
             inputdict['switch_id'] = inputdict['ucs_fabric_id']
-            
+
         mo = VnicLanConnTempl(
             parent_mo_or_dn="org-root",
             redundancy_pair_type=inputdict['redundancy_pair_type'],
@@ -7704,7 +7875,7 @@ class UCSTasks:
             self.handle.commit()
         except UcsException as e:
             customlogs(str(e), logfile)
-            customlogs("vNIC Template " + inputdict['vnic_templ_name'] + 
+            customlogs("vNIC Template " + inputdict['vnic_templ_name'] +
                        " creation failed", logfile)
             obj.setResult(
                 dicts,
@@ -7712,9 +7883,18 @@ class UCSTasks:
                 "vNIC Template " + inputdict['vnic_templ_name'] +
                 " creation failed")
             return obj
-        customlogs("vNIC template " + inputdict['vnic_templ_name'] + " created successfully\n", logfile)
+        customlogs(
+            "vNIC template " +
+            inputdict['vnic_templ_name'] +
+            " created successfully\n",
+            logfile)
         dicts['vnic_templ_name'] = inputdict['vnic_templ_name']
-        obj.setResult(dicts, PTK_OKAY, "vNIC Template " + inputdict['vnic_templ_name'] + " creation successful")
+        obj.setResult(
+            dicts,
+            PTK_OKAY,
+            "vNIC Template " +
+            inputdict['vnic_templ_name'] +
+            " creation successful")
         return obj
 
     def ucsDeletevNICTemplateFB(self, inputs, outputs, logfile):
@@ -7751,7 +7931,8 @@ class UCSTasks:
             self.handle.commit()
         except UcsException as e:
             customlogs(str(e), logfile)
-            customlogs("\nFailed to Delete vNIC template " + inputs['vnic_templ_name'] + " \n", logfile)
+            customlogs("\nFailed to Delete vNIC template " +
+                       inputs['vnic_templ_name'] + " \n", logfile)
             obj.setResult(
                 dicts,
                 PTK_INTERNALERROR,
@@ -7780,7 +7961,8 @@ class UCSTasks:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
-        mo = LsbootPolicy(parent_mo_or_dn="org-root", name=inputdict['bootpolicyname'].split("/boot-policy-")[1])
+        mo = LsbootPolicy(parent_mo_or_dn="org-root",
+                          name=inputdict['bootpolicyname'].split("/boot-policy-")[1])
         mo_1 = LsbootVirtualMedia(parent_mo_or_dn=mo, access="read-only", lun_id="0", order="2")
         mo_2 = LsbootStorage(parent_mo_or_dn=mo, order="3")
         mo_2_1 = LsbootLocalStorage(parent_mo_or_dn=mo_2, )
@@ -7823,8 +8005,9 @@ class UCSTasks:
             obj.setResult(None, PTK_INTERNALERROR,
                           "Unable to connect to UCS")
             return obj
-        
-        mo = LsbootPolicy(parent_mo_or_dn="org-root", name=inputdict['bootpolicyname'].split("/boot-policy-")[1])
+
+        mo = LsbootPolicy(parent_mo_or_dn="org-root",
+                          name=inputdict['bootpolicyname'].split("/boot-policy-")[1])
         mo_1 = self.handle.query_dn(inputdict['bootpolicyname'] + "/storage")
         self.handle.remove_mo(mo_1)
 
@@ -7859,3 +8042,56 @@ class UCSTasks:
         table = str.maketrans(delete_dict)
         return table
 
+    def check_assoc(self, inputdict):
+        """
+        To check service profile is associated or not
+        """
+        ucs_pwwn = []
+        cred = get_device_credentials(key="mac", value=inputdict['fabric_id'])
+        if cred:
+            obj = UCSManager()
+            if obj:
+                res = obj.ucsm_sp_wwpn(
+                         cred['vipaddress'], cred['username'], cred['password'])
+                ucs_pwwn = list(map(str.lower, res.getResult()))
+            else:
+                loginfo("unable to to helper function")
+        else:
+            loginfo("unable to get devices credentials")
+        status, devices_details = get_xml_childelements(get_devices_wf_config_file(), 'devices', 'device',
+                                                ['device_type', 'ipaddress', 'username', 'password', 'vipaddress', 'leadership', 'tag'])
+        mds_pwwn = []
+        for device in devices_details:
+            if device['device_type'].lower() == 'mds' and device['tag'] in ['A', 'B']:
+                 try:
+                     mds_obj = MDS(ipaddr=device['ipaddress'], uname=device['username'], passwd=decrypt(device['password']))
+                     flogi = mds_obj.get_flogi_sessions().getResult()
+                     for pwwn in flogi:
+                         if 'port-channel' in pwwn['iface_id'] and '24' not in pwwn['pwwn'].split(":")[0]:
+                             mds_pwwn.append(pwwn['pwwn'].lower())
+                 except Exception as e:
+                     loginfo(str(e))
+        loginfo("mds pwwn {}".format(mds_pwwn))
+        loginfo("ucs pwwn {}".format(ucs_pwwn))
+        result = []
+        if ucs_pwwn != [] and mds_pwwn != []:
+            if ucs_pwwn.sort() == mds_pwwn.sort():
+                return True
+            else:
+                return False
+
+    def backup_config(self, switch_name, config_store):
+        if self.handle is None or self.handle_status != True:
+            loginfo("Unable to connect to UCS")
+            return False
+        fname = switch_name + "-all-configuration.xml"
+        backup_ucs(self.handle, backup_type="config-all", file_dir=config_store, file_name=fname, preserve_pooled_values=True)
+        return True
+
+    def restore_config(self, config_store):
+        if self.handle is None or self.handle_status != True:
+            loginfo("Unable to connect to UCS")
+            return False
+        fname = config_store.split('/')[-1]
+        import_ucs_backup(self.handle, file_dir=config_store, file_name=fname)
+        return True

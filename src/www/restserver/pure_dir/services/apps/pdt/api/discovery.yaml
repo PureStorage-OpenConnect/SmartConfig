@@ -272,6 +272,63 @@ paths:
           schema:
             $ref: '#/definitions/ReconfigureResponse'
 
+  /DeviceReset:
+    post:
+      tags:
+      - System
+      parameters:
+      - required: true
+        in: body
+        description: List of devices to be reset
+        name: devices_list
+        schema:
+          type: array
+          items:
+            type: string
+      - in: query
+        name: force
+        description: Force parameter
+        type: integer
+        enum: [0, 1]
+        default: 0
+      - in: query
+        name: reset
+        description: Tool reset parameter
+        type: boolean
+      operationId: pdt_api.devicereset
+      summary: Factory reset the configured devices and deletes the PDT configuration
+      security: []
+      responses:
+        '200':
+          description: Return the response
+          schema:
+            $ref: '#/definitions/StateResponse'
+
+  /ResetStatus: 
+    get:
+      tags:
+      - Discovery
+      operationId: pdt_api.resetstatus
+      summary: Monitors the reset status for all devices
+      security: []
+      responses:
+        '200':
+          description: Returns reset status with device details
+          schema:
+            $ref: '#/definitions/ResetStatusResponse'
+
+  /DevicesToReset:
+    get:
+      tags:
+      - Discovery
+      operationId: pdt_api.device_to_reset
+      summary: List of devices to be reset with device details
+      security: []
+      responses:
+        '200':
+          description: Returns Reset Device List with details
+          schema:
+            $ref: '#definitions/DevicesToResetResponse'
 
 definitions:
   DHCPClients:
@@ -318,6 +375,9 @@ definitions:
       infra_image:
         type: string
         description: UCS Infra image
+      array_id:
+        type: string
+        description: Array id for the FlashBlade
 
   ComponentConfigs:
     required:
@@ -431,6 +491,9 @@ definitions:
       - dhcp_end
       - start
       - end
+      - nw_start
+      - nw_end
+      - no_hosts 
     properties:
       ip:
         type: string
@@ -450,12 +513,24 @@ definitions:
         example: '192.168.1.50'
       start:
         type: string
-        description: Starting IP for the Network
-        example: '192.168.1.2'
+        description: Starting IP for Hardware Allocation
+        example: '192.168.1.3'
       end:
+        type: string
+        description: End IP for Hardware Allocation
+        example: '192.168.1.254'
+      nw_start:
+        type: string
+        description: Starting IP for the Network
+        example: '192.168.1.1'
+      nw_end:
         type: string
         description: End IP for the Network
         example: '192.168.1.254'
+      no_hosts:
+        type: integer
+        description: Number of hosts available
+        example: 254
       notifications:
         type: array
         items:
@@ -646,3 +721,75 @@ definitions:
    properties:
     input_list:
       type: string
+
+  ResetStatusResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: array
+        items:
+          required:
+            - device_name
+            - serial_no
+            - device_type
+            - ipaddress
+            - reset_status
+          properties:
+            device_name:
+              type: string
+              description: Device Name
+            serial_no:
+              type: string
+              description: Device Serial Number
+            device_type:
+              type: string
+              description: Device Type with Tag
+            ipaddress:
+              type: string
+              description: IP Address
+            reset_status:
+              type: string
+              description: Reset Status
+            error:
+              type: string
+              description: Error msg in case of Reset Failure
+      status:
+        type: object
+        description: status
+        $ref: '#/definitions/Status'
+
+  DevicesToResetResponse:
+    type: object
+    required:
+      - data
+      - status
+    properties:
+      data:
+        type: array
+        items:
+          required:
+            - device_name
+            - serial_no
+            - device_type
+            - ipaddress
+          properties:
+            device_name:
+              type: string
+              description: Device Name
+            serial_no:
+              type: string
+              description: Device Serial Number
+            device_type:
+              type: string
+              description: Device Type with Tag
+            ipaddress:
+              type: string
+              description: IP Address
+      status:
+        type: object
+        description: status
+        $ref: '#/definitions/Status'
+

@@ -6,7 +6,7 @@
 # option definitions common to all supported networks...
 #
 set vendor-string = option vendor-class-identifier;
-set serial = option dhcp-client-identifier;
+set client-id = option dhcp-client-identifier;
 log(info, option vendor-class-identifier);
 option domain-name "example.org";
 option domain-name-servers {{dns_ip}};
@@ -46,18 +46,26 @@ subnet {{subnet}} netmask {{netmask}} {
 class "nexus_9k" {
   match if substring (option vendor-class-identifier, 0, 9) = "Cisco N9K";
   option bootfile-name "poap_n9k.py";
+  set serial = substring(option dhcp-client-identifier, 1, 11);
 }
 class "nexus_5k" {
   match if substring (option vendor-class-identifier, 0, 9) = "Cisco N5K";
   option bootfile-name "poap_n5k.py";
+  set serial = substring(option dhcp-client-identifier, 1, 11);
 }
 class "mds" {
   match if substring (option vendor-class-identifier, 0, 9) = "cisco MDS";
   option bootfile-name "poap_script.tcl";
+  set serial = substring(option dhcp-client-identifier, 1, 11);
 }
 class "ucs" {
   match if substring (option vendor-class-identifier, 0, 9) = "Cisco UCS";
   option vendor-class-identifier "Cisco UCS";
+  set serial = substring(option dhcp-client-identifier, 1, 11);
+}
+class "flashblade" {
+  match if substring (option vendor-class-identifier, 15, 25) = "FlashBlade";
+  set serial = substring(option host-name, 6, 25);
 }
 }
 

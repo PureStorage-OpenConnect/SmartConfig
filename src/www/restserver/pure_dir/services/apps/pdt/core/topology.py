@@ -7,28 +7,14 @@
 # version         :1.0
 #####################################################################
 
-#from pycsco.nxos.device import Device
-#from pycsco.nxos import error
-#from pycsco.nxos.utils.nxapi_lib import get_feature_list
 from pure_dir.components.compute.ucs import ucs_info_netmiko
 from pure_dir.components.compute.ucs.ucs_info import UCSInfo
 from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
-from pure_dir.components.storage.flashblade.flashblade_tasks import FlashBladeTasks
 from pure_dir.components.storage.flashblade.flashblade_report import get_fb_lag_list
 from pure_dir.components.storage.mds.mds import MDS
-from purestorage import PureHTTPError
-from purestorage import FlashArray
-from ucsmsdk.ucsexception import UcsException
-from ucsmsdk.ucshandle import UcsHandle
-import xmltodict
-import json
-#import urllib2, urllib3
-# For Python3
-import urllib.error
+#import urllib.error
 import re
-import string
-# For Python3
 import queue
 from threading import Thread
 
@@ -47,7 +33,7 @@ def get_fi_server_interfaces(fi_object, fi_tags):
     server_conn = fi_object.get_fi_server_connections()
     if server_conn is None:
         loginfo("Unable to get the FI server interfaces")
-        return server_ifaces    
+        return server_ifaces
 
     [conn.update({'local_device': [fi['name'] for fi in fi_tags if fi['tag'] ==
                                    conn['local_device'].split('-')[1]][0]}) for conn in server_conn]
@@ -297,8 +283,8 @@ def get_san_ucs_connectivity(switch_type, san_obj, fi_list):
     ucs_san_list = []
     for fi in fi_list:
         san_neighbors = fi_dict['object'].get_san_neighbors(fi['tag'])
-        #TODO: Unable to fetch san-neighbors from FI6454 through cli/ucsm
-        if not san_neighbors: 
+        # TODO: Unable to fetch san-neighbors from FI6454 through cli/ucsm
+        if not san_neighbors:
             san_neighbors = ucs_info_netmiko.get_san_neighbors(
                 fi_dict['vipaddress'], fi_dict['username'], decrypt(fi_dict['password']), fi['tag'])
         [hw.update({'tag': fi['tag'], 'name':fi['name']}) for hw in san_neighbors]
@@ -311,7 +297,8 @@ def get_san_ucs_connectivity(switch_type, san_obj, fi_list):
     # Getting pc id on the ucs side for the matched pwwn
     ucs_pc_intf = [
         intf_ucs for intf_ucs in ucs_san_list for intf_san in san_flogi_db if intf_san['pwwn'] == intf_ucs['my_pwwn']]
-    ucs_pc = re.compile('(san-port-channel |San-po)(.+)').search(ucs_pc_intf[0]['local_interface']).group(2)
+    ucs_pc = re.compile(
+        '(san-port-channel |San-po)(.+)').search(ucs_pc_intf[0]['local_interface']).group(2)
     ucs_det_for_san_intf = [
         intf_ucs for intf_san in san_flogi_db for intf_ucs in ucs_san_list if intf_san['pwwn'] == intf_ucs['my_pwwn']][0]
     ucs_fc_list = fi_dict['object'].get_san_pc_members(ucs_det_for_san_intf['tag'], ucs_pc)
@@ -340,7 +327,7 @@ def get_ucs_san_connectivity(fi_dict, fi_obj, fi_tags):
     ucs_san_list = {}
     for fi in fi_tags:
         ucs_san_neighbors_list = fi_obj.get_san_neighbors(fi['tag'])
-        #TODO: Unable to fetch san-neighbors from FI6454 through cli/ucsm
+        # TODO: Unable to fetch san-neighbors from FI6454 through cli/ucsm
         if not ucs_san_neighbors_list:
             ucs_san_neighbors_list = ucs_info_netmiko.get_san_neighbors(
                 fi_dict['vipaddress'], fi_dict['username'], decrypt(fi_dict['password']), fi['tag'])
@@ -389,16 +376,32 @@ def get_ucs_lan_neighbors(fi_obj, fi_tags):
 def get_fb_nexus_connectivity(fb_obj, nx_obj):
     fb_nx_list = []
     status, fb_lag_list, msg = get_fb_lag_list()
-    [port.update({'speed': fb_lag['port_speed'] if port['state'] == 'up' else '-'}) for fb_lag in fb_lag_list for port in fb_lag['ports']]
+    [port.update({'speed': fb_lag['port_speed'] if port['state'] == 'up' else '-'})
+     for fb_lag in fb_lag_list for port in fb_lag['ports']]
 
     nx_lacp_list = nx_obj.get_lacp_list()
     nx_lacp_ifaces = [lacp['pc_ifaces'] for lacp in nx_lacp_list]
     nx_lacp_ifaces = [j for i in nx_lacp_ifaces for j in i]
 
-    nx_matched_list = [nx_iface for fb_lag in fb_lag_list for nx_iface in nx_lacp_ifaces if nx_iface['remote_interface'] == fb_lag['mac_address']]
-    nx_matched_ifaces, nx_matched_mac = [nx_iface['local_interface'] for nx_iface in nx_matched_list], nx_matched_list[0]['remote_interface'] if len(nx_matched_list) > 0 else None
+    nx_matched_list = [
+        nx_iface for fb_lag in fb_lag_list for nx_iface in nx_lacp_ifaces if nx_iface['remote_interface'] == fb_lag['mac_address']]
+    nx_matched_ifaces, nx_matched_mac = [nx_iface['local_interface']
+                                         for nx_iface in nx_matched_list], nx_matched_list[0]['remote_interface'] if len(nx_matched_list) > 0 else None
 
-    fb_nx_list = [{'local_interface': fb_lag['name'], 'local_ports': [dict((k, port[k]) for k in ['name', 'state', 'speed']) for port in fb_lag['ports']], 'remote_interface': '|'.join(nx_matched_ifaces), 'speed': fb_lag['lag_speed'], 'state': fb_lag['state'], 'type': 'Ethernet-LAG'} for fb_lag in fb_lag_list if fb_lag['mac_address'] == nx_matched_mac]
+    fb_nx_list = [
+        {
+            'local_interface': fb_lag['name'],
+            'local_ports': [
+                dict(
+                    (k,
+                     port[k]) for k in [
+                        'name',
+                        'state',
+                        'speed']) for port in fb_lag['ports']],
+            'remote_interface': '|'.join(nx_matched_ifaces),
+            'speed': fb_lag['lag_speed'],
+            'state': fb_lag['state'],
+            'type': 'Ethernet-LAG'} for fb_lag in fb_lag_list if fb_lag['mac_address'] == nx_matched_mac]
 
     return fb_nx_list
 
@@ -406,14 +409,17 @@ def get_fb_nexus_connectivity(fb_obj, nx_obj):
 def get_nexus_fb_connectivity(nx_obj, fb_obj):
     nx_fb_list = []
     nx_lacp_list = nx_obj.get_lacp_list()
-    [iface.update({'pc_id': nx_lacp['pc_id']}) for nx_lacp in nx_lacp_list for iface in nx_lacp['pc_ifaces']]
+    [iface.update({'pc_id': nx_lacp['pc_id']})
+     for nx_lacp in nx_lacp_list for iface in nx_lacp['pc_ifaces']]
     nx_lacp_ifaces = [lacp['pc_ifaces'] for lacp in nx_lacp_list]
     nx_lacp_ifaces = [j for i in nx_lacp_ifaces for j in i]
-    
-    status, fb_lag_list, msg = get_fb_lag_list()
-    [port.update({'speed': fb_lag['port_speed'] if port['state'] == 'up' else '-'}) for fb_lag in fb_lag_list for port in fb_lag['ports']]
 
-    fb_matched_list = [fb_lag for nx_lacp in nx_lacp_ifaces for fb_lag in fb_lag_list if fb_lag['mac_address'] == nx_lacp['remote_interface']]
+    status, fb_lag_list, msg = get_fb_lag_list()
+    [port.update({'speed': fb_lag['port_speed'] if port['state'] == 'up' else '-'})
+     for fb_lag in fb_lag_list for port in fb_lag['ports']]
+
+    fb_matched_list = [
+        fb_lag for nx_lacp in nx_lacp_ifaces for fb_lag in fb_lag_list if fb_lag['mac_address'] == nx_lacp['remote_interface']]
     fb_matched_mac = fb_matched_list[0]['mac_address'] if len(fb_matched_list) > 0 else None
 
     for nx_lacp in nx_lacp_ifaces:
@@ -457,7 +463,6 @@ def get_stack_details():
 def get_stack_obj():
     status, details = get_xml_element(static_discovery_store, 'device_type')
     if status:
-        obj = {}
         for device in details:
             if device.get('leadership', None) != 'subordinate':
                 device['object'] = create_object(device)

@@ -38,7 +38,7 @@ class UCSConfigureUDLDUplinkPortChannel:
         obj = res.getResult()
 
         res = obj.ucsUnconfigureUDLDUplinkPortChannel(
-            inputs,logfile)
+            inputs, logfile)
         obj.release_ucs_handle()
         return res
 

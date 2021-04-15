@@ -28,7 +28,7 @@ class NEXUS9kConfigurePortChannelMemberInterfacesFB:
                 ipaddress=cred['ipaddress'], username=cred['username'], password=cred['password'])
             if obj:
                 res = obj.nexusConfigurePortChannelMemberInterfaces(
-                    taskinfo['inputs'], logfile, flashBlade = True)
+                    taskinfo['inputs'], logfile, flashBlade=True)
             else:
                 customlogs("Failed to login to NEXUS switch", logfile)
                 loginfo("Failed to login to NEXUS switch")

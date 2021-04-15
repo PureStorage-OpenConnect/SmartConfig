@@ -13,6 +13,7 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import g
 
 settings = get_settings_file()
 
+
 class FASetup:
     def __init__(self):
         pass
@@ -32,6 +33,8 @@ class FASetup:
 
                 if not ip_val:
                     err.append({"field": ip, "msg": "Please Enter Valid IP"})
+                    continue
+
                 if ip != 'dns':
                     network_reach, ip_reach = ipv.validate_ip(ip_list[ip])
                     if network_reach:
@@ -82,7 +85,7 @@ class FASetup:
                                    'relay_host': 'SMTP Relay Host Address',
                                    'sender_domain': 'Sender Domain',
                                    'alert_emails': 'Alert Emails',
-                                   #'timezone': 'Timezone',
+                                   # 'timezone': 'Timezone',
                                    'organization': 'Organization',
                                    'full_name': 'Full Name',
                                    'job_title': 'Job Title'},
@@ -180,11 +183,13 @@ class FASetup:
 
         :return: Returns the reconfiguration status
         """
-        ##To fetch timezone value from globals
+        # To fetch timezone value from globals
         status, details = get_xml_element(settings, "stacktype")
-        if status == True:
-            status, global_data = get_xml_childelements(get_global_wf_config_file(), 'htype', 'input', ['name', 'value'], 'stacktype', details[0]['stacktype'])
-            if status == False:
+        if status:
+            status, global_data = get_xml_childelements(
+                get_global_wf_config_file(), 'htype', 'input', [
+                    'name', 'value'], 'stacktype', details[0]['stacktype'])
+            if not status:
                 res.setResult(False, PTK_INTERNALERROR, _("PDT_FAILED_MSG"))
 
         input_dict = {
@@ -204,7 +209,8 @@ class FASetup:
             "sender_domain": data['sender_domain'],
             "alert_emails": data['alert_emails'],
             "ntp_server": data['ntp_server'],
-            "timezone": [config["value"] for config in global_data if config.get("name") == "zone"][0],
+            "timezone": [
+                config["value"] for config in global_data if config.get("name") == "zone"][0],
             "organization": data['organization'],
             "full_name": data['full_name'],
             "job_title": data['job_title'],

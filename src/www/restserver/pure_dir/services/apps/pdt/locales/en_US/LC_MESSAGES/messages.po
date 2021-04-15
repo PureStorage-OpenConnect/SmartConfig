@@ -94,6 +94,9 @@ msgstr "Device not reachable"
 msgid "PDT_DEVICE_ADDED_MSG"
 msgstr "Device added successfully"
 
+msgid "PDT_ADD_DEVICE_INSUFF_DATA_MSG"
+msgstr "Unable to add the device due to insufficient data"
+
 msgid "PDT_DEVICE_DELETED_MSG"
 msgstr "Device deleted successfully"
 
@@ -163,3 +166,22 @@ msgstr "Invalid JSON"
 
 msgid "PDT_WARNING_MSG"
 msgstr "Warning"
+
+
+#Reset Hardware
+msgid "PDT_CONFIRMCHK_MSG"
+msgstr "All FlashStack Cisco hardware will be factory reset along with SmartConfig.<br>All FlashArray/FlashBlade configuration changes made using SmartConfig workflows will be rolled back."
+
+msgid "PDT_RESET"
+msgstr "Device Reset initiated."
+
+msgid "PDT_RESET_ROLLBACK_FAILED"
+msgstr "Rollback has failed. Please manually reset the devices and factory reset SmartConfig tool."
+
+msgid "PDT_RESET_UNSUPPORTED"
+msgstr "Another operation is in-progress. Unable to reset"
+
+msgid "PDT_RESET_DEVICES_FAILED"
+msgstr "Unable to reset the hardware. Please reset it manually."
+
+

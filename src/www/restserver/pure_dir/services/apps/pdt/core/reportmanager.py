@@ -9,7 +9,6 @@
 
 import os
 import sys
-from sys import getsizeof
 import xml.etree.ElementTree as ET
 import xmltodict
 import json
@@ -18,9 +17,9 @@ import math
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Alignment, PatternFill, Font
 from openpyxl.styles.borders import Border, Side
-from openpyxl.worksheet.table import Table, TableStyleInfo
+#from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.drawing.image import Image as OpenpyxlImage
-from openpyxl.utils.cell import coordinate_from_string
+#from openpyxl.utils.cell import coordinate_from_string
 from openpyxl.utils.exceptions import InvalidFileException
 from PIL import Image
 from pure_dir.infra.apiresults import *
@@ -29,7 +28,7 @@ from pure_dir.components.storage.mds.mds_report import *
 from pure_dir.components.storage.purestorage.pure_report import *
 from pure_dir.components.network.nexus.nexus_report import *
 from pure_dir.components.storage.flashblade.flashblade_report import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import flash_stack_type_api
+#from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows import flash_stack_type_api
 from pure_dir.services.apps.pdt.core.topology import *
 from pure_dir.services.apps.pdt.core.systemmanager import system_info
 from pure_dir.components.generic_details import get_fs_components, get_fs_connections
@@ -90,13 +89,13 @@ class SCReport:
             code = PTK_OKAY
             msg = 'Success'
 
-        except IOError as error:
+        except IOError:
             code = PTK_INTERNALERROR
             msg = 'Could not read file: %s' % report_file
-        except AttributeError as error:
+        except AttributeError:
             code = PTK_INTERNALERROR
             msg = 'Invalid method call occured'
-        except Exception as error:
+        except Exception:
             code = PTK_INTERNALERROR
             msg = 'Unexpected eror occured. Please try again later'
 
@@ -130,15 +129,15 @@ class SCReport:
                     resObj['labels'].append(tmpObj)
                 break
             fd.close()
-        except IOError as error:
+        except IOError:
             data = False
             code = PTK_INTERNALERROR
             msg = 'Could not read file: %s' % report_file
-        except AttributeError as error:
+        except AttributeError:
             data = False
             code = PTK_INTERNALERROR
             msg = 'Invalid method call occured (%s)' % method
-        except Exception as error:
+        except Exception:
             data = False
             code = PTK_INTERNALERROR
             msg = 'Unexpected eror occured. Please try again later'
@@ -163,7 +162,7 @@ class SCReport:
         report_api_res = []
         fs_con_data = {}
         sheet_index = 0
-        stack_label = ""
+        #stack_label = ""
         start_col_alpha = 'B'
 
         # Border styles
@@ -228,7 +227,6 @@ class SCReport:
                 cell_border)
         except Exception as e:
             loginfo("An exception occured while writing the table " + str(e))
-            pass
 
         finally:
             wb.save(generated_report)
@@ -319,8 +317,8 @@ class SCReport:
 
                 report_info_output = api_results[method]
                 for header_iter in range(len(report_info_output['labels'])):
-                    if report_info_output['labels'][header_iter]['key'] in list(report_info_output['list'][0].keys(
-                    )):
+                    if report_info_output['labels'][header_iter]['key'] in list(
+                            report_info_output['list'][0].keys()):
                         keys.append(report_info_output['labels'][header_iter]['key'])
                         headers.append(report_info_output['labels'][header_iter]['label'])
                         if "rowMerge" in list(report_info_output['labels'][header_iter].keys()):
@@ -395,7 +393,6 @@ class SCReport:
             else:
                 loginfo("Logo image doesn't exist" + str(ioe))
                 sheet._current_row += 1
-                pass
             stack_label = get_stack_details()['label']
             # Modified label for FlashBlade
             if "fb" in stacktype:
@@ -446,7 +443,6 @@ class SCReport:
 
         except Exception as e:
             loginfo("An exception occured while writing the Generic Infomation table " + str(e))
-            pass
 
         finally:
             sheet.sheet_view.showGridLines = False
@@ -518,7 +514,8 @@ class SCReport:
                         (cell_range, start_col, till_col) = self.generate_cell_range(
                             length, sheet._current_row, start_col_alpha)
                         self.generate_header_excel(
-                            cell_range, start_col, till_col, list(header_topo.values()), sheet, cell_border)
+                            cell_range, start_col, till_col, list(
+                                header_topo.values()), sheet, cell_border)
                         # Table Data Section
                         self.generate_data_excel(
                             length,
@@ -528,7 +525,7 @@ class SCReport:
                             cell_border,
                             start_col_alpha,
                             merge,
-                            merge_cols, preset_color = True)
+                            merge_cols, preset_color=True)
                     except Exception as e:
                         loginfo(
                             "An exception occured while writing the Cabling Information " + str(e))
@@ -538,7 +535,6 @@ class SCReport:
                         wb.save(generated_report)
         except Exception as e:
             loginfo("An exception occured while writing Topology and Cabling Information" + str(e))
-            pass
         finally:
             sheet.sheet_view.showGridLines = False
             wb.save(generated_report)
@@ -592,9 +588,9 @@ class SCReport:
             cell_border,
             start_col_alpha,
             merge,
-            merge_cols, preset_color = False):
+            merge_cols, preset_color=False):
         start_row = str(sheet._current_row)
-        preset_color_dict = {'Up' : '16961C', 'Failed' : 'FF0000', 'Down' : '454545'}
+        preset_color_dict = {'Up': '16961C', 'Failed': 'FF0000', 'Down': '454545'}
         for data in data_list:
             for key, val in data.items():
                 if isinstance(val, list):
@@ -610,8 +606,13 @@ class SCReport:
                 sheet[cell_range[iter_cnt]].value = data[keys[iter_cnt]]
                 sheet[cell_range[iter_cnt]].border = cell_border
                 sheet[cell_range[iter_cnt]].alignment = Alignment(horizontal='left', vertical='top')
-                if preset_color and preset_color_dict.get(data[keys[iter_cnt]]):
-                    sheet[cell_range[iter_cnt]].font = Font(color = preset_color_dict.get(data[keys[iter_cnt]]))
+                if preset_color:
+                    if preset_color_dict.get(data[keys[iter_cnt]]):
+                        sheet[cell_range[iter_cnt]].font = Font(
+                            color=preset_color_dict.get(data[keys[iter_cnt]]))
+                    elif keys[iter_cnt] == 'state_port' and not preset_color_dict.get(data[keys[iter_cnt]]):
+                        sheet[cell_range[iter_cnt]].font = Font(
+                            color=preset_color_dict.get('Failed'))
             sheet._current_row += 1
         end_row = str(sheet._current_row - 1)
 

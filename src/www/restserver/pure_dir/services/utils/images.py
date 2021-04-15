@@ -164,38 +164,38 @@ def iso_binding(isofile, kickstart):
     if 'rhel' in isofile:
         pattern_ks = "x20Server.x86_64 quiet"
         pattern_default = "menu default"
-        rhel_ver = "RHEL-" + isofile.split('-')[2] + " Server.x86_64"
-        with open(mount_path+ '/isolinux/isolinux.cfg', 'r') as infile, open(mount_path+ '/isolinux/isolinux1.cfg', 'w') as outfile:
+        with open(mount_path + '/isolinux/isolinux.cfg', 'r') as infile, open(mount_path + '/isolinux/isolinux1.cfg', 'w') as outfile:
             for line in infile:
                 if pattern_ks in line:
-                    line = "  append initrd=initrd.img inst.repo=cdrom ks=cdrom:/" + kickstart[:-4].upper() + ".cfg" + "\n"
+                    line = "  append initrd=initrd.img inst.repo=cdrom ks=cdrom:/" + \
+                        kickstart[:-4].upper() + ".cfg" + "\n"
                     outfile.write(line)
                 elif pattern_default not in line:
                     outfile.write(line)
         os.remove(mount_path + '/isolinux/isolinux.cfg')
         os.rename(mount_path + '/isolinux/isolinux1.cfg', mount_path + '/isolinux/isolinux.cfg')
         pattern_label = "^Install Red Hat Enterprise Linux"
-        with open(mount_path+ '/isolinux/isolinux.cfg', 'r') as infile, open(mount_path+ '/isolinux/isolinux1.cfg', 'w') as outfile:
+        with open(mount_path + '/isolinux/isolinux.cfg', 'r') as infile, open(mount_path + '/isolinux/isolinux1.cfg', 'w') as outfile:
             for line in infile:
                 if pattern_label in line:
-                    line = line + "  menu default" + "\n" 
+                    line = line + "  menu default" + "\n"
                     outfile.write(line)
                 else:
                     outfile.write(line)
         os.remove(mount_path + '/isolinux/isolinux.cfg')
         os.rename(mount_path + '/isolinux/isolinux1.cfg', mount_path + '/isolinux/isolinux.cfg')
-        pattern_mod_default="set default"
-        with open(mount_path+ '/EFI/BOOT/grub.cfg', 'r') as infile, open(mount_path+ '/EFI/BOOT/grub1.cfg', 'w') as outfile:
+        pattern_mod_default = "set default"
+        with open(mount_path + '/EFI/BOOT/grub.cfg', 'r') as infile, open(mount_path + '/EFI/BOOT/grub1.cfg', 'w') as outfile:
             for line in infile:
                 if pattern_mod_default in line:
                     line = 'set default="0"' + "\n"
                     outfile.write(line)
-                else: 
+                else:
                     outfile.write(line)
         os.remove(mount_path + '/EFI/BOOT/grub.cfg')
         os.rename(mount_path + '/EFI/BOOT/grub1.cfg', mount_path + '/EFI/BOOT/grub.cfg')
-        pattern_conf="default"
-        with open(mount_path+ '/isolinux/grub.conf', 'r') as infile, open(mount_path+ '/isolinux/grub1.conf', 'w') as outfile:
+        pattern_conf = "default"
+        with open(mount_path + '/isolinux/grub.conf', 'r') as infile, open(mount_path + '/isolinux/grub1.conf', 'w') as outfile:
             for line in infile:
                 if pattern_conf in line:
                     line = 'default=0' + "\n"
@@ -212,8 +212,8 @@ def iso_binding(isofile, kickstart):
             "genisoimage -U -r -v -T -J -joliet-long -V 'RHEL-7.6 Server.x86_64' -volset 'RHEL-7.6 Server.x86_64' -A 'RHEL-7.6 Server.x86_64' -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -o {} {}".format(bundle, mount_path))
         os.system(
             "implantisomd5 {}".format(bundle))
-        #TODO checkisomd5
-        #os.system(
+        # TODO checkisomd5
+        # os.system(
         #   "checkisomd5 {}".format(bundle))
         shutil.rmtree(mount_path)
         return True
@@ -255,4 +255,4 @@ def delete_image(imagename):
         res.setResult(False, PTK_INTERNALERROR, "File is not found")
         return res
 
-#iso_binding("rhel-server-7.6-x86_64-dvd.iso","KS.cfg")
+# iso_binding("rhel-server-7.6-x86_64-dvd.iso","KS.cfg")

@@ -13,10 +13,11 @@ from pure_dir.components.compute.ucs.ucs_report import *
 from pure_dir.components.storage.purestorage import *
 from pure_dir.components.storage.flashblade.flashblade_report import *
 from pure_dir.components.common import *
-
+from pure_dir.components.reset_devices import *
 from pure_dir.components.network.nexus.nexus_setup import *
 from pure_dir.components.storage.mds.mds_setup import *
 from pure_dir.components.storage.purestorage.fa_setup import *
+from pure_dir.components.storage.flashblade.flashblade_setup import *
 from pure_dir.infra.logging.logmanager import *
 
 from pure_dir.infra.apiresults import *
@@ -26,6 +27,8 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_form_data impor
 from pure_dir.services.apps.pdt.core.reportmanager import *
 
 from core import *
+
+
 
 
 def log(data):
@@ -220,6 +223,18 @@ def faconfigure(data):
 def favalidate(data):
     obj = FASetup()
     ret = obj.favalidate(data)
+    return parseResult(ret)
+
+
+def fbvalidate(data):
+    obj = FBSetup()
+    ret = obj.fbvalidate(data)
+    return parseResult(ret)
+
+
+def fbconfigure(data):
+    obj = FBSetup(data['orig_ip'])
+    ret = obj.fbconfigure(data)
     return parseResult(ret)
 
 
@@ -606,7 +621,7 @@ def release_handle(stacktype):
         return parseResult(ret1)
     ret2 = release_fb_handler()
     ret = result()
-    if ret1.getStatus() !=0 and ret2.getStatus() != 0 :
+    if ret1.getStatus() != 0 and ret2.getStatus() != 0:
         ret.setResult(False, PTK_NOTEXIST, "Both UCS and FlashBlade Handles don't exist")
         return parseResult(ret)
     elif ret1.getStatus() != 0:
@@ -617,3 +632,21 @@ def release_handle(stacktype):
         ret.setResult(True, PTK_OKAY, "Released both UCS and FlashBlade Handles")
         return parseResult(ret)
 
+
+def devicereset(devices_list, force):
+    ret = device_reset(devices_list, force)
+    return parseResult(ret)
+
+
+def resetstatus():
+    ret = reset_status()
+    return parseResult(ret)
+
+def device_to_reset():
+    ret = devices_to_reset()
+    return parseResult(ret)
+
+
+def backupconfig():
+    ret = fs_config.config_download()
+    return parseResult(ret)

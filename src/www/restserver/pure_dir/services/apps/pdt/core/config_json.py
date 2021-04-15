@@ -15,9 +15,7 @@ import xmltodict
 import json
 import copy
 from collections import OrderedDict
-from openpyxl import load_workbook, Workbook
-from openpyxl.styles import Alignment, PatternFill, Font
-from openpyxl.styles.borders import Border, Side
+from openpyxl import load_workbook
 
 from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.infra.apiresults import *
@@ -154,7 +152,8 @@ def export_configuration(stacktype, path=None):
                         'ucs_switch_a',
                         'ucs_switch_b',
                         'pure_id',
-                            'remote_file']:
+                        'fb_id',
+                        'remote_file']:
                         # remote_file to be taken from UCSM
                         continue
 
@@ -220,7 +219,7 @@ def export_configuration(stacktype, path=None):
                     'infra_image')
                 discovery_dict['server_type'] = device.getAttribute(
                     'server_type')
-            elif device.getAttribute('device_type') in ['PURE', 'FlashBlade']:
+            elif device.getAttribute('device_type') == 'PURE':
                 if device.hasAttribute('isZTP'):
                     discovery_dict['ZTP'] = True
                     discovery_dict['ct0_ip'] = device.getAttribute('ct0_ip')
@@ -234,9 +233,23 @@ def export_configuration(stacktype, path=None):
                     discovery_dict['organization'] = device.getAttribute('organization')
                     discovery_dict['full_name'] = device.getAttribute('full_name')
                     discovery_dict['job_title'] = device.getAttribute('job_title')
-                    discovery_dict['timezone'] = device.getAttribute('timezone')
+                    #discovery_dict['timezone'] = device.getAttribute('timezone')
                 else:
                     discovery_dict['array_ip'] = device.getAttribute('ipaddress')
+            elif device.getAttribute('device_type') == 'FlashBlade':
+                if device.hasAttribute('isZTP'):
+                    discovery_dict['ZTP'] = True
+                    discovery_dict['fm1_ip'] = device.getAttribute('fm1_ip')
+                    discovery_dict['fm2_ip'] = device.getAttribute('fm2_ip')
+                    discovery_dict['vir0_ip'] = device.getAttribute('vir0_ip')
+                    discovery_dict['domain_name'] = device.getAttribute('domain_name')
+                    discovery_dict['relay_host'] = device.getAttribute('relay_host')
+                    discovery_dict['sender_domain'] = device.getAttribute('sender_domain')
+                    discovery_dict['dns'] = device.getAttribute('dns')
+                    discovery_dict['alert_emails'] = device.getAttribute('alert_emails')
+                    #discovery_dict['timezone'] = device.getAttribute('timezone')
+                else:
+                    discovery_dict['blade_ip'] = device.getAttribute('ipaddress')
 
             if bool(discovery_dict):
                 discovery_list.append(discovery_dict)
@@ -244,7 +257,7 @@ def export_configuration(stacktype, path=None):
     dicts['workflows'] = grp_wf_list
     dicts['global_config'] = input_list
     dicts['stacktype'] = stacktype
-    dicts['version'] = '1.0'
+    dicts['version'] = '2.1'
     dicts['tool_version'] = get_smartconfig_version()
     dicts['flags'] = ':'.join(get_wfflags())
 
@@ -445,6 +458,31 @@ def prettfy_json(path, import_dict):
         del tmp_dict['components']['UCSM_A'][item]
         if item not in ['kvm_console_ip', 'esxi_file', 'esxi_kickstart']:
             del tmp_dict['components']['UCSM_B'][item]
+
+    if 'iSCSI-IP-CT0ETH8' in tmp_dict['global_config']:
+        tmp_dict['global_config']['iSCSI-IP1-CT0']=  tmp_dict['global_config']['iSCSI-IP-CT0ETH8']
+        del tmp_dict['global_config']['iSCSI-IP-CT0ETH8']
+
+    if 'iSCSI-IP-CT0ETH9' in tmp_dict['global_config']:
+        tmp_dict['global_config']['iSCSI-IP2-CT0']=  tmp_dict['global_config']['iSCSI-IP-CT0ETH9']
+        del tmp_dict['global_config']['iSCSI-IP-CT0ETH9']
+
+    if 'iSCSI-IP-CT1ETH8' in tmp_dict['global_config']:
+        tmp_dict['global_config']['iSCSI-IP1-CT1']=  tmp_dict['global_config']['iSCSI-IP-CT1ETH8']
+        del tmp_dict['global_config']['iSCSI-IP-CT1ETH8']
+
+    if 'iSCSI-IP-CT1ETH9' in tmp_dict['global_config']:
+        tmp_dict['global_config']['iSCSI-IP2-CT1']=  tmp_dict['global_config']['iSCSI-IP-CT1ETH9']
+        del tmp_dict['global_config']['iSCSI-IP-CT1ETH9']
+
+
+    # add to components
+    if  'ib_gateway' in tmp_dict['global_config']:
+        if 'Nexus 9k_A' in  tmp_dict['components']:
+              tmp_dict['components']['Nexus 9k_A']['ib_gateway'] = tmp_dict['global_config']['ib_gateway']
+              del tmp_dict['global_config']['ib_gateway']  
+                                             
+
     # remove reduntant values
 
     items = ['virtual_ip', 'leadership', 'infra_image']
@@ -501,15 +539,39 @@ def undo_json_pretty(import_dict):
         'esxi_file',
         'esxi_kickstart']
 
+
     for k, v in import_dict['global_config'].items():
         if k not in items:
+            if k == 'iSCSI-IP1-CT0':
+                tmp_dict['global_config'].append({'name': 'iSCSI-IP-CT0ETH8', 'value': v['value']})
+                continue
+            if k == 'iSCSI-IP2-CT0':
+                tmp_dict['global_config'].append({'name': 'iSCSI-IP-CT0ETH9', 'value': v['value']})
+                continue
+            if k == 'iSCSI-IP1-CT1':
+                tmp_dict['global_config'].append({'name': 'iSCSI-IP-CT1ETH8', 'value': v['value']})
+                continue
+
+            if k == 'iSCSI-IP2-CT1':
+                tmp_dict['global_config'].append({'name': 'iSCSI-IP-CT1ETH9', 'value': v['value']})
+                continue
             tmp_dict['global_config'].append({'name': k, 'value': v['value']})
+    
+
+
+    # add to components
+    for k, v in import_dict['components'].items():
+        if k == 'Nexus 9k_A':
+            if 'ib_gateway' in import_dict['components'][k]:
+                  tmp_dict['global_config'].append({'name': 'ib_gateway', 'value': import_dict['components'][k]['ib_gateway']['value']})
+                  del import_dict['components']['Nexus 9k_A']['ib_gateway']     
+
 
     for k, v in import_dict['components'].items():
         tmp_comp = {}
         for attr_k, attr_v in v.items():
             tmp_comp[attr_k] = attr_v["value"]
-        if k not in ['FlashArray', 'FlashBlade'] :
+        if k not in ['FlashArray', 'FlashBlade']:
             tmp_comp['tag'] = k.split("_")[1]
             tmp_comp['device_type'] = k.split("_")[0]
         else:
@@ -541,7 +603,6 @@ def undo_json_pretty(import_dict):
             tmp_comp['system_image'] = import_dict['components']['Nexus 5k_A']['system_image']['value']
             tmp_comp['kickstart_image'] = import_dict['components']['Nexus 5k_A']['kickstart_image']['value']
         tmp_dict['components'].append(tmp_comp)
-
     return tmp_dict
 
 
@@ -575,14 +636,15 @@ def get_value_from_xml_updated(doc, texecid, name):
     return "", "", False
 
 
-def get_obj(path,param = None):
-  if param != None:
-      exec("%s = %s.%s" %
-         ("res", 'param', path))
-      return (locals()['res'])
-  exec("%s = %s" %
+def get_obj(path, param=None):
+    if param is not None:
+        exec("%s = %s.%s" %
+             ("res", 'param', path))
+        return (locals()['res'])
+    exec("%s = %s" %
          ("res", path))
-  return (locals()['res'])
+    return (locals()['res'])
+
 
 def import_configuration(configfile):
     res = result()
@@ -597,6 +659,7 @@ def import_configuration(configfile):
             tmp_data = excel_to_json(details[0]['stacktype'], "/tmp/" + configfile.filename)
         except Exception as e:
             res.setResult(res_data, PTK_INTERNALERROR, "Unexpected Error")
+            loginfo("Exception" + str(e))
             return res
         excel_import = True
     else:
@@ -608,6 +671,10 @@ def import_configuration(configfile):
 
     data = undo_json_pretty(tmp_data)
     if "version" not in data:
+        res.setResult(res_data, PTK_INTERNALERROR, _("PDT_JSON_IMPORT_INVALID_VERSION"))
+        return res
+
+    if data["version"] != "2.1":
         res.setResult(res_data, PTK_INTERNALERROR, _("PDT_JSON_IMPORT_INVALID_VERSION"))
         return res
 
@@ -639,8 +706,6 @@ def import_configuration(configfile):
         for wf in wfs['subworkflows']:
             if len(wf['tasks']) > 0:
                 for i in wf['tasks']:
-                    #exec("%s = %s" % ("input_obj",
-                    #                  i['taskid'] + "." + i['taskid'] + "Inputs" + "()"))
                     input_obj = get_obj(i['taskid'] + "." + i['taskid'] + "Inputs" + "()")
                     inputs = [x for x in dir(input_obj) if not x.startswith(
                         '__') and not x.endswith('__')]
@@ -652,9 +717,9 @@ def import_configuration(configfile):
                             return res
 
     set_wf_flag(data['flags'].split(':'))
-    if os.path.exists(get_skip_flag()):
+    '''if os.path.exists(get_skip_flag()):
         with open(get_skip_flag()) as td:
-            wf_flags = xmltodict.parse(td.read())
+            wf_flags = xmltodict.parse(td.read())'''
 
     global_file = open(get_global_wf_config_file(), 'r')
     doc = xmltodict.parse(global_file.read())
@@ -739,11 +804,10 @@ def json_config_defaults(stacktype):
         data = undo_json_pretty(tmp_data)
         for comp in data['components']:
             component = {
-                "device_type": comp['device_type'],
-                "switch_name": comp['name'] if comp['device_type'] not in ['PURE', 'FlashBlade'] else '',
-                "tag": comp['tag'] if comp['device_type'] not in ['PURE', 'FlashBlade'] else '',
-                "switch_ip": comp['switch_ip'] if comp['device_type'] not in ['PURE', 'FlashBlade'] else '',
-            }
+                "device_type": comp['device_type'], "switch_name": comp['name'] if comp['device_type'] not in [
+                    'PURE', 'FlashBlade'] else '', "tag": comp['tag'] if comp['device_type'] not in [
+                    'PURE', 'FlashBlade'] else '', "switch_ip": comp['switch_ip'] if comp['device_type'] not in [
+                    'PURE', 'FlashBlade'] else '', }
             if comp['device_type'] == 'Nexus 5k':
                 component['switch_image'] = {
                     "switch_system_image": comp['system_image'],
@@ -783,7 +847,21 @@ def json_config_defaults(stacktype):
                 component['organization'] = comp['organization']
                 component['full_name'] = comp['full_name']
                 component['job_title'] = comp['job_title']
-                component['timezone'] = comp['timezone']
+                # component['timezone'] = comp['timezone'] remove timezone from components
+
+            elif comp['device_type'] == 'FlashBlade':
+                if comp.get('ZTP', False) is False:
+                    continue
+                component['blade_name'] = comp['name']
+                component['fm1_ip'] = comp['fm1_ip']
+                component['fm2_ip'] = comp['fm2_ip']
+                component['vir0_ip'] = comp['vir0_ip']
+                component['dns'] = comp['dns']
+                component['domain_name'] = comp['domain_name']
+                component['relay_host'] = comp['relay_host']
+                component['sender_domain'] = comp['sender_domain']
+                component['alert_emails'] = comp['alert_emails']
+                # component['timezone'] = comp['timezone']  remove timezone from components
 
             comp_list.append(component)
         for conf in data['global_config']:
@@ -811,9 +889,10 @@ def monitor_init_and_deploy(stacktype):
     while True:
         status, devices = get_xml_element(get_discovery_store(), 'validated')
         if status:
+            revalidate_list = [dev['name']  for dev in devices if dev['configured'] == 'Re-validate']
             if any(dev['configured'] == 'Re-validate' for dev in devices):
                 loginfo(
-                    "%s configuration failed. Please retry the configuration" % dev['name'])
+                    "%s configuration failed. Please retry the configuration" % ' , '.join(dev for dev in revalidate_list))
                 return False
 
             conf_list = [dev['name']

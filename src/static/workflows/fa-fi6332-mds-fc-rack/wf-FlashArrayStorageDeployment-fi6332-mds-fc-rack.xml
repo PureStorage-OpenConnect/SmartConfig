@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-fi6332-mds-fc-rack" id="FlashArrayStorageDeployment-fi6332-mds-fc-rack" isdeletable="0" name="Configure FlashArray Storage" order="5" prereq="None" simulate="0" type="FlashArray" wtype="wgroup">
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-fi6332-mds-fc-rack" id="FlashArrayStorageDeployment-fi6332-mds-fc-rack" isdeletable="0" name="Configure FlashArray Storage" order="5" prereq="None" rollbackOnReset="1" simulate="0" type="FlashArray" wtype="wgroup">
   <wfs>
     <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-fi6332-mds-fc-rack" initwf="1" name="Host Registration" wexecid="g310"/>
     <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-fi6332-mds-fc-rack" initwf="0" name="Private Volumes" wexecid="g311"/>

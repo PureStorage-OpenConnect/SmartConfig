@@ -1,0 +1,133 @@
+paths:
+   /FBValidate:
+    post:
+      tags:
+      - FlashBlade
+      parameters:
+      - required: true
+        in: body
+        description: Configuration parameters
+        name: data
+        schema:
+          $ref: '#/definitions/FBConfigure'
+      operationId: pdt_api.fbvalidate
+      summary: Validate FlashBlade configuration parameters
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/FBValidateResponse'
+
+   /FBConfigure:
+    post:
+      tags:
+      - FlashBlade
+      parameters:
+      - required: true
+        in: body
+        description: Configuration parameters
+        name: data
+        schema:
+          $ref: '#/definitions/FBConfigure'
+      operationId: pdt_api.fbconfigure
+      summary: Configure FlashBlade
+      security: []
+      responses:
+        '200':
+          description: Configuration status
+          schema:
+            $ref: '#/definitions/FBConfigureResponse'
+
+
+definitions:
+   FBValidateResponse:
+      type: object
+      required:
+      - data
+      - status
+      properties:
+        status:
+          $ref: '#/definitions/APIStatus'
+        data:
+          type: array
+          items:
+            required:
+            - field
+            - msg
+            properties:
+              field:
+                type: string
+                description: field name
+              msg:
+                type: string
+                description: message to be displayed
+
+   FBConfigureResponse:
+      required:
+      - data
+      - status
+      type: object
+      properties:
+        status:
+          $ref: '#/definitions/APIStatus'
+        data:
+          type: boolean
+          description: Configuration state
+
+   FBConfigure:
+      required:
+      - model
+      - mac
+      - blade_name
+      - orig_ip
+      - serial_number
+      - fm1_ip
+      - fm2_ip
+      - vir0_ip
+      - network
+      - netmask
+      - gateway
+      - dns
+      - relay_host
+      - sender_domain
+      - alert_emails
+      - ntp_server
+      type: object
+      properties:
+        model:
+          type: string
+        mac:
+          type: string
+        blade_name:
+          type: string
+        orig_ip:
+          type: string
+        serial_number:
+          type: string
+        fm1_ip:
+          type: string
+        fm2_ip:
+          type: string
+        vir0_ip:
+          type: string
+        network:
+          type: string
+        netmask:
+          type: string
+        gateway:
+          type: string
+        domain_name:
+          type: string
+        dns:
+          type: string
+        ntp_server:
+          type: string
+        timezone:
+          type: string
+        relay_host:
+          type: string
+        sender_domain:
+          type: string
+        alert_emails:
+          type: string

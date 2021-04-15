@@ -1,10 +1,15 @@
+import ast
+import xmltodict
 from pure_dir.infra.logging.logmanager import loginfo, customlogs
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, job_input_save, getGlobalArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.components.network.nexus.nexus_tasks import NEXUSTasks
+from pure_dir.components.storage.purestorage.pure_tasks import PureTasks
 from pure_dir.components.network.nexus.nexus import Nexus
 from pure_dir.components.common import get_device_list, get_device_credentials
 from pure_dir.infra.apiresults import *
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file
+from pure_dir.services.utils.miscellaneous import get_xml_element
 
 metadata = dict(
     task_id="NEXUS9kAddIndividualPortDescription",
@@ -13,6 +18,7 @@ metadata = dict(
     task_type="NEXUS"
 )
 
+settings = '/mnt/system/pure_dir/pdt/settings.xml'
 
 class NEXUS9kAddIndividualPortDescription:
     def __init__(self):
@@ -97,6 +103,83 @@ class NEXUS9kAddIndividualPortDescription:
         else:
             return True, "id", member['id']['ismapped']
 
+    def prepare(self, jobid, texecid, inputs):
+        """
+        :param jobid: executed job id
+        :type jobid: str
+        :param texecid: task execution id
+        :type texecid: str
+        :param inputs: input from global variables
+        :type inputs: dict
+
+        """
+        loginfo("Enters into prepare function for {}".format(metadata['task_name']))
+        res = result()
+        status, data = get_xml_element(settings, 'subtype')
+        if status:
+            subtype = data[0]['subtype']
+            if not (('6454' in subtype) and ('iscsi' in subtype)):
+                res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+                return res
+        pureid = getGlobalArg(inputs, 'pure_id')
+        if pureid is None:
+            res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+            return res
+        job_xml = get_job_file(jobid)
+        try:
+            with open(job_xml, 'r') as fd:
+                doc = xmltodict.parse(fd.read())
+                port_set = [[arg for arg in task['args']['arg'] if arg['@name'] == "port_set"][0]
+                          for task in doc['workflow']['tasks']['task'] if task['@texecid'] == texecid][0]['@value']
+        except IOError:
+            loginfo("Could not read file: %s" % job_xml)
+            res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+            return res
+        nexus_intf, is_job_save = self.get_fa_iscsi_intf(pureid, port_set)
+        if is_job_save:
+            intf_desc = "|".join(map(str,nexus_intf))
+            loginfo("Interfaces in prepare for {} :{}".format(metadata['task_name'], intf_desc))
+            job_input_save(jobid, texecid, 'port_set', intf_desc)
+        res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
+        return res
+
+
+    def get_fa_iscsi_intf(self, pureid, inputs):
+        """
+        :param inputs: mac of FlashArray
+        :type: str
+        :param inputs: inputs from global variables
+        :type: dict
+        :returns: list of ethernet interfaces
+
+        """
+
+        loginfo("Fetching the Nexus Interfaces based on FA interfaces..")
+        res = result()
+        fi_model = ""
+        is_job_save = False
+        port_list = list(map(lambda intf:ast.literal_eval(intf),inputs.split("|")))
+
+        cred = get_device_credentials(
+            key="mac", value=pureid)
+        if not cred:
+            loginfo("Unable to get the FA credentials")
+            return port_list, is_job_save
+
+        obj = PureTasks(cred['ipaddress'],
+                        cred['username'], cred['password'])
+        intf_list = obj.get_fa_ports(fi_model)
+        obj.release_pure_handle()
+        if [intf for intf in intf_list if intf in ["ETH4", "ETH5", "ETH18", "ETH19"]]:
+            is_job_save = True
+            for port in port_list:
+                for key, val in port.items():
+                    if '1/49' in val['value']:
+                        val['value'] = '1/37'
+                    elif '1/50' in val['value']:
+                        val['value'] = '1/38'
+            return port_list, is_job_save
+        return port_list, is_job_save
 
 class NEXUS9kAddIndividualPortDescriptionInputs:
     nexus_id = Dropdown(

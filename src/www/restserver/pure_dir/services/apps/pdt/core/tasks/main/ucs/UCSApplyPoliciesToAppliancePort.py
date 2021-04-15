@@ -53,7 +53,6 @@ class UCSApplyPoliciesToAppliancePort:
         ports_list = []
         res = result()
         fabricid = getArg(keys, 'fabric_id')
-        ucs_fabric_name = getArg(keys, 'ucs_fabric_id')
 
         if fabricid is None:
             res.setResult(ports_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))

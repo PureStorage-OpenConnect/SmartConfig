@@ -105,23 +105,23 @@
     <task OnSuccess="t208" Onfailure="None" desc="Configure Ports connected to storage array from Fabric A" id="UCSConfigureAppliancePorts" inittask="0" label="Configure Appliance Ports(A) " name="UCSConfigureAppliancePortsForFabricA" texecid="t207">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
-        <output name="ports" tvalue="20|21" value="no-op"/>
+        <output name="ports" tvalue="49|50" value="no-op"/>
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
         <arg mapval="0" name="ucs_fabric_id" value="A"/>
-        <arg mapval="0" name="ports" value="20|21"/>
+        <arg mapval="0" name="ports" value="49|50"/>
       </args>
     </task>
     <task OnSuccess="t209" Onfailure="None" desc="Configure Ports connected to storage array from Fabric B" id="UCSConfigureAppliancePorts" inittask="0" label="Configure Appliance Ports(B)" name="UCSConfigureAppliancePortsForFabricB" texecid="t208">
       <outputs>
         <output name="status" tvalue="SUCCESS" value="no-op"/>
-        <output name="ports" tvalue="20|21" value="no-op"/>
+        <output name="ports" tvalue="49|50" value="no-op"/>
       </outputs>
       <args>
         <arg mapval="3" name="fabric_id" value="ucs_switch_a"/>
         <arg mapval="0" name="ucs_fabric_id" value="B"/>
-        <arg mapval="0" name="ports" value="20|21"/>
+        <arg mapval="0" name="ports" value="49|50"/>
       </args>
     </task>
     <task OnSuccess="t210" Onfailure="None" desc="Create VLAN Native" id="UCSCreateVLAN" inittask="0" label="Create Native VLAN" name="UCSCreateNativeVLAN" texecid="t209">

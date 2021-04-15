@@ -131,7 +131,7 @@ def getConfValue(pathFile, confName):
 
     try:
         FILE = open(pathFile).readlines()
-    except IOError as reason:
+    except IOError:
         print("cannot locate configuration file: %s" % pathFile)
         sys.exit(-1)
 

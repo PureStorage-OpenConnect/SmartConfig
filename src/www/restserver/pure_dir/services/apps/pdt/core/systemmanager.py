@@ -93,8 +93,8 @@ def system_info():
         else:
             sysinfo['deployment_settings']['server_types'] = {'rack': False, 'blade': False}
     if 'system' in sysinfo:
-    	if 'emulate' in sysinfo['system']:
-             del sysinfo['system']['emulate']
+        if 'emulate' in sysinfo['system']:
+            del sysinfo['system']['emulate']
 
     res.setResult(sysinfo, PTK_OKAY, "Success")
     return res
@@ -191,9 +191,16 @@ def pdtreset():
         "rm -rf /mnt/system/pure_dir/pdt/rollback/*.xml")
     os.system(
         "rm -rf /mnt/system/pure_dir/pdt/rollback/status/*.xml")
+    os.system("rm -rf /mnt/system/pure_dir/pdt/devices_reset.xml*")
+
     # Removing the Excel Report
     os.system(
         "rm -rf /var/www/html/static/downloads/SmartConfigReport.xlsx")
+
+    # Removing the config backup folder
+    os.system("rm -rf /mnt/system/pure_dir/pdt/configs")
+    os.system(
+        "rm -f /var/www/html/static/downloads/fs_configs.zip")
 
     # Clearing out global values
     reset_global_config()

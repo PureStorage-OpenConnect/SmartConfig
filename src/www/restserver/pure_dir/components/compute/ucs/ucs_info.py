@@ -41,7 +41,7 @@ class UCSInfo:
             # return None
 
         except Exception as e:
-            loginfo("Failed to release handle in UCSInfo")
+            loginfo("Failed to release handle in UCSInfo" + str(e))
             return None
 
     def ucsmtopology(self):
@@ -142,7 +142,9 @@ class UCSInfo:
                         remote_port = adaptor_info.groups()
                         remote_interface = "Ethernet" + remote_port[0] + "/" + remote_port[1]
                     else:
-                        loginfo("Unable to get the adaptor details for the server %s" % remote_device)
+                        loginfo(
+                            "Unable to get the adaptor details for the server %s" %
+                            remote_device)
                         remote_interface = ''
                 elif remote_device.split('-')[0] == 'chassis':
                     remote_interface = "IOM" + sport.peer_slot_id + "/" + sport.peer_port_id

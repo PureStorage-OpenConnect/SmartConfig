@@ -24,6 +24,10 @@ from subprocess import Popen, PIPE
 from lxml import etree
 from xml.dom.minidom import parse, parseString, Document
 from filelock import FileLock
+from pure_dir.components.compute.ucs.ucs_info_netmiko import netmiko_obj
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_devices_wf_config_file
+import base64
+from pure_dir.infra.logging.logmanager import loginfo
 
 CONF_FILE = '/etc/sysconfig/network-scripts/static-network'
 users_registry = "/mnt/system/pure_dir/users.xml"
@@ -42,7 +46,7 @@ def get_xml_element(file_name, attribute_key, attribute_value=''):
         with lock.acquire(timeout=-1):
             try:
                 tree = etree.parse(file_name)
-            except Exception as e:
+            except Exception:
                 return False, None
 
         if tree:
@@ -71,7 +75,13 @@ def get_xml_element(file_name, attribute_key, attribute_value=''):
     return False, None
 
 
-def get_xml_childelements(file_name, child_root, child_element, child_element_params, childroot_match_key='', childroot_match_value=''):
+def get_xml_childelements(
+        file_name,
+        child_root,
+        child_element,
+        child_element_params,
+        childroot_match_key='',
+        childroot_match_value=''):
     if os.path.exists(file_name) is True:
         try:
             doc = parse_xml(file_name)
@@ -79,17 +89,19 @@ def get_xml_childelements(file_name, child_root, child_element, child_element_pa
             for node in childRoot:
                 op_data = []
                 if childroot_match_key != '':
-                    matchFound = node.getAttribute(childroot_match_key) == childroot_match_value if childroot_match_value != '' else node.hasAttribute(childroot_match_key)
+                    matchFound = node.getAttribute(
+                        childroot_match_key) == childroot_match_value if childroot_match_value != '' else node.hasAttribute(childroot_match_key)
                     if matchFound in [False, '']:
                         continue
 
                 child_nodes = node.getElementsByTagName(child_element)
                 for child in child_nodes:
-                    data = {param:child.getAttribute(param) if child.hasAttribute(param) else '' for param in child_element_params}
+                    data = {param: child.getAttribute(param) if child.hasAttribute(
+                        param) else '' for param in child_element_params}
                     op_data.append(data)
                 return True, op_data
             return False, op_data
-        except Exception as e:
+        except Exception:
             return False, None
     else:
         return False, None
@@ -104,7 +116,7 @@ def add_xml_element(file_name, data, element_name=''):
     else:
         try:
             doc = parse_xml(file_name)
-        except Exception as e:
+        except Exception:
             return False
 
     ele_name = file_basename[:-5] if element_name == '' else element_name
@@ -144,7 +156,7 @@ def delete_xml_element(file_name, matching_key, matching_value='', element_name=
                 o.close()
             return True
 
-        except Exception as e:
+        except Exception:
             return False
     else:
         return False
@@ -169,7 +181,7 @@ def update_xml_element(file_name, matching_key, matching_value, data, element_na
                             o.write(pretty_print(doc.toprettyxml(indent="")))
                             o.close()
                         return True
-        except Exception as e:
+        except Exception:
             return False
     else:
         return False
@@ -312,9 +324,9 @@ def network_modify(data):
                                  data['netmask'], CONFSTRING)
             value = setConfValue(CONF_FILE, "GATEWAY",
                                  data['gateway'], CONFSTRING)
-            value = setConfValue(CONF_FILE, "ONBOOT", "yes", CONFSTRING)
-            value = setConfValue(CONF_FILE, "DEVICE", ifname, CONFSTRING)
-            value = setConfValue(CONF_FILE, "NAME", ifname, CONFSTRING)
+            setConfValue(CONF_FILE, "ONBOOT", "yes", CONFSTRING)
+            setConfValue(CONF_FILE, "DEVICE", ifname, CONFSTRING)
+            setConfValue(CONF_FILE, "NAME", ifname, CONFSTRING)
             cmd = "cp %s /etc/sysconfig/network-scripts/ifcfg-%s" % (
                 CONF_FILE, ifname)
             os.system(cmd)
@@ -458,3 +470,29 @@ def get_list_val(data, **kwargs):
                 if v[k] == h:
                     final_list.append(v)
     return final_list
+
+def check_FI():
+    '''
+    verify FI A and FI B primary or subordinate
+    '''
+    status, device_details = get_xml_childelements(get_devices_wf_config_file(), 'devices', 'device',
+                                                ['device_type', 'ipaddress', 'username', 'password', 'vipaddress', 'leadership', 'tag'])
+    for hw in device_details:
+        if hw['device_type'] == 'UCSM' and hw['leadership'] == 'subordinate':
+            try:
+                net_connect = netmiko_obj(hw['ipaddress'], hw['username'],  base64.b64decode(hw['password']).decode('utf-8'))
+                cluster = net_connect.send_command("show cluster state", expect_string=r"#").split("\n")
+                loginfo(cluster)
+                loginfo("checking FI-A is swapped or not")
+                for i in cluster:
+                    if 'B:' in i and hw['leadership'] not in i.lower():
+                        loginfo("FI-A is swapped")
+                        net_connect.send_command("connect local-mgmt", expect_string=r"#")
+                        net_connect.send_command("cluster lead a", expect_string=r"yes/no")
+                        net_connect.send_command("yes", expect_string=r"#")
+                        loginfo("Command Executed to set FI-A as Primary")
+                        return True, "FI-A set as primary"
+            except Exception as e:
+                loginfo(str(e))
+                return False, "unable to set FI-A as primary"
+    return True, 'FI-A is already Primary'

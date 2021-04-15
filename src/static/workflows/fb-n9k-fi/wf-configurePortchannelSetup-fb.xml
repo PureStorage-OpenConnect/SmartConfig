@@ -222,7 +222,7 @@
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
       </args>
     </task>
-    <task OnSuccess="None" Onfailure="None" desc="Virtual port channels to upstream switch B from switch B" id="NEXUS9kConfigureVirtualPortChannelsToNetworkSwitch" inittask="0" name="Virtual port channels to upstream switch B from switch B" texecid="t313">
+    <task OnSuccess="t314" Onfailure="None" desc="Virtual port channels to upstream switch B from switch B" id="NEXUS9kConfigureVirtualPortChannelsToNetworkSwitch" inittask="0" name="Virtual port channels to upstream switch B from switch B" texecid="t313">
       <outputs>
         <output name="slot_chassis" tvalue="1/54" value="no-op"/>
         <output name="port_channel_number" tvalue="154" value="no-op"/>
@@ -236,6 +236,15 @@
         <arg mapval="1" name="port_channel_number" value="__t312.Virtual port channels to upstream switch B from switch A.port_channel_number"/>
         <arg mapval="3" name="native_vlan_id" value="native_vlan"/>
         <arg mapval="3" name="allowed_vlans_set" value="{'vlan': {'ismapped': '3', 'value': 'mgmt_vlan'}}"/>
+      </args>
+    </task>
+    <task OnSuccess="None" Onfailure="None" desc="Backup running config to startup config" id="Nexus9kSaveConfig" inittask="0" name="Save Running config to Startup config" texecid="t314">
+      <outputs>
+        <output name="status" tvalue="SUCCESS" value="no-op"/>
+      </outputs>
+      <args>
+       <arg mapval="3" name="nexus_id_a" value="nexus_switch_a"/>
+       <arg mapval="3" name="nexus_id_b" value="nexus_switch_b"/>
       </args>
     </task>
   </tasks>

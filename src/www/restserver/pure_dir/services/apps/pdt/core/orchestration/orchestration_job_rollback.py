@@ -385,7 +385,7 @@ def get_field_name(jobid, field_id, texecid):
                              ("member_data", "input_obj", member))
                         member_data = locals()['member_data']
                         gmember = {'label': member_data.label,
-                                   'name':  member_data.name}
+                                   'name': member_data.name}
                         group_members.append(gmember)
 
            # is a group field

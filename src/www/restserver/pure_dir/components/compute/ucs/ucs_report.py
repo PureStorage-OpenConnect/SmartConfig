@@ -777,8 +777,8 @@ def get_ucs_system_server_config_info(args={}):
                         fw_version = None
                         if ucs_sys_server_child.get_class_id() == "AdaptorUnit":
                             fw_version = handle.query_dn(
-                                    ucs_sys_server.dn +
-                                    "/mgmt/fw-system")
+                                ucs_sys_server.dn +
+                                "/mgmt/fw-system")
                             ucs_serverinfo['adapters'].append(
                                 ucs_sys_server_child.id +
                                 ":" +
@@ -1277,8 +1277,8 @@ def get_ucs_system_ethinterconnectinfo(args={}):
                         fi_etherintercon['connected_port'] = "IOM " + \
                             ethernet_ports.peer_slot_id + "/" + ethernet_ports.peer_port_id
                     elif fi_etherintercon['connected_device'].find("rack") != -1:
-                        if (("-" in ethernet_ports.peer_dn.split("/")[1]) and 
-                           ("-" in ethernet_ports.peer_dn.split("/")[2])):
+                        if (("-" in ethernet_ports.peer_dn.split("/")[1]) and
+                                ("-" in ethernet_ports.peer_dn.split("/")[2])):
                             fi_etherintercon['connected_port'] = "Rack " + ethernet_ports.peer_dn.split(
                                 "/")[1].split("-")[2] + ethernet_ports.peer_dn.split("/")[2].split("-")[1]
             elif ethernet_ports.if_role == "network":
@@ -1933,7 +1933,7 @@ def get_ucs_system_boot_policy(args={}):
                             san_order += boot_child.order
                             if len(mo_boot_child) != 0:
                                 for san_child in mo_boot_child:
-                                    mo_san = handle.query_children(in_mo=san_child)
+                                    #mo_san = handle.query_children(in_mo=san_child)
                                     if san_child.get_class_id() == "LsbootSanCatSanImage":
                                         san_order += "," + san_child.vnic_name
             fi_boot_pol['virtual_media_order'] = virtual_media[:-1]
@@ -2193,6 +2193,7 @@ def get_ucs_system_host_fwpkg(args={}):
         return PTK_INTERNALERROR, fi_host_fw_list, str(ue)
     finally:
         lock.release()
+
 
 def get_ucs_system_server_pol_information(args={}):
     """
@@ -2828,6 +2829,7 @@ def get_ucs_system_iscsi_bootparams_secondary(args={}):
     finally:
         lock.release()
 
+
 def get_ucs_system_udld_portchl_config(args={}):
     """
     Function to obtain UCS System UDLD PortChannel Configuration.
@@ -2848,16 +2850,17 @@ def get_ucs_system_udld_portchl_config(args={}):
             loginfo("failed to get handler for UCS Report Generation " + method)
             return PTK_RESOURCENOTAVAILABLE, ucs_vsan_list, "failed to get handler for UCS Report Generation"
         for ucs_portchl in handle.query_classid(class_id="FabricEthLanPc"):
-            ucs_ini = {'portchl_name':"", 'oper_speed':"", 'oper_state':"", 'switch_id':"", 
-                       'eth_interface':[], 'link_prof_name': [], 'udld_link_policy_name':[],
-                       'udld_state':[], 'udld_mode':[]}
+            ucs_ini = {'portchl_name': "", 'oper_speed': "", 'oper_state': "", 'switch_id': "",
+                       'eth_interface': [], 'link_prof_name': [], 'udld_link_policy_name': [],
+                       'udld_state': [], 'udld_mode': []}
             ucs_udld = copy.deepcopy(ucs_ini)
             ucs_udld['portchl_name'] = ucs_portchl.name
             ucs_udld['oper_speed'] = ucs_portchl.oper_speed
             ucs_udld['oper_state'] = ucs_portchl.oper_state
             ucs_udld['switch_id'] = ucs_portchl.switch_id
             if len(handle.query_children(in_mo=ucs_portchl)) != 0:
-                mo_eth_interf = handle.query_children(in_mo=ucs_portchl, class_id="FabricEthLanPcEp")
+                mo_eth_interf = handle.query_children(
+                    in_mo=ucs_portchl, class_id="FabricEthLanPcEp")
                 for ucs_interf in mo_eth_interf:
                     ucs_udld['eth_interface'].append(ucs_interf.slot_id + "/" + ucs_interf.port_id)
                     interf_dn = ucs_interf.oper_eth_link_profile_name
@@ -2881,4 +2884,3 @@ def get_ucs_system_udld_portchl_config(args={}):
         return PTK_INTERNALERROR, ucs_udld_list, str(ue)
     finally:
         lock.release()
-

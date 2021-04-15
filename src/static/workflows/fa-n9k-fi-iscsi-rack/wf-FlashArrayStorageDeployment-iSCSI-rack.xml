@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-n9k-fi-iscsi-rack" id="FlashArrayStorageDeployment-iSCSI-rack" isdeletable="0" name="Configure FlashArray Storage" order="6" prereq="CreateServiceProfileAttachGroup-iSCSI-rack" simulate="0" type="FlashArray" wtype="wgroup">
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-n9k-fi-iscsi-rack" id="FlashArrayStorageDeployment-iSCSI-rack" isdeletable="0" name="Configure FlashArray Storage" order="6" prereq="CreateServiceProfileAttachGroup-iSCSI-rack" rollbackOnReset="1" simulate="0" type="FlashArray" wtype="wgroup">
   <wfs>
     <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-iSCSI-rack" initwf="1" name="Host Registration" wexecid="g310"/>
     <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-iSCSI-rack" initwf="0" name="Private Volumes" wexecid="g311"/>

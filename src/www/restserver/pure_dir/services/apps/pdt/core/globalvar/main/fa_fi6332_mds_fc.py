@@ -71,4 +71,3 @@ class fa_fi6332_mds_fc:
             tzlist.append(tz_entity)
         res.setResult(tzlist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-

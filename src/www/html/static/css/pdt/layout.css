@@ -1231,8 +1231,14 @@ label[for="ucs_upgrade"]::before, label[for="ucs_upgrade"]::after {
 }
 [type="range-picker"] .legend {
 	position: relative;
-	top: -5px;
+	top: 0;
 	font-size: 12px;
+}
+.irs-grid-pol {
+	background: #737272;
+}
+.irs-grid-text {
+	color: #737272;
 }
 [type="range-picker"] .legend span {
 	font-weight: 700;
@@ -1646,6 +1652,7 @@ header .header {
 }
 .dialog-body {
 	padding: 20px;
+	font-size: 15px;
 }
 .dialog-overlay {
 	background: rgba(69, 69, 69, 0.5);
@@ -1660,7 +1667,7 @@ header .header {
 	border-radius: 4px;
 	border: 1px solid #C5C5C5;
 	width: 70%;
-	height: 156px;
+	min-height: 156px;
 	margin: auto;
 	padding: 13px;
 	z-index: 9999;
@@ -1767,4 +1774,10 @@ area {
 	display: block;
 	box-shadow: 4px 4px 4px #000;
 	border: 5px solid #FF0000;
+}
+.reset-hardware-info {
+	display: none;
+}
+.inline1 {
+	display: inline !important;
 }

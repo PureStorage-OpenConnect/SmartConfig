@@ -168,7 +168,6 @@ class UCSCreateServiceProfileTemplateFB:
         res.setResult(temp_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-
     def getpoolassignment(self, keys):
         temp_list = []
         fabricid = getArg(keys, 'fabric_id')

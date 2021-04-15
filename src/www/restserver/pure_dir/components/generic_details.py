@@ -50,14 +50,15 @@ def get_fs_connections(fs_con_data, component, component_name):
                         'connection': "Connection",
                         'r_device': "Remote Device",
                         'r_port': "Remote Port",
-                        'state' : "Port State"}]
+                        'state_port': "Port State"}]
     connection_dict = {
         'device': component_name,
         'connection': "",
         'lport': "",
         'r_device': "",
         'r_port': "",
-        'state' : ""}
+        'state_port': ""}
+    local_ports_list = []
     if fs_con_data.get('connections') != {}:
         connections_info = fs_con_data['connections']
     else:
@@ -69,22 +70,36 @@ def get_fs_connections(fs_con_data, component, component_name):
                 connection_list.append(connection_dict.copy())
                 return connection_list
             for connection in connections[1]:
-                if connection.get('connection'):
-                    connection_dict['connection'] = connection['connection']
-                connection_dict['lport'] = connection['local_interface']
                 # In case of FlashBlade
                 if connection.get('local_ports'):
-                    connection_dict['lport'] += " ( " + ', \n'.join([port['name']  for port in connection['local_ports'] if port['state'] == 'up']) + \
-                                                " )"
-                connection_dict['r_device'] = connection['remote_device']
-                connection_dict['r_port'] = ', \n'.join(connection['remote_interface'].split('|')) if '|' in connection['remote_interface']  else connection['remote_interface']
-                connection_dict['state'] = connection['state'].capitalize()
-                connection_list.append(connection_dict.copy())
-                connection_dict = {
-                    'device': "",
-                    'connection': "",
-                    'lport': "",
-                    'r_device': "",
+                    local_ports_list = [
+                        port for port in connection['local_ports'] if port['state'] != 'unused']
+                    if local_ports_list:
+                        for local_port in local_ports_list:
+                            connection_list.extend(add_to_conn_list(
+                                connection, connection_dict, local_port))
+                else:
+                    connection_list.extend(add_to_conn_list(connection, connection_dict))
+    return connection_list
+
+
+def add_to_conn_list(connection, connection_dict, local_port={}):
+    connection_list = []
+    connection_dict['connection'] = connection.get('connection')
+    if local_port:
+        connection_dict['lport'] = local_port['name']
+    else:
+        connection_dict['lport'] = connection['local_interface']
+    connection_dict['r_device'] = connection['remote_device']
+    connection_dict['r_port'] = ', \n'.join(connection['remote_interface'].split(
+        '|')) if '|' in connection['remote_interface'] else connection['remote_interface']
+    connection_dict['state_port'] = connection['state'].capitalize()
+    connection_list.append(connection_dict.copy())
+    connection_dict = {
+        'device': "",
+        'connection': "",
+        'lport': "",
+        'r_device': "",
                     'r_port': "",
-                    'state' : ""}
+                    'state_port': ""}
     return connection_list

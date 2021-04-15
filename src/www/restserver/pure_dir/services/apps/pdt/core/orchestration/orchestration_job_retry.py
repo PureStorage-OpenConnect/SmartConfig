@@ -19,6 +19,7 @@ from pure_dir.services.apps.pdt.core.orchestration.orchestration_workflows impor
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_executor import execute_task, jobexecute, jobexecute_helper
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_job_rollback import get_htype_wid_from_jobid
 import os
+import copy
 import shelve
 import xmltodict
 import threading
@@ -67,7 +68,7 @@ def group_job_retry(doc, jid):
         return res
     seqno = 0
 
-    dump_shelf = shelve.open(get_job_dump_file(failed_job['jid']), flag="c")
+    #dump_shelf = shelve.open(get_job_dump_file(failed_job['jid']), flag="c")
     logfile = get_log_file(jid)
 
     master_record = shelve.open(get_shelf_file(jid), flag="w", writeback=True)
@@ -350,9 +351,14 @@ def get_job_seq_no(jid, record):
 def trigger_job_from_dump(pjid, jid):
     loginfo("Re triggering job" + jid)
     g_obj_list = {}
-    shelf = shelve.open(get_job_dump_file(jid), flag="c")
-    cur_task = shelf['cur_task']
+    shelf = {}
+    job_dump_fd = shelve.open(get_job_dump_file(jid), flag="c")
+    
+    for key in job_dump_fd.keys():
+       shelf[key] = copy.deepcopy(job_dump_fd[key])
 
+    job_dump_fd.close()
+    cur_task = shelf['cur_task']
     record = shelve.open(get_shelf_file(pjid), flag="c", writeback=True)
 
     loginfo("Retrying :" + cur_task['@name'])
@@ -376,7 +382,6 @@ def trigger_job_from_dump(pjid, jid):
     else:
         update_overall_status(jid, JOB_STATUS_COMPLETED)
     record.close()
-    shelf.close()
     return ret
 
 
@@ -420,3 +425,4 @@ def get_group_workflow_failed_job(jid):
         if job['status'] == 'FAILED':
             return {'wid': job['id'], 'jid': job['jid'], 'execid': job['execid']}
     return None
+

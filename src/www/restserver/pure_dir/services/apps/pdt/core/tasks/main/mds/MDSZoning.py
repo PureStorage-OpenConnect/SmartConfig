@@ -52,7 +52,7 @@ class MDSZoning:
                 # Alias for blade servers. UCSM itself accepts WWN even without OUI -
                 # 00:25:B5 eventhough it is recommended
                 alias_name = bs_alias_template % (
-                    #str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
+                    # str(int(flogi['pwwn'][-1]) + 1), switch_tag.upper())
                     flogi['pwwn'][-1], switch_tag.upper())
 
                 zone_list.append(alias_name)

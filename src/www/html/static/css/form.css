@@ -144,6 +144,13 @@ input.error, select.error, .ms-options-wrap button.error, .multiple_emails-conta
 	background-color: #FFC4BF !important;
 	border-color: #F57373 !important;
 }
+[type="range-picker"].error {
+	background-color: #f79b93 !important;
+    border-color: #f37171 !important;
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 2px;
+}
 textarea {
 	height: 70px;
 }

@@ -30,7 +30,8 @@
 	"fullscreen": "Fullscreen",
 	"eula": "End-User Licence Agreement",
 	"exit-fullscreen": "Exit Fullscreen",
-	"factory-reset": "Factory Reset",
+	"factory-reset": "SmartConfig Reset",
+	"hardware-reset": "FlashStack Reset",
 	"system-log": "System Logs",
 	"about-us": "About Us",
 	"step": "Step",
@@ -101,7 +102,7 @@
 	"confirm-password": "Confirm Password",
 	"system-name": "System Name",
 	"mgmt-ip": "Mgmt IP Address",
-	"fabric-setup": "Fabric Setup",
+	"fabric-setup": "Fabric Selection",
 	"switch-name": "Switch Name",
 	"gateway": "Gateway",
 	"kickstart-image": "Kickstart Image",
@@ -208,6 +209,7 @@
 	"fullscreen-not-support-msg": "Oops! Browser doesn't support fullscreen",
 	"gnu-licence-title": "GNU General Public Licence",
 	"reset-confirm": "Are you sure you want to reset?",
+	"continue-confirm": "Are you sure you want to continue?",
 	"select-flashstack": "Please select a FlashStack&trade; deployment",
 	"reset-config-confirm": "Are you sure you want to reset the configuration?",
 	"rollback-confirm": "Are you sure you want to Rollback the workflow configuration?",
@@ -222,5 +224,6 @@
 	"file_not_found": "File not available. Please try again later.",
 	"duplicate-ip": "Same IP Address should not be used.",
 	"ip_overlap_dhcp": "Make sure static IP does not conflict with the DHCP range.",
-	"dhcp_kvm_overlap": "KVM console range should not overlap DHCP range."
+	"dhcp_kvm_overlap": "KVM console range should not overlap DHCP range.",
+	"configuration-validation-msg": "Please check for input errors in both Basic/Advanced tabs."
 }

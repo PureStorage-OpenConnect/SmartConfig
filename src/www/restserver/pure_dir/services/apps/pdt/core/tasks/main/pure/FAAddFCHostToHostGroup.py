@@ -124,7 +124,6 @@ class FAAddFCHostToHostGroup:
         :rtype: list
 
         """
-        servers_list = []
         fabricid = getArg(keys, 'fabric_id')
 
         if fabricid is None:

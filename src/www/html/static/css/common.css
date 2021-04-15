@@ -569,7 +569,7 @@ label.upgrade_software {
 	background: rgba(68, 169, 222, 0.76);
 }
 .notification.danger {
-	background: rgb(239, 107, 57, 0.76);
+	background: rgb(181, 40, 9, 0.76);
 }
 .notification.notification-block {
 	position: unset;
@@ -769,4 +769,9 @@ fieldset .control-group:last-child {
 }
 .faa-spin.animated.reverse {
 	animation: spin 1.5s linear infinite reverse;
+}
+input.showText + i.fa.showText {
+	position: absolute;
+	right: 18px !important;
+	left: initial;
 }

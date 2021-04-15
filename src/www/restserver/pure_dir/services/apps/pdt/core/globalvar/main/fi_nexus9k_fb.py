@@ -18,7 +18,6 @@ class fi_nexus9k_fb:
         res.setResult(ucs_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
 
-
     def getnexuslist(self, keys):
         res = result()
         nexus_list = get_device_list(device_type="Nexus 9k")
@@ -45,7 +44,6 @@ class fi_nexus9k_fb:
                     info_list.append(details)
         res.setResult(info_list, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-
 
     def rhelimages(self, keys):
         res = result()

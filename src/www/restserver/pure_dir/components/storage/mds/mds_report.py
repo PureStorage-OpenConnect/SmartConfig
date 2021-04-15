@@ -6,13 +6,10 @@
 # version         :1.0
 #####################################################################
 
-import time
-import struct
 from itertools import zip_longest
 
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import getAsList
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.storage.mds.mds import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
 from pure_dir.components.common import get_device_credentials
@@ -60,7 +57,6 @@ def get_device_details(hw_type):
 
 
 def _mds_handler(switch_name):
-    obj = result()
     ucs_creden = {}
     ucs_creden = get_device_details(switch_name)
     try:
@@ -185,7 +181,8 @@ def mds_san_info(args={}):
                     cfcFeatureCtrlName2='npiv')
                 mds_name = helper.mds_command('show hardware', ['host_name'])
                 mds_timezone = helper.mds_cmd_cli_err('show clock')
-                mds_sys['time'] = mds_timezone['ins_api']['outputs']['output']['body']['simple_time'].split(' ')[1] if mds_timezone else 'UTC'
+                mds_sys['time'] = mds_timezone['ins_api']['outputs']['output']['body']['simple_time'].split(' ')[
+                    1] if mds_timezone else 'UTC'
                 mds_sys['name'] = mds_name['host_name'][0]
                 mds_sys['ntp'] = mds_show_ntp['PeerIPAddress'][0].strip()
                 mds_sys['syslog'] = ""
@@ -312,7 +309,6 @@ def mds_vsan_info(args={}):
 
 
 def mds_flogi(args={}):
-    res = result()
     method = "MDS FLOGI for " + args['switch_name'][-1].upper()
     mds_sys_info = []
     mds_init = {'interface': '', 'vsan_id': '', 'wwpn': '', 'wwnn': ''}
@@ -340,7 +336,6 @@ def mds_interfaces_fc(args={}):
     tmp_dict = {}
     method = "MDS INTERFACES for " + args['switch_name'][-1].upper()
     mds_init = {'interface': '', 'vsan': '', 'description': '', 'smsml': ''}
-    tmp_list = []
     helper = _mds_handler(args['switch_name'])
     if helper is not None:
         mds_sys = copy.deepcopy(mds_init)
@@ -349,7 +344,8 @@ def mds_interfaces_fc(args={}):
                 'fcot_info', 'ROW_interface_brief_fc', 'status', 'port_rate_mode', 'oper_speed', 'interface_fc'])
         mds_descrip = helper.mds_command('show interface description', ['ROW_interface'])
         mds_port_lic = helper.mds_port_license()
-        tmp_dict['description'] = [v['sfp_desc'] for v in [i[0] if isinstance(i,list) else i for i in mds_descrip['ROW_interface']]][0]
+        tmp_dict['description'] = [v['sfp_desc']
+                                   for v in [i[0] if isinstance(i, list) else i for i in mds_descrip['ROW_interface']]][0]
         tmp_dict['status'] = [j['status']
                               for i in mds_show_module['ROW_interface_brief_fc'] for j in i]
         tmp_dict['port_rate_mode'] = [j['port_rate_mode']

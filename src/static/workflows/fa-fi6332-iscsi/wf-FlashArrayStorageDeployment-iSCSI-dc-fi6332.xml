@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-fi6332-iscsi" id="FlashArrayStorageDeployment-iSCSI-dc-fi6332" isdeletable="0" name="Configure FlashArray Storage" order="4" simulate="0" type="FlashArray" wtype="wgroup">
+<workflow desc="Create Hosts, Host Groups and Volumes" htype="fa-fi6332-iscsi" id="FlashArrayStorageDeployment-iSCSI-dc-fi6332" isdeletable="0" name="Configure FlashArray Storage" order="4" rollbackOnReset="1" simulate="0" type="FlashArray" wtype="wgroup">
   <wfs>
     <wf OnFailure="None" OnSuccess="g311" id="HostRegistration-iSCSI-dc-fi6332" initwf="1" name="Host Registration" wexecid="g310"/>
     <wf OnFailure="None" OnSuccess="g312" id="PrivateVolumes-iSCSI-dc-fi6332" initwf="0" name="Private Volumes" wexecid="g311"/>

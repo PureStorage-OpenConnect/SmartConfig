@@ -360,14 +360,14 @@ function leaveAStepCallback(obj, context) {
 			doAjaxRequest({url: 'System', base_path: settings.base_path, notify: false}, function(response) {
 				updateDeploymentSettings(response.data.deployment_settings);
 
-				MDSForConfigure = [], NEXUSForConfigure = [], UCSForConfigure = [], FAForConfigure = [];
+				MDSForConfigure = [], NEXUSForConfigure = [], UCSForConfigure = [], FAForConfigure = [], FBForConfigure = [];
 				$('.networkinfo.elementInfo.active').each(function(index) {
 					switch($(this).find('.device_type').text()) {
 						case 'UCSM':
 							UCSForConfigure.push({
 								type: $(this).find('.device_type').text(), 
-								serial: $(this).find('.serial_number').text(), 
-								ip: $(this).find('.ip_address').text(),
+								serial: $(this).find('.serial_number').attr('serial_number'), 
+								ip: $(this).find('.ip_address').attr('ip_address'),
 								mac: $(this).find('.mac_address').text(),
 								vendor: $(this).find('.vendor_model').text()
 							});
@@ -375,8 +375,8 @@ function leaveAStepCallback(obj, context) {
 						case 'Nexus 9k':
 							NEXUSForConfigure.push({
 								type: $(this).find('.device_type').text(), 
-								serial: $(this).find('.serial_number').text(), 
-								ip: $(this).find('.ip_address').text(),
+								serial: $(this).find('.serial_number').attr('serial_number'), 
+								ip: $(this).find('.ip_address').attr('ip_address'),
 								mac: $(this).find('.mac_address').text(),
 								vendor: $(this).find('.vendor_model').text()
 							});
@@ -384,8 +384,8 @@ function leaveAStepCallback(obj, context) {
 						case 'Nexus 5k':
 							NEXUSForConfigure.push({
 								type: $(this).find('.device_type').text(), 
-								serial: $(this).find('.serial_number').text(), 
-								ip: $(this).find('.ip_address').text(),
+								serial: $(this).find('.serial_number').attr('serial_number'), 
+								ip: $(this).find('.ip_address').attr('ip_address'),
 								mac: $(this).find('.mac_address').text(),
 								vendor: $(this).find('.vendor_model').text()
 							});
@@ -393,8 +393,8 @@ function leaveAStepCallback(obj, context) {
 						case 'MDS':
 							MDSForConfigure.push({
 								type: $(this).find('.device_type').text(), 
-								serial: $(this).find('.serial_number').text(), 
-								ip: $(this).find('.ip_address').text(),
+								serial: $(this).find('.serial_number').attr('serial_number'), 
+								ip: $(this).find('.ip_address').attr('ip_address'),
 								mac: $(this).find('.mac_address').text(),
 								vendor: $(this).find('.vendor_model').text()
 							});
@@ -402,8 +402,18 @@ function leaveAStepCallback(obj, context) {
 						case 'PURE':
 							FAForConfigure.push({
 								type: $(this).find('.device_type').text(), 
-								serial: $(this).find('.serial_number').text(), 
-								ip: $(this).find('.ip_address').text(),
+								serial: $(this).find('.serial_number').attr('serial_number'), 
+								ip: $(this).find('.ip_address').attr('ip_address'),
+								mac: $(this).find('.mac_address').text(),
+								vendor: $(this).find('.vendor_model').text(),
+								state: $(this).attr('state')
+							});
+							break;
+						case 'FlashBlade':
+							FBForConfigure.push({
+								type: $(this).find('.device_type').text(), 
+								serial: $(this).find('.serial_number').attr('serial_number'), 
+								ip: $(this).find('.ip_address').attr('ip_address'),
 								mac: $(this).find('.mac_address').text(),
 								vendor: $(this).find('.vendor_model').text(),
 								state: $(this).attr('state')
@@ -411,7 +421,7 @@ function leaveAStepCallback(obj, context) {
 							break;
 					}	
 				});
-				if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0 || FAForConfigure.length > 0) {
+				if(MDSForConfigure.length > 0 || NEXUSForConfigure.length > 0 || UCSForConfigure.length > 0 || FAForConfigure.length > 0 || FBForConfigure.length > 0) {
 					clearTimeout(tout);
 					var data = {'UCSM': []};
 					if(UCSForConfigure.length > 0) {

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # Project_Name    :pure-director
-# title           :aoiresults.py
+# title           :apiresults.py
 # description     :Api result
-# author          :Abhilash
 # date            :12/09/16
 # version         :1.0
 # =======================================================================
@@ -23,9 +22,10 @@ PTK_RESOURCENOTAVAILABLE = -10  # resource not available
 PTK_PARTIAL_SUCCESS = -11  # partialy successfull operation
 PTK_FAILED = -12  # operation failed
 PTK_UNSUPPORTED = -13  # unsupported operation
-PTK_BANNER_ERROR = -14 #banner for DHCP page
+PTK_BANNER_ERROR = -14  # banner for DHCP page
 PTK_BACKGROUND_OPER = 2  # Background Operation
-PTK_WARNING = 5 # Warning messages
+PTK_WARNING = 5  # Warning messages
+
 
 def parseResult(obj):
     return {"data": obj.result, "status": obj.status}

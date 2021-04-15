@@ -64,6 +64,7 @@ def system(command, *args):
         exitcode = os.WEXITSTATUS(error)
         raise ExecError(command, exitcode)
 
+
 def getoutput(command, *args):
     """Executes <command> with <*args> -> output
     If command returns non-zero exitcode raises ExecError"""

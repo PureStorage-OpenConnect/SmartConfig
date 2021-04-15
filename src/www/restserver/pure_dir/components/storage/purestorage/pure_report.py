@@ -1,11 +1,10 @@
 from pure_dir.components.storage.purestorage.pure_tasks import *
 from pure_dir.infra.apiresults import *
-from pure_dir.infra.common_helper import getAsList
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_global_wf_config_file
 from pure_dir.components.common import get_device_credentials
 from pure_dir.services.utils.miscellaneous import *
-from purestorage import FlashArray
+#from purestorage import FlashArray
 import xmltodict
 import copy
 import urllib.error
@@ -71,7 +70,7 @@ def _pure_handler():
                                        password=pure_creden['password'])
         return handle, pure_obj
     except Exception as e:
-        loginfo("Failed to get Pure handler")
+        loginfo("Failed to get Pure handler" + str(e))
         return None, None
 
 

@@ -65,4 +65,3 @@ class fa_fi6454_fc_rack:
             tzlist.append(tz_entity)
         res.setResult(tzlist, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res
-

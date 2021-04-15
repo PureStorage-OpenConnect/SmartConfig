@@ -15,11 +15,10 @@ metadata = dict(
 
 
 class FBCreateSubnet:
-    
+
     def __init__(self):
         pass
 
-    
     def execute(self, taskinfo, logfile):
         """
          :param taskinfo: task input for FBCreateSubnet
@@ -43,7 +42,7 @@ class FBCreateSubnet:
             return parseTaskResult(res)
 
         obj = FlashBladeTasks(cred['ipaddress'],
-                        cred['username'], cred['password'])
+                              cred['username'], cred['password'])
         if obj:
             result = obj.create_subnet(taskinfo['inputs'], logfile)
             return parseTaskResult(result)
@@ -72,7 +71,7 @@ class FBCreateSubnet:
             return parseTaskResult(res)
 
         obj = FlashBladeTasks(cred['ipaddress'],
-                        cred['username'], cred['password'])
+                              cred['username'], cred['password'])
 
         if obj:
             result = obj.delete_subnet(inputs, logfile)

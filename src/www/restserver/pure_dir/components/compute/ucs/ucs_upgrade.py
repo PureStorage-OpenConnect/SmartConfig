@@ -32,6 +32,8 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
     :logfile: handle logging
     :return : ucs upgrade status
     """
+    start_time = time.time()
+    loginfo(start_time)
     handle = UcsHandle(ip, username, password)
     handle.login()
     if infra:
@@ -40,8 +42,8 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
         if not upload_image_to_ucs([infra], handle, image_dir):
             handle.logout()
             return False, "Failed to upload image"
-        if validate_infra(handle, infra):
-
+        status, msg = validate_infra(handle, infra)
+        if status:
             if not firmware_activate_infra(handle, get_version(infra)):
                 handle.logout()
                 loginfo("Failed to perform infra upgrade")
@@ -49,8 +51,23 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
             loginfo("Infra upgrade done for UCS. Waiting for completion.")
 
             diff_seconds = 0
-            loginfo("Sleep for 2700 seconds")
-            time.sleep(2700)
+            #loginfo("Sleep for 2700 seconds")
+            #time.sleep(5*60)
+            cnt = 0
+            upgrade_version = get_version(infra)
+            while (True):
+              cnt = cnt + 1
+              if cnt > 40:
+                loginfo("Running and upgrade version same, Upgraded exiting")
+                break
+              running_version = get_running_version(ip, username, password)
+              loginfo("Running version "+ running_version +"Upgrade version "+upgrade_version)
+              if running_version != '' and running_version == upgrade_version:
+                  loginfo("Running and upgrade version same, Upgraded exiting")
+                  break
+              time.sleep(60)
+
+            #time.sleep(2700)
             infra_time = str(time.time())
             ucsm_up = False
             while not ucsm_up and diff_seconds < infra_timeout:
@@ -64,15 +81,33 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
                     loginfo("UCS is up")
                     ucsm_up = True
 
-            handle = UcsHandle(ip, username, password)
-            handle.login()
-            loginfo("Checking for infra upgrade completion")
-            status, msg = check_infra_completion(handle, get_version(infra))
-            if not status:
-                handle.logout()
-                loginfo(msg)
-                return False, msg
-            loginfo("Infra upgrade for UCS completed successfully")
+            status = True
+            while status:
+                loginfo("checking firmware version in FI-A and B")
+                running_version = check_version_FIs(ip, username, password, upgrade_version, "switch")
+                if all(running_version):
+                    status =False
+                    loginfo("Infra upgrade for ucs completed {}".format(upgrade_version))
+                time.sleep(30)
+            
+            retry = 0 
+            while retry < 15: 
+                try:
+                    handle = UcsHandle(ip, username, password)
+                    handle.login()
+                    loginfo("Checking for infra upgrade completion")
+                    
+                    status, msg = check_infra_completion(handle, get_version(infra))
+                    if not status:
+                        handle.logout()
+                        loginfo(msg)
+                        return False, msg
+                    loginfo("Infra upgrade for UCS completed successfully")
+                    break
+                except Exception:
+                    loginfo("unable to get handle, FIs are rebooting")
+                    retry +=1
+                    time.sleep(20) 
         handle.logout()
 
     if blade:
@@ -112,6 +147,33 @@ def ucsm_upgrade(ip, username, password, infra='', blade='', logfile=''):
             customlogs(
                 "Time exceeded. Failed to perform blade firmware upgrade", logfile)
             return False, "Time exceeded. Failed to perform blade firmware upgrade"
+   
+    loginfo("verifying FI is swapped or not")
+    status = True
+    while status:
+        error, cluster_state = execute_remote_command(ip, username, password, "show cluster state")
+        state = [i.lower() for i in cluster_state.split("\n") if 'A:' in i or 'B:' in i]
+        if all([True if 'up' in i else False for i in state]):
+            result, output = check_FI()
+            if not result:
+               return False, output
+            loginfo(output)
+            status = False
+        time.sleep(10)
+
+    retry = 0
+    while retry < 15:
+        try:
+            handle = UcsHandle(ip, username, password)
+            handle.login()
+            handle.logout()
+            break
+        except Exception:
+            loginfo("unable to get handle FI's are rebooting")
+            retry +=1
+            time.sleep(20)
+
+    loginfo(time.time() - start_time)
 
     loginfo("UCS upgrade completed successfully")
     return True, "UCS upgrade completed successfully"
@@ -162,6 +224,7 @@ def validate_infra(handle, image):
     return True, ""
 
 
+
 def validate_blade(handle, image):
     """
     Validate blade image
@@ -196,7 +259,7 @@ def check_infra_completion(handle, version):
         running_version_A = handle.query_dn(
             "sys/switch-A/mgmt/fw-system").package_version[:-1]
         running_version_B = handle.query_dn(
-            "sys/switch-A/mgmt/fw-system").package_version[:-1]
+            "sys/switch-B/mgmt/fw-system").package_version[:-1]
         if version == running_version_A and version == running_version_B:
             return True, ""
         else:
@@ -468,6 +531,10 @@ def _get_blade_firmware_running(handle, blade):
         if mgmt_controller.subject == "blade":
             firmware_runnings_ = handle.query_children(
                 in_mo=mgmt_controller, class_id="FirmwareRunning")
+        elif mgmt_controller.subject == "rack":
+            firmware_runnings_ = handle.query_children(
+                in_mo=mgmt_controller, class_id="FirmwareRunning")
+            print(firmware_runnings_)
 
     firmware_runnings = []
     for firmware_running_ in firmware_runnings_:
@@ -560,3 +627,71 @@ def get_version(image):
         ver = image[-15:].split('.')
         version = ver[0] + "." + ver[1] + "(" + ver[2] + "." + ver[3] + ")"
     return version
+
+def get_running_version(ip, username, password):
+    running_version=""
+    retry=0
+    while retry < 15:
+        try:
+            handle = UcsHandle(ip, username, password)
+            status = handle.login()
+            if status:
+                running_version = handle.query_dn(
+                    "sys/mgmt/fw-system").package_version[:-1]
+                handle.logout()
+            break
+        except Exception:
+            loginfo("Unable to get UCS handle.FI's are rebooting")
+            retry +=1
+            time.sleep(20)
+    return running_version
+
+def _get_running_firmware_version(ip, username, password, subject="system"):
+    """
+      _get_running_firmware_version(handle)
+    """
+    running_firmware_list = []
+    retry = True
+    while retry:
+        try:
+            handle = UcsHandle(ip, username, password)
+            status = handle.login()
+            if not status:
+                handle.login(force=True)
+            filter_str_ = '(subject, ' + subject + ', type="eq")'
+            mgmt_controllers = handle.query_classid(class_id="MgmtController",
+                                                    filter_str=filter_str_)
+
+            if len(mgmt_controllers) == 0:
+                raise Exception("No Mgmt Controller Object with subject %s", subject)
+
+            for mgmt_controller in mgmt_controllers:
+                list_ = handle.query_children(in_mo=mgmt_controller,
+                                                   class_id="FirmwareRunning")
+                for running in list_:
+                    running_firmware_list.append(running)
+            handle.logout()
+            retry=False
+            return running_firmware_list
+        except Exception as e:
+            loginfo("unable to get handle")
+            loginfo(str(e))
+            retry +=1
+            time.sleep(15)
+
+def check_version_FIs(ip, username, password, upgrade_version, subject):
+    """
+    verify image version in FI A and B
+    """
+    running_version=[]
+    version_obj = _get_running_firmware_version(ip, username, password, subject=subject)
+    for system_version in version_obj:
+        if 'system' in system_version.rn and 'system' in system_version.deployment:
+            loginfo("Running version in {}:{} upgrade version {}".format(system_version.dn.split('/')[1],
+                                                                         system_version.package_version[:-1],
+                                                                         upgrade_version))
+            if upgrade_version == system_version.package_version[:-1]:
+                running_version.append(True)
+            else:
+                running_version.append(False)
+    return running_version

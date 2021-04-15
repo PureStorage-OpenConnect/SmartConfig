@@ -37,7 +37,7 @@ def eula_agreement(isagree):
     res = result()
     doc = parse(g_base_dir + "eula_agreement.xml")
     eula = doc.getElementsByTagName('eulastatus')
-    eula_status = eula[0].setAttribute('isagree', isagree)
+    eula[0].setAttribute('isagree', isagree)
     o = open(g_base_dir + "eula_agreement.xml", "w")
     o.write(pretty_print(doc.toprettyxml(indent="")))
     o.close()

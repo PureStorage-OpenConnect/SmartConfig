@@ -4,8 +4,8 @@ from pure_dir.infra.apiresults import *
 import re
 from purity_fb import PurityFb, NfsRule, rest, FileSystem, Subnet, NetworkInterface
 from pure_dir.services.utils.miscellaneous import execute_remote_command, execute_local_command
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult
 import time
+
 
 class FlashBladeTasks:
     def __init__(self, ipaddress='', username='', password=''):
@@ -17,19 +17,29 @@ class FlashBladeTasks:
 
     def flashblade_handler(self):
         handle, fb = None, None
+        token_list = []
+        retry = 0
         try:
-            token_list = execute_remote_command(self.ipaddress, self.username, self.password,
-                                                'pureadmin list --api-token')
+            while retry < 10:
+                token_list = execute_remote_command(self.ipaddress, self.username, self.password,
+                                                    'pureadmin list --api-token')
+                if token_list[1]:
+                    break
+                loginfo("FlashBlade is not reachable. Retrying to get the FlashBlade handle...")
+                time.sleep(10)
+                retry += 1
             if not token_list[1]:
-                loginfo("FlashBlade is not reachable")
+                loginfo("Maximum retries exceeded. FlashBlade is still not reachable")
+                customlogs("Maximum retries exceeded. FlashBlade is still not reachable", logfile)
                 return handle, fb
+
             if execute_remote_command(self.ipaddress, self.username, self.password,
                                       'pureadmin list --api-token')[1] != "":
                 execute_remote_command(self.ipaddress, self.username, self.password,
                                        'pureadmin delete --api-token')
             val = execute_remote_command(self.ipaddress, self.username, self.password,
                                          'pureadmin create --api-token')
-            api_token = re.findall(r'(T-[0-9a-zA-Z-]+)',val[1])[0]
+            api_token = re.findall(r'(T-[0-9a-zA-Z-]+)', val[1])[0]
             fb = PurityFb(self.ipaddress)
             # Disable SSL verification
             fb.disable_verify_ssl()
@@ -38,7 +48,7 @@ class FlashBladeTasks:
         except rest.ApiException as e:
             loginfo("An Exception occured while logging into the FlashBlade: {}\n".format(str(e.body)))
             return handle, fb
- 
+
     def flash_blade_info(self, ip):
         hw_list = self.fb.hardware.list_hardware()
         details = {}
@@ -55,7 +65,7 @@ class FlashBladeTasks:
                 details['id'] = arr.id
                 details['name'] = arr.name
                 break
-        #TODO: Need to find a proper way to get the mac address
+        # TODO: Need to find a proper way to get the mac address
         arp_cmd = f'arp {ip}'
         error, output = execute_local_command(arp_cmd)
         op = output.split('\n')[1]
@@ -73,9 +83,24 @@ class FlashBladeTasks:
                           "Unable to connect to FlashBlade")
             return obj
         try:
+            # Delete if the subnet already exists
+            subnets_list = self.fb.subnets.list_subnets().items
+            data_subnet = [{subnet.name : [subnet_info.name for subnet_info in subnet.interfaces]
+                              if subnet.interfaces else []} for subnet in subnets_list if inputs['name'] == subnet.name]
+            if data_subnet:
+                loginfo("Deleting the Subnet as it already exists....")
+                customlogs("Deleting the Subnet as it already exists....", logfile)
+                if data_subnet[0][inputs['name']]:
+                    self.fb.network_interfaces.delete_network_interfaces(names=data_subnet[0][inputs['name']])
+                self.fb.subnets.delete_subnets(names=[inputs['name']])
+
             msg = "Creating Subnet {}".format(inputs['name'])
-            subnet_data = self.fb.subnets.create_subnets(names=[inputs['name']],subnet=Subnet(prefix=inputs['prefix'], 
-                                      gateway=inputs['gateway'], vlan=int(inputs['vlan']), mtu=int(inputs['mtu'])))
+            subnet_data = self.fb.subnets.create_subnets(
+                names=[
+                    inputs['name']], subnet=Subnet(
+                    prefix=inputs['prefix'], gateway=inputs['gateway'], vlan=int(
+                        inputs['vlan']), mtu=int(
+                        inputs['mtu'])))
             if subnet_data:
                 dicts['prefix'] = inputs['prefix']
                 obj.setResult(dicts, PTK_OKAY, "Created Subnet successfully")
@@ -136,9 +161,10 @@ class FlashBladeTasks:
             return obj
         try:
             msg = "Creating Network Interface {}".format(inputs['name'])
-            nw_interface = NetworkInterface(address=inputs['address'], services=["data"], type="vip")
-            nw_data = self.fb.network_interfaces.create_network_interfaces(names=[inputs['name']],
-                                                                           network_interface=nw_interface)
+            nw_interface = NetworkInterface(
+                address=inputs['address'], services=["data"], type="vip")
+            nw_data = self.fb.network_interfaces.create_network_interfaces(
+                names=[inputs['name']], network_interface=nw_interface)
             if nw_data:
                 obj.setResult(dicts, PTK_OKAY, "Created Network Interface successfully")
                 loginfo("Created Network Interface successfully")
@@ -200,16 +226,16 @@ class FlashBladeTasks:
         try:
             msg = "Creating NFS {}".format(inputs['name'])
             provisioned_size = eval(inputs['provisioned_set'])
-            provisioned_size_bytes = (int(provisioned_size['provisioned_size']['value']) * 
-                               int(provisioned_size['provisioned_size_unit']['value']))
+            provisioned_size_bytes = (int(provisioned_size['provisioned_size']['value']) *
+                                      int(provisioned_size['provisioned_size_unit']['value']))
             if 'v3' in inputs['nfs_version']:
-                fs = FileSystem(name=inputs['name'], 
+                fs = FileSystem(name=inputs['name'],
                                 provisioned=provisioned_size_bytes,
-                                snapshot_directory_enabled=inputs['snapshot'], 
+                                snapshot_directory_enabled=inputs['snapshot'],
                                 fast_remove_directory_enabled=inputs['fast_remove'],
                                 nfs=NfsRule(v3_enabled=True, rules=export_rule))
             elif 'v4' in inputs['nfs_version']:
-                fs = FileSystem(name=inputs['name'], 
+                fs = FileSystem(name=inputs['name'],
                                 provisioned=provisioned_size_bytes,
                                 snapshot_directory_enabled=inputs['snapshot'],
                                 fast_remove_directory_enabled=inputs['fast_remove'],
@@ -248,19 +274,20 @@ class FlashBladeTasks:
             return obj
         try:
             msg = "Deleting NFS {}".format(inputs['name'])
-            ls_fs_data = self.fb.file_systems.list_file_systems(names=[inputs['name']], 
-                                                          filter='nfs.v3_enabled or nfs.v4_1_enabled')
+            ls_fs_data = self.fb.file_systems.list_file_systems(
+                names=[inputs['name']], filter='nfs.v3_enabled or nfs.v4_1_enabled')
             if ls_fs_data.items:
                 if ls_fs_data.items[0].nfs.v3_enabled:
-                    fs = FileSystem(nfs=NfsRule(v3_enabled=False))   
+                    fs = FileSystem(nfs=NfsRule(v3_enabled=False))
                     loginfo("Disabling nfsv3")
                 elif ls_fs_data.items[0].nfs.v4_1_enabled:
                     fs = FileSystem(nfs=NfsRule(v4_1_enabled=False))
                     loginfo("Disabling nfsv4")
-                self.fb.file_systems.update_file_systems(name=inputs['name'], attributes = fs)
+                self.fb.file_systems.update_file_systems(name=inputs['name'], attributes=fs)
             time.sleep(5)
             loginfo("Destroying the file system {}".format(inputs['name']))
-            self.fb.file_systems.update_file_systems(name=inputs['name'], attributes = FileSystem(destroyed=True))
+            self.fb.file_systems.update_file_systems(
+                name=inputs['name'], attributes=FileSystem(destroyed=True))
             time.sleep(5)
             loginfo("Eradicating the file system {}".format(inputs['name']))
             self.fb.file_systems.delete_file_systems(name=inputs['name'])

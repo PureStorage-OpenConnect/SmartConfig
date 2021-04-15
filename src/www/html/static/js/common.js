@@ -79,6 +79,7 @@ $(document).ready(function() {
 		$(this).closest('.modal').find('.form-footer').find('button').first().trigger('click');
 	});
 	$('body').delegate('.closePopup', 'click', function(e) {
+		$('.modal-inset .form-footer button').attr('disabled', false);
 		$('.modal-inset .dialog').remove();
 	});
 	
@@ -150,22 +151,30 @@ var MyRequestsCompleted = (function() {
 /**
   * @desc it will generate a confirmation popup template
 */
-function popupConfirmation(style, msg) {
+function popupConfirmation(style, title, msg) {
+	var result = msg.match(/\{{(.*)\}}/);
+	if(result != null) {
+		var resarr = result[1].split("|");
+		var str = loadFormField({type: resarr[0].toLowerCase(), id: resarr[1], name: resarr[1], checked: resarr[2], value: resarr[3], optional_label: resarr[4], holder: 'hide'});
+		msg = msg.replace(result[0], '<br />' + str);
+	}
 	return '<div class="dialog">' +
 		'<div class="dialog-overlay"></div>' +
 		'<div class="dialog-content">' +
-			'<div class="widget-title center">' + localization['confirmation'] + '</div>' +
-			'<div class="dialog-body">' + msg + '</div>' +
-			'<div class="dialog-footer">' +
-				'<div class="form-group">' +
-					'<div class="pull-left">' +
-						'<button type="button" class="closePopup">' + localization['no'] + '</button>' +
-					'</div>' +
-					'<div class="pull-right">' +
-						'<button type="button" class="' + style + ' primary">' + localization['yes'] + '</button>' +
+			'<form id="confirmation_frm">' +
+				'<div class="widget-title center">' + title + '</div>' +
+				'<div class="dialog-body">' + nl2br(msg) + '</div>' +
+				'<div class="dialog-footer">' +
+					'<div class="form-group">' +
+						'<div class="pull-left">' +
+							'<button type="button" class="closePopup">' + localization['no'] + '</button>' +
+						'</div>' +
+						'<div class="pull-right">' +
+							'<button type="button" class="' + style + ' primary">' + localization['yes'] + '</button>' +
+						'</div>' +
 					'</div>' +
 				'</div>' +
-			'</div>' +
+			'</form>' +
 		'</div>' +
 	'</div>';
 }
@@ -284,8 +293,10 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 		container: '',
 		isValidate: false,
 		formContainer: '',
+		confirm_title: localization['confirmation'],
 		notify: true,
-		success_notify: false
+		success_notify: false,
+		skipConfirmation: false
 	};
 	var api = $.extend({}, defaults, api);
 
@@ -339,8 +350,11 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 					}, settings.background_api_duration);
 				}
 			} else if(response.status.code == '1') {	// Status code is 1 to display a Confirmation popup
+				if(!api.skipConfirmation)
+					$('.modal-inset').append(popupConfirmation(api.formContainer, api.confirm_title, response.status.message));
+				else
+					successCallback(response);		// To trigger success callback
 				removeProcessingSpinner(api.container, spinner_cnt);
-				successCallback(response);		// To trigger success callback
 			} else if(response.status.code == '0' || response.status.code == '5') {	// A successful response for server
 				if(response.status.taskid) {
 					if(response.status.progress != '100') {
@@ -367,13 +381,13 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 				if(response.status.code == '5' && 'notifications' in response.data) {		// Handling the warning messages.
 					$.each(response.data.notifications, function(i, value) {
 						container = '';
-						if(typeof api.formContainer == 'object') {
-							$.each(api.formContainer, function(i, elem) {
+						if(typeof api.notifyContainer == 'object') {
+							$.each(api.notifyContainer, function(i, elem) {
 								container += elem + ' .control-group.' + value.field + ',';
 							});
 							container = trimChar(container, ',');
 						} else {
-							container = api.formContainer + ' .control-group.' + value.field;
+							container = api.notifyContainer + ' .control-group.' + value.field;
 						}
 						$(container).find('.notification-block').removeClass('hide').html('<i class="fa fa-warning"></i> ' + ucfirst(value.msg));
 					});
@@ -387,10 +401,10 @@ function doAjaxRequest(api, successCallback, errorCallback, backgroundCallback, 
 					backgroundCallback(response);
 				} else {
 					if(response.status.code == '-14') {
-						$(api.formContainer).find('.notification.inline:not(.fixed)').remove();
-						if($(api.formContainer).find('.notification.inline').length)
-							$(api.formContainer).find('.notification.inline').after('<h5 class="notification danger inline"><i class="fa fa-warning"></i> ' + response.status.message + '</h5>');
-						else $(api.formContainer).prepend('<h5 class="notification danger inline"><i class="fa fa-warning"></i> ' + response.status.message + '</h5>');
+						$(api.notifyContainer).find('.notification.inline:not(.fixed)').remove();
+						if($(api.notifyContainer).find('.notification.inline').length)
+							$(api.notifyContainer).find('.notification.inline').after('<h5 class="notification danger inline"><i class="fa fa-times-circle"></i> ' + response.status.message + '</h5>');
+						else $(api.notifyContainer).prepend('<h5 class="notification danger inline"><i class="fa fa-times-circle"></i> ' + response.status.message + '</h5>');
 					} else if(api.notify) showError(response.status, api.url);	// To display a failure status notification.
 					// Display the validation error occur on the forms
 					if(api.isValidate && response.data) {
@@ -527,10 +541,21 @@ function getObjectByKeyValue(array, value, base_key, field) {
 
 function findObjectByKeyValue(array, key, value) {
 	return result = array.filter(function (obj) {
-		return obj[key].toLowerCase() == value.toLowerCase();
+		if(typeof obj[key] == 'string')
+			return obj[key].toLowerCase() == value.toLowerCase();
+		else
+			return obj[key] == value;
 	})[0];
 }
 
+function findObjectsByKeyValue(array, key, value) {
+	return result = array.filter(function (obj) {
+		if(typeof obj[key] == 'string')
+			return obj[key].toLowerCase() == value.toLowerCase();
+		else
+			return obj[key] == value;
+	});
+}
 /**
   * @desc converts the given string to uppercase.
   * @param string $str - the string to be made uppercase

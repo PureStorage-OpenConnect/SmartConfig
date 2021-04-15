@@ -1,7 +1,7 @@
-from pure_dir.infra.logging.logmanager import loginfo, customlogs
+from pure_dir.infra.logging.logmanager import loginfo
 from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
-from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, job_input_save
+from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, job_input_save, getGlobalArg
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_config import get_job_file
 import xmltodict
@@ -64,6 +64,12 @@ class UCSCreateMACAddressPools:
         mac_address = self.random_mac(mac_id)
         loginfo("Random mac number:%s" % mac_address)
         job_input_save(jobid, texecid, 'mac_start', mac_address)
+
+        val = getGlobalArg(inputs, 'kvm_console_ip')
+        kvm_range = val.split('-')
+        kvm_count = int(kvm_range[1]) - int(kvm_range[0])
+        if kvm_count > 32:
+            job_input_save(jobid, texecid, 'size', str(kvm_count*2))
 
         res.setResult(None, PTK_OKAY, _("PDT_SUCCESS_MSG"))
         return res

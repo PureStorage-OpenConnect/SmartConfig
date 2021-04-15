@@ -3,8 +3,6 @@ from pure_dir.components.common import get_device_list
 from pure_dir.services.apps.pdt.core.tasks.main.ucs.common import *
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_helper import parseTaskResult, getArg, getGlobalArg, job_input_save, get_field_value_from_jobid
 from pure_dir.services.apps.pdt.core.orchestration.orchestration_data_structures import *
-from ucsmsdk.mometa.compute.ComputeRackUnit import ComputeRackUnit
-from ucsmsdk.mometa.compute.ComputeBlade import ComputeBlade
 
 metadata = dict(
     task_id="UCSCreateServiceProfileTemplate",
