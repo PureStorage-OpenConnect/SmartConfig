@@ -1,0 +1,188 @@
+#README: Please do not edit fields, which are marked as [type: readonly] in description, Also please do not edit workflow section
+{
+    "components": {
+        "FlashArray": {
+            "name": {
+                "value": "sn1-x70r2-d11-27",
+                "description": "FlashArray name [type: editable]"
+            },
+            "array_ip": {
+                "value": "192.168.10.41",
+                "description": "FlashArray IP Address [type: editable]"
+            }
+        },
+        "UCSM_A": {
+            "name": {
+                "value": "fi6454-fa-iscsi-rack-A",
+                "description": "Cisco UCS Fabric Interconnect Name (Example:fi-6332-A) [type: editable]"
+            },
+            "switch_ip": {
+                "value": "192.168.10.188",
+                "description": "UCSM Management IP address [type: editable]"
+            },
+            "leadership": {
+                "value": "primary",
+                "description": "leadership primary/subordinate [type: editable]"
+            },
+            "virtual_ip": {
+                "value": "192.168.10.157",
+                "description": "UCSM Virtual IP Address [type: editable]"
+            },
+            "infra_image": {
+                "value": "",
+                "description": "UCS Infrastructure Software Bundle [type: read-only]"
+            }
+        },
+        "UCSM_B": {
+            "name": {
+                "value": "fi6454-fa-iscsi-rack-B",
+                "description": "Cisco UCS Fabric Interconnect Name (Example:fi-6332-B) [type: editable]"
+            },
+            "switch_ip": {
+                "value": "192.168.10.160",
+                "description": "UCSM Management IP address [type: editable]"
+            }
+        }
+    },
+    "workflows": [],
+    "global_config": {
+        "gateway": {
+            "value": "192.168.10.1",
+            "description": "Out-of-band management network gateway (Example: 192.168.164.254) [type: editable]"
+        },
+        "ntp": {
+            "value": "192.168.10.1",
+            "description": "NTP IP Address (Example: 192.168.1.1) supports any IPv4 value up to 255.255.255.255 [type: editable]"
+        },
+        "netmask": {
+            "value": "255.255.255.0",
+            "description": "Out-of-band management network netmask (Example: 255.255.255.0) [type: editable]"
+        },
+        "mgmt_vlan": {
+            "value": "115",
+            "description": "In-band management network VLAN ID (Example: 115) supports any value up to 3967 [type: editable]"
+        },
+        "native_vlan": {
+            "value": "2",
+            "description": "VLAN for untagged frames (Example: 2) supports any value up to 3967. [type: editable]"
+        },
+        "vmotion_vlan": {
+            "value": "200",
+            "description": "VLAN for vMotion (Example: 200) supports any value up to 3967 [type: editable]"
+        },
+        "app1_vlan": {
+            "value": "201",
+            "description": "Application network VLAN ID (Example: 201) supports any value up to 3967 [type: editable]"
+        },
+        "app2_vlan": {
+            "value": "202",
+            "description": "Application network VLAN ID (Example: 202) supports any value up to 3967 [type: editable]"
+        },
+        "app3_vlan": {
+            "value": "203",
+            "description": "Application network VLAN ID (Example: 203) supports any value up to 3967 [type: editable]"
+        },
+        "iscsi_a_vlan": {
+            "value": "901",
+            "description": "VLAN for iSCSI A [type: editable]"
+        },
+        "iscsi_b_vlan": {
+            "value": "902",
+            "description": "VLAN for iSCSI B [type: editable]"
+        },
+        "up_port_a": {
+            "value": "151",
+            "description": "Uplink Port-Channel for Fabric A between NEXUS and FI (Example: 151) [type: editable]"
+        },
+        "up_port_b": {
+            "value": "152",
+            "description": "Uplink Port-Channel for Fabric B between NEXUS and FI (Example: 152) [type: editable]"
+        },
+        "host": {
+            "value": "192.168.10.99",
+            "description": "Email Relay Server IP Address supports any IPv4 value value upto 255.255.255.255 [type: editable]"
+        },
+        "IQN-Prefix": {
+            "value": "iqn.1992-08.com.cisco",
+            "description": "IQN Pool Prefix [type: editable]"
+        },
+        "iSCSI-IP-Pool-A": {
+            "value": "192.168.20.110",
+            "description": "iSCSI Pool A IP Address [type: editable]"
+        },
+        "iSCSI-IP-Pool-B": {
+            "value": "192.168.30.130",
+            "description": "iSCSI Pool B IP Address [type: editable]"
+        },
+        "iSCSI-IP-CT0ETH8": {
+            "value": "192.168.20.13",
+            "description": "iSCSI Interface IP1 for FA CT0 [type: editable]"
+        },
+        "iSCSI-IP-CT1ETH8": {
+            "value": "192.168.20.14",
+            "description": "iSCSI Interface IP1 for FA CT1 [type: editable]"
+        },
+        "iSCSI-IP-CT0ETH9": {
+            "value": "192.168.30.15",
+            "description": "iSCSI Interface IP2 for FA CT0 [type: editable]"
+        },
+        "iSCSI-IP-CT1ETH9": {
+            "value": "192.168.30.16",
+            "description": "iSCSI Interface IP2 for FA CT1 [type: editable]"
+        },
+        "firmware": {
+            "value": "",
+            "description": "Use B-Series bundle for Blade servers and C-Series bundle for Rack Servers [type: editable]"
+        },
+        "upgrade": {
+            "value": "No",
+            "description": "Option to perform UCS Infra and Server firmware upgrade Yes/No [type: editable]"
+        },
+        "zone": {
+            "value": "America/New_York",
+            "description": "Please Select the TimeZone [type: editable]"
+        },
+        "domain_name": {
+            "value": "",
+            "description": "DNS domain name (Example: flashstack.cisco.com)[type: editable]"
+        },
+        "dns": {
+            "value": "8.8.8.8",
+            "description": "Name server IP: DNS server IP(s) (Example: 10.1.164.9) [type: editable]"
+        },
+        "server_type": {
+            "value": "Rack",
+            "description": "UCS server type Blade/Rack [type: read-only]"
+        },
+        "kvm_console_ip": {
+            "value": "239-254",
+            "description": "KVM Console IP Address Range[type: editable]"
+        },
+        "esxi_file": {
+            "value": "Vmware-ESXi-6.5.0-5969303-Custom-Cisco-6.5.1.1.iso",
+            "description": "VMware vSphere ESXi Cisco Custom ISO (Eg:VMware_ESXi_6.7.0_10302608_Custom_Cisco_6.7.1.1) [type: editable]"
+        },
+        "esxi_kickstart": {
+            "value": "KS.cfg",
+            "description": "Option to perform automated installation of ESX, specify kickstart filename [type: editable]"
+        }
+    },
+    "system_info": {
+        "stacktype": {
+            "value": "fa-fi6454-iscsi-rack",
+            "description": "FlashStack deployment type [type: read-only]"
+        },
+        "version": {
+            "value": "2.0",
+            "description": "Document version [type: read-only]"
+        },
+        "flags": {
+            "value": "",
+            "description": "flags [type: read-only]"
+        },
+        "tool_version": {
+            "value": "1.6.1.202103270154",
+            "description": "Generated Tool version [type: read-only]"
+        }
+    }
+}
