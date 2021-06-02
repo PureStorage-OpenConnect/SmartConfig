@@ -12,7 +12,7 @@ setup(
         "Flask==1.1.2",
         "requests==2.24.0",
         "PyYAML",
-        "urllib3==1.25.9",
+        "urllib3==1.26.5",
         "connexion==2.7.0",
         "yamlreader==3.0.4",
         "pyaml==20.4.0",
