@@ -29,7 +29,7 @@ setup(
         "croniter==0.3.34",
         "jsonschema==3.0.1",
         "Jinja2==2.11.3",
-        "lxml==4.6.3",
+        "lxml==4.6.5",
         "requests_toolbelt==0.9.1",
         "netaddr",
         "scapy==2.4.3",
