@@ -39,7 +39,7 @@ setup(
         "contextlib2==0.6.0",
         "Werkzeug==0.16.0",
         "openpyxl==3.0.4",
-        "Pillow==8.1.1",
+        "Pillow==9.0.1",
         "paramiko==2.7.1",
         "xmltodict==0.12.0",
         "netmiko==3.1.1",
