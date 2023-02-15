@@ -37,7 +37,7 @@ setup(
         "pycparser==2.19",
         "configparser==5.0.0",
         "contextlib2==0.6.0",
-        "Werkzeug==0.16.0",
+        "Werkzeug==2.2.3",
         "openpyxl==3.0.4",
         "Pillow==8.1.1",
         "paramiko==2.7.1",
