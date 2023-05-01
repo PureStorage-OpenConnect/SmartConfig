@@ -9,7 +9,7 @@ setup(
     license="BSD",
     packages=find_packages(),
     install_requires=[
-        "Flask==1.1.2",
+        "Flask==2.3.2",
         "requests==2.24.0",
         "PyYAML",
         "urllib3==1.25.9",
