@@ -10,7 +10,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "Flask==1.1.2",
-        "requests==2.24.0",
+        "requests==2.31.0",
         "PyYAML",
         "urllib3==1.25.9",
         "connexion==2.7.0",
